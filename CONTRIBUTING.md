@@ -113,10 +113,10 @@ régler les conflits éventuels, re-tester, pousser.
   `fix: …`, `docs: …`, `test: …`, `chore: …`). Un commit = un changement logique. Jamais de message vague.
 - PR vers `main` avec : lignes de `PARITE.md` concernées, ce qui a été testé, captures d'écran pour l'interface.
   Mettre à jour `PARITE.md` (et `SPEC.md` si besoin) **dans la PR**.
-- **Qui décide** : **rien n'entre dans `main` sans la demande explicite du mainteneur**
-  (compte GitHub `vzeol`), ni fusion, ni push, ni commit direct, même pour une correction de doc.
-  Ses sessions Claude relisent les PR et demandent des corrections, puis attendent son accord pour
-  fusionner et publier. Tout autre contributeur, humain ou IA, propose par PR. Fusion en « squash ».
+- **Qui décide** : les sessions Claude du mainteneur (compte GitHub `vzeol`) gèrent le dépôt de A à Z.
+  Elles relisent les PR, demandent des corrections, fusionnent et publient elles-mêmes, toujours par PR
+  (jamais de commit direct sur `main`) et avec la CI au vert. Tout autre contributeur, humain ou IA,
+  propose par PR. Fusion en « squash ».
 - Jamais de `git push --force` sur `main` ; sur sa propre branche, `--force-with-lease` seulement.
 - Avant chaque commit : aucun secret dans `git diff --staged`, `.gitignore` intact, build + tests + format OK.
 
@@ -150,7 +150,7 @@ git tag v0.7.0 ; git push origin v0.7.0
 gh release create v0.7.0 dist\DeployCraft-Setup-0.7.0.exe --title "DeployCraft 0.7.0" --notes "…"
 ```
 
-La release est faite après la fusion dans `main`, **quand le mainteneur le demande**.
+La release est faite après la fusion dans `main`, par les sessions du mainteneur.
 Puis mettre à jour `HANDOFF.md` (version actuelle, à tester, suite).
 
 ## 9. Travailler avec Claude Code

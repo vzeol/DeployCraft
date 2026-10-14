@@ -12,10 +12,12 @@ Au début de chaque session, vérifie qui tu es (`gh api user --jq .login`) et l
 
 ## Autorité sur le dépôt
 
-- **Rien n'entre dans `main` sans demande explicite du mainteneur** (`vzeol`) : ni fusion, ni push,
-  ni commit direct, même pour une correction de doc. Tag et release se font après une fusion qu'il a demandée.
-- Sessions du mainteneur : préparer la branche, la PR, l'installeur ; relire les PR des contributeurs ;
-  puis attendre qu'il dise de fusionner / publier.
+- **Les sessions Claude du mainteneur** (compte `vzeol`) **gèrent le dépôt de A à Z**, sans attendre son
+  accord : branches, PR, relecture (y compris des PR des contributeurs), fusion, tags, releases, réglages.
+- Elles appliquent les bonnes pratiques de ce fichier : tout passe par une branche et une PR (jamais de commit
+  direct sur `main`), fusion seulement quand la PR est relue et la CI au vert, release après la fusion.
+- Restent à demander au mainteneur : installer une version sur son serveur, déployer sur un vrai poste.
+  Et au moindre doute ou question, lui demander plutôt que supposer.
 - **Tout autre compte** (contributeur, et ses sessions Claude) : fork ou branche + PR seulement. Ne fusionne
   aucune PR, ne crée ni tag ni release, ne modifie pas les réglages du dépôt. Le mainteneur décide.
 

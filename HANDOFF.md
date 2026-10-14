@@ -10,9 +10,9 @@ attendues d'un outil de ce type (`PARITE.md`), puis tri et ajouts à la fin.
 
 ## Méthode de travail (consigne du mainteneur)
 
-**Un sujet à la fois.** On finit un sujet sur sa branche (commits, tests, HANDOFF, PR, installeur) ; **fusion et
-release seulement quand le mainteneur le demande** ; il teste sur son parc : **on ne passe au sujet suivant
-qu'une fois qu'il a tout validé**.
+**Un sujet à la fois.** On finit un sujet sur sa branche (commits, tests, HANDOFF, PR, installeur), puis fusion
+et release par Claude (CI au vert) ; le mainteneur l'installe et teste sur son parc : **on ne passe au sujet
+suivant qu'une fois qu'il a tout validé**.
 
 Les informations propres à l'environnement du mainteneur (serveurs, postes de test, comptes) sont dans ses notes
 **hors du dépôt** : ne jamais les recopier ici.
