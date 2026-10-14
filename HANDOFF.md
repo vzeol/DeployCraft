@@ -24,7 +24,10 @@ fois et les planifications, comptes locaux, dossier de données réservé aux ad
 § « Identifiants (0.9.0) ». Testé avec des comptes fictifs (30 tests automatiques + instance isolée) ; validation
 avec de vrais comptes en cours chez le mainteneur.
 
-Prochains sujets possibles : fenêtre paquet à onglets (`SPEC.md` § « Fenêtre paquet »), LAPS, listes de cibles,
+Gestion du dépôt (15/10) : `main` protégée (PR + CI obligatoires), règles des sessions du mainteneur dans `CLAUDE.md`.
+**Sujet suivant décidé : authentification de l'API du service (PARITE 8.10).**
+
+Autres sujets possibles : fenêtre paquet à onglets (`SPEC.md` § « Fenêtre paquet »), LAPS, listes de cibles,
 onglet Hors ligne de Déployer une fois. À traiter aussi : l'API du service (`localhost:5080`) n'a pas
 d'authentification ; un utilisateur ouvert sur le serveur pourrait lancer un déploiement (PARITE 8.10).
 

@@ -43,8 +43,23 @@ Au début de chaque session, vérifie qui tu es (`gh api user --jq .login`) et l
 ## Réalisation indépendante
 
 DeployCraft est écrit de zéro. Jamais de code, d'icône, d'image, de texte ni de fichier provenant d'un autre
-logiciel ; les libellés sont écrits avec nos propres mots. Le dépôt décrit ce que fait DeployCraft
-(`SPEC.md`), pas d'autres logiciels.
+logiciel ; les libellés sont écrits avec nos propres mots.
+
+On peut **observer** d'autres outils de déploiement en fonctionnement (ce qu'ils permettent de faire, comment
+l'interface est organisée) et **citer leurs fonctions** pour dresser la liste des tâches (`PARITE.md`).
+On ne décrit jamais leur fonctionnement interne et on ne reproduit jamais leurs textes ni leurs visuels :
+`SPEC.md` décrit uniquement ce que fait DeployCraft, avec nos mots.
+
+## Sessions du mainteneur
+
+Le mainteneur fait travailler plusieurs sessions Claude, chacune avec un accès différent (par exemple : l'une
+voit la version la plus récente d'un outil de référence mais n'a pas de domaine, l'autre a un domaine de test).
+Toutes développent et ont la même autorité sur le dépôt. Pour ne jamais travailler à deux sur la même chose :
+- avant de commencer un sujet, ouvrir (ou reprendre) son **issue** et se l'assigner ; un sujet déjà pris
+  n'est pas touché ;
+- une session qui a besoin de ce qu'une autre peut faire (observer un comportement, tester sur un domaine)
+  le demande dans l'issue ou la PR concernée ;
+- `main` est protégée : PR obligatoire et CI au vert pour fusionner, même pour les administrateurs.
 
 ## Tests sur un parc
 

@@ -27,6 +27,8 @@ Documents du dépôt :
 DeployCraft est écrit de zéro. On ne reprend **jamais** le code, les icônes, le logo, les images, les
 textes ou les fichiers d'un autre logiciel. Les libellés sont écrits en français, avec nos propres mots.
 Démarche : décrire le comportement voulu dans `SPEC.md` → coder **depuis la spec**.
+Observer d'autres outils en fonctionnement et citer leurs fonctions (`PARITE.md`) est permis ; décrire leur
+fonctionnement interne ou reprendre leurs textes et visuels ne l'est pas.
 Notre identité visuelle : accent orange, icônes Windows (Segoe Fluent / MDL2).
 
 **Aucune information interne** dans le dépôt public : noms de serveurs, de postes, de domaines, de comptes,
@@ -117,6 +119,8 @@ régler les conflits éventuels, re-tester, pousser.
   Elles relisent les PR, demandent des corrections, fusionnent et publient elles-mêmes, toujours par PR
   (jamais de commit direct sur `main`) et avec la CI au vert. Tout autre contributeur, humain ou IA,
   propose par PR. Fusion en « squash ».
+- `main` est protégée sur GitHub : PR obligatoire, CI (`build`) au vert et branche à jour pour fusionner,
+  y compris pour les administrateurs ; pas de force-push ni de suppression.
 - Jamais de `git push --force` sur `main` ; sur sa propre branche, `--force-with-lease` seulement.
 - Avant chaque commit : aucun secret dans `git diff --staged`, `.gitignore` intact, build + tests + format OK.
 
