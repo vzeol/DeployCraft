@@ -50,16 +50,10 @@ l'interface est organisée) et **citer leurs fonctions** pour dresser la liste d
 On ne décrit jamais leur fonctionnement interne et on ne reproduit jamais leurs textes ni leurs visuels :
 `SPEC.md` décrit uniquement ce que fait DeployCraft, avec nos mots.
 
-## Sessions du mainteneur
+## Prendre un sujet
 
-Le mainteneur fait travailler plusieurs sessions Claude, chacune avec un accès différent (par exemple : l'une
-voit la version la plus récente d'un outil de référence mais n'a pas de domaine, l'autre a un domaine de test).
-Toutes développent et ont la même autorité sur le dépôt. Pour ne jamais travailler à deux sur la même chose :
-- avant de commencer un sujet, ouvrir (ou reprendre) son **issue**, se l'assigner et écrire dedans **quelle
-  session** le prend (toutes utilisent le compte `vzeol` : l'assignation seule ne les distingue pas) ; un sujet
-  déjà pris n'est pas touché ;
-- une session qui a besoin de ce qu'une autre peut faire (observer un comportement, tester sur un domaine)
-  le demande dans l'issue ou la PR concernée ;
+- Avant de commencer un sujet, ouvrir (ou reprendre) son **issue** et écrire dedans **qui le prend** ; un sujet
+  déjà pris n'est pas touché. Un besoin (un test, une vérification) se demande dans l'issue ou la PR concernée.
 - `main` est protégée : PR obligatoire et CI au vert pour fusionner, même pour les administrateurs.
 
 ## Tests sur un parc

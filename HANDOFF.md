@@ -24,7 +24,7 @@ fois et les planifications, comptes locaux, dossier de données réservé aux ad
 § « Identifiants (0.9.0) ». 0.9.1 : « .\ » reconnu comme compte local, Tester un compte local sur un poste choisi.
 Validé par le mainteneur avec ses vrais comptes ; 38 tests automatiques.
 
-Gestion du dépôt (15/10) : `main` protégée (PR + CI obligatoires), règles des sessions du mainteneur dans `CLAUDE.md`.
+Gestion du dépôt (15/10) : `main` protégée (PR + CI obligatoires), un sujet = une issue (qui le prend), voir `CLAUDE.md`.
 
 **Sujet en cours : authentification de l'API du service (PARITE 8.10, issue #5).** Aujourd'hui l'API
 (`localhost:5080`) n'a pas d'authentification : un utilisateur ouvert sur le serveur pourrait lancer un déploiement.
