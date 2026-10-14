@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Net;
 using System.Security.Cryptography;
 using System.Security.Principal;
@@ -105,19 +106,48 @@ public class DeployCredentials
     /// Exécute <paramref name="action"/> en utilisant <paramref name="c"/> pour tout accès réseau vers
     /// <paramref name="computer"/> (partage ADMIN$, gestionnaire de services distant). Sans identifiant : identité du service.
     /// </summary>
-    public T RunAs<T>(Credential? c, string? computer, Func<T> action)
-    {
-        if (c == null) return action();
+    public T RunAs<T>(Credential? c, string? computer, Func<T> action) =>
+        c == null ? action() : RunAs(c, Password(c), computer, action);
 
+    public void RunAs(Credential? c, string? computer, Action action) => RunAs(c, computer, () => { action(); return 0; });
+
+    private static T RunAs<T>(Credential c, string password, string? computer, Func<T> action)
+    {
         // NEW_CREDENTIALS : l'identité locale ne change pas, seuls les accès réseau utilisent ce compte.
-        if (!Win32.LogonUser(c.User, LogonDomain(c, computer), Password(c), Win32.LOGON32_LOGON_NEW_CREDENTIALS,
+        if (!Win32.LogonUser(c.User, LogonDomain(c, computer), password, Win32.LOGON32_LOGON_NEW_CREDENTIALS,
                 Win32.LOGON32_PROVIDER_WINNT50, out SafeAccessTokenHandle token))
             throw Win32.LastError($"Ouverture de session de {c.Account}");
         using (token)
             return WindowsIdentity.RunImpersonated(token, action);
     }
 
-    public void RunAs(Credential? c, string? computer, Action action) => RunAs(c, computer, () => { action(); return 0; });
+    /// <summary>
+    /// Essaie le compte sur un poste, comme le ferait un déploiement : il doit ouvrir le partage
+    /// d'administration ADMIN$. Sur le serveur lui-même, on vérifie seulement le mot de passe.
+    /// </summary>
+    public static void TestOnComputer(Credential c, string password, string computer)
+    {
+        if (TargetSession.IsLocalComputer(computer))
+        {
+            if (!Win32.LogonUser(c.User, LogonDomain(c, computer), password, Win32.LOGON32_LOGON_NETWORK,
+                    Win32.LOGON32_PROVIDER_DEFAULT, out SafeAccessTokenHandle local))
+                throw new DeployException($"{c.Account} refusé par ce serveur : {new Win32Exception().Message}");
+            local.Dispose();
+            return;
+        }
+        try
+        {
+            RunAs(c, password, computer, () => Directory.EnumerateFileSystemEntries($@"\\{computer}\ADMIN$").FirstOrDefault());
+        }
+        catch (UnauthorizedAccessException)
+        {
+            throw new DeployException($"{c.Account} n'a pas accès à ADMIN$ sur {computer} : mot de passe incorrect ou compte non administrateur du poste.");
+        }
+        catch (IOException ex)
+        {
+            throw new DeployException($"{c.Account} refusé par {computer} : {new Win32Exception(ex.HResult & 0xFFFF).Message}");
+        }
+    }
 
     /// <summary>Identifiant pour lire l'Active Directory : celui par défaut s'il est du domaine, sinon le premier du domaine.</summary>
     public Credential ForDirectory()

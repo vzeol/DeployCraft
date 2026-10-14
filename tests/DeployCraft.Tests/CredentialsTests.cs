@@ -121,6 +121,15 @@ public sealed class CredentialsTests : IDisposable
         Assert.Equal(isLocal, c.IsLocal);
     }
 
+    [Fact]
+    public void TestOnComputer_RefusesAnUnknownLocalAccount_WithAClearMessage()
+    {
+        var account = new Credential { Domain = ".", User = "deploycraft-compte-inexistant" };
+
+        var ex = Assert.Throws<DeployException>(() => DeployCredentials.TestOnComputer(account, FakePassword, "localhost"));
+        Assert.Contains(@".\deploycraft-compte-inexistant refusé", ex.Message);
+    }
+
     [Theory]
     [InlineData(@".\", "Administrateur", null, "Administrateur")]
     [InlineData(@"DOMAINE.LOCAL\", "admin", "DOMAINE.LOCAL", "admin")]

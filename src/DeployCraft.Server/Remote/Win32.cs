@@ -21,7 +21,9 @@ internal static partial class Win32
     public const int ERROR_INVALID_SERVICE_ACCOUNT = 1057;
     public const int ERROR_SERVICE_LOGON_FAILED = 1069;
 
+    public const int LOGON32_LOGON_NETWORK = 3;
     public const int LOGON32_LOGON_NEW_CREDENTIALS = 9;
+    public const int LOGON32_PROVIDER_DEFAULT = 0;
     public const int LOGON32_PROVIDER_WINNT50 = 3;
 
     [StructLayout(LayoutKind.Sequential)]

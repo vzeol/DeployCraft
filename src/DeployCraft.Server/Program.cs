@@ -83,18 +83,20 @@ api.MapPost("/credentials/{id:long}/default", (long id, DeployCredentials cred) 
 });
 
 // Teste un compte du domaine auprès de l'annuaire (mot de passe vide + id = celui enregistré).
-// Un compte local ne peut être vérifié que par chaque poste, au moment du déploiement.
+// Un compte local est propre à chaque poste : on l'essaie sur le poste indiqué.
 api.MapPost("/credentials/test", (CredentialInput input, DeployCredentials cred) =>
 {
     var account = input.ToCredential(input.Id ?? 0);
-    if (account.IsLocal)
-        return Results.BadRequest(new { error = "Un compte local est vérifié par chaque poste au moment du déploiement : il ne peut pas être testé ici." });
+    var computer = input.Computer?.Trim();
+    if (account.IsLocal && string.IsNullOrEmpty(computer))
+        return Results.BadRequest(new { error = "Indiquez le poste sur lequel essayer ce compte local." });
     try
     {
         var password = input.Password;
         if (string.IsNullOrEmpty(password) && input.Id is { } id && cred.Get(id) is { } stored) password = cred.Password(stored);
         if (string.IsNullOrEmpty(password)) return Results.BadRequest(new { error = "Saisissez le mot de passe." });
-        ActiveDirectory.TestConnection(account, password);
+        if (account.IsLocal) DeployCredentials.TestOnComputer(account, password, computer!);
+        else ActiveDirectory.TestConnection(account, password);
         return Results.Ok(new { ok = true });
     }
     catch (DeployException ex)
@@ -288,7 +290,7 @@ static string? Validate(Package p)
     return null;
 }
 
-record CredentialInput(long? Id, string? Domain, string User, string? Description, string? Password)
+record CredentialInput(long? Id, string? Domain, string User, string? Description, string? Password, string? Computer = null)
 {
     public Credential ToCredential(long id) => new Credential { Id = id, Domain = Domain, User = User ?? "", Description = Description }.Normalize();
 }
