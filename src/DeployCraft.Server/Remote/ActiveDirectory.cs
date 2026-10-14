@@ -70,7 +70,7 @@ public class ActiveDirectory(DeployCredentials credentials)
     private static string QualifiedUser(Credential c) =>
         c.User.Contains('\\') || c.User.Contains('@') ? c.User : $@"{c.Domain}\{c.User}";
 
-    /// <summary>« CN=PC01,OU=Salle 12,OU=Postes,DC=lycee,DC=local » → « Postes / Salle 12 ».</summary>
+    /// <summary>« CN=PC01,OU=Comptabilite,OU=Postes,DC=domaine,DC=local » → « Postes / Comptabilite ».</summary>
     private static string OuPath(string dn)
     {
         var ous = dn.Split(',').Where(p => p.StartsWith("OU=", StringComparison.OrdinalIgnoreCase)).Select(p => p[3..]).Reverse();

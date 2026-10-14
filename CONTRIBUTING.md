@@ -72,7 +72,7 @@ $env:DEPLOYCRAFT_URL = "http://localhost:5091"
   Ne jamais écrire un mot de passe dans le code, un commit, une issue ou une conversation avec une IA.
 - Fermer seulement **ses propres** fenêtres de test (par PID), jamais toutes les instances DeployCraft.
 - Tests en réel sur un domaine : seulement sur des postes de test convenus avec le mainteneur
-  (salle vide, poste de labo). Commencer par une étape sans effet (`hostname`).
+  (poste de test, machine hors production). Commencer par une étape sans effet (`hostname`).
 
 Tests automatiques : `dotnet test DeployCraft.slnx` (projet `tests\DeployCraft.Tests`). Tout changement de
 comportement ajoute ou met à jour un test, même basique. Ce qui touche un vrai poste (réseau, service
