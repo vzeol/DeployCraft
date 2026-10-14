@@ -129,7 +129,27 @@ public class Credential
     /// <summary>Mot de passe impossible à déchiffrer (base copiée d'un autre serveur…) : à ressaisir.</summary>
     public bool PasswordUnreadable { get; set; }
 
-    public bool IsLocal => string.IsNullOrEmpty(Domain) || Domain == ".";
+    public bool IsLocal => NormalizeDomain(Domain) == null;
+
+    /// <summary>« », « . », « .\ » et « ./ » désignent le compte local de chaque poste (null) ; sinon le domaine, sans barre finale.</summary>
+    public static string? NormalizeDomain(string? domain)
+    {
+        var d = domain?.Trim().TrimEnd('\\', '/').Trim();
+        return string.IsNullOrEmpty(d) || d == "." ? null : d;
+    }
+
+    /// <summary>Remet la saisie en forme, y compris « DOMAINE\utilisateur » ou « .\utilisateur » tapé en entier dans Utilisateur.</summary>
+    public Credential Normalize()
+    {
+        User = User.Trim();
+        if (NormalizeDomain(Domain) == null && User.IndexOf('\\') is var sep and > 0)
+        {
+            Domain = User[..sep];
+            User = User[(sep + 1)..].Trim();
+        }
+        Domain = NormalizeDomain(Domain);
+        return this;
+    }
     /// <summary>« DOMAINE\utilisateur », ou « .\utilisateur » pour un compte local.</summary>
     public string Account => (IsLocal ? "." : Domain) + "\\" + User;
     public string Display => Account + (string.IsNullOrWhiteSpace(Description) ? "" : $" — {Description}");

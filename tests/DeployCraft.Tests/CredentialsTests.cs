@@ -110,6 +110,8 @@ public sealed class CredentialsTests : IDisposable
     [Theory]
     [InlineData(null, "Administrateur", @".\Administrateur", true)]
     [InlineData(".", "Administrateur", @".\Administrateur", true)]
+    [InlineData(@".\", "Administrateur", @".\Administrateur", true)]
+    [InlineData(" ./ ", "Administrateur", @".\Administrateur", true)]
     [InlineData("DOMAINE.LOCAL", "Administrateur", @"DOMAINE.LOCAL\Administrateur", false)]
     public void Account_ShowsLocalAccountsWithADot(string? domain, string user, string account, bool isLocal)
     {
@@ -117,6 +119,20 @@ public sealed class CredentialsTests : IDisposable
 
         Assert.Equal(account, c.Account);
         Assert.Equal(isLocal, c.IsLocal);
+    }
+
+    [Theory]
+    [InlineData(@".\", "Administrateur", null, "Administrateur")]
+    [InlineData(@"DOMAINE.LOCAL\", "admin", "DOMAINE.LOCAL", "admin")]
+    [InlineData("", @".\Administrateur", null, "Administrateur")]
+    [InlineData(null, @"DOMAINE.LOCAL\admin", "DOMAINE.LOCAL", "admin")]
+    [InlineData("DOMAINE.LOCAL", "admin", "DOMAINE.LOCAL", "admin")]
+    public void Save_NormalizesTheDomainAsTyped(string? domain, string user, string? savedDomain, string savedUser)
+    {
+        var saved = new DeployCredentials(_store).Save(new Credential { Domain = domain, User = user }, FakePassword);
+
+        Assert.Equal(savedDomain, saved.Domain);
+        Assert.Equal(savedUser, saved.User);
     }
 
     [Theory]

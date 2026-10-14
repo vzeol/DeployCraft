@@ -36,7 +36,7 @@ public partial class CredentialEditWindow : Window
         UpdateTest();
     }
 
-    private bool IsLocal => DomainBox.Text.Trim() is "" or ".";
+    private bool IsLocal => Credential.NormalizeDomain(DomainBox.Text) == null;
 
     private void Field_Changed(object sender, RoutedEventArgs e)
     {

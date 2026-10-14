@@ -55,9 +55,7 @@ public class DeployCredentials
     /// <summary>Enregistre un identifiant ; mot de passe vide = on garde l'actuel (l'interface ne le renvoie jamais).</summary>
     public Credential Save(Credential c, string? password)
     {
-        var domain = c.Domain?.Trim();
-        c.Domain = string.IsNullOrEmpty(domain) || domain == "." ? null : domain;
-        c.User = c.User.Trim();
+        c.Normalize();
         c.Description = string.IsNullOrWhiteSpace(c.Description) ? null : c.Description.Trim();
         var secret = string.IsNullOrEmpty(password)
             ? null

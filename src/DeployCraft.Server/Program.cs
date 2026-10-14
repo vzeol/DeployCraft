@@ -290,7 +290,7 @@ static string? Validate(Package p)
 
 record CredentialInput(long? Id, string? Domain, string User, string? Description, string? Password)
 {
-    public Credential ToCredential(long id) => new() { Id = id, Domain = Domain, User = User?.Trim() ?? "", Description = Description };
+    public Credential ToCredential(long id) => new Credential { Id = id, Domain = Domain, User = User ?? "", Description = Description }.Normalize();
 }
 record DeployInput(List<long> PackageIds, List<TargetRequest> Targets, string? LaunchedBy, DeployOptions? Options);
 record AbortInput(List<long>? TargetIds, string? By);
