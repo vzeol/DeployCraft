@@ -36,23 +36,17 @@ Gestion du dépôt (15/10) : `main` protégée (PR + CI obligatoires), un sujet 
 
 ## Point de reprise (Cloud, 15/10) : retours du mainteneur sur la 0.12.0
 
-Glisser-déposer et remarque partielle : validés. Dans l'ordre :
+Glisser-déposer et remarque partielle : validés. Dans l'ordre (1 et 3 faits, 2 en cours) :
 
 1. **Fait — PR #40 fusionnée** : variables $(Nom) retirées (choix du mainteneur), relu et testé par Prod (un
    `$(Poste)` / `$(Get-Date)` part tel quel). Table `variables` laissée en base, plus lue. PARITE 8.2 ❌.
-2. Après la PR style (point 3) : rebaser `feat/executer-en-tant-que-etape` (2.8) sur `main` (conflit attendu dans `TargetSession.Prepare`).
-   Toujours pas de PR ; décision (c) « compte de déploiement sur le bureau » : écartée par le mainteneur (déploiements
-   toujours silencieux, sans mot de passe sur le poste) ; à reporter dans PARITE 2.8 sur cette branche, ✅ si les
-   4 autres valeurs sont faites. Pas de PR avant le feu vert de Prod.
-3. **En cours — branche `style/elements-cliquables` (issue #41), PR « style: » à relire par Prod.** Boutons de
-   barre d'outils (`ToolButton`) : fond `ControlBackground` et bordure `ControlBorder` au repos, survol
-   `ToolHoverBackground` + bordure accent, pressé `ToolPressedBackground`, inactifs comme avant ; même taille (marge
-   1 + bordure 1 + espacement 6,3 = espacement 8,4 d'avant). Liens : style implicite `Hyperlink` (souligné,
-   `LinkBrush` / `LinkHoverBrush`, main ; inactif atténué sans soulignement). Grilles : survol `RowHoverBackground`
-   (style implicite `DataGridRow`). Arbres : clé Fluent `TreeViewItemBackgroundPointerOver` redéfinie dans les
-   thèmes. Contrastes : liens ≥ 4,5:1 (sombre 6,4, clair 4,7) ; texte des boutons ≥ 4,5:1 au survol. En clair, le
-   survol d'un lien fonce au lieu d'éclaircir (sinon illisible). À vérifier par Prod : captures en sombre et en
-   clair, surtout le survol de l'arbre (clé Fluent non vérifiable sous Linux).
+2. **En cours — branche `feat/executer-en-tant-que-etape` (2.8)** : `main` intégrée par une fusion (pas de
+   réécriture d'historique ; la PR sera fusionnée en squash). Conflit de `TargetSession.Prepare` résolu (plus de
+   `ForComputer`). Décision (c) « bureau » écartée par le mainteneur, reportée dans PARITE 2.8. Pas de PR avant le
+   feu vert de Prod.
+3. **Fait — PR #42 fusionnée** : boutons de barre d'outils (fond et bordure au repos, survol bordé d'accent),
+   liens soulignés en orange, survol des grilles et des arbres. Vu par Prod au repos en sombre et en clair ;
+   **survols pas vérifiés** (curseur non pilotable en RDP) : à regarder par le mainteneur dans la 0.13.0.
 
 ## En cours : options et étapes manquantes (DeployCraft Cloud, relu par DeployCraft Prod)
 
@@ -93,21 +87,22 @@ version ni de release côté Cloud) :
   étapes est ignorée (« 1 étape ignorée : « X » (raison) ») ; glisser-déposer des étapes dans l'arbre de la fenêtre
   paquet (`PackageWindow.DragDrop.cs`, déplacement libre), Ctrl+Haut / Ctrl+Bas. **Glisser-déposer pas encore
   testé pour de vrai** (session Windows verrouillée pendant les tests de Prod) : à vérifier dans la 0.12.0.
-- **Thème sombre trop « plat » (PR #36)** : en relecture. Onglets soulignés d'accent, boutons bordés (principal à
-  l'accent), champs bordés au repos ; nouvelles clés `Control*` / `Primary*` dans les deux thèmes, contrastes WCAG.
-- **Installeur (branche `fix/installeur-console-ouverte`)** : en relecture. Une mise à jour avec la console ouverte
-  échouait (code 5) après avoir supprimé le service. Désormais : console fermée proprement (Restart Manager, filtre
-  `DeployCraft.exe`), service seulement arrêté juste avant la copie, reconfiguré par `sc config`, et redémarré si
-  l'installation échoue.
+- **Thème sombre trop « plat » (PR #36)** : fusionnée. Onglets soulignés d'accent, boutons et champs bordés, clés
+  `Control*` / `Primary*` dans les deux thèmes (contrastes WCAG). **0.12.0 publiée** par Prod.
+- **Installeur (PR #39)** : fusionnée. Une mise à jour avec la console ouverte échouait (code 5) après avoir supprimé
+  le service. Désormais : console fermée proprement (Restart Manager, filtre `DeployCraft.exe`), service seulement
+  arrêté juste avant la copie, reconfiguré par `sc config`, et redémarré si l'installation échoue.
+- **2.8 exécuter en tant que par étape (branche `feat/executer-en-tant-que-etape`)** : codé, `main` intégrée
+  (variables et style), **PR seulement après le feu vert de Prod**. Tranches par identité (`Remote/RunAsPlan.cs`),
+  un service par tranche, `halt` / `haltReason` dans status.json, `firstNumber` dans job.json. « Compte de
+  déploiement sur le bureau » : écarté par le mainteneur (déploiements toujours silencieux, sans mot de passe sur
+  le poste).
 - Contributeur externe (chromozone21, par fork) : issues #22, #23, #24, à ne pas prendre.
-  **#23 — 4.8 nettoyage de l'historique** : PR ouverte, en relecture. Réglage `DeploymentDefaults.History`
+  **#23 — 4.8 nettoyage de l'historique (PR #38)** : fusionnée. Réglage `DeploymentDefaults.History`
   (`HistorySettings` : `Cleanup`, `KeepDays` de 1 à 3650, désactivé d'usine), `Store.PurgeFinishedDeployments`,
-  service `HistoryCleaner` (au démarrage puis chaque jour), case et champ dans Préférences › Déploiement,
-  16 tests automatiques. Testé sous Windows sur une instance isolée (déploiements vieillis en base, réglage
-  désactivé puis activé, valeurs refusées par l'API, fenêtre en thèmes clair et sombre). À décider par le
-  mainteneur : le premier ménage a lieu au prochain démarrage du service ou dans les 24 h, pas à l'activation du
-  réglage.
-- Ensuite : 2.8, 2.23, 2.24, 2.26, 2.27, 2.20–2.22 (à tester sur un vrai poste).
+  service `HistoryCleaner` (au démarrage puis chaque jour), case et champ dans Préférences › Déploiement. Le premier
+  ménage a lieu au prochain démarrage du service ou dans les 24 h, pas à l'activation du réglage.
+- Ensuite : 2.23, 2.24, 2.26, 2.27, 2.20–2.22 (à tester sur un vrai poste).
 - Import des paquets PDQ Deploy (#14) : en attente, après ces sujets.
 
 Autres sujets possibles : réglages hors ligne dans Déployer une fois et les planifications, LAPS (en option),

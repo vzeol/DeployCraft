@@ -46,6 +46,11 @@ public class PackageStep
     public List<ConditionGroup>? ExtraConditions { get; set; }
     /// <summary>Délai max de l'étape (null = celui du paquet, sinon celui des Préférences).</summary>
     public int? TimeoutMinutes { get; set; }
+    /// <summary>
+    /// Identité de l'étape (null = celle du déploiement : paquet, ou choix de Déployer une fois / planification).
+    /// Les étapes consécutives de même identité sont lancées ensemble sur le poste.
+    /// </summary>
+    public RunAsMode? RunAs { get; set; }
     public ErrorMode ErrorMode { get; set; } = ErrorMode.Stop;
     /// <summary>Conditions de l'étape : non remplies sur un poste, l'étape y est sautée.</summary>
     public Conditions Conditions { get; set; } = new();
@@ -217,6 +222,7 @@ public class Package
             {
                 s.Name = $"{label} › {(string.IsNullOrWhiteSpace(s.Name) ? s.Type.ToString() : s.Name)}";
                 s.Enabled = step.Enabled && s.Enabled;
+                s.RunAs ??= step.RunAs;
                 s.TimeoutMinutes ??= nested.TimeoutMinutes ?? defaultTimeout;
                 var extras = new List<ConditionGroup>();
                 if (!step.Conditions.IsEmpty) extras.Add(new() { Label = $"Conditions de l'étape « {label} »", Conditions = step.Conditions });

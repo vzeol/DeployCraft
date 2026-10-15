@@ -10,6 +10,8 @@ public class RunnerJob
     /// <summary>Conditions du paquet : non remplies, aucune étape n'est exécutée.</summary>
     [JsonPropertyName("conditions")] public RunnerConditions? Conditions { get; set; }
     [JsonPropertyName("steps")] public List<RunnerJobStep> Steps { get; set; } = [];
+    /// <summary>Numéro (dans le paquet) de la première étape du job, pour les messages.</summary>
+    [JsonPropertyName("firstNumber")] public int FirstNumber { get; set; } = 1;
 }
 
 public class RunnerJobStep
@@ -99,6 +101,10 @@ public class RunnerStatus
     [JsonPropertyName("steps")] public List<RunnerStepResult> Steps { get; set; } = [];
     /// <summary>Cartes réseau du poste, retenues pour le réveiller plus tard (Wake-on-LAN).</summary>
     [JsonPropertyName("network")] public List<RunnerNetworkCard>? Network { get; set; }
+    /// <summary>Le paquet s'arrête ici : les étapes suivantes (autre identité) ne doivent pas être lancées.</summary>
+    [JsonPropertyName("halt")] public bool Halt { get; set; }
+    /// <summary>Raison donnée aux étapes non lancées (null : aucune, comme après un échec).</summary>
+    [JsonPropertyName("haltReason")] public string? HaltReason { get; set; }
 }
 
 public class RunnerNetworkCard

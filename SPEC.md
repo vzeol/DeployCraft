@@ -49,6 +49,27 @@
   le relance donc pas.
 - Condition impossible à vérifier (clé mal écrite…) → étape en échec avec le message.
 
+### Exécuter en tant que (par étape)
+- Onglet Options de l'étape : **Paramètre du paquet** (par défaut), compte de déploiement, Système local ou
+  utilisateur connecté. « Paramètre du paquet » suit le paquet, ou le choix fait dans Déployer une fois / la
+  planification ; une étape avec son propre réglage le garde. Sans identifiant enregistré, « compte de
+  déploiement » devient Système local. Dans un paquet imbriqué, les sous-étapes sans réglage prennent celui de
+  l'étape « paquet imbriqué ».
+- Sur le poste, un service runner n'a qu'une identité : les étapes consécutives de même service (compte de
+  déploiement, ou Système, qui sert aussi pour l'utilisateur connecté) forment une **tranche**. Le serveur lance les
+  tranches l'une après l'autre dans le même dossier (les fichiers copiés restent), chacune avec son propre service
+  (`DeployCraftRunner-N-1`, `-2`…), la suivante seulement après la suppression du précédent. Le mot de passe du
+  compte ne sert qu'à créer le service : il n'est jamais écrit sur le poste.
+- Une tranche qui arrête le paquet (échec en « Arrêter en échec », arrêt en succès, conditions du paquet non
+  remplies) : les tranches suivantes ne sont pas lancées, leurs étapes sont « Ignoré » avec la même raison.
+  Runner interrompu par une erreur : pas de tranche suivante non plus, raison « Tranche précédente interrompue : … ».
+  Annulation (pendant une tranche ou entre deux) : la tranche en cours est arrêtée, aucune autre n'est lancée.
+  Pendant l'exécution, le détail du poste indique l'identité de la tranche (« Exécution (Système) »). Le journal `runner.log` cumule les
+  tranches ; les numéros d'étape y sont ceux du paquet.
+- Mode pull : le partage est lu avec l'identité de la tranche (Système : le compte ordinateur `POSTE$`).
+- Changer d'identité coûte quelques secondes (création et arrêt d'un service) ; un paquet sans réglage par étape
+  garde un seul service, comme avant.
+
 ### Gestion d'erreur (par étape)
 - **Arrêter en échec** (par défaut) : les étapes suivantes ne s'exécutent pas, le poste est en échec. Un paquet
   s'arrête donc net à la première étape en échec (choix du mainteneur : plus prudent, et des paquets plus propres).
