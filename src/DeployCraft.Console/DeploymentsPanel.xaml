@@ -146,7 +146,11 @@
                     <DataGridTextColumn Header="Poste" Binding="{Binding Computer}" Width="160" />
                     <DataGridTemplateColumn Header="Statut" CellTemplate="{StaticResource StatusCell}" Width="110" SortMemberPath="Status" />
                     <DataGridTextColumn Header="Étapes" Binding="{Binding Steps}" Width="Auto" MinWidth="90" />
-                    <DataGridTextColumn Header="Détail (erreur, remarque ou étape en cours)" Binding="{Binding Detail}" Width="*" />
+                    <DataGridTextColumn Binding="{Binding Detail}" Width="*" MinWidth="220">
+                        <DataGridTextColumn.Header>
+                            <TextBlock Text="Détail" ToolTip="Erreur, remarque ou étape en cours" />
+                        </DataGridTextColumn.Header>
+                    </DataGridTextColumn>
                     <DataGridTextColumn Header="Début" Binding="{Binding Started}" Width="140" />
                     <DataGridTextColumn Header="Durée" Binding="{Binding Duration}" Width="80" />
                 </DataGrid.Columns>
