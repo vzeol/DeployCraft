@@ -17,6 +17,7 @@
     <SolidColorBrush x:Key="BannerBackground" Color="#5A2E2E" />
     <SolidColorBrush x:Key="OkBrush" Color="#66BB6A" />
     <SolidColorBrush x:Key="KoBrush" Color="#EF5350" />
+    <SolidColorBrush x:Key="WarnBrush" Color="#E3A33B" />
     <SolidColorBrush x:Key="RunBrush" Color="#29B6F6" />
     <!-- Boutons et champs : bordure ≥ 3:1 sur le fond, texte ≥ 4,5:1 (WCAG). Bouton principal = accent. -->
     <SolidColorBrush x:Key="ControlBackground" Color="#3E3E3E" />
