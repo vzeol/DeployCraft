@@ -10,6 +10,12 @@ public class InstallCommandTests
     private static PackageStep Install(string file, string? args = null) =>
         new() { Type = StepType.Install, File = @"\\SERVEUR-01\Logiciels\" + file, Arguments = args };
 
+    [Fact]
+    public void NoFileYet_GivesAnEmptyLine()
+    {
+        Assert.Equal("", InstallCommand.Generate(new PackageStep { Type = StepType.Install }));
+    }
+
     [Theory]
     [InlineData(MsiOperation.Install, "/i")]
     [InlineData(MsiOperation.Repair, "/f")]

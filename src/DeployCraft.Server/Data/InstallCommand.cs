@@ -25,6 +25,7 @@ public static class InstallCommand
     public static string Generate(PackageStep step)
     {
         var name = Path.GetFileName(step.File ?? "");
+        if (name.Length == 0) return ""; // pas encore de fichier choisi
         var file = $"\"{name}\"";
         var args = step.Arguments?.Trim() ?? "";
         var quiet = step.MsiQuiet;
