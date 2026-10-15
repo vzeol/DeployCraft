@@ -293,8 +293,8 @@ déploiements possibles en même temps sur un poste.
   imbriqué » sont reliées aux paquets importés en même temps. Un paquet imbriqué est créé avant celui qui l'utilise ;
   une boucle de paquets imbriqués dans le fichier est refusée. Chaque paquet est vérifié comme à l'enregistrement.
 - Fichier XML de paquets :
-  - Étapes reprises : Installer, Commande, PowerShell, Copie de fichiers, Pause (« Sleep »), Paquet imbriqué.
-    Pas encore reprises (signalées) : Redémarrer, Message, Déconnexion, désinstallation / réparation MSI,
+  - Étapes reprises : Installer, Commande, PowerShell, Copie de fichiers, Pause, Redémarrer, Paquet imbriqué.
+    Pas encore reprises (signalées) : Message, Déconnexion, désinstallation / réparation MSI,
     ligne de commande personnalisée d'une installation ; jamais : scan d'inventaire.
   - Paquet imbriqué : relié au paquet du même fichier, sinon à un paquet du même nom déjà dans DeployCraft
     (signalé), sinon l'étape n'est pas reprise.

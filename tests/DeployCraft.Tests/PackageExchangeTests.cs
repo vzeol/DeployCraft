@@ -193,7 +193,7 @@ public class PackageExchangeTests
     {
         var xml = Xml(XmlPackage("Fin",
             Step("Command", "CommandStep", "<Command>echo ok</Command>") +
-            Step("Reboot", "RebootStep", "<Message>m</Message><Timeout value=\"60\" />") +
+            Step("Message", "MessageStep", "<Message>m</Message>") +
             Step("Logoff", "PackageStep", "<Message>m</Message>")));
 
         var report = Import(xml);
@@ -202,6 +202,21 @@ public class PackageExchangeTests
         Assert.Equal(ImportState.Warning, result.State);
         Assert.Equal([ImportState.Ok, ImportState.Skipped, ImportState.Skipped], result.Steps.Select(s => s.State));
         Assert.Single(_library[result.NewId!.Value].Steps);
+    }
+
+    [Fact]
+    public void Xml_Reboot_IsConverted_WithLimitedDelay()
+    {
+        var xml = Xml(XmlPackage("Redémarrage", Step("Reboot", "RebootStep", "<Message>Le poste va redémarrer</Message><Timeout value=\"10\" /><ShutdownOnly value=\"true\" />")));
+
+        var report = Import(xml);
+
+        var step = _library[report.Packages[0].NewId!.Value].Steps[0];
+        Assert.Equal(StepType.Reboot, step.Type);
+        Assert.Equal(30, step.RebootDelaySeconds);
+        Assert.True(step.RebootShutdownOnly);
+        Assert.Equal("Le poste va redémarrer", step.RebootMessage);
+        Assert.Equal(ImportState.Warning, report.Packages[0].Steps[0].State);
     }
 
     [Fact]

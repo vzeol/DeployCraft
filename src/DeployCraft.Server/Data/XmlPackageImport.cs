@@ -224,8 +224,19 @@ public static partial class XmlPackageImport
                 break;
 
             case "Reboot":
-                line.Skip("Étape « Redémarrer » : pas encore disponible dans DeployCraft.");
-                return (null, line);
+                step.Type = StepType.Reboot;
+                step.RebootShutdownOnly = Bool(e, "ShutdownOnly");
+                var delay = Int(e, "Timeout") ?? 60;
+                step.RebootDelaySeconds = Math.Clamp(delay, 30, 3600);
+                if (step.RebootDelaySeconds != delay) line.Warn($"Délai avant le redémarrage ramené à {step.RebootDelaySeconds} s (de 30 secondes à 1 heure).");
+                var message = Text(e, "Message").Trim();
+                if (message.Length > 500)
+                {
+                    message = message[..500];
+                    line.Warn("Message raccourci à 500 caractères.");
+                }
+                step.RebootMessage = NullIfEmpty(message);
+                break;
             case "Message":
                 line.Skip("Étape « Message » : pas encore disponible dans DeployCraft.");
                 return (null, line);
