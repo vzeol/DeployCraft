@@ -181,12 +181,9 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         return job;
     }
 
-    /// <summary>
-    /// Étapes envoyées au poste quand on (re)commence à l'étape N : les étapes rangées par section (Avant,
-    /// Principales, Après), à partir de N. La section Après suit donc toujours une reprise dans les sections précédentes.
-    /// </summary>
+    /// <summary>Étapes envoyées au poste quand on (re)commence à l'étape N.</summary>
     internal static IEnumerable<PackageStep> StepsFrom(Package package, int startStep) =>
-        package.Steps.OrderBy(s => Package.SectionRank(s.Section)).Skip(Math.Max(0, startStep - 1));
+        package.Steps.Skip(Math.Max(0, startStep - 1));
 
     /// <summary>Consignes d'une étape pour le runner (hors fichiers à copier).</summary>
     internal static RunnerJobStep ToJobStep(PackageStep step, Package package, RunAsMode runAs)
@@ -196,7 +193,6 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         return new()
         {
             Name = string.IsNullOrWhiteSpace(step.Name) ? step.Type.ToString() : step.Name,
-            Section = step.Section.ToString().ToLowerInvariant(),
             Type = step.Type.ToString().ToLowerInvariant(),
             Arguments = step.Arguments,
             Command = step.Command,

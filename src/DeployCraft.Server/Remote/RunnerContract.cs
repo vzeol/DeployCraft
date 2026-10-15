@@ -15,8 +15,6 @@ public class RunnerJob
 public class RunnerJobStep
 {
     [JsonPropertyName("name")] public string Name { get; set; } = "";
-    /// <summary>before | main | after. « after » s'exécute même après un échec ou un arrêt.</summary>
-    [JsonPropertyName("section")] public string? Section { get; set; }
     [JsonPropertyName("type")] public string Type { get; set; } = "";
     [JsonPropertyName("command")] public string? Command { get; set; }
     [JsonPropertyName("arguments")] public string? Arguments { get; set; }

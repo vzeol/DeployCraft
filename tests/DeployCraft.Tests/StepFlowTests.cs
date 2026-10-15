@@ -152,6 +152,34 @@ public sealed class StepFlowTests : IDisposable
         Assert.Equal(0, TargetSession.ToJobStep(new PackageStep { Type = StepType.Command, PauseSeconds = 45 }, package, RunAsMode.DeployUser).Seconds);
     }
 
+    [Fact]
+    public void PackageSavedWithSections_IsReadAsIs_AndRunsInItsStoredOrder_WithASingleStop()
+    {
+        // Paquet enregistré en 0.11.0, quand les étapes avaient une section (déjà triées Avant, Principales, Après).
+        var package = System.Text.Json.JsonSerializer.Deserialize<Package>("""
+            {"name":"Ancien","steps":[
+              {"name":"avant","type":"Command","command":"echo 1","section":"Before"},
+              {"name":"ko","type":"Command","command":"exit 1","section":"Main"},
+              {"name":"nettoyage","type":"Command","command":"echo 3","section":"After"}]}
+            """, Store.Json)!;
+        var resolved = package.Resolve(new DeploymentDefaults());
+        var job = new Job();
+        foreach (var step in TargetSession.StepsFrom(resolved, 1))
+        {
+            var j = TargetSession.ToJobStep(step, resolved, RunAsMode.DeployUser);
+            job.Steps.Add(new JobStep { Name = j.Name, ContinueOnError = j.ContinueOnError, StopSuccessOnError = j.StopSuccessOnError });
+        }
+
+        var ran = new List<string>();
+        var status = new RunStatus();
+        StepSequence.Run(job, new NoFacts(), status,
+            (_, s, r) => { ran.Add(s.Name); r.State = s.Name == "ko" ? StepSequence.Failed : StepSequence.Success; },
+            () => { }, () => false, _ => { });
+
+        Assert.Equal(["avant", "ko"], ran); // l'ancienne étape « Après » est une étape ordinaire : l'échec l'arrête
+        Assert.Equal(["success", "failed", "skipped"], States(status));
+    }
+
     private static StepOutcome Step(string state, string? error = null, int? code = null) =>
         new() { Name = state, State = state, Error = error, ExitCode = code };
 

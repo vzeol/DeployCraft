@@ -18,11 +18,11 @@ public class NestedPackageTests
 
     private Package? Find(long id) => _library.GetValueOrDefault(id);
 
-    private static PackageStep Cmd(string name, StepSection section = StepSection.Main) =>
-        new() { Name = name, Type = StepType.Command, Command = "echo " + name, Section = section };
+    private static PackageStep Cmd(string name) =>
+        new() { Name = name, Type = StepType.Command, Command = "echo " + name };
 
-    private static PackageStep Nested(long id, string name = "", StepSection section = StepSection.Main) =>
-        new() { Name = name, Type = StepType.Nested, NestedPackageId = id, Section = section };
+    private static PackageStep Nested(long id, string name = "") =>
+        new() { Name = name, Type = StepType.Nested, NestedPackageId = id };
 
     [Fact]
     public void NestedStep_IsReplacedByTheNestedSteps_InPlace()
@@ -37,15 +37,14 @@ public class NestedPackageTests
     }
 
     [Fact]
-    public void NestedSections_StayInsideTheBlock_InTheSectionOfTheParentStep()
+    public void NestedSteps_KeepTheOrderOfTheNestedPackage()
     {
-        Add(2, "Outils", Cmd("après", StepSection.After), Cmd("principale"), Cmd("avant", StepSection.Before));
-        var parent = Add(1, "Poste", Cmd("x"), Nested(2, "Bloc", StepSection.After));
+        Add(2, "Outils", Cmd("trois"), Cmd("un"), Cmd("deux"));
+        var parent = Add(1, "Poste", Cmd("x"), Nested(2, "Bloc"), Cmd("y"));
 
         var flat = parent.Flatten(Find);
 
-        Assert.Equal(["x", "Bloc › avant", "Bloc › principale", "Bloc › après"], flat.Steps.Select(s => s.Name));
-        Assert.All(flat.Steps.Skip(1), s => Assert.Equal(StepSection.After, s.Section));
+        Assert.Equal(["x", "Bloc › trois", "Bloc › un", "Bloc › deux", "y"], flat.Steps.Select(s => s.Name));
     }
 
     [Fact]

@@ -4,7 +4,7 @@
 > (fonctionnement + organisation de l'interface), puis seulement à la fin retirer ce qui ne sert pas et
 > ajouter nos propres fonctions. Les libellés et le code de DeployCraft sont entièrement les nôtres.
 
-Légende : ✅ fait · 🟡 partiel · ⬜ à faire · ⛔ dépend d'un service PDQ ou tiers (à remplacer ou à écarter, décision du mainteneur)
+Légende : ✅ fait · 🟡 partiel · ⬜ à faire · ❌ écarté (décision du mainteneur) · ⛔ dépend d'un service PDQ ou tiers (à remplacer ou à écarter, décision du mainteneur)
 
 Pour prendre une tâche : voir `CONTRIBUTING.md` (§ « Choisir une tâche »). Une ligne passe à ✅
 dans la même PR que le code qui la réalise.
@@ -37,7 +37,7 @@ dans la même PR que le code qui la réalise.
 | 2.2 | Fenêtre paquet à onglets : Détails, Conditions, Options, Hors ligne | ✅ | 0.10.0 ; l'étape a aussi Détails, Conditions, Options |
 | 2.3 | Options du paquet : délai personnalisé, mode de copie, exécuter en tant que, réessai | ✅ | 0.10.0 : chaque option peut suivre les Préférences ; réessai dans l'onglet Hors ligne |
 | 2.4 | Conditions du paquet : version d'OS + architecture, version PowerShell, utilisateur connecté, fichier, registre | ✅ | 0.10.0 : vérifiées par le runner ; non remplies = poste réussi sans rien exécuter |
-| 2.5 | Sections d'étapes : avant / principales / après | ✅ | « Après » s'exécute même après un échec ou un arrêt (sauf annulation) ; notre règle, à confirmer |
+| 2.5 | Sections d'étapes : avant / principales / après | ❌ | Écarté : choix du mainteneur, un échec arrête le paquet. Faites en 0.11.0, retirées ensuite |
 | 2.6 | Par étape : titre, activée / désactivée, codes de succès | ✅ | Étape désactivée : « Ignoré », le paquet continue |
 | 2.7 | Par étape : erreur → arrêter en échec / arrêter en succès / continuer | ✅ | Arrêt en succès : poste compté réussi, étapes suivantes « Ignoré » |
 | 2.8 | Par étape : exécuter en tant que (compte de déploiement / compte de déploiement sur le bureau / système local / utilisateur connecté / hériter du paquet) | ⬜ | Aujourd'hui : toujours système local |

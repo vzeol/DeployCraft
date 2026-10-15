@@ -4,7 +4,7 @@ using System;
 namespace DeployCraft.Runner
 {
     /// <summary>
-    /// Enchaînement des étapes d'un job : conditions, étapes désactivées, arrêt en échec ou en succès, section « Après ».
+    /// Enchaînement des étapes d'un job : conditions, étapes désactivées, arrêt en échec ou en succès.
     /// Le lancement d'une étape est confié à <c>runStep</c> (testable sans poste).
     /// </summary>
     internal static class StepSequence
@@ -36,21 +36,18 @@ namespace DeployCraft.Runner
             var packageSkip = Unmet(job.Conditions, facts, out var packageError);
             if (packageSkip != null) log("Conditions du paquet non remplies : " + packageSkip);
 
-            // Un arrêt dans Avant / Principales saute le reste de ces sections, pas « Après » (qui a ses propres
-            // arrêts). Une erreur sur les conditions du paquet arrête tout, « Après » compris.
-            bool stopMain = false, stopAfter = false, stopAll = false;
-            string mainReason = null, afterReason = null;
+            var stop = false;
+            string stopReason = null;
             for (var i = 0; i < job.Steps.Count; i++)
             {
                 var step = job.Steps[i];
-                var after = step.Section == "after";
                 var result = new StepResult { Name = step.Name, State = Running, StartedUtc = Json.Now() };
                 status.Steps.Add(result);
 
-                if (stopAll || (after ? stopAfter : stopMain) || aborted())
+                if (stop || aborted())
                 {
                     result.State = Skipped;
-                    result.Error = stopAll ? null : after ? afterReason : mainReason;
+                    result.Error = stopReason;
                     result.EndedUtc = Json.Now();
                     continue;
                 }
@@ -99,28 +96,13 @@ namespace DeployCraft.Runner
                 }
                 result.EndedUtc = Json.Now();
 
-                string reason = null;
                 if (result.State == Failed && packageError == null && step.StopSuccessOnError)
                 {
                     result.State = Stopped;
-                    reason = after
-                        ? $"Section Après arrêtée en succès par l'étape {i + 1} « {step.Name} »."
-                        : $"Paquet arrêté en succès par l'étape {i + 1} « {step.Name} ».";
+                    stopReason = $"Paquet arrêté en succès par l'étape {i + 1} « {step.Name} ».";
                 }
-                if (result.State == Failed && packageError != null) stopAll = true;
-                else if (result.State == Stopped || result.State == Failed && !step.ContinueOnError)
-                {
-                    if (after)
-                    {
-                        stopAfter = true;
-                        afterReason = reason;
-                    }
-                    else
-                    {
-                        stopMain = true;
-                        mainReason = reason;
-                    }
-                }
+                if (result.State == Stopped || result.State == Failed && (packageError != null || !step.ContinueOnError))
+                    stop = true;
 
                 log($"Étape {i + 1} « {step.Name} » : {result.State}" +
                     (result.Error != null ? $" ({result.Error})" : result.ExitCode != null ? $" (code {result.ExitCode})" : ""));

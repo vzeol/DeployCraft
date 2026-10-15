@@ -6,13 +6,6 @@ public enum StepType { Install, Command, PowerShell, Pause, Nested }
 /// <summary>En cas d'erreur d'une étape : arrêter en échec, continuer, ou arrêter le paquet en comptant le poste réussi.</summary>
 public enum ErrorMode { Stop, Continue, StopSuccess }
 
-/// <summary>
-/// Section d'une étape. Ordre d'exécution : Avant, Principales, Après. « Après » s'exécute même si une étape
-/// précédente a échoué ou arrêté le paquet (comme un nettoyage), sauf annulation. Principales = valeur 0 :
-/// les étapes enregistrées avant l'arrivée des sections en font partie.
-/// </summary>
-public enum StepSection { Main, Before, After }
-
 /// <summary>Identité sous laquelle les étapes s'exécutent sur le poste.</summary>
 public enum RunAsMode
 {
@@ -32,7 +25,6 @@ public class PackageStep
     public string Name { get; set; } = "";
     /// <summary>Désactivée : gardée dans le paquet mais jamais exécutée (« Ignoré » dans le suivi).</summary>
     public bool Enabled { get; set; } = true;
-    public StepSection Section { get; set; } = StepSection.Main;
     public StepType Type { get; set; } = StepType.Install;
     /// <summary>Install : chemin du fichier (local ou UNC) côté serveur.</summary>
     public string? File { get; set; }
@@ -177,7 +169,7 @@ public class Package
 
     /// <summary>
     /// Copie où chaque étape « paquet imbriqué » est remplacée par les étapes de ce paquet : nommées « Étape › Sous-étape »,
-    /// dans la section de l'étape remplacée, désactivées si elle l'est, avec ses conditions et celles du paquet imbriqué
+    /// à la place de l'étape remplacée (dans leur ordre), désactivées si elle l'est, avec ses conditions et celles du paquet imbriqué
     /// en conditions supplémentaires. Délai : celui de la sous-étape, sinon celui du paquet imbriqué, sinon
     /// <paramref name="defaultTimeout"/>. Paquet introuvable, boucle ou trop de niveaux : <see cref="ArgumentException"/>.
     /// </summary>
@@ -205,10 +197,9 @@ public class Package
             var inner = Expand(Clone(nested.Steps), lookup, defaultTimeout, path, depth + 1);
             path.RemoveAt(path.Count - 1);
 
-            foreach (var s in inner.OrderBy(s => SectionRank(s.Section)))
+            foreach (var s in inner)
             {
                 s.Name = $"{label} › {(string.IsNullOrWhiteSpace(s.Name) ? s.Type.ToString() : s.Name)}";
-                s.Section = step.Section;
                 s.Enabled = step.Enabled && s.Enabled;
                 s.TimeoutMinutes ??= nested.TimeoutMinutes ?? defaultTimeout;
                 var extras = new List<ConditionGroup>();
@@ -235,16 +226,6 @@ public class Package
     /// <summary>Paquets qui utilisent <paramref name="id"/> comme paquet imbriqué (il ne peut pas être supprimé).</summary>
     public static List<Package> UsersOf(IEnumerable<Package> packages, long id) =>
         [.. packages.Where(p => p.Id != id && p.Steps.Any(s => s.Type == StepType.Nested && s.NestedPackageId == id))];
-
-    /// <summary>Range les étapes par section (Avant, Principales, Après) en gardant leur ordre dans chaque section.</summary>
-    public void SortSteps() => Steps = [.. Steps.OrderBy(s => SectionRank(s.Section))];
-
-    public static int SectionRank(StepSection section) => section switch
-    {
-        StepSection.Before => 0,
-        StepSection.Main => 1,
-        _ => 2,
-    };
 
     private static T Clone<T>(T value) =>
         System.Text.Json.JsonSerializer.Deserialize<T>(System.Text.Json.JsonSerializer.Serialize(value))!;

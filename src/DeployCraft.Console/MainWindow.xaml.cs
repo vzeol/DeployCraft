@@ -364,15 +364,8 @@ public partial class MainWindow : Window
         SwitchTo(View.Package);
     }
 
-    /// <summary>Titre de l'étape, précédé de sa section (sauf Principales) et signalée si elle est désactivée.</summary>
-    public static string StepName(PackageStep s) => SectionPrefix(s.Section) + (s.Enabled ? s.Name : $"{s.Name} (désactivée)");
-
-    public static string SectionPrefix(StepSection section) => section switch
-    {
-        StepSection.Before => "Avant · ",
-        StepSection.After => "Après · ",
-        _ => "",
-    };
+    /// <summary>Titre de l'étape, signalée si elle est désactivée.</summary>
+    public static string StepName(PackageStep s) => s.Enabled ? s.Name : $"{s.Name} (désactivée)";
 
     private Package? FindPackage(long id) => _packages.FirstOrDefault(p => p.Id == id);
 

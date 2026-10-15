@@ -50,38 +50,20 @@
 - Condition impossible à vérifier (clé mal écrite…) → étape en échec avec le message.
 
 ### Gestion d'erreur (par étape)
-- **Arrêter en échec** (par défaut) : les étapes suivantes ne s'exécutent pas (sauf la section Après), le poste est
-  en échec.
+- **Arrêter en échec** (par défaut) : les étapes suivantes ne s'exécutent pas, le poste est en échec. Un paquet
+  s'arrête donc net à la première étape en échec (choix du mainteneur : plus prudent, et des paquets plus propres).
 - **Continuer** : l'étape est notée en échec (le poste aussi), les étapes suivantes s'exécutent.
 - **Arrêter en succès** : les étapes suivantes ne s'exécutent pas et le poste est compté **réussi**. Utile quand
   l'échec veut dire « rien à faire ici » (ex. un test qui sort en erreur si le logiciel est déjà à jour). L'étape
   s'affiche « Arrêt en succès » avec son code retour ; les suivantes « Ignoré », avec le numéro de l'étape qui a
   arrêté le paquet ; la colonne Détail du poste en donne la raison.
 
-### Sections d'étapes : Avant / Principales / Après
-Règle propre à DeployCraft (elle n'est pas reprise d'un autre outil) :
-- Chaque étape appartient à une section, **Principales** par défaut (les paquets existants ne changent pas).
-  Ordre d'exécution : Avant, Principales, puis Après ; à l'intérieur d'une section, l'ordre de la liste.
-- Un échec (mode « Arrêter le déploiement ») ou un « Arrêter en succès » dans Avant ou Principales saute le reste
-  de ces deux sections ; **Après s'exécute quand même**, comme un nettoyage. Dans Après, le mode d'erreur de
-  chaque étape s'applique à l'intérieur de la section (un arrêt saute la suite d'Après).
-- Résultat du poste : un échec dans Avant / Principales le laisse en échec même si Après réussit ; un échec dans
-  Après le met en échec ; un arrêt en succès suivi d'un Après réussi donne un poste réussi.
-- Annulation : rien ne s'exécute, Après compris. Conditions du paquet non remplies : tout est sauté, Après compris.
-- « Reprendre à l'étape N » / démarrer à l'étape N : les étapes à partir de N, dans l'ordre des sections ; Après
-  s'exécute donc toujours si N est dans Avant ou Principales.
-- Fenêtre paquet : choix **Section** sous le titre de l'étape ; les étapes Avant / Après sont préfixées
-  « Avant · » / « Après · » dans les listes. Monter / descendre restent dans la section ; une étape ajoutée,
-  dupliquée ou collée prend la section de l'étape sélectionnée.
-
 ### Paquet imbriqué
 - Une étape « Paquet imbriqué » désigne un autre paquet (choisi dans une liste). **Au lancement**, elle est
   remplacée par les étapes de ce paquet, figées dans l'historique : modifier le paquet imbriqué ensuite ne change
   pas un déploiement en cours. Le suivi, le compteur et l'étape de départ comptent ces étapes une à une.
 - Étapes remplacées nommées « Étape › Sous-étape » (titre de l'étape, sinon nom du paquet imbriqué).
-- Sections : les étapes Avant / Principales / Après du paquet imbriqué restent groupées, dans cet ordre, **à la
-  place de l'étape et dans sa section** ; elles y deviennent des étapes ordinaires (un « Après » imbriqué ne
-  s'exécute donc pas toujours).
+- Les étapes du paquet imbriqué prennent la place de l'étape, dans leur ordre.
 - Conditions : chaque étape remplacée garde les siennes et reçoit en plus celles de l'étape « paquet imbriqué »
   et celles du paquet imbriqué. Non remplies : « Ignoré », raison « Conditions du paquet imbriqué « X » non
   remplies. … ».

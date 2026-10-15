@@ -300,7 +300,6 @@ static string? Validate(Package p, Store store)
         step.Conditions ??= new();
         step.ExtraConditions = null; // posées seulement au lancement, à partir des paquets imbriqués
     }
-    p.SortSteps();
     if (string.IsNullOrWhiteSpace(p.Name)) return "Le paquet doit avoir un nom.";
     if (p.TimeoutMinutes is < 1) return "Options : le délai max doit être d'au moins 1 minute.";
     if (ValidateConditions(p.Conditions) is { } conditionError) return $"Conditions du paquet : {conditionError}";

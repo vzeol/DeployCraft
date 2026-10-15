@@ -144,8 +144,6 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <TextBlock Style="{StaticResource FieldLabel}" Text="Titre de l'étape" />
                     <TextBox Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" TextChanged="StepName_TextChanged" />
@@ -153,14 +151,6 @@
                               AutomationProperties.Name="Étape activée"
                               ToolTip="Décochée : l'étape reste dans le paquet mais n'est pas exécutée (« Ignoré » dans le suivi)."
                               IsChecked="{Binding Enabled}" Click="StepEnabled_Click" />
-                    <TextBlock Grid.Row="2" Style="{StaticResource FieldLabel}" Text="Section" Margin="0,8,12,0" />
-                    <ComboBox Grid.Row="2" Grid.Column="1" x:Name="SectionBox" Width="220" HorizontalAlignment="Left" Margin="0,8,0,0"
-                              AutomationProperties.Name="Section" SelectionChanged="Section_Changed">
-                        <ComboBoxItem Content="Avant" />
-                        <ComboBoxItem Content="Principales" />
-                        <ComboBoxItem Content="Après" />
-                    </ComboBox>
-                    <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource Hint}" x:Name="SectionHint" />
                 </Grid>
 
                 <TabControl x:Name="StepTabs">

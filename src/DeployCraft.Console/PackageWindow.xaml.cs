@@ -94,7 +94,7 @@ public partial class PackageWindow : Window
 
     private static StackPanel StepHeader(PackageStep step, int index)
     {
-        var header = Ui.Header(Ui.StepIcon(step.Type), MainWindow.SectionPrefix(step.Section) + (string.IsNullOrWhiteSpace(step.Name)
+        var header = Ui.Header(Ui.StepIcon(step.Type), (string.IsNullOrWhiteSpace(step.Name)
             ? $"Étape {index + 1} ({MainWindow.StepTypeText(step.Type)})"
             : $"{index + 1}. {step.Name}") + (step.Enabled ? "" : " (désactivée)"));
         if (!step.Enabled) header.Opacity = 0.55;
@@ -233,8 +233,6 @@ public partial class PackageWindow : Window
             : $"Vide : délai du paquet ({PackageTimeout} min). Au-delà, le processus est arrêté et l'étape échoue.";
         StepTimeoutBox.IsEnabled = ErrorModeBox.IsEnabled = !nested;
         ErrorModeBox.SelectedIndex = (int)step.ErrorMode;
-        SectionBox.SelectedIndex = Array.IndexOf(SectionOrder, step.Section);
-        UpdateSectionHint(step);
         UpdateErrorModeHint(step);
         UpdateSilentHint();
         _loadingStep = false;
@@ -283,30 +281,10 @@ public partial class PackageWindow : Window
         : step.ErrorMode switch
         {
             ErrorMode.Continue => "L'étape est notée en échec (le poste aussi), mais les étapes suivantes s'exécutent.",
-            ErrorMode.StopSuccess => "Les étapes suivantes ne s'exécutent pas (sauf la section Après) et le poste est compté " +
-                                     "réussi : utile quand l'échec veut dire « rien à faire » sur ce poste.",
-            _ => "Les étapes suivantes ne s'exécutent pas (sauf la section Après) et le poste est en échec.",
+            ErrorMode.StopSuccess => "Les étapes suivantes ne s'exécutent pas et le poste est compté réussi : " +
+                                     "utile quand l'échec veut dire « rien à faire » sur ce poste.",
+            _ => "Les étapes suivantes ne s'exécutent pas et le poste est en échec.",
         };
-
-    /// <summary>Sections dans l'ordre de la liste (et d'exécution).</summary>
-    private static readonly StepSection[] SectionOrder = [StepSection.Before, StepSection.Main, StepSection.After];
-
-    private void Section_Changed(object sender, SelectionChangedEventArgs e)
-    {
-        if (_loadingStep || SelectedStep is not { } step || SectionBox.SelectedIndex < 0) return;
-        if (step.Section == SectionOrder[SectionBox.SelectedIndex]) return;
-        step.Section = SectionOrder[SectionBox.SelectedIndex];
-        UpdateSectionHint(step);
-        Package.SortSteps();
-        RebuildSteps(step);
-    }
-
-    private void UpdateSectionHint(PackageStep step) => SectionHint.Text = step.Section switch
-    {
-        StepSection.Before => "Exécutée avant les étapes principales.",
-        StepSection.After => "Exécutée à la fin, même si une étape précédente a échoué ou arrêté le paquet (sauf annulation).",
-        _ => "Ordre d'exécution : Avant, Principales, puis Après.",
-    };
 
     private void StepEnabled_Click(object sender, RoutedEventArgs e)
     {
@@ -439,18 +417,8 @@ public partial class PackageWindow : Window
 
     private void AddStep(PackageStep step)
     {
-        // Insérée après l'étape sélectionnée (dans sa section), sinon à la fin de sa propre section.
-        int index;
-        if (SelectedStep is { } current)
-        {
-            step.Section = current.Section;
-            index = Package.Steps.IndexOf(current) + 1;
-        }
-        else
-        {
-            var rank = Package.SectionRank(step.Section);
-            index = Package.Steps.FindLastIndex(s => Package.SectionRank(s.Section) <= rank) + 1;
-        }
+        // Insérée après l'étape sélectionnée, sinon à la fin.
+        var index = SelectedStep is { } current ? Package.Steps.IndexOf(current) + 1 : Package.Steps.Count;
         Package.Steps.Insert(index, step);
         RebuildSteps(step);
     }
@@ -458,11 +426,10 @@ public partial class PackageWindow : Window
     private void MoveUp_Click(object sender, RoutedEventArgs e) => Move(-1);
     private void MoveDown_Click(object sender, RoutedEventArgs e) => Move(1);
 
-    /// <summary>Une étape ne se déplace qu'à l'intérieur de sa section.</summary>
     private bool CanMove(PackageStep? step, int delta)
     {
         var j = step == null ? -1 : Package.Steps.IndexOf(step) + delta;
-        return step != null && j >= 0 && j < Package.Steps.Count && Package.Steps[j].Section == step.Section;
+        return step != null && j >= 0 && j < Package.Steps.Count;
     }
 
     private void Move(int delta)

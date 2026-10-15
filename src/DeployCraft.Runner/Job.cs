@@ -55,8 +55,6 @@ namespace DeployCraft.Runner
     public class JobStep
     {
         [DataMember(Name = "name")] public string Name { get; set; }
-        /// <summary>before | main | after (null = main). « after » s'exécute même après un échec ou un arrêt.</summary>
-        [DataMember(Name = "section")] public string Section { get; set; }
         /// <summary>install | command | powershell | pause</summary>
         [DataMember(Name = "type")] public string Type { get; set; }
         /// <summary>install : nom du fichier dans exec\. command : ligne cmd. powershell : script.</summary>
