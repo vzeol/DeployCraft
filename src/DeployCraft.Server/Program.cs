@@ -178,7 +178,7 @@ api.MapGet("/packages/{id:long}", (long id, Store store) =>
 api.MapPost("/packages", (Package p, Store store) =>
 {
     p.Id = 0;
-    if (Validate(p, store) is { } error) return Results.BadRequest(new { error });
+    if (Validate(p, store.GetPackage) is { } error) return Results.BadRequest(new { error });
     return Results.Ok(store.SavePackage(p));
 });
 
@@ -186,7 +186,7 @@ api.MapPut("/packages/{id:long}", (long id, Package p, Store store) =>
 {
     if (store.GetPackage(id) == null) return Results.NotFound();
     p.Id = id;
-    if (Validate(p, store) is { } error) return Results.BadRequest(new { error });
+    if (Validate(p, store.GetPackage) is { } error) return Results.BadRequest(new { error });
     return Results.Ok(store.SavePackage(p));
 });
 
@@ -200,6 +200,35 @@ api.MapDelete("/packages/{id:long}", (long id, Store store) =>
         });
     store.DeletePackage(id);
     return Results.NoContent();
+});
+
+// Export : les paquets choisis et les paquets imbriqués qu'ils utilisent, dans un fichier qui se suffit à lui-même.
+api.MapPost("/packages/export", (List<long> ids, Store store) =>
+{
+    try
+    {
+        return Results.Ok(PackageExchange.Export(ids, store.GetPackage));
+    }
+    catch (ArgumentException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+});
+
+// Import d'un export DeployCraft ou PDQ Deploy : aperçu (Apply = false) ou création des paquets.
+api.MapPost("/packages/import", (ImportInput input, Store store) =>
+{
+    ImportReport report;
+    try
+    {
+        report = PackageExchange.Read(input.Content ?? "", input.Repository);
+    }
+    catch (FormatException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+    PackageExchange.Complete(report, store.ListPackages(), Validate, input.Apply ? store.SavePackage : null);
+    return Results.Ok(report);
 });
 
 // « Mémoriser ces cibles » : la fenêtre Déployer une fois les propose à nouveau pour ce paquet.
@@ -331,7 +360,7 @@ static string? ValidateSchedule(Schedule s, DeployCredentials cred)
     return null;
 }
 
-static string? Validate(Package p, Store store)
+static string? Validate(Package p, Func<long, Package?> lookup)
 {
     // Un client qui envoie null obtient « aucune condition ».
     p.Conditions ??= new();
@@ -346,7 +375,7 @@ static string? Validate(Package p, Store store)
     // Paquets imbriqués : choisis, existants, sans boucle ni trop de niveaux (le paquet enregistré compte pour lui-même).
     try
     {
-        p.Flatten(id => id == p.Id ? p : store.GetPackage(id));
+        p.Flatten(id => id == p.Id ? p : lookup(id));
     }
     catch (ArgumentException ex)
     {
@@ -408,3 +437,4 @@ record CredentialInput(long? Id, string? Domain, string User, string? Descriptio
 record DeployInput(List<long> PackageIds, List<TargetRequest> Targets, DeployOptions? Options);
 record AbortInput(List<long>? TargetIds);
 record ConsoleUserInput(string? Name);
+record ImportInput(string? Content, string? Repository, bool Apply);
