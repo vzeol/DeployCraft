@@ -49,6 +49,15 @@ public static class Api
     public static Task<ImportReport> ImportPackages(string content, string? repository, bool apply) =>
         Send<ImportReport>(HttpMethod.Post, "packages/import", new { content, repository, apply });
 
+    /// <summary>Sans recherche : tout le catalogue (paquets déjà téléchargés et logiciels courants en tête) ; sinon, les résultats.</summary>
+    public static Task<LibraryInfo> Library(string? search = null) => Get<LibraryInfo>("library?search=" + Uri.EscapeDataString(search ?? ""));
+    /// <summary>Seulement les logiciels qui ont un état propre (téléchargement en cours, erreur, paquet créé).</summary>
+    public static Task<LibraryInfo> LibraryStatus() => Get<LibraryInfo>("library/status");
+    public static Task RefreshLibrary() => Send<object>(HttpMethod.Post, "library/refresh");
+    public static Task SetLibraryFolder(string folder) => Send<object>(HttpMethod.Put, "library/folder", new { folder });
+    /// <summary>Lance le téléchargement en arrière-plan ; la progression se lit dans <see cref="Library"/>.</summary>
+    public static Task DownloadFromLibrary(string id) => Send<object>(HttpMethod.Post, "library/download", new { id });
+
     public static Task<List<Deployment>> Deployments() => Get<List<Deployment>>("deployments");
     public static Task<Deployment> Deployment(long id) => Get<Deployment>($"deployments/{id}");
     public static Task DeleteDeployment(long id) => Send<object>(HttpMethod.Delete, $"deployments/{id}");

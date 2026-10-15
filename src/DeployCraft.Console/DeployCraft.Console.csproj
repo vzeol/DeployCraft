@@ -18,6 +18,7 @@
     <Compile Include="..\DeployCraft.Server\Data\Models.cs" Link="Shared\Models.cs" />
     <Compile Include="..\DeployCraft.Server\Data\TriggerCalendar.cs" Link="Shared\TriggerCalendar.cs" />
     <Compile Include="..\DeployCraft.Server\Data\ExchangeModels.cs" Link="Shared\ExchangeModels.cs" />
+    <Compile Include="..\DeployCraft.Server\Data\LibraryModels.cs" Link="Shared\LibraryModels.cs" />
   </ItemGroup>
 
 </Project>

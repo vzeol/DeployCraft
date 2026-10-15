@@ -124,6 +124,14 @@ version ni de release côté Cloud) :
   de Prod : fermeture par délai vue comme un clic, messages mis en file par session.
   « & » affiché tel quel (`UseMnemonic`). Tests : `MessageTests`.
 - Ensuite : 2.27, 2.20–2.22 (à tester sur un vrai poste).
+- **10.4 bibliothèque de paquets (branche `feat/bibliotheque`, Claude White Room)** : testée en local par le
+  mainteneur (Acrobat Reader déployé sur son poste). `Library/CatalogIndex` (index du catalogue public winget, base
+  SQLite téléchargée une fois par jour : liste complète, recherche, versions), `CatalogManifest` (lecture YAML des
+  fiches, choix de l'installeur pour tout le poste et sans fenêtre, paramètres silencieux par type),
+  `PackageLibrary` (état dans le réglage `library`, téléchargement en arrière-plan avec étapes et pourcentages,
+  création / mise à jour du paquet), `LibraryCatalog.Suggested` (logiciels courants en tête). Routes
+  `GET /library`, `GET /library/status`, `POST /library/refresh`, `POST /library/download`, `PUT /library/folder`.
+  Tests : `LibraryTests`. Reste : mise à jour automatique (mode immédiat ou différé), à décider avec le mainteneur.
 - **1.11 / 2.12 export et import de paquets (PR #59, Claude White Room)** : fusionné. Fichier › Exporter
   le paquet / tous les paquets (`.json`, paquets imbriqués inclus) et Importer des paquets (`.json` ou `.xml`), avec
   une fenêtre d'aperçu (repris / avec réserves / non repris). `PackageExchange` (export, lecture, `Complete` :
