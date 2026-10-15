@@ -117,7 +117,7 @@ version ni de release côté Cloud) :
   retour (délai max de l'étape), `StartAfterRestartAsync` réessaie la création du service. Arrêt : `RunAsPlan.Finish`
   ignore les étapes suivantes. Tests : `RebootTests`. Retouches visuelles de la copie de fichiers dans la même PR.
 - Ensuite : 2.26, 2.27, 2.20–2.22 (à tester sur un vrai poste).
-- Import des exports XML de paquets d'un autre outil (#14) : en attente, après ces sujets.
+- Import de paquets depuis un fichier XML (#14) : en attente, après ces sujets.
 
 Autres sujets possibles : réglages hors ligne dans Déployer une fois et les planifications, LAPS (en option),
 listes de cibles.
