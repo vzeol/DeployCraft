@@ -36,6 +36,12 @@ Gestion du dépôt (15/10) : `main` protégée (PR + CI obligatoires), un sujet 
 
 ## En cours : options et étapes manquantes (DeployCraft Cloud, relu par DeployCraft Prod)
 
+Fonctionnement (validé par le mainteneur) : la session Cloud code et ouvre les PR ; la session Windows
+« DeployCraft Prod » (même compte) pilote, relit et teste sur un poste de labo, et répond par message entre
+sessions. La session Cloud fusionne (squash) **seulement après son feu vert** ; versions, tags et releases sont
+faits par Prod avec l'accord du mainteneur. Le mainteneur est prévenu sur son téléphone pour ce qui demande une
+décision.
+
 Programme, une PR par sujet, chacune relue et testée sous Windows par DeployCraft Prod avant fusion (pas de
 version ni de release côté Cloud) :
 - **A — 2.6 étape activée / désactivée + 2.7 arrêter en succès (#15, PR #16)** : fusionnée. Enchaînement des
@@ -53,10 +59,23 @@ version ni de release côté Cloud) :
 - **D — 2.28 paquet imbriqué (PR #26)** : fusionné. `Package.Flatten` remplace les étapes « paquet imbriqué »
   au lancement (dans `Resolve`) ; conditions héritées dans `ExtraConditions` / `extraConditions`. « Arrêter le
   déploiement » renommé « Arrêter en échec ».
-- **Retours du mainteneur sur la 0.10.0** : correctif console en relecture. « REMARQUE » (couleur atténuée)
-  au lieu de « ERREUR » rouge pour un poste réussi, « Raison : » pour une étape ignorée, colonnes élargies ;
-  boîtes de message aux couleurs du thème (`MessageDialog`, même signature que MessageBox).
-- E — 8.2 variables : en cours (branche `feat/variables`).
+- **Retours du mainteneur sur la 0.10.0 (PR #27, branche `fix/console-remarque-colonnes`)** : en relecture par
+  Prod, dernier commit = colonne Détail élargie (MinWidth 220, en-tête « Détail » + infobulle). « REMARQUE » au
+  lieu de « ERREUR » pour un poste réussi, « Raison : » pour une étape ignorée, boîte `MessageDialog` aux couleurs
+  du thème (plus aucun `MessageBox.Show`). À fusionner (squash) dès le feu vert de Prod.
+- **E — 8.2 variables (branche `feat/variables`, poussée, PAS encore de PR ni d'issue)** : serveur, runner, API
+  `/variables`, `Store.Variables.cs` (Store en `partial`), `Data/VariableText.cs` (partagé avec la console),
+  `VariablesPage` et 15 tests faits. **Reste** :
+  1. après fusion de #27 : `git rebase origin/main` (ou merge) de `feat/variables` ;
+  2. brancher la page dans `SettingsWindow.xaml` (onglet « Variables » contenant `<local:VariablesPage x:Name="VariablesPage" />`)
+     et, dans `OnClosing`, si `VariablesPage.HasChanges`, demander via `MessageDialog.Show` (Oui / Non / Annuler)
+     puis `await VariablesPage.SaveAsync()` ; ne toucher qu'à ça dans SettingsWindow (fichier aussi visé par #23) ;
+  3. ouvrir l'issue « [8.2] Variables » (Pris par DeployCraft Cloud), puis la PR, et l'envoyer à Prod avec un
+     scénario Windows ($(Depot) dans un fichier Installer, $(Poste) dans une commande, $(Get-Date) PowerShell
+     intact, nom « Get-Date » refusé, avertissement « stockées en clair »).
+  Règles validées par Prod : seuls les noms connus sont remplacés (un `$(…)` inconnu reste tel quel, à cause de
+  PowerShell) ; noms en lettres / chiffres / « _ » ; pas de remplacement récursif ; `$(Poste)` dans `Prepare`.
+  Le message de boucle des paquets imbriqués donne maintenant le chemin (« B › C › B »), demandé par Prod.
 - Contributeur externe (chromozone21, par fork) : issues #22, #23, #24, à ne pas prendre.
 - Ensuite : 2.8, 2.23, 2.24, 2.26, 2.27, 2.20–2.22 (à tester sur un vrai poste).
 - Import des paquets PDQ Deploy (#14) : en attente, après ces sujets.
