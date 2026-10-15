@@ -75,6 +75,10 @@ version ni de release côté Cloud) :
   testé pour de vrai** (session Windows verrouillée pendant les tests de Prod) : à vérifier dans la 0.12.0.
 - **Thème sombre trop « plat » (PR #36)** : en relecture. Onglets soulignés d'accent, boutons bordés (principal à
   l'accent), champs bordés au repos ; nouvelles clés `Control*` / `Primary*` dans les deux thèmes, contrastes WCAG.
+- **Installeur (branche `fix/installeur-console-ouverte`)** : en relecture. Une mise à jour avec la console ouverte
+  échouait (code 5) après avoir supprimé le service. Désormais : console fermée proprement (Restart Manager, filtre
+  `DeployCraft.exe`), service seulement arrêté juste avant la copie, reconfiguré par `sc config`, et redémarré si
+  l'installation échoue.
 - Contributeur externe (chromozone21, par fork) : issues #22, #23, #24, à ne pas prendre.
   **#23 — 4.8 nettoyage de l'historique** : PR ouverte, en relecture. Réglage `DeploymentDefaults.History`
   (`HistorySettings` : `Cleanup`, `KeepDays` de 1 à 3650, désactivé d'usine), `Store.PurgeFinishedDeployments`,
