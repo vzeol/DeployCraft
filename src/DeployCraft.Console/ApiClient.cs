@@ -22,6 +22,9 @@ public static class Api
         Converters = { new JsonStringEnumConverter() },
     };
 
+    /// <summary>Pour les fichiers enregistrés par la console (export de paquets).</summary>
+    public static readonly JsonSerializerOptions JsonIndented = new(Json) { WriteIndented = true };
+
     // La session Windows de la personne sert d'identité auprès du service (authentification Windows).
     private static readonly HttpClient Http = new(new HttpClientHandler { UseDefaultCredentials = true })
     {
@@ -39,6 +42,12 @@ public static class Api
     public static Task<Package> SavePackage(Package p) =>
         p.Id == 0 ? Send<Package>(HttpMethod.Post, "packages", p) : Send<Package>(HttpMethod.Put, $"packages/{p.Id}", p);
     public static Task DeletePackage(long id) => Send<object>(HttpMethod.Delete, $"packages/{id}");
+
+    /// <summary>Fichier d'export : les paquets choisis et les paquets imbriqués qu'ils utilisent.</summary>
+    public static Task<PackageExport> ExportPackages(IEnumerable<long> ids) => Send<PackageExport>(HttpMethod.Post, "packages/export", ids.ToList());
+    /// <summary>Import d'un fichier de paquets (.json ou .xml) : aperçu, ou création des paquets si <paramref name="apply"/>.</summary>
+    public static Task<ImportReport> ImportPackages(string content, string? repository, bool apply) =>
+        Send<ImportReport>(HttpMethod.Post, "packages/import", new { content, repository, apply });
 
     public static Task<List<Deployment>> Deployments() => Get<List<Deployment>>("deployments");
     public static Task<Deployment> Deployment(long id) => Get<Deployment>($"deployments/{id}");

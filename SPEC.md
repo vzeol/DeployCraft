@@ -297,6 +297,34 @@ déploiements possibles en même temps sur un poste.
 - Le texte des étapes et des conditions est envoyé tel quel : pas de variables `$(…)` (une sous-expression
   PowerShell comme `$(Get-Date)` reste intacte) ; les `%VAR%` sont celles de Windows sur le poste.
 
+### Export et import de paquets
+- **Fichier › Exporter le paquet…** (aussi au clic droit) ou **Exporter tous les paquets…** : un fichier `.json`
+  qui contient les paquets choisis **et les paquets imbriqués qu'ils utilisent**, pour qu'il se suffise à lui-même.
+  Les identifiants (mots de passe) ne sont jamais exportés.
+- **Fichier › Importer des paquets…** : un export DeployCraft (`.json`) ou un **fichier XML de paquets**.
+  Une fenêtre montre d'abord un **aperçu** (rien n'est créé) : pour chaque paquet et chaque étape, repris tel quel
+  (vert), repris avec des réserves (orange, avec l'explication) ou non repris (rouge, avec la raison).
+  « Importer » crée les paquets ; rien n'est perdu sans être signalé.
+- Toujours de **nouveaux** paquets : un nom déjà pris devient « Nom (2) », « Nom (3) »… Les étapes « paquet
+  imbriqué » sont reliées aux paquets importés en même temps. Un paquet imbriqué est créé avant celui qui l'utilise ;
+  une boucle de paquets imbriqués dans le fichier est refusée. Chaque paquet est vérifié comme à l'enregistrement.
+- Fichier XML de paquets :
+  - Étapes reprises : Installer, Commande, PowerShell, Copie de fichiers, Pause, Redémarrer, Paquet imbriqué.
+    Pas encore reprises (signalées) : Message, Déconnexion, désinstallation / réparation MSI,
+    ligne de commande personnalisée d'une installation ; jamais : scan d'inventaire.
+  - Paquet imbriqué : relié au paquet du même fichier, sinon à un paquet du même nom déjà dans DeployCraft
+    (signalé), sinon l'étape n'est pas reprise.
+  - Étapes « avant » et « après » : mises à la suite, dans l'ordre d'exécution (signalé).
+  - Conditions : versions de Windows, architecture, version de PowerShell, utilisateur connecté, présence d'un
+    fichier ou d'une clé / valeur de registre. Une condition sans équivalent exact (version de fichier, valeur de
+    registre comparée, Windows Server version par version, collection d'un logiciel d'inventaire…) est signalée et l'étape est
+    **importée désactivée** (toutes les étapes si c'est une condition du paquet) : elle ne s'exécute jamais sur plus
+    de postes que prévu. On la vérifie, puis on la réactive.
+  - Fichiers additionnels d'une étape : pas encore copiés par DeployCraft, l'étape est importée désactivée.
+  - `$(Repository)` est remplacé par le dossier du dépôt saisi dans la fenêtre d'import ; les autres variables
+    restent telles quelles (signalées). Dossiers de paquets : DeployCraft n'en a pas, les paquets vont à la racine.
+    Planifications et listes de postes du fichier : signalées, non reprises.
+
 ### Préférences › Déploiement et Hors ligne (0.10.0)
 - Réglages du **serveur** (communs à toutes les consoles), enregistrés à la fermeture de la fenêtre : exécuter en
   tant que, mode de copie, délai max par étape (60 min d'usine), réglages hors ligne.

@@ -125,7 +125,13 @@ version ni de release côté Cloud) :
   de Prod : fermeture par délai vue comme un clic, messages mis en file par session.
   Tests : `MessageTests`.
 - Ensuite : 2.27, 2.20–2.22 (à tester sur un vrai poste).
-- Import de paquets depuis un fichier XML (#14) : en attente, après ces sujets.
+- **1.11 / 2.12 export et import de paquets (PR #59, Claude White Room)** : fusionné. Fichier › Exporter
+  le paquet / tous les paquets (`.json`, paquets imbriqués inclus) et Importer des paquets (`.json` ou `.xml`), avec
+  une fenêtre d'aperçu (repris / avec réserves / non repris). `PackageExchange` (export, lecture, `Complete` :
+  noms uniques, liens des paquets imbriqués, validation, enregistrement), `XmlPackageImport` (fichiers XML),
+  types partagés `ExchangeModels.cs`, routes `POST /packages/export` et `/packages/import`. Une condition sans
+  équivalent exact désactive l'étape importée. Tests : `PackageExchangeTests`. Aucune mention d'un autre logiciel
+  dans DeployCraft (règle du mainteneur).
 
 Autres sujets possibles : réglages hors ligne dans Déployer une fois et les planifications, LAPS (en option),
 listes de cibles.
