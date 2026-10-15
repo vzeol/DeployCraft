@@ -82,4 +82,29 @@ public sealed class StatusFileTests : IDisposable
         Assert.Equal("Annulé.", steps[1].Error);
         Assert.Equal(now, steps[1].EndedUtc);
     }
+
+    [Fact]
+    public async Task FinalStatus_WaitsForTheFinalFile_WhenTheShareShowsItLate()
+    {
+        // Juste après l'arrêt du runner : fichier « absent » (cache du partage), puis ancien état, puis le bon.
+        var reads = new Queue<RunnerStatus?>([null, new RunnerStatus { State = "running" }, new RunnerStatus { State = "done" }]);
+        var waits = 0;
+
+        var status = await TargetSession.FinalStatusAsync(() => reads.Dequeue(), _ => { waits++; return Task.CompletedTask; });
+
+        Assert.Equal("done", status!.State);
+        Assert.Equal(2, waits);
+    }
+
+    [Fact]
+    public async Task FinalStatus_GivesUpAfterTheLastAttempt_KeepingTheLastStateRead()
+    {
+        var calls = 0;
+
+        var status = await TargetSession.FinalStatusAsync(() => ++calls == 2 ? new RunnerStatus { State = "running" } : null,
+            _ => Task.CompletedTask, attempts: 5);
+
+        Assert.Equal(5, calls);
+        Assert.Equal("running", status!.State);
+    }
 }

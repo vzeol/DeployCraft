@@ -171,6 +171,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
             var (status, running) = credentials.RunAs(account, computer, () =>
             {
                 using var scm = new ServiceControl(_isLocal ? null : computer);
+                RefreshShareCache(SlotDir);
                 return (ReadStatus(statusPath), scm.IsRunning(_service!));
             });
 
@@ -181,14 +182,53 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
             }
             if (!running)
             {
-                // Dernière lecture : le service a pu finir entre les deux appels.
-                status = credentials.RunAs(account, computer, () => ReadStatus(statusPath));
+                // Le service a pu finir entre les deux appels : dernières lectures, le temps que le partage montre le
+                // status.json final (il peut sembler absent ou ancien quelques secondes juste après son remplacement).
+                status = await FinalStatusAsync(() => credentials.RunAs(account, computer, () =>
+                {
+                    RefreshShareCache(SlotDir);
+                    return ReadStatus(statusPath);
+                }), delay => Task.Delay(delay, ct));
                 if (status != null) progress(status);
                 if (status?.State == "done") return status;
                 throw new DeployException("Le runner s'est arrêté sans rendre de résultat (voir runner.log sur la cible).");
             }
             if (DateTime.UtcNow > deadline)
                 throw new DeployException("Délai global dépassé : le runner ne répond plus.");
+        }
+    }
+
+    /// <summary>
+    /// Relit l'état jusqu'à trouver « done », au plus <paramref name="attempts"/> fois à une seconde d'intervalle ;
+    /// renvoie le dernier état lu (ou null).
+    /// </summary>
+    internal static async Task<RunnerStatus?> FinalStatusAsync(Func<RunnerStatus?> read, Func<TimeSpan, Task> delay, int attempts = 12)
+    {
+        RunnerStatus? last = null;
+        for (var attempt = 1; ; attempt++)
+        {
+            last = read() ?? last;
+            if (last?.State == "done" || attempt >= attempts) return last;
+            await delay(TimeSpan.FromSeconds(1));
+        }
+    }
+
+    /// <summary>
+    /// Windows garde quelques secondes en mémoire le contenu d'un dossier lu à travers un partage (et l'absence d'un
+    /// fichier). Créer puis supprimer un fichier vide dans le dossier oblige à le relire pour de bon.
+    /// </summary>
+    private void RefreshShareCache(string directory)
+    {
+        if (_isLocal) return;
+        try
+        {
+            var probe = Path.Combine(directory, $"refresh-{Guid.NewGuid():N}.tmp");
+            File.WriteAllBytes(probe, []);
+            File.Delete(probe);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            // Sans effet sur la lecture : on lit quand même.
         }
     }
 
@@ -407,10 +447,14 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         {
             try
             {
-                if (!File.Exists(path)) return null;
+                // Pas de File.Exists : à travers un partage, il peut répondre « absent » d'après un cache périmé.
                 using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
                 using var reader = new StreamReader(stream);
                 return JsonSerializer.Deserialize<RunnerStatus>(reader.ReadToEnd());
+            }
+            catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
+            {
+                return null;
             }
             catch (Exception ex) when (ex is IOException or JsonException && attempt < 3)
             {
