@@ -110,28 +110,18 @@ namespace DeployCraft.Runner
             psi.RedirectStandardOutput = true;
             psi.RedirectStandardError = true;
             psi.RedirectStandardInput = true;
-            // Les outils console écrivent dans la page de code OEM (850 en français).
+            // La plupart des outils console écrivent dans la page de code OEM (850 en français), d'autres en UTF-16 :
+            // la sortie est gardée en octets et décodée à la fin (ProcessOutput).
             var oem = Encoding.GetEncoding(CultureInfo.CurrentCulture.TextInfo.OEMCodePage);
-            psi.StandardOutputEncoding = oem;
-            psi.StandardErrorEncoding = oem;
             psi.EnvironmentVariables["cd"] = _execDir;
-
-            var output = new StringBuilder();
-            void Append(string line)
-            {
-                if (line == null) return;
-                lock (output)
-                {
-                    if (output.Length < MaxOutputChars) output.AppendLine(line);
-                }
-            }
+            var output = new ProcessOutput(MaxOutputChars * 2);
 
             try
             {
                 int exitCode;
                 if (step.RunAsLoggedOnUser)
                 {
-                    using (var process = UserProcess.Start(psi.FileName, psi.Arguments, _execDir, oem, Append))
+                    using (var process = UserProcess.Start(psi.FileName, psi.Arguments, _execDir, output.Add))
                     {
                         _current = process.Id;
                         Log($"Étape {index + 1} lancée dans la session de {process.User ?? "l'utilisateur connecté"}");
@@ -148,21 +138,22 @@ namespace DeployCraft.Runner
                 {
                     using (var process = new Process { StartInfo = psi })
                     {
-                        process.OutputDataReceived += (s, e) => Append(e.Data);
-                        process.ErrorDataReceived += (s, e) => Append(e.Data);
                         process.Start();
                         _current = process.Id;
                         // Aucune saisie possible : un installeur qui attend une réponse échoue au lieu de bloquer.
                         process.StandardInput.Close();
-                        process.BeginOutputReadLine();
-                        process.BeginErrorReadLine();
+                        var readers = new[] { process.StandardOutput.BaseStream, process.StandardError.BaseStream }
+                            .Select(stream => new Thread(() => output.ReadAll(stream)) { IsBackground = true, Name = "ProcessOutput" })
+                            .ToList();
+                        readers.ForEach(r => r.Start());
 
                         if (!process.WaitForExit(step.TimeoutSeconds * 1000))
                         {
                             TimedOut(process.Id, step, result);
                             return;
                         }
-                        process.WaitForExit(); // vide les flux de sortie
+                        // Les flux se ferment avec le programme (ou avec le dernier enfant qui les a hérités).
+                        readers.ForEach(r => r.Join(10000));
                         exitCode = process.ExitCode;
                     }
                 }
@@ -185,7 +176,7 @@ namespace DeployCraft.Runner
             finally
             {
                 _current = 0;
-                lock (output) result.Output = output.ToString();
+                result.Output = output.Text(oem);
                 if (install)
                 {
                     result.Output = InstallLog.Append(result.Output, _execDir, MaxOutputChars);
@@ -211,7 +202,7 @@ namespace DeployCraft.Runner
                 var powershell = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), @"WindowsPowerShell\v1.0\powershell.exe");
                 var args = MessageOutcome.Arguments(step.Arguments, step.Command, seconds);
                 foreach (var session in sessions)
-                    windows.Add(UserProcess.Start(powershell, args, _execDir, Encoding.Default, _ => { }, session.Key));
+                    windows.Add(UserProcess.Start(powershell, args, _execDir, (_, __) => { }, session.Key));
 
                 List<int> codes = null;
                 if (step.WaitForUser)

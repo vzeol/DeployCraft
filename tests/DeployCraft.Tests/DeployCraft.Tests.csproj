@@ -27,6 +27,7 @@
     <Compile Include="..\..\src\DeployCraft.Runner\Shutdown.cs" Link="Runner\Shutdown.cs" />
     <Compile Include="..\..\src\DeployCraft.Runner\MessageOutcome.cs" Link="Runner\MessageOutcome.cs" />
     <Compile Include="..\..\src\DeployCraft.Runner\InstallLog.cs" Link="Runner\InstallLog.cs" />
+    <Compile Include="..\..\src\DeployCraft.Runner\ProcessOutput.cs" Link="Runner\ProcessOutput.cs" />
   </ItemGroup>
 
   <ItemGroup>
