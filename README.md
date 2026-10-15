@@ -21,6 +21,8 @@ Wake-on-LAN et nouveaux essais des postes hors ligne, identifiants multiples, th
    compte Système local) et la console. Rien d'autre à installer (.NET est embarqué).
 3. Ouvrir la console **DeployCraft**, puis Options › **Identifiants…** pour ajouter le compte
    administrateur des postes (le mot de passe est saisi dans la console, chiffré sur le serveur).
+4. Seuls les administrateurs du serveur peuvent utiliser la console. Pour ouvrir l'accès à d'autres comptes
+   ou groupes : Options › **Utilisateurs de la console…**.
 
 ## Lancement
 

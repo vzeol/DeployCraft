@@ -132,7 +132,7 @@ dans la même PR que le code qui la réalise.
 | 8.7 | Serveur de messagerie + notifications | ⬜ | |
 | 8.8 | Interface, impression | 🟡 | 0.7.0 : page Interface (thème) ; fenêtre des Préférences en liste de pages. Reste : écran de démarrage (on n'en a pas), impression |
 | 8.9 | Service en arrière-plan | ⬜ | Compte du service |
-| 8.10 | Utilisateurs de la console, sessions actives | ⬜ | Qui a le droit de se connecter au service |
+| 8.10 | Utilisateurs de la console, sessions actives | ✅ | Authentification Windows ; administrateurs du serveur + liste de comptes et groupes |
 | 8.11 | Mode serveur central (local / serveur / client) | ⬜ | Notre console parle déjà en HTTP au service |
 | 8.12 | Service sur la cible | ⬜ | Nom d'hôte utilisé (FQDN / court / IP), réglages du service temporaire |
 | 8.13 | Proxy, base de données, journalisation | ⬜ | |

@@ -197,6 +197,18 @@ déploiements possibles en même temps sur un poste.
 - Mise à jour depuis 0.8 : l'ancien compte unique devient le premier identifiant, par défaut.
 - À venir : LAPS (mot de passe administrateur local de chaque poste lu dans l'AD), bouton « afficher le mot de passe ».
 
+### Utilisateurs de la console (accès à l'API du service)
+- La console s'identifie auprès du service avec la session Windows de la personne (authentification Windows,
+  aucun mot de passe à saisir). Une demande sans identité est refusée.
+- Ont accès : les **administrateurs locaux du serveur**, toujours (même console ouverte sans élévation), et les
+  comptes ou groupes de la liste Options › **Utilisateurs de la console…** (Ajouter : `DOMAINE\nom`, vérifié
+  et retenu par son SID ; Supprimer). Seuls les administrateurs du serveur modifient la liste.
+- Compte refusé : message « Votre compte … n'est pas autorisé à utiliser DeployCraft sur SERVEUR-01 » dans le
+  bandeau, barre d'état « Accès refusé ».
+- **Sessions actives** dans la même fenêtre : comptes ayant interrogé le service depuis moins de 2 minutes.
+- « Lancé par » et « Annulé par » viennent du compte authentifié par le service, plus de la console.
+- Barre d'état : « vous : DOMAINE\compte ».
+
 ### Fenêtre paquet (0.10.0)
 - À gauche : arbre **Propriétés** puis **Étapes** (une ligne par étape) ; à droite : la page du nœud choisi.
   Barre d'outils : enregistrer, nouvelle étape ▾, monter, descendre (Ctrl+Haut / Ctrl+Bas), couper, copier, coller,
