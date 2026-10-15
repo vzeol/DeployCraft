@@ -25,7 +25,7 @@ dans la même PR que le code qui la réalise.
 | 1.8 | Fenêtre des raccourcis clavier | ⬜ | |
 | 1.9 | Thèmes clair / sombre | ✅ | 0.7.0 : Clair, Sombre ou Selon Windows ; Préférences › Interface, appliqué à chaud |
 | 1.10 | Page d'accueil | ⬜ | |
-| 1.11 | Import / export (paquets, dossiers, listes de cibles, planifications, réglages) | ⬜ | Format XML ou JSON à nous |
+| 1.11 | Import / export (paquets, dossiers, listes de cibles, planifications, réglages) | 🟡 | Paquets : export / import JSON à nous, import des exports XML de PDQ Deploy avec aperçu. Manquent dossiers, listes de cibles, planifications, réglages |
 | 1.12 | Imprimer, aperçu avant impression, mise en page, enregistrer une grille en CSV | ⬜ | |
 | 1.13 | À propos | 🟡 | |
 
@@ -44,7 +44,7 @@ dans la même PR que le code qui la réalise.
 | 2.9 | Par étape : mêmes conditions qu'au paquet | ✅ | 0.10.0 : non remplies = étape « Ignoré », le paquet continue |
 | 2.10 | Copier / couper / coller / réordonner des étapes, y compris entre paquets | ✅ | 0.10.0 : presse-papiers (Ctrl+X / C / V), barre d'outils et clic droit |
 | 2.11 | Avertissements : fichier introuvable, pas de paramètre silencieux, conflit avec le mode « pull » | 🟡 | |
-| 2.12 | Dupliquer, exporter un paquet | ⬜ | |
+| 2.12 | Dupliquer, exporter un paquet | ✅ | Export avec ses paquets imbriqués |
 | 2.13 | Dossiers de paquets publics / privés | ⬜ | |
 
 ### Types d'étapes
