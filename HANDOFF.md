@@ -75,6 +75,10 @@ version ni de release côté Cloud) :
   testé pour de vrai** (session Windows verrouillée pendant les tests de Prod) : à vérifier dans la 0.12.0.
 - **Thème sombre trop « plat » (PR #36)** : en relecture. Onglets soulignés d'accent, boutons bordés (principal à
   l'accent), champs bordés au repos ; nouvelles clés `Control*` / `Primary*` dans les deux thèmes, contrastes WCAG.
+- **Installeur (branche `fix/installeur-console-ouverte`)** : en relecture. Une mise à jour avec la console ouverte
+  échouait (code 5) après avoir supprimé le service. Désormais : console fermée proprement (Restart Manager, filtre
+  `DeployCraft.exe`), service seulement arrêté juste avant la copie, reconfiguré par `sc config`, et redémarré si
+  l'installation échoue.
 - Contributeur externe (chromozone21, par fork) : issues #22, #23, #24, à ne pas prendre.
 - Ensuite : 2.8, 2.23, 2.24, 2.26, 2.27, 2.20–2.22 (à tester sur un vrai poste).
 - Import des paquets PDQ Deploy (#14) : en attente, après ces sujets.
