@@ -19,6 +19,7 @@
                             <MenuItem Header="PowerShell" Click="AddPowerShell_Click" />
                             <MenuItem Header="Copie de fichiers" Click="AddCopy_Click" />
                             <MenuItem Header="Pause" Click="AddPause_Click" />
+                            <MenuItem Header="Redémarrer" Click="AddReboot_Click" />
                             <MenuItem Header="Paquet imbriqué" Click="AddNested_Click" />
                         </ContextMenu>
                     </Button.ContextMenu>
@@ -123,6 +124,7 @@
                     <Button Style="{StaticResource DialogButton}" Click="AddPowerShell_Click">PowerShell</Button>
                     <Button Style="{StaticResource DialogButton}" Click="AddCopy_Click">Copie de fichiers</Button>
                     <Button Style="{StaticResource DialogButton}" Click="AddPause_Click">Pause</Button>
+                    <Button Style="{StaticResource DialogButton}" Click="AddReboot_Click">Redémarrer</Button>
                     <Button Style="{StaticResource DialogButton}" Click="AddNested_Click">Paquet imbriqué</Button>
                 </StackPanel>
                 <DataGrid x:Name="StepsGrid" MouseDoubleClick="StepsGrid_MouseDoubleClick">
@@ -243,6 +245,40 @@
                                 <CheckBox Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,0,6"
                                           Content="Réussir même si des fichiers ne peuvent pas être remplacés" IsChecked="{Binding CopyIgnoreErrors}"
                                           ToolTip="Par exemple un fichier en cours d'utilisation. Une source introuvable reste une erreur." />
+                            </Grid>
+
+                            <!-- Redémarrer -->
+                            <Grid x:Name="RebootPanel" Grid.RowSpan="8" Grid.ColumnSpan="3" VerticalAlignment="Top">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Style="{StaticResource FieldLabel}" Text="Délai (secondes)" />
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactBox}" HorizontalAlignment="Left" Width="90"
+                                         AutomationProperties.Name="Délai avant le redémarrage (secondes)"
+                                         Text="{Binding RebootDelaySeconds, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource Hint}"
+                                           Text="De 30 secondes à 1 heure : l'utilisateur connecté est prévenu et peut enregistrer son travail." />
+
+                                <TextBlock Grid.Row="2" Style="{StaticResource FieldLabel}" Text="Message" VerticalAlignment="Top" Margin="0,4,12,0" />
+                                <TextBox Grid.Row="2" Grid.Column="1" MinHeight="52" TextWrapping="Wrap" AcceptsReturn="True" MaxLength="500"
+                                         VerticalContentAlignment="Top" AutomationProperties.Name="Message à l'utilisateur connecté"
+                                         Text="{Binding RebootMessage, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource Hint}"
+                                           Text="Facultatif : affiché à l'utilisateur connecté avec le compte à rebours." />
+
+                                <CheckBox Grid.Row="4" Grid.Column="1" Margin="0,6,0,6" x:Name="ShutdownOnlyBox"
+                                          Content="Éteindre le poste au lieu de le redémarrer" IsChecked="{Binding RebootShutdownOnly}" />
+                                <TextBlock Grid.Row="5" Grid.Column="1" Style="{StaticResource Hint}" TextWrapping="Wrap"
+                                           Text="Redémarrage : DeployCraft attend que le poste revienne (au plus le délai max de l'étape), puis passe à l'étape suivante. Arrêt : les étapes suivantes sont ignorées." />
                             </Grid>
 
                             <!-- Pause -->

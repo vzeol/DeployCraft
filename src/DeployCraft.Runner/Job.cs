@@ -57,12 +57,12 @@ namespace DeployCraft.Runner
     public class JobStep
     {
         [DataMember(Name = "name")] public string Name { get; set; }
-        /// <summary>install | command | powershell | pause | copyfiles</summary>
+        /// <summary>install | command | powershell | pause | copyfiles | reboot</summary>
         [DataMember(Name = "type")] public string Type { get; set; }
-        /// <summary>install : nom du fichier dans exec\. command : ligne cmd. powershell : script. copyfiles : dossier dans exec\ (push).</summary>
+        /// <summary>install : nom du fichier dans exec\. command : ligne cmd. powershell : script. copyfiles : dossier dans exec\ (push). reboot : message.</summary>
         [DataMember(Name = "command")] public string Command { get; set; }
         [DataMember(Name = "arguments")] public string Arguments { get; set; }
-        /// <summary>pause : durée d'attente en secondes.</summary>
+        /// <summary>pause : durée d'attente en secondes. reboot : délai avant le redémarrage.</summary>
         [DataMember(Name = "seconds")] public int Seconds { get; set; }
         [DataMember(Name = "successCodes")] public List<int> SuccessCodes { get; set; } = new List<int> { 0 };
         [DataMember(Name = "timeoutSeconds")] public int TimeoutSeconds { get; set; } = 3600;
@@ -83,6 +83,8 @@ namespace DeployCraft.Runner
         [DataMember(Name = "copySubfolders")] public bool CopySubfolders { get; set; }
         /// <summary>copyfiles : remplacer les fichiers déjà présents sur le poste.</summary>
         [DataMember(Name = "copyOverwrite")] public bool CopyOverwrite { get; set; }
+        /// <summary>reboot : éteindre au lieu de redémarrer.</summary>
+        [DataMember(Name = "shutdownOnly")] public bool ShutdownOnly { get; set; }
         /// <summary>Conditions de l'étape : non remplies, l'étape est sautée.</summary>
         [DataMember(Name = "conditions")] public JobConditions Conditions { get; set; }
         /// <summary>Conditions supplémentaires (paquet imbriqué), vérifiées avant celles de l'étape (null = aucune).</summary>

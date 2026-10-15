@@ -36,8 +36,10 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
 
         stage("Copie des fichiers");
         var (job, modes) = credentials.RunAs(account, computer, () => Prepare(package, startStep, runAs, copyMode));
-        var tranches = RunAsPlan.Split(modes);
+        // Un redémarrage termine sa tranche : la suivante est lancée une fois le poste revenu.
+        var tranches = RunAsPlan.Split(modes, [.. job.Steps.Select(s => s.Type == RebootType)]);
         var done = new List<RunnerStepResult>();
+        var restarted = false;
 
         try
         {
@@ -59,7 +61,9 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 // Annulé entre deux tranches : aucune nouvelle n'est lancée.
                 ct.ThrowIfCancellationRequested();
                 stage(tranches.Count == 1 ? "Démarrage du runner" : $"Démarrage du runner ({t + 1}/{tranches.Count}, {identity})");
-                credentials.RunAs(account, computer, () => StartTranche(trancheJob, tranche.AsDeployUser));
+                if (restarted) await StartAfterRestartAsync(trancheJob, tranche.AsDeployUser, ct);
+                else credentials.RunAs(account, computer, () => StartTranche(trancheJob, tranche.AsDeployUser));
+                restarted = false;
                 stage($"Exécution ({identity})");
 
                 var final = await WaitAsync(trancheJob, status => progress(RunAsPlan.Combine(done, status, later, last)), ct);
@@ -71,6 +75,17 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 _service = null;
                 done.AddRange(final.Steps);
                 if (RunAsPlan.Stops(final)) return;
+
+                // Redémarrage programmé par la dernière étape de la tranche (pas ignorée, pas en échec).
+                var reboot = trancheJob.Steps[^1];
+                if (reboot.Type != RebootType || final.Steps.Count != trancheJob.Steps.Count || final.Steps[^1].State != "success") continue;
+                if (reboot.ShutdownOnly)
+                {
+                    if (!last) progress(RunAsPlan.Finish(done, later, $"Poste éteint par l'étape {startStep + tranche.Start + tranche.Count - 1} « {reboot.Name} ».", final.Network));
+                    return;
+                }
+                await WaitForRestartAsync(reboot, stage, ct);
+                restarted = true;
             }
         }
         finally
@@ -78,6 +93,50 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
             stage("Nettoyage");
             try { credentials.RunAs(account, computer, Cleanup); }
             catch { /* un nettoyage raté ne doit pas masquer le vrai résultat */ }
+        }
+    }
+
+    private const string RebootType = "reboot";
+
+    /// <summary>
+    /// Attend que le poste s'arrête (après le délai annoncé à l'utilisateur), puis qu'il réponde de nouveau, au plus le
+    /// délai max de l'étape. Le slot (fichiers et verrou) reste sur le disque du poste pendant le redémarrage.
+    /// </summary>
+    private async Task WaitForRestartAsync(RunnerJobStep reboot, Action<string> stage, CancellationToken ct)
+    {
+        stage("Redémarrage du poste");
+        var downBy = DateTime.UtcNow.AddSeconds(reboot.Seconds + 300);
+        while (await ProbeAsync(computer, ct) == null)
+        {
+            if (DateTime.UtcNow > downBy)
+                throw new DeployException("Le poste ne s'est pas arrêté après la demande de redémarrage (annulée sur le poste ?).");
+            await Task.Delay(3000, ct);
+        }
+
+        stage("Attente du retour du poste");
+        var upBy = DateTime.UtcNow.AddSeconds(reboot.TimeoutSeconds);
+        while (await ProbeAsync(computer, ct) != null)
+        {
+            if (DateTime.UtcNow > upBy)
+                throw new DeployException($"Le poste n'est pas revenu {reboot.TimeoutSeconds / 60} min après le redémarrage (délai max de l'étape « {reboot.Name} »).");
+            await Task.Delay(5000, ct);
+        }
+    }
+
+    /// <summary>Juste après le démarrage, le partage peut répondre avant le gestionnaire de services : quelques essais.</summary>
+    private async Task StartAfterRestartAsync(RunnerJob job, bool asDeployUser, CancellationToken ct)
+    {
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                credentials.RunAs(account, computer, () => StartTranche(job, asDeployUser));
+                return;
+            }
+            catch (Exception) when (attempt < 12)
+            {
+                await Task.Delay(10000, ct);
+            }
         }
     }
 
@@ -221,6 +280,8 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 if (step.IncludeDirectory) CopyDirectory(Path.GetDirectoryName(step.File)!, exec);
                 else File.Copy(step.File, Path.Combine(exec, Path.GetFileName(step.File)), overwrite: true);
             }
+            else if (step.Type == StepType.Reboot && step.Enabled && _isLocal)
+                throw new DeployException($"Étape « {jobStep.Name} » : DeployCraft ne redémarre pas le serveur sur lequel il tourne.");
             else if (step.Type == StepType.CopyFiles && step.Enabled)
             {
                 if (string.IsNullOrWhiteSpace(step.CopySource)) throw new DeployException($"Étape « {jobStep.Name} » : aucun fichier ou dossier à copier.");
@@ -283,8 +344,8 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
             Name = string.IsNullOrWhiteSpace(step.Name) ? step.Type.ToString() : step.Name,
             Type = step.Type.ToString().ToLowerInvariant(),
             Arguments = step.Arguments,
-            Command = step.Command,
-            Seconds = step.Type == StepType.Pause ? step.PauseSeconds : 0,
+            Command = step.Type == StepType.Reboot ? step.RebootMessage : step.Command,
+            Seconds = step.Type switch { StepType.Pause => step.PauseSeconds, StepType.Reboot => step.RebootDelaySeconds, _ => 0 },
             // Copie : robocopy réussit de 0 à 7 ; 8 à 15 = des fichiers n'ont pas pu être copiés ; 16 = erreur grave.
             SuccessCodes = step.Type == StepType.CopyFiles ? [.. Enumerable.Range(0, step.CopyIgnoreErrors ? 16 : 8)] : ParseCodes(step.SuccessCodes),
             // Une pause dure ce qu'elle dure : son délai (qui compte dans l'attente du serveur) suit sa durée.
@@ -298,7 +359,9 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
             CopyPatterns = step.Type == StepType.CopyFiles ? PackageStep.SplitPatterns(step.CopyPatterns) : null,
             CopySubfolders = step.Type == StepType.CopyFiles && step.CopySubfolders,
             CopyOverwrite = step.Type == StepType.CopyFiles && step.CopyOverwrite,
-            RunAsLoggedOnUser = runAs == RunAsMode.LoggedOnUser,
+            // Le redémarrage est demandé par le service, jamais par l'utilisateur connecté (qui n'en a souvent pas le droit).
+            RunAsLoggedOnUser = runAs == RunAsMode.LoggedOnUser && step.Type != StepType.Reboot,
+            ShutdownOnly = step.Type == StepType.Reboot && step.RebootShutdownOnly,
             Conditions = RunnerConditions.From(step.Conditions),
             ExtraConditions = step.ExtraConditions?
                 .Select(g => new RunnerConditionGroup { Label = g.Label, Conditions = RunnerConditions.From(g.Conditions) })

@@ -24,6 +24,7 @@
     <Compile Include="..\..\src\DeployCraft.Runner\Conditions.cs" Link="Runner\Conditions.cs" />
     <Compile Include="..\..\src\DeployCraft.Runner\StepSequence.cs" Link="Runner\StepSequence.cs" />
     <Compile Include="..\..\src\DeployCraft.Runner\FileCopy.cs" Link="Runner\FileCopy.cs" />
+    <Compile Include="..\..\src\DeployCraft.Runner\Shutdown.cs" Link="Runner\Shutdown.cs" />
   </ItemGroup>
 
   <ItemGroup>

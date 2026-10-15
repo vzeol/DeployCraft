@@ -1,7 +1,7 @@
 namespace DeployCraft.Server.Data;
 
 /// <summary>Nested : paquet imbriqué, remplacé par ses étapes au lancement (jamais envoyé tel quel au poste).</summary>
-public enum StepType { Install, Command, PowerShell, Pause, Nested, CopyFiles }
+public enum StepType { Install, Command, PowerShell, Pause, Nested, CopyFiles, Reboot }
 
 /// <summary>En cas d'erreur d'une étape : arrêter en échec, continuer, ou arrêter le paquet en comptant le poste réussi.</summary>
 public enum ErrorMode { Stop, Continue, StopSuccess }
@@ -51,6 +51,12 @@ public class PackageStep
     public bool CopyOverwrite { get; set; } = true;
     /// <summary>Copie de fichiers : un fichier impossible à remplacer (en cours d'utilisation…) n'est pas une erreur.</summary>
     public bool CopyIgnoreErrors { get; set; }
+    /// <summary>Redémarrer : message affiché à l'utilisateur connecté (facultatif).</summary>
+    public string? RebootMessage { get; set; }
+    /// <summary>Redémarrer : délai avant le redémarrage, en secondes (l'utilisateur connecté est prévenu).</summary>
+    public int RebootDelaySeconds { get; set; } = 60;
+    /// <summary>Redémarrer : éteindre le poste au lieu de le redémarrer (les étapes suivantes sont ignorées).</summary>
+    public bool RebootShutdownOnly { get; set; }
     /// <summary>
     /// Conditions à remplir en plus de celles de l'étape : posées au lancement sur les étapes d'un paquet imbriqué
     /// (conditions de l'étape « paquet imbriqué » et du paquet imbriqué lui-même).
