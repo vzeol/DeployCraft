@@ -25,6 +25,8 @@ public partial class DeploymentsPanel : UserControl
 
     /// <summary>Demande de déploiement (paquet, cibles pré-remplies avec leur étape de départ).</summary>
     public event Action<long, IReadOnlyList<TargetRequest>>? DeployRequested;
+    /// <summary>Nouvelle planification pré-remplie d'après un déploiement, à ouvrir dans sa fenêtre.</summary>
+    public event Action<Schedule>? ScheduleRequested;
     /// <summary>L'historique a changé (suppression, annulation, lancement direct) : la fenêtre doit rafraîchir.</summary>
     public event Action? Changed;
 
@@ -309,6 +311,8 @@ public partial class DeploymentsPanel : UserControl
                 new("Redéployer", Redeploy, CanRedeploy, "Ctrl+R"),
                 new("Redéployer sur les postes en échec", RedeployFailed, CanRedeployFailed, "Ctrl+Maj+R"),
                 new("Redéployer depuis l'étape en échec", RedeployFromFailedStep, CanRedeployFailed),
+                Ui.Separator,
+                new("Nouvelle planification à partir de ce déploiement…", () => ScheduleRequested?.Invoke(Schedule.From(Selected!))),
                 Ui.Separator,
                 new("Supprimer", DeleteSelected, CanDelete, "Suppr"),
             ]);
