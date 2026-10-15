@@ -134,6 +134,7 @@ public partial class MainWindow : Window
             _homeNode.IsSelected = true;
             await RefreshAsync(packages: true);
             _timer.Start();
+            if (await WelcomeWindow.NeededAsync()) Welcome_Click(this, new());
         };
     }
 
@@ -940,6 +941,15 @@ public partial class MainWindow : Window
         }
         catch (ApiException ex) { Ui.Error(this, ex); }
     }
+
+    private async void Welcome_Click(object sender, RoutedEventArgs e)
+    {
+        new WelcomeWindow(this).ShowDialog();
+        await RefreshAsync(packages: true);
+    }
+
+    /// <summary>Affiche la bibliothèque de paquets (depuis l'assistant de démarrage).</summary>
+    public void OpenLibrary() => _libraryNode.IsSelected = true;
 
     private void ConsoleUsers_Click(object sender, RoutedEventArgs e) => new ConsoleUsersWindow { Owner = this }.ShowDialog();
 

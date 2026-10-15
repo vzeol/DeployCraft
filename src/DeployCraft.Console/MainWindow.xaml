@@ -87,6 +87,8 @@
                 <MenuItem Header="Ouvrir une _invite de commandes (admin)" Click="AdminCmd_Click" />
                 <MenuItem Header="Ouvrir _PowerShell (admin)" Click="AdminPowerShell_Click" />
                 <Separator />
+                <MenuItem Header="Assistant de _démarrage…" Click="Welcome_Click" />
+                <Separator />
                 <MenuItem Header="_À propos de DeployCraft" Click="About_Click" />
             </MenuItem>
         </Menu>
