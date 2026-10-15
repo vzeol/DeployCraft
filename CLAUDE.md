@@ -61,6 +61,13 @@ On ne décrit jamais leur fonctionnement interne et on ne reproduit jamais leurs
 Tester sur une instance isolée (`--DataDir`, port 5091). Pour un déploiement sur un vrai poste, demander
 d'abord lequel au mainteneur.
 
+Qui teste quoi avant la fusion :
+- **Ce qui dépend d'un domaine** (Active Directory, identifiants, déploiement sur un poste du domaine, partages,
+  mode pull, service Windows, réveil réseau) : test sur le domaine de test, avec un scénario précis dans la PR.
+- **Le reste** (interface, options, bibliothèque de paquets…) se teste sans domaine : le mainteneur l'essaie en
+  local avec une version de test, puis la PR est fusionnée après son accord et la CI au vert, sans test sur le
+  domaine. La PR dit dans quel cas elle se trouve.
+
 ## Commits
 
 - Format **Conventional Commits**, suite en français, au présent :
