@@ -129,6 +129,21 @@ public class OfflineSettings
     public int RetryIntervalMinutes { get; set; } = 30;
 }
 
+/// <summary>Nettoyage automatique de l'historique des déploiements (Préférences › Déploiement).</summary>
+public class HistorySettings
+{
+    public const int MinDays = 1;
+    public const int MaxDays = 3650;
+
+    /// <summary>Supprimer les déploiements terminés depuis plus de <see cref="KeepDays"/> jours (désactivé d'usine).</summary>
+    public bool Cleanup { get; set; }
+    public int KeepDays { get; set; } = 30;
+
+    /// <summary>Message d'erreur si le nombre de jours est hors limites, sinon null.</summary>
+    public static string? Validate(int keepDays) =>
+        keepDays is < MinDays or > MaxDays ? $"le nombre de jours doit être compris entre {MinDays} et {MaxDays}." : null;
+}
+
 /// <summary>Carte réseau d'un poste : adresse MAC et adresse de diffusion de son sous-réseau (pour le réveiller).</summary>
 public record NetworkCard(string Mac, string? Broadcast);
 
@@ -139,6 +154,7 @@ public class DeploymentDefaults
     public CopyMode CopyMode { get; set; } = CopyMode.Push;
     public int TimeoutMinutes { get; set; } = 60;
     public OfflineSettings Offline { get; set; } = new();
+    public HistorySettings History { get; set; } = new();
 }
 
 public class Package

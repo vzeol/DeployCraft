@@ -405,6 +405,34 @@ public partial class Store
         cmd.ExecuteNonQuery();
     }
 
+    /// <summary>
+    /// Supprime les déploiements terminés (réussis ou en échec) dont la fin est antérieure à <paramref name="endedBeforeUtc"/>
+    /// (UTC), avec leurs postes. Un déploiement en attente ou en cours n'est jamais touché, ni l'historique des
+    /// planifications. Renvoie le nombre de déploiements supprimés.
+    /// </summary>
+    public int PurgeFinishedDeployments(DateTime endedBeforeUtc)
+    {
+        using var db = Open();
+        using var tx = db.BeginTransaction();
+        var cutoff = endedBeforeUtc.ToString("o");
+        const string finished = "status IN ('Successful', 'Failed') AND ended_utc IS NOT NULL AND ended_utc < $cutoff";
+
+        using (var targets = Command(db, $"DELETE FROM deployment_targets WHERE deployment_id IN (SELECT id FROM deployments WHERE {finished})",
+                   ("$cutoff", cutoff)))
+        {
+            targets.Transaction = tx;
+            targets.ExecuteNonQuery();
+        }
+        int deleted;
+        using (var deployments = Command(db, $"DELETE FROM deployments WHERE {finished}", ("$cutoff", cutoff)))
+        {
+            deployments.Transaction = tx;
+            deleted = deployments.ExecuteNonQuery();
+        }
+        tx.Commit();
+        return deleted;
+    }
+
     public void UpdateDeploymentStatus(long id, DeploymentStatus status, bool ended)
     {
         using var db = Open();

@@ -76,6 +76,13 @@ version ni de release côté Cloud) :
 - **Thème sombre trop « plat » (PR #36)** : en relecture. Onglets soulignés d'accent, boutons bordés (principal à
   l'accent), champs bordés au repos ; nouvelles clés `Control*` / `Primary*` dans les deux thèmes, contrastes WCAG.
 - Contributeur externe (chromozone21, par fork) : issues #22, #23, #24, à ne pas prendre.
+  **#23 — 4.8 nettoyage de l'historique** : PR ouverte, en relecture. Réglage `DeploymentDefaults.History`
+  (`HistorySettings` : `Cleanup`, `KeepDays` de 1 à 3650, désactivé d'usine), `Store.PurgeFinishedDeployments`,
+  service `HistoryCleaner` (au démarrage puis chaque jour), case et champ dans Préférences › Déploiement,
+  16 tests automatiques. Testé sous Windows sur une instance isolée (déploiements vieillis en base, réglage
+  désactivé puis activé, valeurs refusées par l'API, fenêtre en thèmes clair et sombre). À décider par le
+  mainteneur : le premier ménage a lieu au prochain démarrage du service ou dans les 24 h, pas à l'activation du
+  réglage.
 - Ensuite : 2.8, 2.23, 2.24, 2.26, 2.27, 2.20–2.22 (à tester sur un vrai poste).
 - Import des paquets PDQ Deploy (#14) : en attente, après ces sujets.
 

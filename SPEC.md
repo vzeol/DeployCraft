@@ -231,6 +231,17 @@ déploiements possibles en même temps sur un poste.
 - Réglages du **serveur** (communs à toutes les consoles), enregistrés à la fermeture de la fenêtre : exécuter en
   tant que, mode de copie, délai max par étape (60 min d'usine), réglages hors ligne.
 
+### Nettoyage de l'historique
+- Préférences › Déploiement : « Supprimer les déploiements terminés après N jours ». Réglage du **serveur**,
+  **désactivé d'usine**, N de 1 à 3650 (30 proposé), refusé par le service hors de ces limites.
+- Le service fait le ménage au démarrage, puis une fois par jour ; le réglage est relu à chaque passage.
+- Seuls les déploiements **terminés** (réussis ou en échec) dont la fin remonte à plus de N jours sont supprimés,
+  avec leurs postes. Un déploiement en attente ou en cours n'est jamais supprimé, ni l'historique des planifications
+  (celui qui sert à « ne plus déployer une fois réussi »).
+- Le nombre de déploiements supprimés est écrit dans le journal du service. Une valeur hors limites trouvée en base
+  (modifiée à la main) est ramenée dans les limites : au plus un jour d'historique conservé en moins que prévu.
+- Le fichier de base ne rétrécit pas (SQLite réutilise la place libérée) mais cesse de grossir.
+
 ### Postes hors ligne (0.10.0)
 - Le poste est toujours testé avant la copie (nom DNS, partage de fichiers).
 - **Wake-on-LAN** : poste qui ne répond pas → paquet de réveil (diffusion générale et diffusion de son
