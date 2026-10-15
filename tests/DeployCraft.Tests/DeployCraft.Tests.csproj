@@ -23,6 +23,7 @@
     <Compile Include="..\..\src\DeployCraft.Runner\Job.cs" Link="Runner\Job.cs" />
     <Compile Include="..\..\src\DeployCraft.Runner\Conditions.cs" Link="Runner\Conditions.cs" />
     <Compile Include="..\..\src\DeployCraft.Runner\StepSequence.cs" Link="Runner\StepSequence.cs" />
+    <Compile Include="..\..\src\DeployCraft.Runner\FileCopy.cs" Link="Runner\FileCopy.cs" />
   </ItemGroup>
 
   <ItemGroup>

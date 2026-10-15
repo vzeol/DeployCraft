@@ -54,7 +54,7 @@ dans la même PR que le code qui la réalise.
 | 2.20 | Installer | 🟡 | Types exe, cmd, msi, msu, msp, vbs, ps1, reg ; MSI : installer / désinstaller / réparer, silencieux, redémarrage (jamais / demander / toujours) ; ligne de commande personnalisée ; dossier entier ; fichiers additionnels ; garder le fichier sur le poste. Manquent : vbs, reg, opérations MSI, fichiers additionnels, garder le fichier |
 | 2.21 | Commande | 🟡 | Fichiers additionnels manquants |
 | 2.22 | PowerShell | 🟡 | Ligne de commande personnalisée, fichiers additionnels, alerte `Write-Host` |
-| 2.23 | Copie de fichiers | ⬜ | Fichier ou dossier, motifs, sous-dossiers, écraser, ignorer les erreurs d'écrasement |
+| 2.23 | Copie de fichiers | ✅ | Fichier ou dossier (push ou pull), motifs, sous-dossiers, écraser ou garder, réussir malgré les fichiers impossibles à remplacer ; copie sur le poste par robocopy |
 | 2.24 | Redémarrer | ⬜ | Message, délai, arrêt seulement ; attendre le retour du poste |
 | 2.25 | Pause | ✅ | N secondes (1 s à 24 h), interrompue par l'annulation |
 | 2.26 | Message | ⬜ | Durée d'affichage, attendre que l'utilisateur clique |

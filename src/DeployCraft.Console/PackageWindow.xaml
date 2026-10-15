@@ -17,6 +17,7 @@
                             <MenuItem Header="Installer" Click="AddInstall_Click" />
                             <MenuItem Header="Commande" Click="AddCommand_Click" />
                             <MenuItem Header="PowerShell" Click="AddPowerShell_Click" />
+                            <MenuItem Header="Copie de fichiers" Click="AddCopy_Click" />
                             <MenuItem Header="Pause" Click="AddPause_Click" />
                             <MenuItem Header="Paquet imbriqué" Click="AddNested_Click" />
                         </ContextMenu>
@@ -120,6 +121,7 @@
                     <Button Style="{StaticResource DialogButton}" Click="AddInstall_Click">Installer</Button>
                     <Button Style="{StaticResource DialogButton}" Click="AddCommand_Click">Commande</Button>
                     <Button Style="{StaticResource DialogButton}" Click="AddPowerShell_Click">PowerShell</Button>
+                    <Button Style="{StaticResource DialogButton}" Click="AddCopy_Click">Copie de fichiers</Button>
                     <Button Style="{StaticResource DialogButton}" Click="AddPause_Click">Pause</Button>
                     <Button Style="{StaticResource DialogButton}" Click="AddNested_Click">Paquet imbriqué</Button>
                 </StackPanel>
@@ -191,6 +193,57 @@
                             <TextBox x:Name="CommandBox" Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" MinHeight="26"
                                      Text="{Binding Command, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas"
                                      AcceptsReturn="True" AcceptsTab="True" VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto" Margin="0,0,0,10" />
+
+                            <!-- Copie de fichiers -->
+                            <Grid x:Name="CopyPanel" Grid.RowSpan="8" Grid.ColumnSpan="3" VerticalAlignment="Top">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Style="{StaticResource FieldLabel}" Text="Source" />
+                                <TextBox x:Name="CopySourceBox" Grid.Column="1" AutomationProperties.Name="Fichier ou dossier à copier"
+                                         Text="{Binding CopySource, UpdateSourceTrigger=PropertyChanged}" />
+                                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                    <Button Content="Fichier…" Margin="6,0,0,0" Padding="8,0" Click="BrowseCopyFile_Click" />
+                                    <Button Content="Dossier…" Margin="6,0,0,0" Padding="8,0" Click="BrowseCopyFolder_Click" />
+                                </StackPanel>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}"
+                                           Text="Fichier ou dossier vu depuis le serveur DeployCraft (un partage réseau est conseillé)." />
+
+                                <TextBlock Grid.Row="2" Style="{StaticResource FieldLabel}" Text="Destination" />
+                                <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" AutomationProperties.Name="Dossier de destination sur le poste"
+                                         Text="{Binding CopyDestination, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}"
+                                           Text="Dossier du poste, créé s'il n'existe pas. Variables acceptées : %ProgramData%\Logiciel, %PUBLIC%\Desktop…" />
+
+                                <TextBlock Grid.Row="4" Style="{StaticResource FieldLabel}" Text="Fichiers" />
+                                <TextBox Grid.Row="4" Grid.Column="1" Style="{StaticResource CompactBox}" HorizontalAlignment="Left" Width="220"
+                                         AutomationProperties.Name="Motifs des fichiers à copier"
+                                         Text="{Binding CopyPatterns, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}"
+                                           Text="Pour une source dossier : motifs séparés par « ; », par exemple *.ini;*.cfg (* = tous les fichiers)." />
+
+                                <CheckBox Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,0,6"
+                                          Content="Copier aussi les sous-dossiers" IsChecked="{Binding CopySubfolders}" />
+                                <CheckBox Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,0,6"
+                                          Content="Remplacer les fichiers déjà présents sur le poste" IsChecked="{Binding CopyOverwrite}"
+                                          ToolTip="Décochée : un fichier déjà présent sur le poste est gardé tel quel." />
+                                <CheckBox Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,0,6"
+                                          Content="Réussir même si des fichiers ne peuvent pas être remplacés" IsChecked="{Binding CopyIgnoreErrors}"
+                                          ToolTip="Par exemple un fichier en cours d'utilisation. Une source introuvable reste une erreur." />
+                            </Grid>
 
                             <!-- Pause -->
                             <TextBlock x:Name="PauseLabel" Style="{StaticResource FieldLabel}" Text="Durée (secondes)" />

@@ -221,10 +221,52 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 if (step.IncludeDirectory) CopyDirectory(Path.GetDirectoryName(step.File)!, exec);
                 else File.Copy(step.File, Path.Combine(exec, Path.GetFileName(step.File)), overwrite: true);
             }
+            else if (step.Type == StepType.CopyFiles && step.Enabled)
+            {
+                if (string.IsNullOrWhiteSpace(step.CopySource)) throw new DeployException($"Étape « {jobStep.Name} » : aucun fichier ou dossier à copier.");
+                if (copyMode == CopyMode.Pull && step.CopySource.StartsWith(@"\\"))
+                    jobStep.SourcePath = step.CopySource;
+                else
+                {
+                    // Push : le serveur dépose les fichiers retenus dans exec\copie-N, que le poste copie ensuite tels quels.
+                    jobStep.Command = $"copie-{startStep + job.Steps.Count}";
+                    StageCopy(step.CopySource, step.CopyPatterns, step.CopySubfolders, Path.Combine(exec, jobStep.Command));
+                    jobStep.CopyPatterns = ["*"];
+                    jobStep.CopySubfolders = true;
+                }
+            }
             job.Steps.Add(jobStep);
         }
 
         return (job, modes);
+    }
+
+    /// <summary>
+    /// Copie de fichiers en push : dépose dans <paramref name="target"/> le fichier <paramref name="source"/>, ou les
+    /// fichiers du dossier qui suivent les motifs (avec les sous-dossiers si demandé), en gardant leur arborescence.
+    /// </summary>
+    internal static void StageCopy(string source, string? patterns, bool subfolders, string target)
+    {
+        Directory.CreateDirectory(target);
+        if (File.Exists(source))
+        {
+            File.Copy(source, Path.Combine(target, Path.GetFileName(source)), overwrite: true);
+            return;
+        }
+        if (!Directory.Exists(source)) throw new DeployException($"Fichier ou dossier à copier introuvable : {source}");
+
+        var option = subfolders ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+        // Comme sur le poste : les sous-dossiers sont recréés même vides.
+        if (subfolders)
+            foreach (var dir in Directory.EnumerateDirectories(source, "*", option))
+                Directory.CreateDirectory(Path.Combine(target, Path.GetRelativePath(source, dir)));
+        foreach (var pattern in PackageStep.SplitPatterns(patterns))
+            foreach (var file in Directory.EnumerateFiles(source, pattern, option))
+            {
+                var destination = Path.Combine(target, Path.GetRelativePath(source, file));
+                Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+                File.Copy(file, destination, overwrite: true);
+            }
     }
 
     /// <summary>Étapes envoyées au poste quand on (re)commence à l'étape N.</summary>
@@ -243,7 +285,8 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
             Arguments = step.Arguments,
             Command = step.Command,
             Seconds = step.Type == StepType.Pause ? step.PauseSeconds : 0,
-            SuccessCodes = ParseCodes(step.SuccessCodes),
+            // Copie : robocopy réussit de 0 à 7 ; 8 à 15 = des fichiers n'ont pas pu être copiés ; 16 = erreur grave.
+            SuccessCodes = step.Type == StepType.CopyFiles ? [.. Enumerable.Range(0, step.CopyIgnoreErrors ? 16 : 8)] : ParseCodes(step.SuccessCodes),
             // Une pause dure ce qu'elle dure : son délai (qui compte dans l'attente du serveur) suit sa durée.
             TimeoutSeconds = step.Type == StepType.Pause
                 ? Math.Max(1, step.PauseSeconds) + 60
@@ -251,6 +294,10 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
             ContinueOnError = step.ErrorMode == ErrorMode.Continue,
             StopSuccessOnError = step.ErrorMode == ErrorMode.StopSuccess,
             Disabled = !step.Enabled,
+            CopyDestination = step.Type == StepType.CopyFiles ? step.CopyDestination : null,
+            CopyPatterns = step.Type == StepType.CopyFiles ? PackageStep.SplitPatterns(step.CopyPatterns) : null,
+            CopySubfolders = step.Type == StepType.CopyFiles && step.CopySubfolders,
+            CopyOverwrite = step.Type == StepType.CopyFiles && step.CopyOverwrite,
             RunAsLoggedOnUser = runAs == RunAsMode.LoggedOnUser,
             Conditions = RunnerConditions.From(step.Conditions),
             ExtraConditions = step.ExtraConditions?

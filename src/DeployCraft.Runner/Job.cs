@@ -57,9 +57,9 @@ namespace DeployCraft.Runner
     public class JobStep
     {
         [DataMember(Name = "name")] public string Name { get; set; }
-        /// <summary>install | command | powershell | pause</summary>
+        /// <summary>install | command | powershell | pause | copyfiles</summary>
         [DataMember(Name = "type")] public string Type { get; set; }
-        /// <summary>install : nom du fichier dans exec\. command : ligne cmd. powershell : script.</summary>
+        /// <summary>install : nom du fichier dans exec\. command : ligne cmd. powershell : script. copyfiles : dossier dans exec\ (push).</summary>
         [DataMember(Name = "command")] public string Command { get; set; }
         [DataMember(Name = "arguments")] public string Arguments { get; set; }
         /// <summary>pause : durée d'attente en secondes.</summary>
@@ -76,6 +76,13 @@ namespace DeployCraft.Runner
         /// <summary>Mode pull : fichier (UNC) à copier dans exec\ avant l'étape, avec l'identité du runner.</summary>
         [DataMember(Name = "sourcePath")] public string SourcePath { get; set; }
         [DataMember(Name = "includeDirectory")] public bool IncludeDirectory { get; set; }
+        /// <summary>copyfiles : dossier du poste où copier (variables d'environnement acceptées).</summary>
+        [DataMember(Name = "copyDestination")] public string CopyDestination { get; set; }
+        /// <summary>copyfiles : motifs des fichiers à copier (« * » = tous).</summary>
+        [DataMember(Name = "copyPatterns")] public List<string> CopyPatterns { get; set; }
+        [DataMember(Name = "copySubfolders")] public bool CopySubfolders { get; set; }
+        /// <summary>copyfiles : remplacer les fichiers déjà présents sur le poste.</summary>
+        [DataMember(Name = "copyOverwrite")] public bool CopyOverwrite { get; set; }
         /// <summary>Conditions de l'étape : non remplies, l'étape est sautée.</summary>
         [DataMember(Name = "conditions")] public JobConditions Conditions { get; set; }
         /// <summary>Conditions supplémentaires (paquet imbriqué), vérifiées avant celles de l'étape (null = aucune).</summary>

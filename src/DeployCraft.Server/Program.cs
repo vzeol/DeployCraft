@@ -365,6 +365,10 @@ static string? Validate(Package p, Store store)
                 return $"{label} : la commande est vide.";
             case StepType.Pause when s.PauseSeconds is < 1 or > 86400:
                 return $"{label} : la pause doit durer de 1 seconde à 24 heures (86 400 secondes).";
+            case StepType.CopyFiles when string.IsNullOrWhiteSpace(s.CopySource):
+                return $"{label} : choisissez le fichier ou le dossier à copier.";
+            case StepType.CopyFiles when string.IsNullOrWhiteSpace(s.CopyDestination):
+                return $"{label} : indiquez le dossier de destination sur le poste.";
         }
         if (s.TimeoutMinutes is < 1) return $"{label} : le délai max doit être d'au moins 1 minute.";
         if (ValidateConditions(s.Conditions) is { } error) return $"{label}, conditions : {error}";

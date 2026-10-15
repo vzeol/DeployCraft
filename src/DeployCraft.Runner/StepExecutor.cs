@@ -259,6 +259,24 @@ namespace DeployCraft.Runner
                         File.WriteAllText(script, step.Command ?? "", new UTF8Encoding(true));
                         return PowerShell(system32, script, step.Arguments ?? "");
                     }
+                case "copyfiles":
+                    {
+                        if (string.IsNullOrWhiteSpace(step.CopyDestination)) throw new ArgumentException("Copie de fichiers : aucun dossier de destination.");
+                        string args;
+                        if (string.IsNullOrEmpty(step.SourcePath))
+                            args = FileCopy.Arguments(Path.Combine(_execDir, step.Command ?? ""), step.CopyDestination, step.CopyPatterns, step.CopySubfolders, step.CopyOverwrite);
+                        else
+                        {
+                            // Pull : le poste lit lui-même le partage.
+                            Log($"Copie depuis {step.SourcePath}");
+                            var isFile = File.Exists(step.SourcePath);
+                            if (!isFile && !Directory.Exists(step.SourcePath))
+                                throw new FileNotFoundException("Copie de fichiers : fichier ou dossier introuvable sur le partage (ou illisible avec l'identité de l'étape) : " + step.SourcePath);
+                            args = FileCopy.PullArguments(step.SourcePath, isFile, step.CopyDestination, step.CopyPatterns, step.CopySubfolders, step.CopyOverwrite);
+                        }
+                        // Par cmd : les %variables% de la destination prennent les valeurs de l'identité de l'étape.
+                        return new ProcessStartInfo(Path.Combine(system32, "cmd.exe"), "/c robocopy.exe " + args);
+                    }
                 default:
                     throw new NotSupportedException("Type d'étape inconnu : " + step.Type);
             }

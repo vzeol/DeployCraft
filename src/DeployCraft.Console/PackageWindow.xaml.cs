@@ -147,6 +147,7 @@ public partial class PackageWindow : Window
             new("Nouvelle étape : Installer", () => AddInstall_Click(this, new())),
             new("Nouvelle étape : Commande", () => AddCommand_Click(this, new())),
             new("Nouvelle étape : PowerShell", () => AddPowerShell_Click(this, new())),
+            new("Nouvelle étape : Copie de fichiers", () => AddCopy_Click(this, new())),
             new("Nouvelle étape : Pause", () => AddPause_Click(this, new())),
             new("Nouvelle étape : Paquet imbriqué", () => AddNested_Click(this, new())),
             Ui.Separator,
@@ -212,9 +213,11 @@ public partial class PackageWindow : Window
         var install = step.Type == StepType.Install;
         var pause = step.Type == StepType.Pause;
         var nested = step.Type == StepType.Nested;
+        var copy = step.Type == StepType.CopyFiles;
         foreach (UIElement el in new UIElement[] { FileLabel, FileBox, BrowseButton, FileHint, ArgsLabel, ArgsBox, SilentHint, IncludeDirBox })
             el.Visibility = install ? Visibility.Visible : Visibility.Collapsed;
-        CommandLabel.Visibility = CommandBox.Visibility = install || pause || nested ? Visibility.Collapsed : Visibility.Visible;
+        CopyPanel.Visibility = copy ? Visibility.Visible : Visibility.Collapsed;
+        CommandLabel.Visibility = CommandBox.Visibility = install || pause || nested || copy ? Visibility.Collapsed : Visibility.Visible;
         foreach (UIElement el in new UIElement[] { NestedLabel, NestedBox, NestedHint })
             el.Visibility = nested ? Visibility.Visible : Visibility.Collapsed;
         if (nested)
@@ -225,7 +228,7 @@ public partial class PackageWindow : Window
         foreach (UIElement el in new UIElement[] { PauseLabel, PauseBox, PauseHint })
             el.Visibility = pause ? Visibility.Visible : Visibility.Collapsed;
         foreach (UIElement el in new UIElement[] { CodesLabel, CodesBox, CodesHint })
-            el.Visibility = pause || nested ? Visibility.Collapsed : Visibility.Visible;
+            el.Visibility = pause || nested || copy ? Visibility.Collapsed : Visibility.Visible;
         CommandLabel.Text = step.Type == StepType.PowerShell ? "Script" : "Commande";
         CommandBox.MinHeight = step.Type == StepType.PowerShell ? 220 : 26;
         CommandBox.TextWrapping = step.Type == StepType.PowerShell ? TextWrapping.NoWrap : TextWrapping.Wrap;
@@ -341,6 +344,33 @@ public partial class PackageWindow : Window
         }
     }
 
+    private void BrowseCopyFile_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog { Title = "Fichier à copier", Filter = "Tous les fichiers|*.*" };
+        if (SelectedStep is { } step && Directory.Exists(Path.GetDirectoryName(step.CopySource ?? "")))
+            dialog.InitialDirectory = Path.GetDirectoryName(step.CopySource);
+        if (dialog.ShowDialog(this) == true) SetCopySource(dialog.FileName);
+    }
+
+    private void BrowseCopyFolder_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFolderDialog { Title = "Dossier à copier" };
+        if (SelectedStep is { } step && Directory.Exists(step.CopySource)) dialog.InitialDirectory = step.CopySource;
+        if (dialog.ShowDialog(this) == true) SetCopySource(dialog.FolderName);
+    }
+
+    private void SetCopySource(string path)
+    {
+        if (SelectedStep is not { } step) return;
+        step.CopySource = path;
+        CopySourceBox.Text = path;
+        if (!string.IsNullOrWhiteSpace(step.Name)) return;
+        step.Name = "Copie de " + Path.GetFileName(path.TrimEnd('\\'));
+        StepView.DataContext = null;
+        ShowStep(step);
+        StepName_TextChanged(this, null!);
+    }
+
     // ---------- Propriétés ----------
 
     private void NameBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -421,6 +451,7 @@ public partial class PackageWindow : Window
     private void AddInstall_Click(object sender, RoutedEventArgs e) => AddStep(NewStep(StepType.Install));
     private void AddCommand_Click(object sender, RoutedEventArgs e) => AddStep(NewStep(StepType.Command));
     private void AddPowerShell_Click(object sender, RoutedEventArgs e) => AddStep(NewStep(StepType.PowerShell));
+    private void AddCopy_Click(object sender, RoutedEventArgs e) => AddStep(NewStep(StepType.CopyFiles));
     private void AddPause_Click(object sender, RoutedEventArgs e) => AddStep(NewStep(StepType.Pause));
     private void AddNested_Click(object sender, RoutedEventArgs e) => AddStep(NewStep(StepType.Nested));
 

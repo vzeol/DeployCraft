@@ -104,7 +104,13 @@ version ni de release côté Cloud) :
   (`HistorySettings` : `Cleanup`, `KeepDays` de 1 à 3650, désactivé d'usine), `Store.PurgeFinishedDeployments`,
   service `HistoryCleaner` (au démarrage puis chaque jour), case et champ dans Préférences › Déploiement. Le premier
   ménage a lieu au prochain démarrage du service ou dans les 24 h, pas à l'activation du réglage.
-- Ensuite : 2.23, 2.24, 2.26, 2.27, 2.20–2.22 (à tester sur un vrai poste).
+- **2.23 copie de fichiers (issue #48, branche `feat/copie-de-fichiers`)** : en relecture par Prod. Nouveau type
+  d'étape `CopyFiles` : source fichier ou dossier, destination du poste (`%variables%` acceptées), motifs,
+  sous-dossiers, remplacer ou garder, réussir malgré les fichiers non remplaçables. Push : le serveur dépose les
+  fichiers retenus dans `exec\copie-N` (`TargetSession.StageCopy`) ; pull : le poste lit le partage. La copie finale
+  est faite par `robocopy` via `cmd /c` (`Runner/FileCopy.cs`, lié aux tests), codes de succès 0–7 (0–15 si on
+  ignore les fichiers non copiés). Tests : `CopyFilesTests`.
+- Ensuite : 2.24, 2.26, 2.27, 2.20–2.22 (à tester sur un vrai poste).
 - Import des paquets PDQ Deploy (#14) : en attente, après ces sujets.
 
 Autres sujets possibles : réglages hors ligne dans Déployer une fois et les planifications, LAPS (en option),
