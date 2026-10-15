@@ -23,8 +23,9 @@ Regroupe les PR #49, #51, #55, #57 et #59 : étapes Copie de fichiers (2.23), Re
 Message (2.26), export et import de paquets (1.11, 2.12), et correctif du slot laissé sur le poste quand la
 préparation échoue. 162 tests automatiques. Chaque étape a été testée par Prod sur un vrai poste (redémarrages,
 arrêt puis réveil, messages avec le mainteneur devant l'écran). **Fenêtre d'import pas capturée par Prod** (menus
-non pilotables à distance) : à regarder par le mainteneur. Connu, non corrigé : issue #60 (échec intermittent
-« runner arrêté sans résultat » alors que les étapes ont réussi).
+non pilotables à distance) : à regarder par le mainteneur. Issue #60 (échec intermittent
+« runner arrêté sans résultat » alors que les étapes ont réussi) : correctif en PR (branche `fix/resultat-runner`),
+à tester par Prod sur un vrai poste.
 
 La 0.13.0 est validée par le mainteneur. Le réveil Wake-on-LAN d'un vrai poste éteint a été testé (0.14.0).
 
