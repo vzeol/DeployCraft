@@ -31,8 +31,11 @@ d'éteindre, avec le réveil réseau activé).
 
 Gestion du dépôt (15/10) : `main` protégée (PR + CI obligatoires), un sujet = une issue (qui le prend), voir `CLAUDE.md`.
 
-**Sujet en cours ailleurs : authentification de l'API du service (PARITE 8.10, issue #5).** Aujourd'hui l'API
-(`localhost:5080`) n'a pas d'authentification : un utilisateur ouvert sur le serveur pourrait lancer un déploiement.
+**Authentification de l'API du service (PARITE 8.10, issue #5, branche `feat/authentification-api`)** : la
+console s'identifie avec la session Windows (Negotiate) ; accès aux administrateurs du serveur + Options ›
+Utilisateurs de la console (comptes / groupes, sessions actives) ; « Lancé par » pris du compte authentifié.
+Testé : tests automatiques (dont une vraie authentification Windows en boucle locale). À tester sous Windows par
+Prod : console d'un administrateur non élevé, compte du domaine non administrateur refusé puis ajouté.
 
 ## Point de reprise (Cloud, 15/10) : retours du mainteneur sur la 0.12.0
 

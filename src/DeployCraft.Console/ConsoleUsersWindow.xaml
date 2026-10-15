@@ -1,0 +1,30 @@
+<Window x:Class="DeployCraft.Console.ConsoleUsersWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Utilisateurs de la console" Height="440" Width="600" MinHeight="320" MinWidth="460"
+        WindowStartupLocation="CenterOwner" Background="{DynamicResource WindowBackground}" Foreground="{DynamicResource TextBrush}" ShowInTaskbar="False">
+    <DockPanel Margin="12">
+        <DockPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
+            <Button DockPanel.Dock="Right" Style="{StaticResource DialogButton}" IsCancel="True" IsDefault="True">Fermer</Button>
+            <TextBlock x:Name="Warning" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" VerticalAlignment="Center" />
+        </DockPanel>
+        <TextBlock DockPanel.Dock="Top" Style="{StaticResource Hint}" Margin="0,0,0,8"
+                   Text="Les administrateurs de ce serveur ont toujours accès à DeployCraft. Ajoutez ici d'autres comptes ou groupes Windows (DOMAINE\nom) qui pourront ouvrir la console, sans les rendre administrateurs du serveur." />
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Margin="10,0,0,0" Width="150">
+                    <Button Style="{StaticResource DialogButton}" Margin="0,0,0,6" HorizontalAlignment="Stretch" Click="Add_Click" x:Name="AddButton">Ajouter…</Button>
+                    <Button Style="{StaticResource DialogButton}" Margin="0" HorizontalAlignment="Stretch" Click="Remove_Click" x:Name="RemoveButton">Supprimer</Button>
+                </StackPanel>
+                <ListBox x:Name="List" BorderBrush="{DynamicResource PanelBorder}" DisplayMemberPath="Name" SelectionChanged="List_SelectionChanged" />
+            </DockPanel>
+            <TextBlock Grid.Row="1" Text="Sessions actives" FontWeight="SemiBold" Margin="0,12,0,4" />
+            <ListBox Grid.Row="2" x:Name="Sessions" BorderBrush="{DynamicResource PanelBorder}" Margin="0,0,160,0" />
+        </Grid>
+    </DockPanel>
+</Window>
