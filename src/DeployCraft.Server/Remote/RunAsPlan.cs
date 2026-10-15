@@ -15,8 +15,10 @@ internal static class RunAsPlan
     public sealed record Tranche(int Start, int Count, bool AsDeployUser);
 
     /// <summary>Identité réelle d'une étape : la sienne, sinon celle du déploiement ; sans identifiant, Système local.</summary>
+    /// <remarks>Un message s'affiche par un processus lancé dans chaque session : il lui faut un service en Système.</remarks>
     public static RunAsMode Effective(PackageStep step, RunAsMode deployment, bool hasAccount) =>
-        (step.RunAs ?? deployment) is var mode && mode == RunAsMode.DeployUser && !hasAccount ? RunAsMode.LocalSystem : mode;
+        step.Type == StepType.Message ? RunAsMode.LocalSystem
+        : (step.RunAs ?? deployment) is var mode && mode == RunAsMode.DeployUser && !hasAccount ? RunAsMode.LocalSystem : mode;
 
     /// <param name="cutAfter">Étapes qui terminent leur tranche (redémarrage) : la suivante démarre après le retour du poste.</param>
     public static List<Tranche> Split(IReadOnlyList<RunAsMode> modes, IReadOnlyList<bool>? cutAfter = null)

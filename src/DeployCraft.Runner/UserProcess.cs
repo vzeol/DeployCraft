@@ -23,9 +23,17 @@ namespace DeployCraft.Runner
         /// <summary>Utilisateur de la session ciblée (DOMAINE\nom), pour le journal.</summary>
         public string User { get; private set; }
 
-        public static UserProcess Start(string fileName, string arguments, string workingDirectory, Encoding encoding, Action<string> onLine)
+        /// <param name="sessionId">Session où lancer le processus (null = la première session ouverte).</param>
+        public static UserProcess Start(string fileName, string arguments, string workingDirectory, Encoding encoding, Action<string> onLine, uint? sessionId = null)
         {
-            var session = FindActiveSession(out var user);
+            string user;
+            uint session;
+            if (sessionId is uint id)
+            {
+                session = id;
+                user = SessionUser(id);
+            }
+            else session = FindActiveSession(out user);
             if (!WTSQueryUserToken(session, out var token))
             {
                 var code = Marshal.GetLastWin32Error();

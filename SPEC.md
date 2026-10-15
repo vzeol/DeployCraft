@@ -154,9 +154,10 @@
   message de plus de 500 caractères.
 
 ### Étape « Message »
-- **Titre** (100 caractères, « Information » par défaut) et **texte** (2 000 caractères, obligatoire), affichés par le
-  service dans une fenêtre avec un bouton OK, dans **chaque session ouverte** du poste (écran verrouillé compris).
-  Toujours affiché par le service, jamais au nom de l'utilisateur connecté.
+- **Titre** (100 caractères, « Information » par défaut) et **texte** (2 000 caractères, obligatoire), affichés dans
+  une fenêtre avec un bouton OK, dans **chaque session ouverte** du poste. Le service (toujours en Système pour cette
+  étape) lance dans chaque session une petite fenêtre par Windows PowerShell : chaque message a sa propre fenêtre,
+  jamais mise en attente derrière une autre, et rend « OK cliqué » ou « fermé à la fin de l'affichage ».
 - **Durée d'affichage** en secondes (0 à 24 h) : la fenêtre se ferme seule à la fin ; 0 = elle reste jusqu'au clic.
 - **Attendre que l'utilisateur clique sur OK** (décoché par défaut) :
   - décoché : l'étape réussit dès l'affichage, la suite enchaîne ;

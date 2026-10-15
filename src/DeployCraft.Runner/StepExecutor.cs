@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -186,24 +187,43 @@ namespace DeployCraft.Runner
             }
         }
 
-        /// <summary>Message aux utilisateurs connectés : sans clic attendu, l'étape réussit dès l'affichage.</summary>
+        /// <summary>
+        /// Message aux utilisateurs connectés : une fenêtre par session, lancée dans la session (le runner tourne en
+        /// Système). Sans clic attendu, l'étape réussit dès l'affichage.
+        /// </summary>
         private void ShowMessage(JobStep step, StepResult result)
         {
+            var windows = new List<UserProcess>();
             try
             {
                 var sessions = UserProcess.ActiveSessions();
                 var untilClick = step.Seconds <= 0;
                 result.CommandLine = "Message pour " + (sessions.Count == 0 ? "personne" : string.Join(", ", sessions.Select(s => s.Value ?? "session " + s.Key)));
-                // Jusqu'au clic : l'attente est bornée par le délai max de l'étape ; sans attente, le message reste affiché.
-                var timeout = untilClick ? (step.WaitForUser ? step.TimeoutSeconds : 0) : step.Seconds;
-                var responses = UserMessage.Show(sessions.Select(s => s.Key).ToList(), step.Arguments, step.Command, timeout, step.WaitForUser, () => _aborted);
-                if (responses == null)
+                // Jusqu'au clic : l'attente est bornée par le délai max de l'étape ; sans attente, la fenêtre reste ouverte.
+                var seconds = untilClick ? (step.WaitForUser ? step.TimeoutSeconds : 0) : step.Seconds;
+                var powershell = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), @"WindowsPowerShell\v1.0\powershell.exe");
+                var args = MessageOutcome.Arguments(step.Arguments, step.Command, seconds);
+                foreach (var session in sessions)
+                    windows.Add(UserProcess.Start(powershell, args, _execDir, Encoding.Default, _ => { }, session.Key));
+
+                List<int> codes = null;
+                if (step.WaitForUser)
                 {
-                    result.State = "failed";
-                    result.Error = "Annulé.";
-                    return;
+                    codes = new List<int>();
+                    foreach (var window in windows)
+                    {
+                        while (!window.WaitForExit(500))
+                        {
+                            if (!_aborted) continue;
+                            foreach (var w in windows) KillTree(w.Id);
+                            result.State = "failed";
+                            result.Error = "Annulé.";
+                            return;
+                        }
+                        codes.Add(window.ExitCode);
+                    }
                 }
-                var ok = MessageOutcome.Succeeded(responses, step.WaitForUser, untilClick, out var text);
+                var ok = MessageOutcome.Succeeded(sessions.Count, codes, untilClick, out var text);
                 result.State = ok ? "success" : "failed";
                 if (ok) result.Output = text;
                 else result.Error = text;
@@ -212,6 +232,10 @@ namespace DeployCraft.Runner
             {
                 result.State = "failed";
                 result.Error = ex.Message;
+            }
+            finally
+            {
+                foreach (var window in windows) window.Dispose();
             }
         }
 

@@ -119,8 +119,10 @@ version ni de release côté Cloud) :
 - **Correctif slot (issue #54, PR #55)** : fusionné. Une préparation ratée (source introuvable…) ne laisse plus
   `slot-N` ni `slot-N.lock` sur le poste.
 - **2.26 message (branche `feat/message`)** : en relecture par Prod. Type `Message` : titre, texte, durée d'affichage
-  (0 = jusqu'au clic), attendre le clic. Le runner affiche la fenêtre par le service dans chaque session ouverte
-  (`Runner/UserMessage.cs`, `UserProcess.ActiveSessions`) ; résultat dans `Runner/MessageOutcome.cs` (lié aux tests).
+  (0 = jusqu'au clic), attendre le clic. Le runner (tranche en Système) lance dans chaque session ouverte une fenêtre
+  par Windows PowerShell (`UserProcess.Start(…, session)`, script encodé et codes de sortie dans
+  `Runner/MessageOutcome.cs`, lié aux tests). Première version (message de session Windows) écartée après les tests
+  de Prod : fermeture par délai vue comme un clic, messages mis en file par session.
   Tests : `MessageTests`.
 - Ensuite : 2.27, 2.20–2.22 (à tester sur un vrai poste).
 - Import de paquets depuis un fichier XML (#14) : en attente, après ces sujets.
