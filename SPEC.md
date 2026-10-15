@@ -62,7 +62,9 @@
   compte ne sert qu'à créer le service : il n'est jamais écrit sur le poste.
 - Une tranche qui arrête le paquet (échec en « Arrêter en échec », arrêt en succès, conditions du paquet non
   remplies) : les tranches suivantes ne sont pas lancées, leurs étapes sont « Ignoré » avec la même raison.
-  Annulation : la tranche en cours est arrêtée, aucune autre n'est lancée. Le journal `runner.log` cumule les
+  Runner interrompu par une erreur : pas de tranche suivante non plus, raison « Tranche précédente interrompue : … ».
+  Annulation (pendant une tranche ou entre deux) : la tranche en cours est arrêtée, aucune autre n'est lancée.
+  Pendant l'exécution, le détail du poste indique l'identité de la tranche (« Exécution (Système) »). Le journal `runner.log` cumule les
   tranches ; les numéros d'étape y sont ceux du paquet.
 - Mode pull : le partage est lu avec l'identité de la tranche (Système : le compte ordinateur `POSTE$`).
 - Changer d'identité coûte quelques secondes (création et arrêt d'un service) ; un paquet sans réglage par étape

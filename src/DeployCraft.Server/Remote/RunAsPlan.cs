@@ -32,6 +32,13 @@ internal static class RunAsPlan
         return tranches;
     }
 
+    /// <summary>Une tranche finie arrête le paquet : arrêt demandé par le runner, ou runner interrompu par une erreur.</summary>
+    public static bool Stops(RunnerStatus finished) => finished.Halt || finished.Error != null;
+
+    /// <summary>Raison donnée aux étapes des tranches non lancées.</summary>
+    public static string? StopReason(RunnerStatus finished) =>
+        finished.Halt ? finished.HaltReason : finished.Error != null ? "Tranche précédente interrompue : " + finished.Error : null;
+
     /// <summary>
     /// Avancement complet : résultats des tranches finies, puis ceux de la tranche en cours. Si la tranche en cours
     /// arrête le paquet, les étapes des tranches suivantes y sont ajoutées « ignorées » avec sa raison.
@@ -40,12 +47,12 @@ internal static class RunAsPlan
     {
         var steps = new List<RunnerStepResult>(done);
         steps.AddRange(current.Steps);
-        var finished = current.State == "done";
-        if (finished && current.Halt)
-            steps.AddRange(later.Select(name => new RunnerStepResult { Name = name, State = "skipped", Error = current.HaltReason }));
+        var stops = current.State == "done" && Stops(current);
+        if (stops)
+            steps.AddRange(later.Select(name => new RunnerStepResult { Name = name, State = "skipped", Error = StopReason(current) }));
         return new RunnerStatus
         {
-            State = finished && (last || current.Halt) ? "done" : "running",
+            State = current.State == "done" && (last || stops) ? "done" : "running",
             Error = current.Error,
             Steps = steps,
             Network = current.Network,

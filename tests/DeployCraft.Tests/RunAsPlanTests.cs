@@ -54,6 +54,14 @@ public class RunAsPlanTests
         Assert.Equal(2, goingOn.Steps.Count);
 
         Assert.Equal("done", RunAsPlan.Combine(done, Status("done", false, null, "success"), [], last: true).State);
+
+        // Runner interrompu par une erreur sans demander l'arrêt : on n'enchaîne pas non plus.
+        var crashed = Status("done", false, null, "failed");
+        crashed.Error = "Accès refusé.";
+        var afterCrash = RunAsPlan.Combine(done, crashed, ["c"], last: false);
+        Assert.Equal("done", afterCrash.State);
+        Assert.True(RunAsPlan.Stops(crashed));
+        Assert.Equal("Tranche précédente interrompue : Accès refusé.", afterCrash.Steps[^1].Error);
         Assert.Equal("running", RunAsPlan.Combine(done, Status("running", false, null, "running"), ["c"], last: false).State);
     }
 

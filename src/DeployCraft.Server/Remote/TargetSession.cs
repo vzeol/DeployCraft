@@ -55,9 +55,12 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 var later = job.Steps.Skip(tranche.Start + tranche.Count).Select(s => s.Name).ToList();
                 _service = tranches.Count == 1 ? ServiceName : $"{ServiceName}-{t + 1}";
 
-                stage(tranches.Count == 1 ? "Démarrage du runner"
-                    : $"Démarrage du runner ({t + 1}/{tranches.Count}, {(tranche.AsDeployUser ? "compte de déploiement" : "Système")})");
+                var identity = tranche.AsDeployUser && account != null ? "compte de déploiement" : "Système";
+                // Annulé entre deux tranches : aucune nouvelle n'est lancée.
+                ct.ThrowIfCancellationRequested();
+                stage(tranches.Count == 1 ? "Démarrage du runner" : $"Démarrage du runner ({t + 1}/{tranches.Count}, {identity})");
                 credentials.RunAs(account, computer, () => StartTranche(trancheJob, tranche.AsDeployUser));
+                stage($"Exécution ({identity})");
 
                 var final = await WaitAsync(trancheJob, status => progress(RunAsPlan.Combine(done, status, later, last)), ct);
                 credentials.RunAs(account, computer, () =>
@@ -67,7 +70,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 });
                 _service = null;
                 done.AddRange(final.Steps);
-                if (final.Halt) return;
+                if (RunAsPlan.Stops(final)) return;
             }
         }
         finally
