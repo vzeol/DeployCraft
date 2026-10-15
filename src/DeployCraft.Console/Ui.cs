@@ -21,6 +21,7 @@ public static class Ui
     public const string IconPause = ""; // chronomètre
     public const string IconCopy = "\uE8DE"; // dossier avec flèche
     public const string IconReboot = "\uE7E8"; // bouton marche / arrêt
+    public const string IconMessage = "\uE8BD"; // bulle de message
     public const string IconComputer = "";
     public const string IconProperties = "";
     public const string IconSteps = "";
@@ -91,6 +92,7 @@ public static class Ui
         Server.Data.StepType.Pause => IconPause,
         Server.Data.StepType.CopyFiles => IconCopy,
         Server.Data.StepType.Reboot => IconReboot,
+        Server.Data.StepType.Message => IconMessage,
         Server.Data.StepType.Nested => IconPackage,
         _ => IconScript,
     };

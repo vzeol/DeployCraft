@@ -32,7 +32,7 @@
 | Copie de fichiers | Copier un fichier ou un dossier vers un dossier du poste (voir § Étape « Copie de fichiers ») |
 | Redémarrer | Redémarrer (ou éteindre) le poste et attendre son retour (voir § Étape « Redémarrer ») |
 | Pause | Attendre N secondes (1 s à 24 h) sur le poste avant l'étape suivante ; rien n'est lancé, pas de code de succès ; l'attente s'arrête si le déploiement est annulé |
-| Message *(à venir)* | Afficher un message à l'utilisateur connecté |
+| Message | Afficher un message aux utilisateurs connectés (voir § Étape « Message ») |
 | Déconnexion *(à venir)* | Déconnecter l'utilisateur |
 | Paquet imbriqué | Exécuter les étapes d'un autre paquet (voir § Paquet imbriqué) |
 
@@ -152,6 +152,21 @@
 - Étape ignorée (conditions, désactivée) ou en échec : aucun redémarrage, aucune attente.
 - Refusé au lancement sur le serveur DeployCraft lui-même. Refusé à l'enregistrement : délai hors de 30 s à 1 h,
   message de plus de 500 caractères.
+
+### Étape « Message »
+- **Titre** (100 caractères, « Information » par défaut) et **texte** (2 000 caractères, obligatoire), affichés par le
+  service dans une fenêtre avec un bouton OK, dans **chaque session ouverte** du poste (écran verrouillé compris).
+  Toujours affiché par le service, jamais au nom de l'utilisateur connecté.
+- **Durée d'affichage** en secondes (0 à 24 h) : la fenêtre se ferme seule à la fin ; 0 = elle reste jusqu'au clic.
+- **Attendre que l'utilisateur clique sur OK** (décoché par défaut) :
+  - décoché : l'étape réussit dès l'affichage, la suite enchaîne ;
+  - coché avec une durée : l'étape attend le clic ou la fin de l'affichage, et réussit dans les deux cas ;
+  - coché sans durée : l'étape attend le clic, au plus le délai max de l'étape ; personne n'a cliqué → échec.
+  Plusieurs sessions : l'étape attend la réponse de chacune.
+- Personne de connecté : l'étape réussit sans rien afficher (« Aucun utilisateur connecté » dans le détail).
+- Le détail de l'étape indique pour qui le message a été affiché et le résultat (clic, fermeture automatique).
+- Annulation pendant l'attente : l'étape échoue « Annulé. » (la fenêtre peut rester affichée).
+- Refusé à l'enregistrement : texte vide ou trop long, titre trop long, durée hors de 0 à 24 h.
 
 ## 3. Déroulé d'un déploiement sur un poste
 

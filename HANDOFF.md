@@ -116,7 +116,13 @@ version ni de release côté Cloud) :
   termine sa tranche (`RunAsPlan.Split(modes, cutAfter)`) ; `TargetSession.WaitForRestartAsync` attend l'arrêt puis le
   retour (délai max de l'étape), `StartAfterRestartAsync` réessaie la création du service. Arrêt : `RunAsPlan.Finish`
   ignore les étapes suivantes. Tests : `RebootTests`. Retouches visuelles de la copie de fichiers dans la même PR.
-- Ensuite : 2.26, 2.27, 2.20–2.22 (à tester sur un vrai poste).
+- **Correctif slot (issue #54, PR #55)** : fusionné. Une préparation ratée (source introuvable…) ne laisse plus
+  `slot-N` ni `slot-N.lock` sur le poste.
+- **2.26 message (branche `feat/message`)** : en relecture par Prod. Type `Message` : titre, texte, durée d'affichage
+  (0 = jusqu'au clic), attendre le clic. Le runner affiche la fenêtre par le service dans chaque session ouverte
+  (`Runner/UserMessage.cs`, `UserProcess.ActiveSessions`) ; résultat dans `Runner/MessageOutcome.cs` (lié aux tests).
+  Tests : `MessageTests`.
+- Ensuite : 2.27, 2.20–2.22 (à tester sur un vrai poste).
 - Import de paquets depuis un fichier XML (#14) : en attente, après ces sujets.
 
 Autres sujets possibles : réglages hors ligne dans Déployer une fois et les planifications, LAPS (en option),

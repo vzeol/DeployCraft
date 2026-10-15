@@ -83,6 +83,12 @@ namespace DeployCraft.Runner
                 return;
             }
 
+            if (step.Type == "message")
+            {
+                ShowMessage(step, result);
+                return;
+            }
+
             ProcessStartInfo psi;
             try
             {
@@ -177,6 +183,35 @@ namespace DeployCraft.Runner
             {
                 _current = 0;
                 lock (output) result.Output = output.ToString();
+            }
+        }
+
+        /// <summary>Message aux utilisateurs connectés : sans clic attendu, l'étape réussit dès l'affichage.</summary>
+        private void ShowMessage(JobStep step, StepResult result)
+        {
+            try
+            {
+                var sessions = UserProcess.ActiveSessions();
+                var untilClick = step.Seconds <= 0;
+                result.CommandLine = "Message pour " + (sessions.Count == 0 ? "personne" : string.Join(", ", sessions.Select(s => s.Value ?? "session " + s.Key)));
+                // Jusqu'au clic : l'attente est bornée par le délai max de l'étape ; sans attente, le message reste affiché.
+                var timeout = untilClick ? (step.WaitForUser ? step.TimeoutSeconds : 0) : step.Seconds;
+                var responses = UserMessage.Show(sessions.Select(s => s.Key).ToList(), step.Arguments, step.Command, timeout, step.WaitForUser, () => _aborted);
+                if (responses == null)
+                {
+                    result.State = "failed";
+                    result.Error = "Annulé.";
+                    return;
+                }
+                var ok = MessageOutcome.Succeeded(responses, step.WaitForUser, untilClick, out var text);
+                result.State = ok ? "success" : "failed";
+                if (ok) result.Output = text;
+                else result.Error = text;
+            }
+            catch (Exception ex)
+            {
+                result.State = "failed";
+                result.Error = ex.Message;
             }
         }
 

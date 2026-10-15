@@ -345,15 +345,23 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         {
             Name = string.IsNullOrWhiteSpace(step.Name) ? step.Type.ToString() : step.Name,
             Type = step.Type.ToString().ToLowerInvariant(),
-            Arguments = step.Arguments,
-            Command = step.Type == StepType.Reboot ? step.RebootMessage : step.Command,
-            Seconds = step.Type switch { StepType.Pause => step.PauseSeconds, StepType.Reboot => step.RebootDelaySeconds, _ => 0 },
+            Arguments = step.Type == StepType.Message ? step.MessageTitle : step.Arguments,
+            Command = step.Type switch { StepType.Reboot => step.RebootMessage, StepType.Message => step.MessageText, _ => step.Command },
+            Seconds = step.Type switch
+            {
+                StepType.Pause => step.PauseSeconds,
+                StepType.Reboot => step.RebootDelaySeconds,
+                StepType.Message => step.MessageSeconds,
+                _ => 0,
+            },
             // Copie : robocopy réussit de 0 à 7 ; 8 à 15 = des fichiers n'ont pas pu être copiés ; 16 = erreur grave.
             SuccessCodes = step.Type == StepType.CopyFiles ? [.. Enumerable.Range(0, step.CopyIgnoreErrors ? 16 : 8)] : ParseCodes(step.SuccessCodes),
-            // Une pause dure ce qu'elle dure : son délai (qui compte dans l'attente du serveur) suit sa durée.
+            // Une pause dure ce qu'elle dure : son délai (qui compte dans l'attente du serveur) suit sa durée, comme celui
+            // d'un message attendu plus longtemps que le délai de l'étape.
             TimeoutSeconds = step.Type == StepType.Pause
                 ? Math.Max(1, step.PauseSeconds) + 60
-                : Math.Max(1, step.TimeoutMinutes ?? package.TimeoutMinutes ?? 60) * 60,
+                : Math.Max(Math.Max(1, step.TimeoutMinutes ?? package.TimeoutMinutes ?? 60) * 60,
+                    step.Type == StepType.Message && step.MessageWait ? step.MessageSeconds + 60 : 0),
             ContinueOnError = step.ErrorMode == ErrorMode.Continue,
             StopSuccessOnError = step.ErrorMode == ErrorMode.StopSuccess,
             Disabled = !step.Enabled,
@@ -361,9 +369,10 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
             CopyPatterns = step.Type == StepType.CopyFiles ? PackageStep.SplitPatterns(step.CopyPatterns) : null,
             CopySubfolders = step.Type == StepType.CopyFiles && step.CopySubfolders,
             CopyOverwrite = step.Type == StepType.CopyFiles && step.CopyOverwrite,
-            // Le redémarrage est demandé par le service, jamais par l'utilisateur connecté (qui n'en a souvent pas le droit).
-            RunAsLoggedOnUser = runAs == RunAsMode.LoggedOnUser && step.Type != StepType.Reboot,
+            // Redémarrage et message passent par le service, jamais par l'utilisateur connecté (qui n'en a souvent pas le droit).
+            RunAsLoggedOnUser = runAs == RunAsMode.LoggedOnUser && step.Type is not (StepType.Reboot or StepType.Message),
             ShutdownOnly = step.Type == StepType.Reboot && step.RebootShutdownOnly,
+            WaitForUser = step.Type == StepType.Message && step.MessageWait,
             Conditions = RunnerConditions.From(step.Conditions),
             ExtraConditions = step.ExtraConditions?
                 .Select(g => new RunnerConditionGroup { Label = g.Label, Conditions = RunnerConditions.From(g.Conditions) })

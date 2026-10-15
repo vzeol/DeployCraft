@@ -1,7 +1,7 @@
 namespace DeployCraft.Server.Data;
 
 /// <summary>Nested : paquet imbriqué, remplacé par ses étapes au lancement (jamais envoyé tel quel au poste).</summary>
-public enum StepType { Install, Command, PowerShell, Pause, Nested, CopyFiles, Reboot }
+public enum StepType { Install, Command, PowerShell, Pause, Nested, CopyFiles, Reboot, Message }
 
 /// <summary>En cas d'erreur d'une étape : arrêter en échec, continuer, ou arrêter le paquet en comptant le poste réussi.</summary>
 public enum ErrorMode { Stop, Continue, StopSuccess }
@@ -57,6 +57,14 @@ public class PackageStep
     public int RebootDelaySeconds { get; set; } = 60;
     /// <summary>Redémarrer : éteindre le poste au lieu de le redémarrer (les étapes suivantes sont ignorées).</summary>
     public bool RebootShutdownOnly { get; set; }
+    /// <summary>Message : titre de la fenêtre affichée à l'utilisateur connecté.</summary>
+    public string MessageTitle { get; set; } = "Information";
+    /// <summary>Message : texte affiché à l'utilisateur connecté.</summary>
+    public string? MessageText { get; set; }
+    /// <summary>Message : durée d'affichage en secondes (0 = jusqu'au clic sur OK).</summary>
+    public int MessageSeconds { get; set; }
+    /// <summary>Message : attendre que l'utilisateur clique sur OK (ou la fin de l'affichage) avant l'étape suivante.</summary>
+    public bool MessageWait { get; set; }
     /// <summary>
     /// Conditions à remplir en plus de celles de l'étape : posées au lancement sur les étapes d'un paquet imbriqué
     /// (conditions de l'étape « paquet imbriqué » et du paquet imbriqué lui-même).
