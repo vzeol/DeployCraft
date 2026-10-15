@@ -145,8 +145,8 @@
                     <DataGridTextColumn Header="Déploiement" Binding="{Binding DeploymentId}" Width="110" />
                     <DataGridTextColumn Header="Poste" Binding="{Binding Computer}" Width="160" />
                     <DataGridTemplateColumn Header="Statut" CellTemplate="{StaticResource StatusCell}" Width="110" SortMemberPath="Status" />
-                    <DataGridTextColumn Header="Étapes" Binding="{Binding Steps}" Width="80" />
-                    <DataGridTextColumn Header="Erreur / étape en cours" Binding="{Binding Detail}" Width="*" />
+                    <DataGridTextColumn Header="Étapes" Binding="{Binding Steps}" Width="Auto" MinWidth="90" />
+                    <DataGridTextColumn Header="Détail (erreur, remarque ou étape en cours)" Binding="{Binding Detail}" Width="*" />
                     <DataGridTextColumn Header="Début" Binding="{Binding Started}" Width="140" />
                     <DataGridTextColumn Header="Durée" Binding="{Binding Duration}" Width="80" />
                 </DataGrid.Columns>
@@ -195,7 +195,8 @@
                             </TextBlock>
                         </Grid>
 
-                        <TextBlock x:Name="TErrorTitle" Text="ERREUR" Style="{StaticResource CardSection}" />
+                        <!-- « ERREUR » en rouge pour un poste en échec ; « REMARQUE » pour la raison donnée sur un poste réussi. -->
+                        <TextBlock x:Name="TErrorTitle" Text="ERREUR" Style="{StaticResource CardSection}" AutomationProperties.Name="ERREUR" />
                         <TextBlock x:Name="TError" TextWrapping="Wrap" Foreground="{DynamicResource KoBrush}" />
                     </StackPanel>
                 </Grid>

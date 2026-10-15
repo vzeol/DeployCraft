@@ -39,7 +39,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="Code retour" Binding="{Binding ReturnCode}" Width="90" />
+                    <DataGridTextColumn Header="Code retour" Binding="{Binding ReturnCode}" Width="Auto" MinWidth="100" />
                     <DataGridTextColumn Header="Durée" Binding="{Binding Duration}" Width="80" />
                     <DataGridTextColumn Header="Commande" Binding="{Binding CommandLine}" Width="*" />
                 </DataGrid.Columns>

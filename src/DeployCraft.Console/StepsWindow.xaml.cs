@@ -53,7 +53,9 @@ public partial class StepsWindow : Window
         else
         {
             if (!string.IsNullOrEmpty(row.Outcome.CommandLine)) sb.AppendLine("> " + row.Outcome.CommandLine).AppendLine();
-            if (!string.IsNullOrEmpty(row.Outcome.Error)) sb.AppendLine("Erreur : " + row.Outcome.Error).AppendLine();
+            // Étape ignorée ou arrêtée en succès : c'est une raison, pas une erreur.
+            if (!string.IsNullOrEmpty(row.Outcome.Error))
+                sb.AppendLine((row.Outcome.State == "failed" ? "Erreur : " : "Raison : ") + row.Outcome.Error).AppendLine();
             sb.Append(string.IsNullOrWhiteSpace(row.Outcome.Output) ? "(aucune sortie)" : row.Outcome.Output.TrimEnd());
         }
         Output.Text = sb.ToString();

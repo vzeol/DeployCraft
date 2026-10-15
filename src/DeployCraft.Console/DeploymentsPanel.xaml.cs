@@ -254,6 +254,11 @@ public partial class DeploymentsPanel : UserControl
         TEnded.Text = t.EndedUtc == null ? "—" : Ui.LocalTime(t.EndedUtc);
         TDuration.Text = string.IsNullOrEmpty(row.Duration) ? "—" : row.Duration;
         TError.Text = t.Error ?? "";
+        // Raison sur un poste réussi (étape ignorée, arrêt en succès…) : une remarque, pas une erreur.
+        var failed = t.Status == TargetStatus.Failed;
+        TErrorTitle.Text = failed ? "ERREUR" : "REMARQUE";
+        System.Windows.Automation.AutomationProperties.SetName(TErrorTitle, TErrorTitle.Text);
+        TError.SetResourceReference(TextBlock.ForegroundProperty, failed ? "KoBrush" : "MutedBrush");
         TErrorTitle.Visibility = TError.Visibility = string.IsNullOrEmpty(t.Error) ? Visibility.Collapsed : Visibility.Visible;
     }
 
