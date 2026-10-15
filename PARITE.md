@@ -25,7 +25,7 @@ dans la même PR que le code qui la réalise.
 | 1.8 | Fenêtre des raccourcis clavier | ⬜ | |
 | 1.9 | Thèmes clair / sombre | ✅ | 0.7.0 : Clair, Sombre ou Selon Windows ; Préférences › Interface, appliqué à chaud |
 | 1.10 | Page d'accueil | ⬜ | |
-| 1.11 | Import / export (paquets, dossiers, listes de cibles, planifications, réglages) | 🟡 | Paquets : export / import JSON à nous, import des exports XML de PDQ Deploy avec aperçu. Manquent dossiers, listes de cibles, planifications, réglages |
+| 1.11 | Import / export (paquets, dossiers, listes de cibles, planifications, réglages) | 🟡 | Paquets : export / import JSON à nous, import de fichiers XML de paquets avec aperçu. Manquent dossiers, listes de cibles, planifications, réglages |
 | 1.12 | Imprimer, aperçu avant impression, mise en page, enregistrer une grille en CSV | ⬜ | |
 | 1.13 | À propos | 🟡 | |
 
