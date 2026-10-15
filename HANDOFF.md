@@ -111,7 +111,7 @@ version ni de release côté Cloud) :
   est faite par `robocopy` via `cmd /c` (`Runner/FileCopy.cs`, lié aux tests), codes de succès 0–7 (0–15 si on
   ignore les fichiers non copiés). Tests : `CopyFilesTests`.
 - Ensuite : 2.24, 2.26, 2.27, 2.20–2.22 (à tester sur un vrai poste).
-- Import des paquets PDQ Deploy (#14) : en attente, après ces sujets.
+- Import des exports XML de paquets d'un autre outil (#14) : en attente, après ces sujets.
 
 Autres sujets possibles : réglages hors ligne dans Déployer une fois et les planifications, LAPS (en option),
 listes de cibles.
