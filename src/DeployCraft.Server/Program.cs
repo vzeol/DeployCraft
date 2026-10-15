@@ -369,6 +369,10 @@ static string? Validate(Package p, Store store)
                 return $"{label} : choisissez le fichier ou le dossier à copier.";
             case StepType.CopyFiles when string.IsNullOrWhiteSpace(s.CopyDestination):
                 return $"{label} : indiquez le dossier de destination sur le poste.";
+            case StepType.Reboot when s.RebootDelaySeconds is < 30 or > 3600:
+                return $"{label} : le délai avant le redémarrage doit être de 30 secondes à 1 heure (3 600 secondes).";
+            case StepType.Reboot when s.RebootMessage?.Length > 500:
+                return $"{label} : le message ne doit pas dépasser 500 caractères.";
         }
         if (s.TimeoutMinutes is < 1) return $"{label} : le délai max doit être d'au moins 1 minute.";
         if (ValidateConditions(s.Conditions) is { } error) return $"{label}, conditions : {error}";

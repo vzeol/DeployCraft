@@ -30,7 +30,7 @@
 | Commande | Ligne de commande cmd |
 | PowerShell | Script PowerShell |
 | Copie de fichiers | Copier un fichier ou un dossier vers un dossier du poste (voir § Étape « Copie de fichiers ») |
-| Redémarrer *(à venir)* | Redémarrer et attendre le retour du poste |
+| Redémarrer | Redémarrer (ou éteindre) le poste et attendre son retour (voir § Étape « Redémarrer ») |
 | Pause | Attendre N secondes (1 s à 24 h) sur le poste avant l'étape suivante ; rien n'est lancé, pas de code de succès ; l'attente s'arrête si le déploiement est annulé |
 | Message *(à venir)* | Afficher un message à l'utilisateur connecté |
 | Déconnexion *(à venir)* | Déconnecter l'utilisateur |
@@ -136,6 +136,22 @@
 - Pas de codes de succès à saisir : ceux de robocopy sont utilisés (0 à 7 = réussite ; 8 à 15 = des fichiers non
   copiés, acceptés seulement avec « réussir même si… » ; 16 = erreur grave).
 - Refusé à l'enregistrement : source ou destination vide.
+
+### Étape « Redémarrer »
+- **Délai** de 30 secondes à 1 heure (60 s par défaut) et **message** facultatif (500 caractères au plus) : l'utilisateur
+  connecté voit le compte à rebours et le message. Le délai laisse aussi au runner le temps de rendre son résultat.
+- Le redémarrage est programmé sur le poste par `shutdown.exe`, toujours par le service (jamais au nom de
+  l'utilisateur connecté). L'étape réussit dès qu'il est programmé.
+- Une étape « Redémarrer » termine sa tranche (voir « Exécuter en tant que »). Le serveur attend que le poste
+  s'arrête (au plus délai + 5 min ; sinon erreur « redémarrage annulé sur le poste ? »), puis qu'il réponde de
+  nouveau, au plus le **délai max de l'étape** (sinon erreur). Il relance ensuite un service pour les étapes
+  suivantes, en réessayant pendant 2 minutes le temps que Windows finisse de démarrer. Le slot reste sur le disque du
+  poste pendant le redémarrage. Suivi : « Redémarrage du poste », puis « Attente du retour du poste ».
+- **Éteindre au lieu de redémarrer** : les étapes suivantes sont « Ignoré », raison « Poste éteint par l'étape N
+  « X » », et le poste compte comme réussi.
+- Étape ignorée (conditions, désactivée) ou en échec : aucun redémarrage, aucune attente.
+- Refusé au lancement sur le serveur DeployCraft lui-même. Refusé à l'enregistrement : délai hors de 30 s à 1 h,
+  message de plus de 500 caractères.
 
 ## 3. Déroulé d'un déploiement sur un poste
 

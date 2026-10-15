@@ -277,6 +277,9 @@ namespace DeployCraft.Runner
                         // Par cmd : les %variables% de la destination prennent les valeurs de l'identité de l'étape.
                         return new ProcessStartInfo(Path.Combine(system32, "cmd.exe"), "/c robocopy.exe " + args);
                     }
+                case "reboot":
+                    // Le redémarrage est seulement programmé : le serveur attend ensuite que le poste revienne.
+                    return new ProcessStartInfo(Path.Combine(system32, "shutdown.exe"), Shutdown.Arguments(step.ShutdownOnly, step.Seconds, step.Command));
                 default:
                     throw new NotSupportedException("Type d'étape inconnu : " + step.Type);
             }

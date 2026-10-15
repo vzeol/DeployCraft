@@ -104,13 +104,19 @@ version ni de release côté Cloud) :
   (`HistorySettings` : `Cleanup`, `KeepDays` de 1 à 3650, désactivé d'usine), `Store.PurgeFinishedDeployments`,
   service `HistoryCleaner` (au démarrage puis chaque jour), case et champ dans Préférences › Déploiement. Le premier
   ménage a lieu au prochain démarrage du service ou dans les 24 h, pas à l'activation du réglage.
-- **2.23 copie de fichiers (issue #48, branche `feat/copie-de-fichiers`)** : en relecture par Prod. Nouveau type
+- **2.23 copie de fichiers (issue #48, PR #49)** : fusionnée après tests de Prod sur un vrai poste. Nouveau type
   d'étape `CopyFiles` : source fichier ou dossier, destination du poste (`%variables%` acceptées), motifs,
   sous-dossiers, remplacer ou garder, réussir malgré les fichiers non remplaçables. Push : le serveur dépose les
   fichiers retenus dans `exec\copie-N` (`TargetSession.StageCopy`) ; pull : le poste lit le partage. La copie finale
   est faite par `robocopy` via `cmd /c` (`Runner/FileCopy.cs`, lié aux tests), codes de succès 0–7 (0–15 si on
   ignore les fichiers non copiés). Tests : `CopyFilesTests`.
-- Ensuite : 2.24, 2.26, 2.27, 2.20–2.22 (à tester sur un vrai poste).
+- **2.24 redémarrer (issue #50, PR #51)** : relue et testée par Prod sur un vrai poste (redémarrage en Système et en
+  compte de déploiement, arrêt puis rallumage par Wake-on-LAN, annulation sur le poste). Type `Reboot` : délai (30 s à
+  1 h), message, éteindre au lieu de redémarrer. Le runner programme `shutdown.exe` (`Runner/Shutdown.cs`) ; l'étape
+  termine sa tranche (`RunAsPlan.Split(modes, cutAfter)`) ; `TargetSession.WaitForRestartAsync` attend l'arrêt puis le
+  retour (délai max de l'étape), `StartAfterRestartAsync` réessaie la création du service. Arrêt : `RunAsPlan.Finish`
+  ignore les étapes suivantes. Tests : `RebootTests`. Retouches visuelles de la copie de fichiers dans la même PR.
+- Ensuite : 2.26, 2.27, 2.20–2.22 (à tester sur un vrai poste).
 - Import de paquets depuis un fichier XML (#14) : en attente, après ces sujets.
 
 Autres sujets possibles : réglages hors ligne dans Déployer une fois et les planifications, LAPS (en option),

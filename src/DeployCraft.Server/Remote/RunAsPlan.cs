@@ -18,14 +18,20 @@ internal static class RunAsPlan
     public static RunAsMode Effective(PackageStep step, RunAsMode deployment, bool hasAccount) =>
         (step.RunAs ?? deployment) is var mode && mode == RunAsMode.DeployUser && !hasAccount ? RunAsMode.LocalSystem : mode;
 
-    public static List<Tranche> Split(IReadOnlyList<RunAsMode> modes)
+    /// <param name="cutAfter">Étapes qui terminent leur tranche (redémarrage) : la suivante démarre après le retour du poste.</param>
+    public static List<Tranche> Split(IReadOnlyList<RunAsMode> modes, IReadOnlyList<bool>? cutAfter = null)
     {
         var tranches = new List<Tranche>();
         for (var i = 0; i < modes.Count;)
         {
             var asDeployUser = modes[i] == RunAsMode.DeployUser;
             var j = i;
-            while (j < modes.Count && (modes[j] == RunAsMode.DeployUser) == asDeployUser) j++;
+            while (j < modes.Count && (modes[j] == RunAsMode.DeployUser) == asDeployUser)
+            {
+                var cut = cutAfter != null && cutAfter[j];
+                j++;
+                if (cut) break;
+            }
             tranches.Add(new Tranche(i, j - i, asDeployUser));
             i = j;
         }
@@ -38,6 +44,16 @@ internal static class RunAsPlan
     /// <summary>Raison donnée aux étapes des tranches non lancées.</summary>
     public static string? StopReason(RunnerStatus finished) =>
         finished.Halt ? finished.HaltReason : finished.Error != null ? "Tranche précédente interrompue : " + finished.Error : null;
+
+    /// <summary>Fin anticipée décidée par le serveur (poste éteint) : les étapes suivantes sont ignorées avec <paramref name="reason"/>.</summary>
+    public static RunnerStatus Finish(IReadOnlyList<RunnerStepResult> done, IReadOnlyList<string> later, string reason, List<RunnerNetworkCard>? network) => new()
+    {
+        State = "done",
+        Steps = [.. done, .. later.Select(name => new RunnerStepResult { Name = name, State = "skipped", Error = reason })],
+        Network = network,
+        Halt = true,
+        HaltReason = reason,
+    };
 
     /// <summary>
     /// Avancement complet : résultats des tranches finies, puis ceux de la tranche en cours. Si la tranche en cours

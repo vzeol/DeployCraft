@@ -149,6 +149,7 @@ public partial class PackageWindow : Window
             new("Nouvelle étape : PowerShell", () => AddPowerShell_Click(this, new())),
             new("Nouvelle étape : Copie de fichiers", () => AddCopy_Click(this, new())),
             new("Nouvelle étape : Pause", () => AddPause_Click(this, new())),
+            new("Nouvelle étape : Redémarrer", () => AddReboot_Click(this, new())),
             new("Nouvelle étape : Paquet imbriqué", () => AddNested_Click(this, new())),
             Ui.Separator,
             new("Coller", () => Paste_Click(this, new()), CanPaste, "Ctrl+V"),
@@ -214,10 +215,12 @@ public partial class PackageWindow : Window
         var pause = step.Type == StepType.Pause;
         var nested = step.Type == StepType.Nested;
         var copy = step.Type == StepType.CopyFiles;
+        var reboot = step.Type == StepType.Reboot;
         foreach (UIElement el in new UIElement[] { FileLabel, FileBox, BrowseButton, FileHint, ArgsLabel, ArgsBox, SilentHint, IncludeDirBox })
             el.Visibility = install ? Visibility.Visible : Visibility.Collapsed;
         CopyPanel.Visibility = copy ? Visibility.Visible : Visibility.Collapsed;
-        CommandLabel.Visibility = CommandBox.Visibility = install || pause || nested || copy ? Visibility.Collapsed : Visibility.Visible;
+        RebootPanel.Visibility = reboot ? Visibility.Visible : Visibility.Collapsed;
+        CommandLabel.Visibility = CommandBox.Visibility = install || pause || nested || copy || reboot ? Visibility.Collapsed : Visibility.Visible;
         foreach (UIElement el in new UIElement[] { NestedLabel, NestedBox, NestedHint })
             el.Visibility = nested ? Visibility.Visible : Visibility.Collapsed;
         if (nested)
@@ -228,7 +231,7 @@ public partial class PackageWindow : Window
         foreach (UIElement el in new UIElement[] { PauseLabel, PauseBox, PauseHint })
             el.Visibility = pause ? Visibility.Visible : Visibility.Collapsed;
         foreach (UIElement el in new UIElement[] { CodesLabel, CodesBox, CodesHint })
-            el.Visibility = pause || nested || copy ? Visibility.Collapsed : Visibility.Visible;
+            el.Visibility = pause || nested || copy || reboot ? Visibility.Collapsed : Visibility.Visible;
         CommandLabel.Text = step.Type == StepType.PowerShell ? "Script" : "Commande";
         CommandBox.MinHeight = step.Type == StepType.PowerShell ? 220 : 26;
         CommandBox.TextWrapping = step.Type == StepType.PowerShell ? TextWrapping.NoWrap : TextWrapping.Wrap;
@@ -236,6 +239,7 @@ public partial class PackageWindow : Window
         StepConditions.Load(step.Conditions, forPackage: false);
         StepTimeoutHint.Text = pause ? "Sans effet sur une pause : elle dure toujours la durée choisie."
             : nested ? "Sans effet : chaque étape du paquet imbriqué garde son délai (sinon celui du paquet imbriqué)."
+            : reboot ? $"Vide : délai du paquet ({PackageTimeout} min). Temps laissé au poste pour revenir après le redémarrage."
             : $"Vide : délai du paquet ({PackageTimeout} min). Au-delà, le processus est arrêté et l'étape échoue.";
         StepTimeoutBox.IsEnabled = ErrorModeBox.IsEnabled = !nested;
         ErrorModeBox.SelectedIndex = (int)step.ErrorMode;
@@ -453,6 +457,7 @@ public partial class PackageWindow : Window
     private void AddPowerShell_Click(object sender, RoutedEventArgs e) => AddStep(NewStep(StepType.PowerShell));
     private void AddCopy_Click(object sender, RoutedEventArgs e) => AddStep(NewStep(StepType.CopyFiles));
     private void AddPause_Click(object sender, RoutedEventArgs e) => AddStep(NewStep(StepType.Pause));
+    private void AddReboot_Click(object sender, RoutedEventArgs e) => AddStep(NewStep(StepType.Reboot));
     private void AddNested_Click(object sender, RoutedEventArgs e) => AddStep(NewStep(StepType.Nested));
 
     private Package? FindPackage(long id) => _library.FirstOrDefault(p => p.Id == id);
