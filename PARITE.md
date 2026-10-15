@@ -88,7 +88,7 @@ dans la même PR que le code qui la réalise.
 | 4.5 | Annuler, redéployer, redéployer les échecs, reprendre à l'étape en échec | ✅ | |
 | 4.6 | Prioriser un poste en attente | ⬜ | |
 | 4.7 | Créer une planification depuis un déploiement | ⬜ | |
-| 4.8 | Nettoyage automatique de l'historique après N jours | ⬜ | |
+| 4.8 | Nettoyage automatique de l'historique après N jours | ✅ | Préférences › Déploiement : désactivé d'usine, de 1 à 3650 jours ; au démarrage du service puis une fois par jour ; seuls les déploiements terminés sont supprimés (jamais en attente ou en cours, ni l'historique des planifications) |
 | 4.9 | Fichier de sortie complet téléchargeable par étape | ⬜ | |
 
 ## 5. Planifications
@@ -125,7 +125,7 @@ dans la même PR que le code qui la réalise.
 |---|---|---|---|
 | 8.1 | Comptes | 🟡 | 0.9.0 : Options › Identifiants, plusieurs comptes (domaine ou local `.\utilisateur`), description, compte par défaut, test auprès du domaine ; choisis dans Déployer une fois et les planifications. Reste : LAPS (mot de passe admin local de chaque poste lu dans l'AD, fonction Microsoft) |
 | 8.2 | Variables | ✅ | $(Nom) : personnalisées (Préférences › Variables) + système $(Date), $(Heure), $(Serveur), $(Poste) ; chemins, paramètres, commandes, conditions |
-| 8.3 | Déploiement | 🟡 | 0.10.0 : exécuter en tant que, délai par étape, comportement hors ligne par défaut. Reste : nettoyage de l'historique |
+| 8.3 | Déploiement | ✅ | 0.10.0 : exécuter en tant que, délai par étape, comportement hors ligne par défaut ; nettoyage de l'historique (4.8) |
 | 8.4 | Performance | 🟡 | 0.10.0 : mode de copie par défaut. Reste : limite de bande passante, postes en parallèle (aujourd'hui fixé à 8) |
 | 8.5 | Dépôt de fichiers (`$(Repository)`) | ⬜ | Chemin, fichiers inutilisés, exclusions |
 | 8.6 | Filtres de cibles | ⬜ | cf. 6.3 |

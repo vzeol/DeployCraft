@@ -76,6 +76,8 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <TextBlock Grid.ColumnSpan="2" Style="{StaticResource Hint}" Margin="0,0,0,12"
                                Text="Valeurs des paquets dont le réglage est laissé « Par défaut ». Réglage du serveur, commun à toutes les consoles, enregistré à la fermeture de cette fenêtre." />
@@ -86,6 +88,15 @@
                     <TextBlock Grid.Row="3" Style="{StaticResource FieldLabel}" Text="Délai max (minutes)" />
                     <TextBox Grid.Row="3" Grid.Column="1" x:Name="DefaultTimeoutBox" Style="{StaticResource CompactBox}" HorizontalAlignment="Left" Width="70" />
                     <TextBlock Grid.Row="4" Grid.Column="1" Style="{StaticResource Hint}" Text="Par étape : au-delà, le processus est arrêté et l'étape échoue." />
+                    <TextBlock Grid.Row="5" Style="{StaticResource FieldLabel}" Margin="0,16,12,0" Text="Historique" />
+                    <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" Margin="0,16,0,0">
+                        <CheckBox x:Name="CleanupBox" Content="Supprimer les déploiements terminés après" />
+                        <TextBox x:Name="CleanupDaysBox" Style="{StaticResource CompactBox}" Width="60" Margin="8,0,6,0"
+                                 IsEnabled="{Binding IsChecked, ElementName=CleanupBox}" />
+                        <TextBlock Style="{StaticResource FieldLabel}" Margin="0" Text="jours" />
+                    </StackPanel>
+                    <TextBlock Grid.Row="6" Grid.Column="1" Style="{StaticResource Hint}"
+                               Text="Désactivé par défaut. Un déploiement en attente ou en cours n'est jamais supprimé, ni l'historique des planifications. Le nettoyage a lieu au démarrage du service, puis une fois par jour." />
                 </Grid>
             </TabItem>
 

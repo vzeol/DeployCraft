@@ -48,6 +48,8 @@ public partial class SettingsWindow : Window
         foreach (var mode in Enum.GetValues<CopyMode>())
             DefaultCopyModeBox.Items.Add(new ComboBoxItem { Content = Ui.CopyModeText(mode), Tag = mode, IsSelected = _defaults.CopyMode == mode });
         DefaultTimeoutBox.Text = _defaults.TimeoutMinutes.ToString();
+        CleanupBox.IsChecked = _defaults.History.Cleanup;
+        CleanupDaysBox.Text = _defaults.History.KeepDays.ToString();
         DefaultOffline.Load(_defaults.Offline);
         DeploymentPage.IsEnabled = DefaultOffline.IsEnabled = true;
     }
@@ -74,6 +76,19 @@ public partial class SettingsWindow : Window
                 return;
             }
             _defaults.TimeoutMinutes = timeout;
+
+            // Case décochée : un nombre de jours illisible n'empêche pas de fermer, on garde la dernière valeur valide.
+            var cleanup = CleanupBox.IsChecked == true;
+            var daysValid = int.TryParse(CleanupDaysBox.Text.Trim(), out var days) && HistorySettings.Validate(days) == null;
+            if (cleanup && !daysValid)
+            {
+                e.Cancel = true;
+                Tabs.SelectedIndex = 1;
+                MessageDialog.Show(this, $"Historique : saisissez un nombre de jours entre {HistorySettings.MinDays} et {HistorySettings.MaxDays}.", "Préférences", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            _defaults.History.Cleanup = cleanup;
+            if (daysValid) _defaults.History.KeepDays = days;
             saveDefaults = JsonSerializer.Serialize(_defaults, Api.Json) != _loaded;
         }
 
