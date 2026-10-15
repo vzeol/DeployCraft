@@ -17,15 +17,16 @@ suivant qu'une fois qu'il a tout validé**.
 Les informations propres à l'environnement du mainteneur (serveurs, postes de test, comptes) sont dans ses notes
 **hors du dépôt** : ne jamais les recopier ici.
 
-## Dernière version : 0.12.0 — à valider par le mainteneur
+## Dernière version : 0.13.0 — à valider par le mainteneur
 
-Regroupe les PR #30, #33, #34 et #36 : variables $(Nom) (Préférences › Variables, plus $(Date), $(Heure),
-$(Serveur), $(Poste)), retrait des sections avant / principales / après (choix du mainteneur : un échec arrête le
-paquet), remarque aussi quand une partie seulement des étapes est ignorée, glisser-déposer des étapes (Ctrl+Haut /
-Ctrl+Bas), onglets, boutons et champs mieux marqués. 107 tests automatiques. **Glisser-déposer pas testé par
-Prod** (session Windows verrouillée) : à vérifier par le mainteneur.
+Regroupe les PR #38, #39, #40, #42, #44, #31 et #46 : nettoyage automatique de l'historique (Préférences ›
+Déploiement, contribution externe), installeur qui gère une console restée ouverte, retrait des variables $(Nom)
+(choix du mainteneur), éléments cliquables plus visibles, « exécuter en tant que » par étape (2.8),
+authentification Windows de l'API (Options › Utilisateurs de la console) et commandes grisées tant que le service
+refuse l'accès ou ne répond pas. 120 tests automatiques. **Survols (boutons, lignes, arbres) pas vérifiés par
+Prod** (curseur non pilotable en RDP) : à regarder par le mainteneur.
 
-La 0.11.0 a été testée par le mainteneur (ses retours sont dans la 0.12.0) ; la 0.10.0 est validée.
+La 0.12.0 a été testée par le mainteneur (ses retours sont dans la 0.13.0) ; la 0.10.0 est validée.
 **Pas encore testé** : le réveil d'un vrai poste éteint (il faut un poste de test que le mainteneur accepte
 d'éteindre, avec le réveil réseau activé).
 
@@ -34,19 +35,18 @@ Gestion du dépôt (15/10) : `main` protégée (PR + CI obligatoires), un sujet 
 **Authentification de l'API du service (PARITE 8.10, issue #5, PR #31 fusionnée)** : la console s'identifie avec
 la session Windows (Negotiate) ; accès aux administrateurs du serveur + Options › Utilisateurs de la console ;
 « Lancé par » pris du compte authentifié. Testé sur le domaine de test par Prod et le mainteneur.
-Suite (issue #45, branche `fix/commandes-acces-refuse`) : commandes grisées tant que l'accès est refusé ou le
-service injoignable (Actualiser / F5, Quitter et Aide restent actifs). À tester sous Windows par Prod.
+Suite (issue #45, PR #46 fusionnée) : commandes grisées tant que l'accès est refusé ou le service injoignable
+(Actualiser / F5, Quitter et Aide restent actifs). Testé à l'écran par Prod. Petit reste : Préférences est aussi
+grisé, donc le thème ne peut pas changer sans service.
 
 ## Point de reprise (Cloud, 15/10) : retours du mainteneur sur la 0.12.0
 
-Glisser-déposer et remarque partielle : validés. Dans l'ordre (1 et 3 faits, 2 en cours) :
+Glisser-déposer et remarque partielle : validés. Les trois points sont faits et publiés en 0.13.0 :
 
 1. **Fait — PR #40 fusionnée** : variables $(Nom) retirées (choix du mainteneur), relu et testé par Prod (un
    `$(Poste)` / `$(Get-Date)` part tel quel). Table `variables` laissée en base, plus lue. PARITE 8.2 ❌.
-2. **En cours — branche `feat/executer-en-tant-que-etape` (2.8)** : `main` intégrée par une fusion (pas de
-   réécriture d'historique ; la PR sera fusionnée en squash). Conflit de `TargetSession.Prepare` résolu (plus de
-   `ForComputer`). Décision (c) « bureau » écartée par le mainteneur, reportée dans PARITE 2.8. Pas de PR avant le
-   feu vert de Prod.
+2. **Fait — PR #44 fusionnée (2.8)** : testé par Prod sur un vrai poste, y compris le passage compte de
+   déploiement → Système → compte de déploiement. « Bureau » écarté par le mainteneur (PARITE 2.8).
 3. **Fait — PR #42 fusionnée** : boutons de barre d'outils (fond et bordure au repos, survol bordé d'accent),
    liens soulignés en orange, survol des grilles et des arbres. Vu par Prod au repos en sombre et en clair ;
    **survols pas vérifiés** (curseur non pilotable en RDP) : à regarder par le mainteneur dans la 0.13.0.
@@ -95,8 +95,7 @@ version ni de release côté Cloud) :
 - **Installeur (PR #39)** : fusionnée. Une mise à jour avec la console ouverte échouait (code 5) après avoir supprimé
   le service. Désormais : console fermée proprement (Restart Manager, filtre `DeployCraft.exe`), service seulement
   arrêté juste avant la copie, reconfiguré par `sc config`, et redémarré si l'installation échoue.
-- **2.8 exécuter en tant que par étape (branche `feat/executer-en-tant-que-etape`)** : codé, `main` intégrée
-  (variables et style), **PR seulement après le feu vert de Prod**. Tranches par identité (`Remote/RunAsPlan.cs`),
+- **2.8 exécuter en tant que par étape (PR #44)** : fusionnée, publiée en 0.13.0. Tranches par identité (`Remote/RunAsPlan.cs`),
   un service par tranche, `halt` / `haltReason` dans status.json, `firstNumber` dans job.json. « Compte de
   déploiement sur le bureau » : écarté par le mainteneur (déploiements toujours silencieux, sans mot de passe sur
   le poste).
@@ -111,7 +110,7 @@ version ni de release côté Cloud) :
 Autres sujets possibles : réglages hors ligne dans Déployer une fois et les planifications, LAPS (en option),
 listes de cibles.
 
-## Version actuelle : 0.12.0
+## Version actuelle : 0.13.0
 
 - Paquets multi-étapes (Installer / Commande / PowerShell), codes de succès, délai, comportement en cas d'erreur,
   exécuter en tant que et mode de copie par paquet
@@ -126,7 +125,9 @@ listes de cibles.
   coller d'étapes (0.10.0)
 - Hors ligne (0.10.0, désactivé par défaut) : Wake-on-LAN, nouveaux essais (perdus si le service redémarre)
 - Étapes Pause et paquet imbriqué, étapes désactivables, arrêter en échec ou en succès (0.11.0)
-- Glisser-déposer des étapes (0.12.0 ; les variables $(Nom) de la 0.12.0 sont retirées par la PR #40)
+- Glisser-déposer des étapes (0.12.0 ; les variables $(Nom) de la 0.12.0 sont retirées en 0.13.0)
+- Exécuter en tant que par étape, authentification de l'API (Options › Utilisateurs de la console), nettoyage
+  automatique de l'historique (0.13.0)
 - Pas encore testé : abandon des postes en attente après N minutes (il faut plus de 8 postes en même temps)
 
 Construire : `.\build.ps1 -Version x.y.z` → `dist\DeployCraft-Setup-x.y.z.exe` (prérequis : SDK .NET 10, Inno Setup 6).
