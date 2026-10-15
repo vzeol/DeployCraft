@@ -13,7 +13,7 @@ Paquets multi-étapes (installeur, commande, PowerShell, copie de fichiers, paus
 Windows, fichier, registre…), étapes désactivables, compte d'exécution par étape, « Déployer une fois » sur des postes saisis ou choisis dans
 l'Active Directory, suivi en direct poste par poste, planifications (réessai en boucle jusqu'à réussite), réveil
 Wake-on-LAN et nouveaux essais des postes hors ligne, identifiants multiples, accès à la console réservé aux comptes autorisés, nettoyage automatique de l'historique,
-thème clair / sombre. Liste complète et état : `PARITE.md`.
+export et import de paquets, thème clair / sombre. Liste complète et état : `PARITE.md`.
 
 ## Installation (sur un serveur du domaine)
 
