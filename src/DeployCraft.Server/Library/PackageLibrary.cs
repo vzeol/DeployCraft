@@ -21,8 +21,13 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
 
     private static readonly HttpClient Http = CreateClient();
 
+    private const string StageDownload = "Téléchargement";
+    private const string StageCheck = "Vérification du fichier";
+    private const string StageCopy = "Copie dans le dossier";
+    private const string StagePackage = "Création du paquet";
+
     private readonly object _lock = new();
-    private readonly Dictionary<string, int> _progress = [];
+    private readonly Dictionary<string, (string Stage, int Percent)> _progress = [];
     private bool _refreshing;
 
     public string DefaultFolder => Path.Combine(dataDir, "Bibliotheque");
@@ -63,7 +68,8 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
             Problem = entry?.Problem,
             PackageId = link?.PackageId,
             PackageVersion = link?.Version,
-            Progress = _progress.TryGetValue(app.Id, out var p) ? p : null,
+            Stage = _progress.TryGetValue(app.Id, out var p) ? p.Stage : null,
+            Progress = _progress.ContainsKey(app.Id) ? p.Percent : null,
             Error = state.Errors.GetValueOrDefault(app.Id),
             UpdateAvailable = link != null && entry?.Installer != null && WingetManifest.CompareVersions(entry.Version, link.Version) > 0,
         };
@@ -167,7 +173,7 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
             entry = Load().Entries.GetValueOrDefault(id);
             if (entry?.Installer == null) return entry?.Problem is { } p ? $"{app.Name} : {p}" : "Le catalogue n'a pas encore été lu : actualisez-le.";
             if (_progress.ContainsKey(id)) return null;
-            _progress[id] = 0;
+            _progress[id] = (StageDownload, 0);
         }
         _ = Task.Run(() => DownloadAsync(app, entry.Version!, entry.Installer));
         return null;
@@ -187,10 +193,11 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
             credentials.RunAs(credentials.Default, null, () =>
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(file)!);
-                File.Copy(temp, file, overwrite: true);
+                CopyWithProgress(app.Id, temp, file);
             });
             lock (_lock)
             {
+                _progress[app.Id] = (StagePackage, 50);
                 var state = Load();
                 var previous = state.Links.GetValueOrDefault(app.Id);
                 var package = SavePackage(app, version, installer, file, previous);
@@ -237,13 +244,47 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
             {
                 await output.WriteAsync(buffer.AsMemory(0, read));
                 done += read;
-                if (total > 0) lock (_lock) _progress[id] = (int)(done * 100 / total.Value);
+                if (total > 0) Report(id, StageDownload, done, total.Value);
             }
         }
-        await using var check = File.OpenRead(temp);
-        var hash = Convert.ToHexString(await SHA256.HashDataAsync(check));
+
+        using var sha = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        await using (var check = File.OpenRead(temp))
+        {
+            var buffer = new byte[81920];
+            long done = 0;
+            int read;
+            while ((read = await check.ReadAsync(buffer)) > 0)
+            {
+                sha.AppendData(buffer, 0, read);
+                done += read;
+                Report(id, StageCheck, done, check.Length);
+            }
+        }
+        var hash = Convert.ToHexString(sha.GetHashAndReset());
         if (!hash.Equals(installer.Sha256, StringComparison.OrdinalIgnoreCase))
             throw new InvalidDataException("Le fichier téléchargé ne correspond pas à l'empreinte du catalogue : il n'a pas été gardé. Réessayez plus tard.");
+    }
+
+    /// <summary>Copie dans le dossier de la bibliothèque, en suivant l'avancement.</summary>
+    private void CopyWithProgress(string id, string source, string destination)
+    {
+        using var input = File.OpenRead(source);
+        using var output = File.Create(destination);
+        var buffer = new byte[1024 * 1024];
+        long done = 0;
+        int read;
+        while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
+        {
+            output.Write(buffer, 0, read);
+            done += read;
+            Report(id, StageCopy, done, input.Length);
+        }
+    }
+
+    private void Report(string id, string stage, long done, long total)
+    {
+        lock (_lock) _progress[id] = (stage, total > 0 ? (int)(done * 100 / total) : 0);
     }
 
     /// <summary>

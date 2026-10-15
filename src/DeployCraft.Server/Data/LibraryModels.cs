@@ -17,7 +17,9 @@ public class LibraryItem
     public long? PackageId { get; set; }
     /// <summary>Version téléchargée dans ce paquet.</summary>
     public string? PackageVersion { get; set; }
-    /// <summary>Téléchargement en cours : pourcentage (0 à 100), null sinon.</summary>
+    /// <summary>Étape en cours (téléchargement, vérification, copie, création du paquet), null s'il n'y en a pas.</summary>
+    public string? Stage { get; set; }
+    /// <summary>Avancement de l'étape en cours, de 0 à 100.</summary>
     public int? Progress { get; set; }
     /// <summary>Erreur du dernier téléchargement de ce logiciel.</summary>
     public string? Error { get; set; }
