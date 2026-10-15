@@ -49,6 +49,8 @@ public class MessageTests
         Assert.Contains("Text = 'L''équipe'", script);
         Assert.Contains("Text = 'Fermez l''application.\r\nMerci'", script);
         Assert.Contains("Interval = 20000", script);
+        // « & » affiché tel quel, pas pris pour la marque d'un raccourci clavier.
+        Assert.Contains("UseMnemonic = $false", script);
         Assert.Contains("$script:code = 2", script);
         // Sans durée : pas de minuterie, la fenêtre reste jusqu'au clic.
         Assert.DoesNotContain("Timer", MessageOutcome.Script(null!, "x", 0));

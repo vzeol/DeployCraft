@@ -33,7 +33,7 @@ namespace DeployCraft.Runner
                     "; TopMost = $true; StartPosition = 'CenterScreen'; FormBorderStyle = 'FixedDialog'; MinimizeBox = $false; MaximizeBox = $false; " +
                     "AutoSize = $true; AutoSizeMode = 'GrowAndShrink'; ShowInTaskbar = $true }")
                 .AppendLine("$p = New-Object System.Windows.Forms.FlowLayoutPanel -Property @{ FlowDirection = 'TopDown'; AutoSize = $true; AutoSizeMode = 'GrowAndShrink'; Padding = 12 }")
-                .AppendLine("$l = New-Object System.Windows.Forms.Label -Property @{ Text = " + Literal(text) + "; AutoSize = $true; MaximumSize = New-Object System.Drawing.Size(480, 0); MinimumSize = New-Object System.Drawing.Size(280, 0) }")
+                .AppendLine("$l = New-Object System.Windows.Forms.Label -Property @{ Text = " + Literal(text) + "; UseMnemonic = $false; AutoSize = $true; MaximumSize = New-Object System.Drawing.Size(480, 0); MinimumSize = New-Object System.Drawing.Size(280, 0) }")
                 .AppendLine("$b = New-Object System.Windows.Forms.Button -Property @{ Text = 'OK'; DialogResult = 'OK'; Anchor = 'Right'; Margin = '3,16,3,3' }")
                 .AppendLine("$p.Controls.Add($l); $p.Controls.Add($b); $f.Controls.Add($p); $f.AcceptButton = $b")
                 .AppendLine("$f.add_Shown({ $f.Activate() })")
