@@ -117,6 +117,18 @@
 
 ### Étape « Installer »
 - Fichier (chemin local ou UNC), paramètres, dossier entier si l'installeur a plusieurs fichiers
+- Types : .exe, .msi, .msp, .msu, .ps1, .bat / .cmd, .vbs, .reg. **Ligne de commande** affichée, générée d'après le
+  fichier, les paramètres et les options (msi : `msiexec /i|/f|/x "fichier" ALLUSERS=1 /qn /norestart /log output.log …` ;
+  msp : `/p` ; msu : `wusa` ; ps1 : PowerShell `-File` ; vbs : `cscript //B` ; reg : `reg import`). Case **Personnalisée** :
+  la ligne, pré-remplie, devient modifiable et est lancée telle quelle (par cmd, dans le dossier de travail du poste).
+- Options Windows Installer (.msi, .msp, .msu) : opération installer / réparer / désinstaller (pas de réparation pour
+  un .msu, pas d'opération pour un .msp), redémarrage jamais / toujours / demander / non défini, silencieux.
+- Le journal de Windows Installer (`output.log`) est ajouté au résultat de l'étape (sa fin s'il est trop long) ; les
+  codes d'erreur courants (1603, 1618, 1638…) sont expliqués.
+- **Fichiers additionnels** (aussi pour Commande et PowerShell) : un chemin par ligne, copiés à côté de la commande
+  avant l'étape (par le serveur, ou par le poste en mode pull pour un chemin UNC). Fichier introuvable : erreur.
+- **Garder le fichier sur le poste** : après l'étape, le fichier (et ses fichiers additionnels, ou tout le dossier)
+  est copié dans `%ProgramData%\DeployCraft\Installeurs\<paquet>`.
 - **Codes de succès par défaut : `0, 1641, 3010, 2359302`** (OK, OK + redémarrage lancé, OK + redémarrage
   requis, mise à jour MSU déjà installée)
 
