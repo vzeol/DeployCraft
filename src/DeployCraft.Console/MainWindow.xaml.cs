@@ -946,9 +946,7 @@ public partial class MainWindow : Window
         catch (System.ComponentModel.Win32Exception) { /* demande d'élévation refusée */ }
     }
 
-    private void About_Click(object sender, RoutedEventArgs e) =>
-        MessageDialog.Show(this, $"DeployCraft {typeof(MainWindow).Assembly.GetName().Version?.ToString(3)}\nDéploiement de logiciels sur le parc Windows.",
-            "À propos", MessageBoxButton.OK, MessageBoxImage.Information);
+    private void About_Click(object sender, RoutedEventArgs e) => new AboutWindow { Owner = this }.ShowDialog();
 
     private void Exit_Click(object sender, RoutedEventArgs e) => Close();
 }
