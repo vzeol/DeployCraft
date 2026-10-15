@@ -62,7 +62,7 @@ version ni de release côté Cloud) :
 - **Retours du mainteneur sur la 0.10.0 (PR #27)** : fusionnée. « REMARQUE » (couleur atténuée) au lieu de
   « ERREUR » rouge pour un poste réussi, « Raison : » pour une étape ignorée, colonnes élargies, boîte
   `MessageDialog` aux couleurs du thème (plus aucun `MessageBox.Show`). **Version 0.11.0 publiée** par Prod.
-- **E — 8.2 variables (PR #30, branche `feat/variables`)** : en relecture par Prod. Serveur, runner, API
+- **E — 8.2 variables (PR #30)** : fusionnée. Serveur, runner, API
   `/variables`, `Store.Variables.cs` (Store en `partial`), `Data/VariableText.cs` (partagé avec la console),
   `VariablesPage` (onglet Préférences › Variables ; à la fermeture des Préférences, « enregistrer ? » Oui / Non /
   Annuler via `MessageDialog`) et 15 tests.
