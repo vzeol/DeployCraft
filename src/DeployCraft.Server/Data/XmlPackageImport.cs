@@ -5,11 +5,11 @@ using System.Xml.Linq;
 namespace DeployCraft.Server.Data;
 
 /// <summary>
-/// Lecture des fichiers d'export XML de PDQ Deploy (paquets et dossiers de paquets).
+/// Lecture des exports XML de paquets d'un autre outil de déploiement (paquets et dossiers de paquets).
 /// Chaque réglage sans équivalent dans DeployCraft est signalé ; une étape dont les conditions ne peuvent pas être
 /// reprises exactement est importée désactivée, pour qu'elle ne s'exécute jamais sur plus de postes que prévu.
 /// </summary>
-public static partial class PdqImport
+public static partial class XmlPackageImport
 {
     private static readonly string[] Workstations = ["WindowsVista", "Windows7", "Windows8", "Windows81", "Windows10", "Windows11"];
     private static readonly string[] Servers = ["Server2008", "Server2008R2", "Server2012", "Server2012R2", "Server2016", "Server2019", "Server2022", "Server2025"];
@@ -28,15 +28,14 @@ public static partial class PdqImport
             throw new FormatException($"Fichier XML illisible : {ex.Message}");
         }
 
-        var code = (string?)root.Attribute("Code");
-        if (root.Name == "AdminArsenal.Export" && code is not ("PDQDeploy" or "PDQDeployPro"))
-            throw new FormatException($"Ce fichier XML n'est pas un export de PDQ Deploy{(code == null ? "" : $" (produit : {code})")}.");
-        if (root.Name != "AdminArsenal.Export" && root.Name != "Package" && root.Name != "Folder")
-            throw new FormatException("Ce fichier XML n'est pas un export de paquets de PDQ Deploy.");
+        // Un paquet ou un dossier seul, ou un fichier qui en contient au premier niveau.
+        IEnumerable<XElement> items = root.Name.LocalName is "Package" or "Folder" ? [root] : root.Elements();
+        if (!items.Any(e => e.Name.LocalName is "Package" or "Folder" or "Installer"))
+            throw new FormatException("Ce fichier XML n'est pas un export de paquets pris en charge.");
 
-        var report = new ImportReport { Source = ImportReport.SourcePdq };
+        var report = new ImportReport { Source = ImportReport.SourceXml };
         var repo = string.IsNullOrWhiteSpace(repository) ? null : repository.Trim().TrimEnd('\\');
-        ReadChildren(root.Name == "AdminArsenal.Export" ? root.Elements() : [root], report, repo);
+        ReadChildren(items, report, repo);
         if (report.Packages.Count == 0 && report.Notes.Count == 0) report.Notes.Add("Aucun paquet dans ce fichier.");
         return report;
     }
@@ -55,7 +54,7 @@ public static partial class PdqImport
                     ReadChildren((e.Element("Children") ?? e).Elements(), report, repo);
                     break;
                 case "Installer":
-                    report.Notes.Add($"« {Text(e, "Name")} » : paquet d'une très ancienne version de PDQ Deploy, non repris. Ré-exportez-le depuis une version récente.");
+                    report.Notes.Add($"« {Text(e, "Name")} » : paquet d'un format très ancien, non repris. Ré-exportez-le depuis une version récente de l'outil d'origine.");
                     break;
                 case "Schedule":
                     report.Notes.Add($"Planification « {Text(e, "Name")} » : non reprise (seuls les paquets sont importés).");
@@ -95,7 +94,7 @@ public static partial class PdqImport
 
         p.Conditions = ReadConditions(def.Element("Conditions"), note => result.Warn($"Conditions du paquet : {note}"), out var packageConditionsLost);
         if (Raw(e, "LibraryPackageId") is { Length: > 0 } lib && lib != "null")
-            result.Warn("Paquet de la bibliothèque de PDQ : il ne sera plus mis à jour automatiquement.");
+            result.Warn("Paquet d'une bibliothèque en ligne de l'outil d'origine : il ne sera plus mis à jour automatiquement.");
 
         // Les sections « avant » et « après » n'existent pas dans DeployCraft : les étapes sont mises bout à bout, dans l'ordre d'exécution.
         var stepElements = (def.Element("Steps")?.Elements() ?? []).ToList();
@@ -161,7 +160,7 @@ public static partial class PdqImport
                     return (null, line);
                 }
                 if (isMsi && e.Elements("MsiQuiet").Any() && !Bool(e, "MsiQuiet"))
-                    line.Warn("MSI non silencieux dans PDQ : DeployCraft installe toujours en silencieux.");
+                    line.Warn("MSI non silencieux à l'origine : DeployCraft installe toujours en silencieux.");
                 if (isMsi && Text(e, "MsiRestart") is "Prompt" or "Always")
                     line.Warn("Redémarrage après l'installation MSI : DeployCraft ne redémarre jamais le poste.");
                 if (Bool(e, "LeaveInstallFile"))
@@ -234,7 +233,7 @@ public static partial class PdqImport
                 line.Skip("Étape « Déconnexion » : pas encore disponible dans DeployCraft.");
                 return (null, line);
             case "ScanStep" or "Scan":
-                line.Skip("Scan d'inventaire : propre à PDQ Inventory, non repris.");
+                line.Skip("Scan d'inventaire : propre à un logiciel d'inventaire tiers, non repris.");
                 return (null, line);
             default:
                 line.Skip($"Type d'étape inconnu ({(type.Length > 0 ? type : e.Name.LocalName)}) : non repris.");
@@ -265,7 +264,7 @@ public static partial class PdqImport
     }
 
     /// <summary>
-    /// Conditions de PDQ Deploy → conditions DeployCraft. <paramref name="lost"/> : une condition n'a pas d'équivalent exact
+    /// Conditions du fichier → conditions DeployCraft. <paramref name="lost"/> : une condition n'a pas d'équivalent exact
     /// (elle est alors signalée par <paramref name="warn"/>).
     /// </summary>
     private static Conditions ReadConditions(XElement? list, Action<string> warn, out bool lost)
@@ -292,7 +291,7 @@ public static partial class PdqImport
                     break;
                 case "Collection":
                     if (Text(e, "ConditionMode") is "IsMember" or "IsNotMember")
-                        Lose($"collection PDQ Inventory « {Text(e, "InventoryCollectionName")} » : propre à PDQ Inventory.");
+                        Lose($"collection d'inventaire « {Text(e, "InventoryCollectionName")} » : propre à un logiciel d'inventaire tiers.");
                     break;
                 case "File":
                     ReadFile(e, c, Lose);
@@ -415,7 +414,7 @@ public static partial class PdqImport
     }
 
     /// <summary>
-    /// <c>$(Repository)</c> est remplacé par le dossier du dépôt indiqué à l'import ; les autres variables de PDQ
+    /// <c>$(Repository)</c> est remplacé par le dossier du dépôt indiqué à l'import ; les autres variables
     /// (DeployCraft n'en a pas) restent telles quelles et sont signalées.
     /// </summary>
     private static void ReplaceVariables(PackageStep step, ImportStepResult line, string? repo)
@@ -428,8 +427,8 @@ public static partial class PdqImport
         step.CopySource = Replace(step.CopySource);
         step.CopyDestination = Replace(step.CopyDestination);
         step.Conditions.FilePath = Replace(step.Conditions.FilePath);
-        if (missingRepository) line.Warn("Utilise $(Repository) : indiquez le dossier du dépôt PDQ à l'import pour le remplacer.");
-        if (others.Count > 0) line.Warn($"Variables de PDQ laissées telles quelles : {string.Join(", ", others)}.");
+        if (missingRepository) line.Warn("Utilise $(Repository) : indiquez le dossier du dépôt à l'import pour le remplacer.");
+        if (others.Count > 0) line.Warn($"Variables laissées telles quelles : {string.Join(", ", others)}.");
 
         string? Replace(string? text)
         {
@@ -464,7 +463,7 @@ public static partial class PdqImport
             case "LoggedOnUser":
                 return RunAsMode.LoggedOnUser;
             case "AdminOnDesktop":
-                warn($"{what} : « compte de déploiement sur le bureau » dans PDQ ; DeployCraft utilise le compte de déploiement, sans bureau.");
+                warn($"{what} : « compte de déploiement sur le bureau » à l'origine ; DeployCraft utilise le compte de déploiement, sans bureau.");
                 return RunAsMode.DeployUser;
             default:
                 return null;

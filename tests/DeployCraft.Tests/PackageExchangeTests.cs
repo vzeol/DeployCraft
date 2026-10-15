@@ -2,7 +2,7 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Export et import de paquets : format DeployCraft (JSON) et fichiers d'export de PDQ Deploy (XML).</summary>
+/// <summary>Export et import de paquets : format DeployCraft (JSON) et export XML d'un autre outil de déploiement.</summary>
 public class PackageExchangeTests
 {
     private readonly Dictionary<long, Package> _library = [];
@@ -131,14 +131,14 @@ public class PackageExchangeTests
         Assert.Throws<FormatException>(() => PackageExchange.Read("bonjour"));
     }
 
-    // ---------- Export de PDQ Deploy ----------
+    // ---------- Export XML d'un autre outil ----------
 
-    private static string Pdq(string packages) => $"""
+    private static string Xml(string packages) => $"""
         <?xml version="1.0" encoding="utf-8"?>
-        <AdminArsenal.Export Code="PDQDeploy" Name="PDQ Deploy" Version="20.1.0.0" MinimumVersion="17.0">{packages}</AdminArsenal.Export>
+        <Export Version="1.0">{packages}</Export>
         """;
 
-    private static string PdqPackage(string name, string steps, string conditions = "", string options = "") => $"""
+    private static string XmlPackage(string name, string steps, string conditions = "", string options = "") => $"""
         <Package>
           <PackageDefinition name="Definition">
             <Conditions type="list">{conditions}</Conditions>
@@ -157,9 +157,9 @@ public class PackageExchangeTests
         """;
 
     [Fact]
-    public void Pdq_StepTypes_AreConverted()
+    public void Xml_StepTypes_AreConverted()
     {
-        var xml = Pdq(PdqPackage("Logiciel",
+        var xml = Xml(XmlPackage("Logiciel",
             Step("Install", "InstallStep", "<FileName>\\\\SERVEUR-01\\Partage\\app.msi</FileName><Parameters>ALLUSERS=1</Parameters><SuccessCodes>0,3010</SuccessCodes><MsiOperation>Install</MsiOperation><MsiQuiet value=\"true\" /><IncludeDirectory value=\"true\" />") +
             Step("Command", "CommandStep", "<Command>echo ok</Command><SuccessCodes>0</SuccessCodes>") +
             Step("PowerShell", "PowerShellStep", "<Script>Write-Output 1</Script><SuccessCodes>0</SuccessCodes>") +
@@ -189,9 +189,9 @@ public class PackageExchangeTests
     }
 
     [Fact]
-    public void Pdq_UnavailableStepTypes_AreReported_NotImported()
+    public void Xml_UnavailableStepTypes_AreReported_NotImported()
     {
-        var xml = Pdq(PdqPackage("Fin",
+        var xml = Xml(XmlPackage("Fin",
             Step("Command", "CommandStep", "<Command>echo ok</Command>") +
             Step("Reboot", "RebootStep", "<Message>m</Message><Timeout value=\"60\" />") +
             Step("Logoff", "PackageStep", "<Message>m</Message>")));
@@ -205,20 +205,20 @@ public class PackageExchangeTests
     }
 
     [Fact]
-    public void Pdq_PreAndPostSteps_AreChainedInExecutionOrder()
+    public void Xml_PreAndPostSteps_AreChainedInExecutionOrder()
     {
         var steps =
             Step("Command", "CommandStep", "<Command>main</Command>") +
             Step("Command", "CommandStep", "<Command>post</Command>").Replace("<IsPostStep value=\"false\" />", "<IsPostStep value=\"true\" />") +
             Step("Command", "CommandStep", "<Command>pre</Command>").Replace("<IsPreStep value=\"false\" />", "<IsPreStep value=\"true\" />");
 
-        var report = Import(Pdq(PdqPackage("Ordre", steps)));
+        var report = Import(Xml(XmlPackage("Ordre", steps)));
 
         Assert.Equal(["pre", "main", "post"], _library[report.Packages[0].NewId!.Value].Steps.Select(s => s.Command));
     }
 
     [Fact]
-    public void Pdq_Conditions_AreConverted()
+    public void Xml_Conditions_AreConverted()
     {
         const string conditions = """
             <PackageStepCondition><Architecture>Bits64</Architecture><Version>Windows10, Windows11</Version><TypeName>OperatingSystem</TypeName></PackageStepCondition>
@@ -231,7 +231,7 @@ public class PackageExchangeTests
             <PackageStepCondition><Hive>HKEY_LOCAL_MACHINE</Hive><Key>SOFTWARE\App</Key><ValueName>Version</ValueName><ConditionMode>Exists</ConditionMode><ValueCompare>NoMatch</ValueCompare><TypeName>Registry</TypeName></PackageStepCondition>
             """;
 
-        var report = Import(Pdq(PdqPackage("Conditions", Step("Command", "CommandStep", "<Command>x</Command>", stepConditions), conditions)));
+        var report = Import(Xml(XmlPackage("Conditions", Step("Command", "CommandStep", "<Command>x</Command>", stepConditions), conditions)));
 
         Assert.Equal(ImportState.Ok, report.Packages[0].State);
         var p = _library[report.Packages[0].NewId!.Value];
@@ -249,26 +249,26 @@ public class PackageExchangeTests
     }
 
     [Fact]
-    public void Pdq_InexactStepCondition_DisablesTheStep()
+    public void Xml_InexactStepCondition_DisablesTheStep()
     {
         const string versionCheck = """
             <PackageStepCondition><Directory>C:\App</Directory><Filename>app.exe</Filename><FileConditionMode>Exists</FileConditionMode><FileVersion>2.0</FileVersion><FileVersionCompare>LessThan</FileVersionCompare><TypeName>File</TypeName></PackageStepCondition>
             """;
 
-        var report = Import(Pdq(PdqPackage("Version", Step("Command", "CommandStep", "<Command>x</Command>", versionCheck))));
+        var report = Import(Xml(XmlPackage("Version", Step("Command", "CommandStep", "<Command>x</Command>", versionCheck))));
 
         Assert.Equal(ImportState.Warning, report.Packages[0].Steps[0].State);
         Assert.False(_library[report.Packages[0].NewId!.Value].Steps[0].Enabled);
     }
 
     [Fact]
-    public void Pdq_InexactPackageCondition_DisablesEveryStep()
+    public void Xml_InexactPackageCondition_DisablesEveryStep()
     {
         const string servers = """
             <PackageStepCondition><Architecture>All</Architecture><Version>Server2019, Server2022</Version><TypeName>OperatingSystem</TypeName></PackageStepCondition>
             """;
 
-        var report = Import(Pdq(PdqPackage("Serveurs",
+        var report = Import(Xml(XmlPackage("Serveurs",
             Step("Command", "CommandStep", "<Command>a</Command>") + Step("Command", "CommandStep", "<Command>b</Command>"), servers)));
 
         var p = _library[report.Packages[0].NewId!.Value];
@@ -277,9 +277,9 @@ public class PackageExchangeTests
     }
 
     [Fact]
-    public void Pdq_Repository_IsReplaced_WhenGiven()
+    public void Xml_Repository_IsReplaced_WhenGiven()
     {
-        var xml = Pdq(PdqPackage("Dépôt", Step("Install", "InstallStep", "<FileName>$(Repository)\\App\\setup.exe</FileName><Parameters>/S</Parameters>")));
+        var xml = Xml(XmlPackage("Dépôt", Step("Install", "InstallStep", "<FileName>$(Repository)\\App\\setup.exe</FileName><Parameters>/S</Parameters>")));
 
         var without = Import(xml, apply: false);
         var with = Import(xml, repository: @"\\SERVEUR-01\Depot\");
@@ -290,22 +290,22 @@ public class PackageExchangeTests
     }
 
     [Fact]
-    public void Pdq_AdditionalFiles_DisableTheStep()
+    public void Xml_AdditionalFiles_DisableTheStep()
     {
-        var report = Import(Pdq(PdqPackage("Fichiers", Step("Command", "CommandStep", "<Command>x</Command><Files>C:\\a.cfg</Files>"))));
+        var report = Import(Xml(XmlPackage("Fichiers", Step("Command", "CommandStep", "<Command>x</Command><Files>C:\\a.cfg</Files>"))));
 
         Assert.False(_library[report.Packages[0].NewId!.Value].Steps[0].Enabled);
         Assert.Equal(ImportState.Warning, report.Packages[0].Steps[0].State);
     }
 
     [Fact]
-    public void Pdq_NestedPackage_IsLinked_InTheFile_OrToAnExistingPackage()
+    public void Xml_NestedPackage_IsLinked_InTheFile_OrToAnExistingPackage()
     {
         Add(7, "Commun", Cmd("c"));
         var nestedInFile = Step("NestedPackage", "NestedPackageStep", "<TargetPackageName>Outils</TargetPackageName><TargetPackagePath>Outils</TargetPackagePath>");
         var nestedExisting = Step("NestedPackage", "NestedPackageStep", "<TargetPackageName>Commun</TargetPackageName><TargetPackagePath>Dossier\\Commun</TargetPackagePath>");
         var nestedMissing = Step("NestedPackage", "NestedPackageStep", "<TargetPackageName>Absent</TargetPackageName>");
-        var xml = Pdq(PdqPackage("Poste", nestedInFile + nestedExisting + nestedMissing) + PdqPackage("Outils", Step("Command", "CommandStep", "<Command>o</Command>")));
+        var xml = Xml(XmlPackage("Poste", nestedInFile + nestedExisting + nestedMissing) + XmlPackage("Outils", Step("Command", "CommandStep", "<Command>o</Command>")));
 
         var report = Import(xml);
 
@@ -317,9 +317,9 @@ public class PackageExchangeTests
     }
 
     [Fact]
-    public void Pdq_Folders_AreFlattened_AndOtherObjectsReported()
+    public void Xml_Folders_AreFlattened_AndOtherObjectsReported()
     {
-        var xml = Pdq($"<Folder><Name>Bureautique</Name><Children>{PdqPackage("Éditeur", Step("Command", "CommandStep", "<Command>x</Command>"))}</Children></Folder><Schedule><Name>Nuit</Name></Schedule>");
+        var xml = Xml($"<Folder><Name>Bureautique</Name><Children>{XmlPackage("Éditeur", Step("Command", "CommandStep", "<Command>x</Command>"))}</Children></Folder><Schedule><Name>Nuit</Name></Schedule>");
 
         var report = Import(xml, apply: false);
 
@@ -328,9 +328,9 @@ public class PackageExchangeTests
     }
 
     [Fact]
-    public void Pdq_OtherXml_IsRefused()
+    public void Xml_OtherXml_IsRefused()
     {
-        Assert.Throws<FormatException>(() => PackageExchange.Read("<AdminArsenal.Export Code=\"PDQInventory\" />"));
+        Assert.Throws<FormatException>(() => PackageExchange.Read("<Export><Machine /></Export>"));
         Assert.Throws<FormatException>(() => PackageExchange.Read("<racine />"));
         Assert.Throws<FormatException>(() => PackageExchange.Read("<Package>"));
     }

@@ -520,7 +520,7 @@ public partial class MainWindow : Window
         var dialog = new Microsoft.Win32.OpenFileDialog
         {
             Title = "Importer des paquets",
-            Filter = "Exports DeployCraft ou PDQ Deploy (*.json;*.xml)|*.json;*.xml|Tous les fichiers|*.*",
+            Filter = "Exports de paquets (*.json;*.xml)|*.json;*.xml|Tous les fichiers|*.*",
         };
         if (dialog.ShowDialog(this) != true || ImportWindow.ReadFile(this, dialog.FileName) is not { } content) return;
         var window = new ImportWindow(System.IO.Path.GetFileName(dialog.FileName), content) { Owner = this };

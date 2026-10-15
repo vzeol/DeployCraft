@@ -285,14 +285,14 @@ déploiements possibles en même temps sur un poste.
 - **Fichier › Exporter le paquet…** (aussi au clic droit) ou **Exporter tous les paquets…** : un fichier `.json`
   qui contient les paquets choisis **et les paquets imbriqués qu'ils utilisent**, pour qu'il se suffise à lui-même.
   Les identifiants (mots de passe) ne sont jamais exportés.
-- **Fichier › Importer des paquets…** : un export DeployCraft (`.json`) ou un export XML de **PDQ Deploy**.
+- **Fichier › Importer des paquets…** : un export DeployCraft (`.json`) ou un **export XML de paquets d'un autre outil de déploiement**.
   Une fenêtre montre d'abord un **aperçu** (rien n'est créé) : pour chaque paquet et chaque étape, repris tel quel
   (vert), repris avec des réserves (orange, avec l'explication) ou non repris (rouge, avec la raison).
   « Importer » crée les paquets ; rien n'est perdu sans être signalé.
 - Toujours de **nouveaux** paquets : un nom déjà pris devient « Nom (2) », « Nom (3) »… Les étapes « paquet
   imbriqué » sont reliées aux paquets importés en même temps. Un paquet imbriqué est créé avant celui qui l'utilise ;
   une boucle de paquets imbriqués dans le fichier est refusée. Chaque paquet est vérifié comme à l'enregistrement.
-- Export de **PDQ Deploy** :
+- Export XML d'un autre outil :
   - Étapes reprises : Installer, Commande, PowerShell, Copie de fichiers, Pause (« Sleep »), Paquet imbriqué.
     Pas encore reprises (signalées) : Redémarrer, Message, Déconnexion, désinstallation / réparation MSI,
     ligne de commande personnalisée d'une installation ; jamais : scan d'inventaire.
@@ -301,7 +301,7 @@ déploiements possibles en même temps sur un poste.
   - Étapes « avant » et « après » : mises à la suite, dans l'ordre d'exécution (signalé).
   - Conditions : versions de Windows, architecture, version de PowerShell, utilisateur connecté, présence d'un
     fichier ou d'une clé / valeur de registre. Une condition sans équivalent exact (version de fichier, valeur de
-    registre comparée, Windows Server version par version, collection PDQ Inventory…) est signalée et l'étape est
+    registre comparée, Windows Server version par version, collection d'un logiciel d'inventaire…) est signalée et l'étape est
     **importée désactivée** (toutes les étapes si c'est une condition du paquet) : elle ne s'exécute jamais sur plus
     de postes que prévu. On la vérifie, puis on la réactive.
   - Fichiers additionnels d'une étape : pas encore copiés par DeployCraft, l'étape est importée désactivée.

@@ -215,7 +215,7 @@ api.MapPost("/packages/export", (List<long> ids, Store store) =>
     }
 });
 
-// Import d'un export DeployCraft ou PDQ Deploy : aperçu (Apply = false) ou création des paquets.
+// Import d'un export DeployCraft ou XML d'un autre outil : aperçu (Apply = false) ou création des paquets.
 api.MapPost("/packages/import", (ImportInput input, Store store) =>
 {
     ImportReport report;

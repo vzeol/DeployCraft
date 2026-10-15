@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace DeployCraft.Server.Data;
 
-/// <summary>Export et import de paquets (format DeployCraft, ou fichiers d'export XML de PDQ Deploy).</summary>
+/// <summary>Export et import de paquets (format DeployCraft, ou export XML d'un autre outil de déploiement).</summary>
 public static class PackageExchange
 {
     private static readonly JsonSerializerOptions WriteOptions = new(Store.Json) { WriteIndented = true };
@@ -30,15 +30,15 @@ public static class PackageExchange
     public static string Serialize(PackageExport export) => JsonSerializer.Serialize(export, WriteOptions);
 
     /// <summary>
-    /// Lit un fichier d'import : export DeployCraft (JSON) ou export de PDQ Deploy (XML).
-    /// <paramref name="repository"/> remplace <c>$(Repository)</c> dans les paquets de PDQ Deploy.
+    /// Lit un fichier d'import : export DeployCraft (JSON) ou export XML d'un autre outil de déploiement.
+    /// <paramref name="repository"/> remplace <c>$(Repository)</c> dans les paquets XML.
     /// </summary>
     public static ImportReport Read(string content, string? repository = null)
     {
         var text = content.TrimStart('﻿', ' ', '\t', '\r', '\n');
-        if (text.StartsWith('<')) return PdqImport.Read(text, repository);
+        if (text.StartsWith('<')) return XmlPackageImport.Read(text, repository);
         if (text.StartsWith('{')) return ReadDeployCraft(text);
-        throw new FormatException("Ce fichier n'est ni un export DeployCraft (.json) ni un export de PDQ Deploy (.xml).");
+        throw new FormatException("Ce fichier n'est ni un export DeployCraft (.json) ni un export de paquets XML (.xml).");
     }
 
     private static ImportReport ReadDeployCraft(string json)
@@ -126,7 +126,7 @@ public static class PackageExchange
                         continue;
                     }
                 }
-                // Export de PDQ Deploy sans le paquet imbriqué : un paquet du même nom déjà dans DeployCraft fait l'affaire.
+                // Export XML sans le paquet imbriqué : un paquet du même nom déjà dans DeployCraft fait l'affaire.
                 var name = key.Split('\\')[^1];
                 if (report.Source != ImportReport.SourceDeployCraft && existing.FirstOrDefault(e => e.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) is { } found)
                 {

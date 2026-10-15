@@ -45,7 +45,7 @@ public static class Api
 
     /// <summary>Fichier d'export : les paquets choisis et les paquets imbriqués qu'ils utilisent.</summary>
     public static Task<PackageExport> ExportPackages(IEnumerable<long> ids) => Send<PackageExport>(HttpMethod.Post, "packages/export", ids.ToList());
-    /// <summary>Import d'un export DeployCraft ou PDQ Deploy : aperçu, ou création des paquets si <paramref name="apply"/>.</summary>
+    /// <summary>Import d'un export DeployCraft ou XML d'un autre outil : aperçu, ou création des paquets si <paramref name="apply"/>.</summary>
     public static Task<ImportReport> ImportPackages(string content, string? repository, bool apply) =>
         Send<ImportReport>(HttpMethod.Post, "packages/import", new { content, repository, apply });
 

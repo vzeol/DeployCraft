@@ -72,9 +72,10 @@ public class ImportPackageResult
 public class ImportReport
 {
     public const string SourceDeployCraft = "DeployCraft";
-    public const string SourcePdq = "PDQ Deploy";
+    /// <summary>Export XML de paquets d'un autre outil de déploiement.</summary>
+    public const string SourceXml = "XML";
 
-    /// <summary><see cref="SourceDeployCraft"/> ou <see cref="SourcePdq"/>.</summary>
+    /// <summary><see cref="SourceDeployCraft"/> ou <see cref="SourceXml"/>.</summary>
     public string Source { get; set; } = "";
     public bool Applied { get; set; }
     public List<string> Notes { get; set; } = [];

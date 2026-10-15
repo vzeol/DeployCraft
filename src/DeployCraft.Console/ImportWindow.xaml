@@ -12,10 +12,10 @@
 
         <TextBlock DockPanel.Dock="Top" x:Name="FileText" TextWrapping="Wrap" Margin="0,0,0,8" />
 
-        <!-- Dépôt de PDQ Deploy : remplace $(Repository) dans les chemins -->
+        <!-- Dépôt de l'outil d'origine : remplace $(Repository) dans les chemins -->
         <DockPanel DockPanel.Dock="Top" x:Name="RepositoryPanel" Margin="0,0,0,8" Visibility="Collapsed">
             <TextBlock DockPanel.Dock="Top" Style="{StaticResource Hint}" Margin="0,0,0,4"
-                       Text="Dossier du dépôt de PDQ Deploy (partage réseau) : il remplace $(Repository) dans les chemins des paquets. Laissez vide si vos paquets ne l'utilisent pas." />
+                       Text="Dossier du dépôt de l'outil d'origine (partage réseau) : il remplace $(Repository) dans les chemins des paquets. Laissez vide si vos paquets ne l'utilisent pas." />
             <Button DockPanel.Dock="Right" Style="{StaticResource DialogButton}" Margin="8,0,0,0" Click="Preview_Click">Mettre à jour l'aperçu</Button>
             <TextBox x:Name="Repository" VerticalContentAlignment="Center" />
         </DockPanel>
