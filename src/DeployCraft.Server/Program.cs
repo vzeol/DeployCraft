@@ -3,6 +3,8 @@ using System.Text.Json.Serialization;
 using DeployCraft.Server.Data;
 using DeployCraft.Server.Deployment;
 using DeployCraft.Server.Remote;
+using DeployCraft.Server.Security;
+using Microsoft.AspNetCore.Authentication.Negotiate;
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
@@ -22,20 +24,27 @@ builder.Services.ConfigureHttpJsonOptions(o =>
 });
 builder.Services.AddSingleton(new Store(Path.Combine(dataDir, "deploycraft.db")));
 builder.Services.AddSingleton<DeployCredentials>();
+builder.Services.AddSingleton<ConsoleAccess>();
 builder.Services.AddSingleton<ActiveDirectory>();
 builder.Services.AddSingleton<DeploymentEngine>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<DeploymentEngine>());
 builder.Services.AddSingleton<Scheduler>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<Scheduler>());
 builder.Services.AddHostedService<HistoryCleaner>();
+// La console s'identifie avec la session Windows de la personne (aucun mot de passe à saisir).
+builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme).AddNegotiate();
 
 var app = builder.Build();
+
+app.UseAuthentication();
+var access = app.Services.GetRequiredService<ConsoleAccess>();
+app.Use(access.Check);
 
 var api = app.MapGroup("/api");
 
 // ---------- État ----------
 
-api.MapGet("/status", (DeployCredentials cred) =>
+api.MapGet("/status", (HttpContext context, DeployCredentials cred) =>
 {
     using var identity = WindowsIdentity.GetCurrent();
     var all = cred.List();
@@ -47,7 +56,31 @@ api.MapGet("/status", (DeployCredentials cred) =>
         defaultCredential = all.FirstOrDefault(c => c.IsDefault) ?? all.FirstOrDefault(),
         unreadableCredentials = all.Count(c => c.PasswordUnreadable),
         version = typeof(Program).Assembly.GetName().Version?.ToString(3),
+        connectedAs = context.User.Identity?.Name,
     };
+});
+
+// ---------- Utilisateurs de la console ----------
+
+api.MapGet("/access", (HttpContext context, ConsoleAccess access) => new
+{
+    users = access.ListUsers(),
+    sessions = access.ActiveSessions(),
+    canEdit = ConsoleAccess.IsServerAdmin(ConsoleAccess.Sids(context.User)),
+});
+
+api.MapPost("/access/users", (HttpContext context, ConsoleUserInput input, ConsoleAccess access) =>
+{
+    if (!ConsoleAccess.IsServerAdmin(ConsoleAccess.Sids(context.User))) return OnlyAdmins();
+    var (user, error) = access.AddUser(input.Name);
+    return user != null ? Results.Ok(user) : Results.BadRequest(new { error });
+});
+
+api.MapDelete("/access/users/{sid}", (HttpContext context, string sid, ConsoleAccess access) =>
+{
+    if (!ConsoleAccess.IsServerAdmin(ConsoleAccess.Sids(context.User))) return OnlyAdmins();
+    access.RemoveUser(sid);
+    return Results.NoContent();
 });
 
 // ---------- Préférences de déploiement ----------
@@ -200,7 +233,7 @@ api.MapPut("/packages/{id:long}/targets", (long id, List<string> computers, Stor
 // ---------- Déploiements ----------
 
 // Un déploiement par paquet, dans l'ordre : la réponse est la liste des déploiements créés.
-api.MapPost("/deployments", (DeployInput input, Store store, DeploymentEngine engine) =>
+api.MapPost("/deployments", (HttpContext context, DeployInput input, Store store, DeploymentEngine engine) =>
 {
     var packages = new List<Package>();
     foreach (var id in input.PackageIds)
@@ -210,7 +243,7 @@ api.MapPost("/deployments", (DeployInput input, Store store, DeploymentEngine en
     }
     try
     {
-        return Results.Ok(engine.Start(packages, input.Targets, input.LaunchedBy, input.Options ?? new DeployOptions()));
+        return Results.Ok(engine.Start(packages, input.Targets, context.User.Identity?.Name, input.Options ?? new DeployOptions()));
     }
     catch (ArgumentException ex)
     {
@@ -223,8 +256,8 @@ api.MapGet("/deployments", (Store store) => store.ListDeployments());
 api.MapGet("/deployments/{id:long}", (long id, Store store) =>
     store.GetDeployment(id) is { } d ? Results.Ok(d) : Results.NotFound());
 
-api.MapPost("/deployments/{id:long}/abort", (long id, AbortInput input, DeploymentEngine engine) =>
-    Results.Ok(new { aborted = engine.Abort(id, input.TargetIds, input.By) }));
+api.MapPost("/deployments/{id:long}/abort", (HttpContext context, long id, AbortInput input, DeploymentEngine engine) =>
+    Results.Ok(new { aborted = engine.Abort(id, input.TargetIds, context.User.Identity?.Name) }));
 
 api.MapDelete("/deployments/{id:long}", (long id, Store store) =>
 {
@@ -264,10 +297,10 @@ api.MapDelete("/schedules/{id:long}", (long id, Store store) =>
 });
 
 // « Démarrer maintenant » : même règles qu'un déclenchement (postes réussis ou en cours ignorés).
-api.MapPost("/schedules/{id:long}/run", (long id, RunScheduleInput input, Store store, Scheduler scheduler) =>
+api.MapPost("/schedules/{id:long}/run", (HttpContext context, long id, Store store, Scheduler scheduler) =>
 {
     if (store.GetSchedule(id) is not { } s) return Results.NotFound();
-    var deployments = scheduler.Run(s, input.LaunchedBy);
+    var deployments = scheduler.Run(s, context.User.Identity?.Name);
     return Results.Ok(new { deployments, result = store.GetSchedule(id)?.LastResult });
 });
 
@@ -281,6 +314,10 @@ api.MapPost("/schedules/{id:long}/history/clear", (long id, List<ScheduleHistory
 });
 
 app.Run();
+
+static IResult OnlyAdmins() => Results.Json(
+    new { error = "Seuls les administrateurs de ce serveur peuvent modifier la liste des utilisateurs de la console." },
+    statusCode: StatusCodes.Status403Forbidden);
 
 static Schedule WithNextRun(Schedule s)
 {
@@ -377,6 +414,6 @@ record CredentialInput(long? Id, string? Domain, string User, string? Descriptio
 {
     public Credential ToCredential(long id) => new Credential { Id = id, Domain = Domain, User = User ?? "", Description = Description }.Normalize();
 }
-record DeployInput(List<long> PackageIds, List<TargetRequest> Targets, string? LaunchedBy, DeployOptions? Options);
-record AbortInput(List<long>? TargetIds, string? By);
-record RunScheduleInput(string? LaunchedBy);
+record DeployInput(List<long> PackageIds, List<TargetRequest> Targets, DeployOptions? Options);
+record AbortInput(List<long>? TargetIds);
+record ConsoleUserInput(string? Name);
