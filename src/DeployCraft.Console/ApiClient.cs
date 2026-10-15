@@ -49,6 +49,12 @@ public static class Api
     public static Task<ImportReport> ImportPackages(string content, string? repository, bool apply) =>
         Send<ImportReport>(HttpMethod.Post, "packages/import", new { content, repository, apply });
 
+    public static Task<LibraryInfo> Library() => Get<LibraryInfo>("library");
+    public static Task RefreshLibrary() => Send<object>(HttpMethod.Post, "library/refresh");
+    public static Task SetLibraryFolder(string folder) => Send<object>(HttpMethod.Put, "library/folder", new { folder });
+    /// <summary>Lance le téléchargement en arrière-plan ; la progression se lit dans <see cref="Library"/>.</summary>
+    public static Task DownloadFromLibrary(string id) => Send<object>(HttpMethod.Post, "library/download", new { id });
+
     public static Task<List<Deployment>> Deployments() => Get<List<Deployment>>("deployments");
     public static Task<Deployment> Deployment(long id) => Get<Deployment>($"deployments/{id}");
     public static Task DeleteDeployment(long id) => Send<object>(HttpMethod.Delete, $"deployments/{id}");

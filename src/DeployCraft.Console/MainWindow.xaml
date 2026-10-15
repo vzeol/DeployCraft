@@ -177,6 +177,50 @@
                     </Grid>
                 </DockPanel>
 
+                <!-- Bibliothèque de paquets -->
+                <DockPanel x:Name="LibraryView" Visibility="Collapsed">
+                    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Style="{StaticResource HeaderButton}" Click="LibraryDownload_Click" x:Name="LibraryDownloadButton" FontWeight="SemiBold">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE896;" FontFamily="{StaticResource IconFont}" Foreground="{DynamicResource Accent}" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                    <TextBlock x:Name="LibraryDownloadText" Text="Télécharger" />
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource HeaderButton}" Click="LibraryRefresh_Click" x:Name="LibraryRefreshButton">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE72C;" FontFamily="{StaticResource IconFont}" Foreground="{DynamicResource Accent}" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                    <TextBlock Text="Actualiser le catalogue" />
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource HeaderButton}" Click="LibraryFolder_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE8B7;" FontFamily="{StaticResource IconFont}" Foreground="{DynamicResource Accent}" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                    <TextBlock Text="Dossier…" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource ViewIcon}" Text="&#xE8F1;" />
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource ViewTitle}" Text="Bibliothèque de paquets" />
+                                <TextBlock x:Name="LibrarySubtitle" Style="{StaticResource ViewSubtitle}" TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                        </StackPanel>
+                    </DockPanel>
+                    <TextBlock x:Name="LibraryFolderText" DockPanel.Dock="Bottom" Margin="0,8,0,0" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" />
+                    <DataGrid x:Name="LibraryGrid" SelectionMode="Extended" MouseDoubleClick="LibraryDownload_Click" SelectionChanged="LibraryGrid_SelectionChanged">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Logiciel" Binding="{Binding Name}" Width="200" />
+                            <DataGridTextColumn Header="Catégorie" Binding="{Binding Category}" Width="120" />
+                            <DataGridTextColumn Header="Version disponible" Binding="{Binding Latest}" Width="140" />
+                            <DataGridTextColumn Header="Dans DeployCraft" Binding="{Binding Downloaded}" Width="130" />
+                            <DataGridTextColumn Header="Installeur" Binding="{Binding Installer}" Width="110" />
+                            <DataGridTextColumn Header="État" Binding="{Binding State}" Width="*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+
                 <!-- Paquet -->
                 <DockPanel x:Name="PackageView" Visibility="Collapsed">
                     <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">

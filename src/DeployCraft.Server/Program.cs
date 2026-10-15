@@ -2,6 +2,7 @@ using System.Security.Principal;
 using System.Text.Json.Serialization;
 using DeployCraft.Server.Data;
 using DeployCraft.Server.Deployment;
+using DeployCraft.Server.Library;
 using DeployCraft.Server.Remote;
 using DeployCraft.Server.Security;
 using Microsoft.AspNetCore.Authentication.Negotiate;
@@ -31,6 +32,8 @@ builder.Services.AddHostedService(sp => sp.GetRequiredService<DeploymentEngine>(
 builder.Services.AddSingleton<Scheduler>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<Scheduler>());
 builder.Services.AddHostedService<HistoryCleaner>();
+builder.Services.AddSingleton(sp => new PackageLibrary(sp.GetRequiredService<Store>(), sp.GetRequiredService<DeployCredentials>(),
+    dataDir, sp.GetRequiredService<ILogger<PackageLibrary>>()));
 // La console s'identifie avec la session Windows de la personne (aucun mot de passe à saisir).
 builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme).AddNegotiate();
 
@@ -242,6 +245,23 @@ api.MapPut("/packages/{id:long}/targets", (long id, List<string> computers, Stor
     return Results.NoContent();
 });
 
+// ---------- Bibliothèque de paquets ----------
+
+api.MapGet("/library", (PackageLibrary library) => library.Info());
+
+api.MapPost("/library/refresh", (PackageLibrary library) =>
+{
+    library.StartRefresh();
+    return Results.NoContent();
+});
+
+api.MapPut("/library/folder", (LibraryFolderInput input, PackageLibrary library) =>
+    library.SetFolder(input.Folder) is { } error ? Results.BadRequest(new { error }) : Results.NoContent());
+
+// Téléchargement en arrière-plan : la console suit sa progression dans GET /library.
+api.MapPost("/library/download", (LibraryDownloadInput input, PackageLibrary library) =>
+    library.StartDownload(input.Id ?? "") is { } error ? Results.BadRequest(new { error }) : Results.NoContent());
+
 // ---------- Déploiements ----------
 
 // Un déploiement par paquet, dans l'ordre : la réponse est la liste des déploiements créés.
@@ -444,3 +464,5 @@ record DeployInput(List<long> PackageIds, List<TargetRequest> Targets, DeployOpt
 record AbortInput(List<long>? TargetIds);
 record ConsoleUserInput(string? Name);
 record ImportInput(string? Content, string? Repository, bool Apply);
+record LibraryFolderInput(string? Folder);
+record LibraryDownloadInput(string? Id);

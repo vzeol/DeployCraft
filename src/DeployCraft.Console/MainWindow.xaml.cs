@@ -43,13 +43,40 @@ public record ScheduleRow(Schedule Schedule) : System.ComponentModel.INotifyProp
     public string Result => Schedule.LastResult ?? "";
 }
 
+/// <summary>Ligne de la bibliothèque de paquets.</summary>
+public record LibraryRow(LibraryItem Item)
+{
+    public string Id => Item.Id;
+    public string Name => Item.Name;
+    public string Category => Item.Category;
+    public string Latest => Item.LatestVersion ?? "—";
+    public string Downloaded => Item.PackageVersion ?? "—";
+    public string Installer => Item.Installer ?? "";
+    /// <summary>Le logiciel peut être téléchargé (ou mis à jour) maintenant.</summary>
+    public bool CanDownload => Item.Progress == null && Item.Problem == null && Item.LatestVersion != null && (Item.PackageId == null || Item.UpdateAvailable);
+
+    public string State
+    {
+        get
+        {
+            if (Item.Progress is { } p) return $"Téléchargement… {p} %";
+            if (Item.Problem != null) return $"Non disponible : {Item.Problem}";
+            if (Item.Error != null) return $"Échec : {Item.Error}";
+            if (Item.LatestVersion == null) return "Catalogue pas encore lu";
+            if (Item.PackageId == null) return "Pas encore téléchargé";
+            return Item.UpdateAvailable ? "Mise à jour disponible" : "À jour";
+        }
+    }
+}
+
 public partial class MainWindow : Window
 {
-    private enum View { Deployments, Package, Schedules }
+    private enum View { Deployments, Package, Schedules, Library }
 
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(2) };
     private readonly TreeViewItem _deploymentsNode;
     private readonly TreeViewItem _schedulesNode;
+    private readonly TreeViewItem _libraryNode;
     private readonly TreeViewItem _packagesNode;
     private List<Package> _packages = [];
     private View _view = View.Deployments;
@@ -65,9 +92,11 @@ public partial class MainWindow : Window
 
         _deploymentsNode = new TreeViewItem { Header = Ui.Header(Ui.IconHistory, "Tous les déploiements"), Tag = "deployments" };
         _schedulesNode = new TreeViewItem { Header = Ui.Header(Ui.IconSchedule, "Toutes les planifications"), Tag = "schedules" };
+        _libraryNode = new TreeViewItem { Header = Ui.Header(Ui.IconLibrary, "Bibliothèque de paquets"), Tag = "library" };
         _packagesNode = new TreeViewItem { Header = Ui.Header(Ui.IconFolder, "Paquets"), IsExpanded = true };
         Nav.Items.Add(_deploymentsNode);
         Nav.Items.Add(_schedulesNode);
+        Nav.Items.Add(_libraryNode);
         Nav.Items.Add(_packagesNode);
 
         foreach (var panel in new[] { AllDeployments, PackageDeployments, ScheduleDeployments })
@@ -215,6 +244,22 @@ public partial class MainWindow : Window
             ];
         });
 
+        Ui.SelectOnRightClick(LibraryGrid);
+        Ui.ContextMenu(LibraryGrid, () =>
+        {
+            var rows = SelectedLibraryRows;
+            var entries = new List<Ui.MenuEntry>();
+            if (rows.Count > 0)
+            {
+                entries.Add(new(LibraryDownloadText.Text, () => LibraryDownload_Click(this, new()), rows.Any(r => r.CanDownload)));
+                if (rows.Count == 1 && rows[0].Item.PackageId is { } packageId)
+                    entries.Add(new("Afficher le paquet", () => SelectPackageNode(packageId)));
+                entries.Add(Ui.Separator);
+            }
+            entries.Add(new("Actualiser le catalogue", () => LibraryRefresh_Click(this, new())));
+            return entries;
+        });
+
         Ui.SelectOnRightClick(PackageSchedulesGrid);
         Ui.ContextMenu(PackageSchedulesGrid, () => PackageSchedulesGrid.SelectedItem is ScheduleRow
             ? [new("Modifier…", () => EditPackageSchedule_Click(this, new())), new("Nouvelle planification…", () => NewScheduleForPackage_Click(this, new()))]
@@ -306,6 +351,7 @@ public partial class MainWindow : Window
         StatusRunning.Text = running == 0 ? "Aucun déploiement en cours" : $"{running} déploiement(s) en cours";
 
         if (_view == View.Deployments) AllDeployments.SetDeployments(list);
+        else if (_view == View.Library) await RefreshLibraryAsync();
         else if (_view == View.Schedules)
         {
             await RefreshSchedulesAsync();
@@ -348,6 +394,101 @@ public partial class MainWindow : Window
         await RefreshAsync(packages: false);
     }
 
+    // ---------- Bibliothèque de paquets ----------
+
+    private string _libraryPackages = "";
+    private bool _refreshingLibrary;
+
+    private List<LibraryRow> SelectedLibraryRows => LibraryGrid.SelectedItems.OfType<LibraryRow>().ToList();
+
+    private async Task RefreshLibraryAsync()
+    {
+        var info = await Api.Library();
+        var selected = SelectedLibraryRows.Select(r => r.Id).ToHashSet();
+        var rows = info.Items.Select(i => new LibraryRow(i)).ToList();
+        _refreshingLibrary = true;
+        LibraryGrid.ItemsSource = rows;
+        foreach (var row in rows.Where(r => selected.Contains(r.Id))) LibraryGrid.SelectedItems.Add(row);
+        _refreshingLibrary = false;
+
+        var refreshed = info.Refreshing ? "lecture du catalogue en cours…"
+            : info.LastRefreshUtc is { } at ? $"catalogue lu le {Ui.LocalTime(at)}" : "catalogue pas encore lu";
+        var updates = rows.Count(r => r.Item.UpdateAvailable);
+        LibrarySubtitle.Text = $"{rows.Count} logiciels du catalogue public winget · {refreshed}" +
+                               (updates > 0 ? $" · {updates} mise(s) à jour disponible(s)" : "");
+        LibraryFolderText.Text = (info.RefreshError is { } error ? error + Environment.NewLine : "") +
+            $"Les installeurs sont rangés dans {info.Folder}" +
+            (info.DefaultFolder ? " (dossier du serveur : préférez un partage, lisible aussi par les postes en mode pull)." : ".") +
+            " Chaque téléchargement crée ou met à jour un paquet du même nom, prêt à déployer.";
+        LibraryRefreshButton.IsEnabled = !info.Refreshing;
+        UpdateLibraryButton();
+
+        // Un téléchargement terminé crée ou met à jour un paquet : l'arbre suit.
+        var packages = string.Join(";", info.Items.Select(i => $"{i.PackageId}:{i.PackageVersion}"));
+        if (packages != _libraryPackages)
+        {
+            if (_libraryPackages.Length > 0) await RefreshPackagesAsync();
+            _libraryPackages = packages;
+        }
+    }
+
+    private void UpdateLibraryButton()
+    {
+        var ready = SelectedLibraryRows.Where(r => r.CanDownload).ToList();
+        LibraryDownloadButton.IsEnabled = ready.Count > 0;
+        LibraryDownloadText.Text = ready.Count > 0 && ready.All(r => r.Item.UpdateAvailable) ? "Mettre à jour" : "Télécharger";
+    }
+
+    private void LibraryGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_refreshingLibrary) UpdateLibraryButton();
+    }
+
+    private async void LibraryDownload_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            foreach (var row in SelectedLibraryRows.Where(r => r.CanDownload)) await Api.DownloadFromLibrary(row.Id);
+            await RefreshAsync(packages: false);
+        }
+        catch (ApiException ex) { Ui.Error(this, ex); }
+    }
+
+    private async void LibraryRefresh_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            await Api.RefreshLibrary();
+            await RefreshAsync(packages: false);
+        }
+        catch (ApiException ex) { Ui.Error(this, ex); }
+    }
+
+    private async void LibraryFolder_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var info = await Api.Library();
+            if (InputDialog.Ask(this, "Dossier de la bibliothèque",
+                    @"Dossier où ranger les installeurs téléchargés. Un partage est conseillé (ex. \\SERVEUR\Deploiement\Bibliotheque) :",
+                    info.Folder) is not { } folder || folder == info.Folder) return;
+            await Api.SetLibraryFolder(folder);
+            await RefreshAsync(packages: false);
+        }
+        catch (ApiException ex) { Ui.Error(this, ex); }
+    }
+
+    private void SelectPackageNode(long packageId)
+    {
+        foreach (TreeViewItem node in _packagesNode.Items)
+            if (node.Tag is Package p && p.Id == packageId)
+            {
+                node.IsSelected = true;
+                node.BringIntoView();
+                return;
+            }
+    }
+
     // ---------- Vues ----------
 
     private void SwitchTo(View view)
@@ -356,6 +497,7 @@ public partial class MainWindow : Window
         DeploymentsView.Visibility = view == View.Deployments ? Visibility.Visible : Visibility.Collapsed;
         PackageView.Visibility = view == View.Package ? Visibility.Visible : Visibility.Collapsed;
         SchedulesView.Visibility = view == View.Schedules ? Visibility.Visible : Visibility.Collapsed;
+        LibraryView.Visibility = view == View.Library ? Visibility.Visible : Visibility.Collapsed;
         UpdateButtons();
     }
 
@@ -422,6 +564,7 @@ public partial class MainWindow : Window
         if (item.Tag is Package p) ShowPackage(p);
         else if (item == _deploymentsNode) SwitchTo(View.Deployments);
         else if (item == _schedulesNode) SwitchTo(View.Schedules);
+        else if (item == _libraryNode) SwitchTo(View.Library);
         else return;
         await RefreshAsync(packages: false);
     }
