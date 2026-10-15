@@ -116,12 +116,13 @@ version ni de release côté Cloud) :
   ignore les étapes suivantes. Tests : `RebootTests`. Retouches visuelles de la copie de fichiers dans la même PR.
 - **Correctif slot (issue #54, PR #55)** : fusionné. Une préparation ratée (source introuvable…) ne laisse plus
   `slot-N` ni `slot-N.lock` sur le poste.
-- **2.26 message (branche `feat/message`)** : en relecture par Prod. Type `Message` : titre, texte, durée d'affichage
-  (0 = jusqu'au clic), attendre le clic. Le runner (tranche en Système) lance dans chaque session ouverte une fenêtre
+- **2.26 message (issue #56, PR #57)** : fusionnée après tests de Prod sur un vrai poste (sans attente, fin de
+  durée, délai max, clic, annulation, compte de déploiement, texte spécial, aucune console). Type `Message` : titre,
+  texte, durée d'affichage (0 = jusqu'au clic), attendre le clic. Le runner (tranche en Système) lance dans chaque session ouverte une fenêtre
   par Windows PowerShell (`UserProcess.Start(…, session)`, script encodé et codes de sortie dans
   `Runner/MessageOutcome.cs`, lié aux tests). Première version (message de session Windows) écartée après les tests
   de Prod : fermeture par délai vue comme un clic, messages mis en file par session.
-  Tests : `MessageTests`.
+  « & » affiché tel quel (`UseMnemonic`). Tests : `MessageTests`.
 - Ensuite : 2.27, 2.20–2.22 (à tester sur un vrai poste).
 - **1.11 / 2.12 export et import de paquets (PR #59, Claude White Room)** : fusionné. Fichier › Exporter
   le paquet / tous les paquets (`.json`, paquets imbriqués inclus) et Importer des paquets (`.json` ou `.xml`), avec
