@@ -181,6 +181,7 @@ api.MapGet("/packages/{id:long}", (long id, Store store) =>
 api.MapPost("/packages", (Package p, Store store) =>
 {
     p.Id = 0;
+    if (p.FolderId is { } folder && store.ListFolders().All(f => f.Id != folder)) p.FolderId = null;
     if (Validate(p, store.GetPackage) is { } error) return Results.BadRequest(new { error });
     return Results.Ok(store.SavePackage(p));
 });
@@ -206,6 +207,42 @@ api.MapDelete("/packages/{id:long}", (long id, Store store) =>
 });
 
 // Export : les paquets choisis et les paquets imbriqués qu'ils utilisent, dans un fichier qui se suffit à lui-même.
+// ---------- Dossiers de paquets ----------
+
+api.MapGet("/folders", (Store store) => store.ListFolders());
+
+api.MapPost("/folders", (PackageFolder f, Store store) =>
+{
+    f.Id = 0;
+    if (PackageFolder.Check(f, store.ListFolders()) is { } error) return Results.BadRequest(new { error });
+    return Results.Ok(store.SaveFolder(f));
+});
+
+api.MapPut("/folders/{id:long}", (long id, PackageFolder f, Store store) =>
+{
+    var all = store.ListFolders();
+    if (all.All(x => x.Id != id)) return Results.NotFound();
+    f.Id = id;
+    if (PackageFolder.Check(f, all) is { } error) return Results.BadRequest(new { error });
+    return Results.Ok(store.SaveFolder(f));
+});
+
+api.MapDelete("/folders/{id:long}", (long id, Store store) =>
+{
+    if (PackageFolder.CheckDelete(id, store.ListFolders(), store.ListPackages()) is { } error) return Results.BadRequest(new { error });
+    store.DeleteFolder(id);
+    return Results.NoContent();
+});
+
+api.MapPut("/packages/{id:long}/folder", (long id, PackageMove move, Store store) =>
+{
+    if (store.GetPackage(id) == null) return Results.NotFound();
+    if (move.FolderId is { } folder && store.ListFolders().All(f => f.Id != folder))
+        return Results.BadRequest(new { error = "Dossier introuvable." });
+    store.MovePackage(id, move.FolderId);
+    return Results.NoContent();
+});
+
 api.MapPost("/packages/export", (List<long> ids, Store store) =>
 {
     try
@@ -468,3 +505,4 @@ record ConsoleUserInput(string? Name);
 record ImportInput(string? Content, string? Repository, bool Apply);
 record LibraryFolderInput(string? Folder);
 record LibraryDownloadInput(string? Id);
+record PackageMove(long? FolderId);

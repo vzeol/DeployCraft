@@ -224,6 +224,8 @@ public class Package
     public Conditions Conditions { get; set; } = new();
     /// <summary>null = réglages hors ligne des Préférences.</summary>
     public OfflineSettings? Offline { get; set; }
+    /// <summary>Dossier de l'arbre des paquets (null = à la racine). Changé seulement par un déplacement.</summary>
+    public long? FolderId { get; set; }
     public DateTime ModifiedUtc { get; set; }
 
     /// <summary>
@@ -427,6 +429,46 @@ public class Credential
 /// Avec <see cref="StopOnSuccess"/>, un poste qui a réussi un paquet ne le reçoit plus :
 /// un déclencheur à intervalle réessaie ainsi les postes jusqu'à ce que tous aient réussi.
 /// </summary>
+/// <summary>Dossier de l'arbre des paquets ; peut contenir des paquets et d'autres dossiers.</summary>
+public class PackageFolder
+{
+    public long Id { get; set; }
+    public string Name { get; set; } = "";
+    /// <summary>null = à la racine.</summary>
+    public long? ParentId { get; set; }
+
+    /// <summary>
+    /// Vrai si <paramref name="folderId"/> est <paramref name="ancestorId"/> lui-même ou l'un de ses sous-dossiers :
+    /// déplacer <paramref name="ancestorId"/> dedans ferait une boucle.
+    /// </summary>
+    public static bool IsWithin(IReadOnlyCollection<PackageFolder> folders, long? folderId, long ancestorId)
+    {
+        var parents = folders.ToDictionary(f => f.Id, f => f.ParentId);
+        for (var guard = 0; folderId is { } id && guard <= folders.Count; guard++)
+        {
+            if (id == ancestorId) return true;
+            folderId = parents.GetValueOrDefault(id);
+        }
+        return false;
+    }
+
+    /// <summary>Erreur à afficher si le dossier ne peut pas être enregistré tel quel (nom, parent, boucle).</summary>
+    public static string? Check(PackageFolder folder, IReadOnlyCollection<PackageFolder> all)
+    {
+        if (string.IsNullOrWhiteSpace(folder.Name)) return "Donnez un nom au dossier.";
+        if (folder.ParentId is { } parent && all.All(f => f.Id != parent)) return "Dossier parent introuvable.";
+        if (folder.Id != 0 && IsWithin(all, folder.ParentId, folder.Id))
+            return "Un dossier ne peut pas être déplacé dans lui-même ni dans l'un de ses sous-dossiers.";
+        return null;
+    }
+
+    /// <summary>Erreur à afficher si le dossier n'est pas vide (seul un dossier vide se supprime).</summary>
+    public static string? CheckDelete(long id, IEnumerable<PackageFolder> all, IEnumerable<Package> packages) =>
+        all.Any(f => f.ParentId == id) || packages.Any(p => p.FolderId == id)
+            ? "Ce dossier n'est pas vide : déplacez ou supprimez d'abord ce qu'il contient."
+            : null;
+}
+
 public class Schedule
 {
     public long Id { get; set; }

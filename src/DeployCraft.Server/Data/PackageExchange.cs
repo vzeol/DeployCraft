@@ -20,6 +20,7 @@ public static class PackageExchange
         {
             if (!seen.Add(id)) continue;
             var p = lookup(id) ?? throw new ArgumentException($"Paquet introuvable (n° {id}).");
+            p.FolderId = null; // les dossiers de ce serveur ne veulent rien dire ailleurs
             result.Add(p);
             foreach (var s in p.Steps)
                 if (s.Type == StepType.Nested && s.NestedPackageId is { } nested) pending.Enqueue(nested);
@@ -144,6 +145,7 @@ public static class PackageExchange
             p.Name = UniqueName(p.Name.Trim(), usedNames);
             if (!p.Name.Equals(r.Name.Trim(), StringComparison.Ordinal)) r.Warn($"Nom déjà pris : importé sous le nom « {p.Name} ».");
             p.Id = 0;
+            p.FolderId = null;
 
             var error = validate(p, id => id == p.Id ? p : batchById.GetValueOrDefault(id) ?? existingById.GetValueOrDefault(id));
             if (error != null)
