@@ -35,6 +35,8 @@ public partial class ScheduleWindow : Window
     private readonly ObservableCollection<string> _targets = [];
     private readonly ObservableCollection<PackageItem> _packages = [];
     private List<Package> _library = [];
+    /// <summary>Préférences : valeur des paquets laissés « par défaut ».</summary>
+    private DeploymentDefaults _defaults = new();
     private bool _loading;
 
     /// <summary>Planification enregistrée (après OK).</summary>
@@ -90,6 +92,7 @@ public partial class ScheduleWindow : Window
         try
         {
             _library = await Api.Packages();
+            _defaults = await Api.Defaults();
             await CredentialsWindow.Fill(CredentialBox, _schedule.CredentialId);
             foreach (var id in _schedule.PackageIds)
                 _packages.Add(new PackageItem(_library.FirstOrDefault(p => p.Id == id) ?? new Package { Id = id, Name = $"(paquet supprimé n° {id})" }, ""));
@@ -397,13 +400,13 @@ public partial class ScheduleWindow : Window
         var copy = CopyModeBox.Items.Count > 0 ? (CopyModeBox.SelectedItem as ComboBoxItem)?.Tag : _schedule.CopyMode;
 
         RunAsBox.Items.Clear();
-        RunAsBox.Items.Add(new ComboBoxItem { Content = PackageSetting(p => p.RunAs, RunAsText), Tag = null });
-        foreach (var mode in Enum.GetValues<RunAsMode>()) RunAsBox.Items.Add(new ComboBoxItem { Content = RunAsText(mode), Tag = mode });
+        RunAsBox.Items.Add(new ComboBoxItem { Content = PackageSetting(p => p.RunAs ?? _defaults.RunAs, Ui.RunAsText), Tag = null });
+        foreach (var mode in Enum.GetValues<RunAsMode>()) RunAsBox.Items.Add(new ComboBoxItem { Content = Ui.RunAsText(mode), Tag = mode });
         RunAsBox.SelectedItem = RunAsBox.Items.Cast<ComboBoxItem>().FirstOrDefault(i => Equals(i.Tag, runAs)) ?? RunAsBox.Items[0];
 
         CopyModeBox.Items.Clear();
-        CopyModeBox.Items.Add(new ComboBoxItem { Content = PackageSetting(p => p.CopyMode, CopyModeText), Tag = null });
-        foreach (var mode in Enum.GetValues<CopyMode>()) CopyModeBox.Items.Add(new ComboBoxItem { Content = CopyModeText(mode), Tag = mode });
+        CopyModeBox.Items.Add(new ComboBoxItem { Content = PackageSetting(p => p.CopyMode ?? _defaults.CopyMode, Ui.CopyModeText), Tag = null });
+        foreach (var mode in Enum.GetValues<CopyMode>()) CopyModeBox.Items.Add(new ComboBoxItem { Content = Ui.CopyModeText(mode), Tag = mode });
         CopyModeBox.SelectedItem = CopyModeBox.Items.Cast<ComboBoxItem>().FirstOrDefault(i => Equals(i.Tag, copy)) ?? CopyModeBox.Items[0];
     }
 
@@ -412,15 +415,6 @@ public partial class ScheduleWindow : Window
         var values = _packages.Select(p => get(p.Package)).Distinct().ToList();
         return values.Count == 1 ? $"Paramètre du paquet ({text(values[0])})" : "Paramètre de chaque paquet";
     }
-
-    private static string RunAsText(RunAsMode mode) => mode switch
-    {
-        RunAsMode.DeployUser => "Compte de déploiement",
-        RunAsMode.LocalSystem => "Système local",
-        _ => "Utilisateur connecté",
-    };
-
-    private static string CopyModeText(CopyMode mode) => mode == CopyMode.Push ? "Push (le serveur copie)" : "Pull (le poste lit le partage)";
 
     private void Options_Click(object sender, RoutedEventArgs e)
     {

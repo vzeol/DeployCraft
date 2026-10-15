@@ -33,7 +33,7 @@ public partial class StepsWindow : Window
                 outcome?.State ?? (j < 0 || target.Status == TargetStatus.Failed ? "skipped" : "Queued"),
                 outcome?.ExitCode?.ToString() ?? "",
                 outcome?.State == "skipped" ? "" : Ui.Duration(outcome?.StartedUtc, outcome?.EndedUtc),
-                outcome?.CommandLine ?? "",
+                outcome?.CommandLine ?? outcome?.Error ?? "",
                 outcome);
         }).ToList();
 

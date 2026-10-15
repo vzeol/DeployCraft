@@ -1,0 +1,27 @@
+<UserControl x:Class="DeployCraft.Console.OfflineEditor"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel>
+        <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,12"
+                   Text="Avant de copier quoi que ce soit, DeployCraft vérifie toujours que le poste répond (nom DNS et partage de fichiers). Ces réglages disent quoi faire s'il ne répond pas." />
+
+        <CheckBox x:Name="WakeBox" Content="Réveiller le poste (Wake-on-LAN)" Click="Changed" />
+        <StackPanel Orientation="Horizontal" Margin="24,6,0,0">
+            <TextBlock Style="{StaticResource FieldLabel}" Text="puis attendre qu'il réponde jusqu'à" />
+            <TextBox x:Name="WakeMinutesBox" Style="{StaticResource CompactBox}" Width="50" TextChanged="Changed" />
+            <TextBlock Style="{StaticResource FieldLabel}" Text="min" Margin="6,0,0,0" />
+        </StackPanel>
+        <TextBlock Style="{StaticResource Hint}" Margin="24,4,0,14"
+                   Text="Le poste doit avoir le réveil réseau activé (BIOS et carte réseau). Son adresse MAC est apprise au premier déploiement réussi ; d'un sous-réseau à l'autre, le routeur doit laisser passer le paquet de réveil." />
+
+        <CheckBox x:Name="RetryBox" Content="Réessayer plus tard au lieu de marquer le poste en échec" Click="Changed" />
+        <StackPanel Orientation="Horizontal" Margin="24,6,0,0">
+            <TextBox x:Name="AttemptsBox" Style="{StaticResource CompactBox}" Width="50" TextChanged="Changed" />
+            <TextBlock Style="{StaticResource FieldLabel}" Text="essais au total, toutes les" Margin="6,0,6,0" />
+            <TextBox x:Name="IntervalBox" Style="{StaticResource CompactBox}" Width="50" TextChanged="Changed" />
+            <TextBlock Style="{StaticResource FieldLabel}" Text="min" Margin="6,0,0,0" />
+        </StackPanel>
+        <TextBlock Style="{StaticResource Hint}" Margin="24,4,0,0"
+                   Text="Le poste reste « En attente » dans le déploiement jusqu'au prochain essai. Un redémarrage du service DeployCraft abandonne les essais en attente." />
+    </StackPanel>
+</UserControl>

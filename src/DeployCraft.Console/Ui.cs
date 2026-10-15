@@ -53,6 +53,23 @@ public static class Ui
         _ => (Brush)Application.Current.Resources["MutedBrush"],
     };
 
+    public static string RunAsText(Server.Data.RunAsMode mode) => mode switch
+    {
+        Server.Data.RunAsMode.DeployUser => "Compte de déploiement",
+        Server.Data.RunAsMode.LocalSystem => "Système local",
+        _ => "Utilisateur connecté",
+    };
+
+    public static string RunAsHint(Server.Data.RunAsMode mode) => mode switch
+    {
+        Server.Data.RunAsMode.DeployUser => "Le service temporaire tourne sous l'identifiant choisi (accès réseau avec ce compte).",
+        Server.Data.RunAsMode.LocalSystem => "Le service temporaire tourne en Système local (accès réseau avec le compte ordinateur du poste).",
+        _ => "Chaque étape s'ouvre dans la session de l'utilisateur connecté ; échec si personne n'est connecté.",
+    };
+
+    public static string CopyModeText(Server.Data.CopyMode mode) =>
+        mode == Server.Data.CopyMode.Push ? "Push (le serveur copie)" : "Pull (le poste lit le partage)";
+
     public static string Duration(DateTime? start, DateTime? end)
     {
         if (start == null) return "";

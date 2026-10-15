@@ -49,6 +49,8 @@ public partial class DeployWindow : Window
     private readonly ObservableCollection<PackageItem> _packages = [];
     private readonly ObservableCollection<TargetItem> _targets = [];
     private List<Package> _library = [];
+    /// <summary>Préférences : valeur des paquets laissés « par défaut ».</summary>
+    private DeploymentDefaults _defaults = new();
 
     public ObservableCollection<StepChoice> StepChoices { get; } = [];
 
@@ -86,6 +88,7 @@ public partial class DeployWindow : Window
         try
         {
             _library = await Api.Packages();
+            _defaults = await Api.Defaults();
             await FillCredentialsAsync();
             if (_initialPackageId is { } id && _library.FirstOrDefault(p => p.Id == id) is { } package)
             {
@@ -194,15 +197,6 @@ public partial class DeployWindow : Window
         UpdateHints();
     }
 
-    private static string RunAsText(RunAsMode mode) => mode switch
-    {
-        RunAsMode.DeployUser => "Compte de déploiement",
-        RunAsMode.LocalSystem => "Système local",
-        _ => "Utilisateur connecté",
-    };
-
-    private static string CopyModeText(CopyMode mode) => mode == CopyMode.Push ? "Push (le serveur copie)" : "Pull (le poste lit le partage)";
-
     /// <summary>« Paramètre du paquet (…) » : la valeur commune aux paquets choisis, ou « selon chaque paquet ».</summary>
     private string PackageSetting<T>(Func<Package, T> get, Func<T, string> text)
     {
@@ -217,13 +211,13 @@ public partial class DeployWindow : Window
         var copy = (CopyModeBox.SelectedItem as ComboBoxItem)?.Tag;
 
         RunAsBox.Items.Clear();
-        RunAsBox.Items.Add(new ComboBoxItem { Content = PackageSetting(p => p.RunAs, RunAsText), Tag = null });
-        foreach (var mode in Enum.GetValues<RunAsMode>()) RunAsBox.Items.Add(new ComboBoxItem { Content = RunAsText(mode), Tag = mode });
+        RunAsBox.Items.Add(new ComboBoxItem { Content = PackageSetting(p => p.RunAs ?? _defaults.RunAs, Ui.RunAsText), Tag = null });
+        foreach (var mode in Enum.GetValues<RunAsMode>()) RunAsBox.Items.Add(new ComboBoxItem { Content = Ui.RunAsText(mode), Tag = mode });
         RunAsBox.SelectedItem = RunAsBox.Items.Cast<ComboBoxItem>().FirstOrDefault(i => Equals(i.Tag, runAs)) ?? RunAsBox.Items[0];
 
         CopyModeBox.Items.Clear();
-        CopyModeBox.Items.Add(new ComboBoxItem { Content = PackageSetting(p => p.CopyMode, CopyModeText), Tag = null });
-        foreach (var mode in Enum.GetValues<CopyMode>()) CopyModeBox.Items.Add(new ComboBoxItem { Content = CopyModeText(mode), Tag = mode });
+        CopyModeBox.Items.Add(new ComboBoxItem { Content = PackageSetting(p => p.CopyMode ?? _defaults.CopyMode, Ui.CopyModeText), Tag = null });
+        foreach (var mode in Enum.GetValues<CopyMode>()) CopyModeBox.Items.Add(new ComboBoxItem { Content = Ui.CopyModeText(mode), Tag = mode });
         CopyModeBox.SelectedItem = CopyModeBox.Items.Cast<ComboBoxItem>().FirstOrDefault(i => Equals(i.Tag, copy)) ?? CopyModeBox.Items[0];
 
         _filling = false;
@@ -240,7 +234,7 @@ public partial class DeployWindow : Window
 
     private void UpdateHints()
     {
-        var modes = ChosenRunAs is { } r ? [r] : _packages.Select(p => p.Package.RunAs).Distinct().ToList();
+        var modes = ChosenRunAs is { } r ? [r] : _packages.Select(p => p.Package.RunAs ?? _defaults.RunAs).Distinct().ToList();
         RunAsHint.Text = modes.Count != 1 ? "Chaque paquet garde son propre réglage." : modes[0] switch
         {
             RunAsMode.DeployUser when _credentials.Count == 0 =>
@@ -250,7 +244,7 @@ public partial class DeployWindow : Window
             _ => "Chaque étape s'ouvre dans la session de l'utilisateur connecté ; échec si personne n'est connecté.",
         };
 
-        var copies = ChosenCopyMode is { } c ? [c] : _packages.Select(p => p.Package.CopyMode).Distinct().ToList();
+        var copies = ChosenCopyMode is { } c ? [c] : _packages.Select(p => p.Package.CopyMode ?? _defaults.CopyMode).Distinct().ToList();
         CopyModeHint.Text = copies.Count != 1 ? "Chaque paquet garde son propre réglage." : copies[0] == CopyMode.Push
             ? "Le serveur copie les fichiers d'installation sur chaque poste."
             : "Chaque poste copie lui-même les fichiers depuis le partage (chemins \\\\serveur\\… seulement ; sinon push).";

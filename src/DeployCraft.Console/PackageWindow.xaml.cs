@@ -12,10 +12,16 @@ namespace DeployCraft.Console;
 /// <summary>Éditeur de paquet : propriétés et étapes à gauche, détail de l'élément sélectionné à droite.</summary>
 public partial class PackageWindow : Window
 {
+    /// <summary>Format presse-papiers des étapes : on peut coller dans un autre paquet, même dans une autre fenêtre.</summary>
+    private const string StepFormat = "DeployCraft.Step";
+
     private readonly TreeViewItem _propertiesNode;
     private readonly TreeViewItem _stepsNode;
     private string _savedSnapshot;
     private bool _loadingStep;
+    private bool _loadingOptions;
+    /// <summary>Valeurs des Préférences, affichées pour les réglages laissés « par défaut ».</summary>
+    private DeploymentDefaults _defaults = new();
 
     /// <summary>Paquet tel qu'enregistré en dernier (valide si <see cref="Saved"/>).</summary>
     public Package Package { get; private set; }
@@ -28,15 +34,10 @@ public partial class PackageWindow : Window
         _savedSnapshot = Snapshot();
 
         NameBox.Text = Package.Name;
+        VersionBox.Text = Package.Version;
         DescriptionBox.Text = Package.Description;
-        foreach (var (mode, text) in new[]
-                 {
-                     (RunAsMode.DeployUser, "Compte de déploiement"), (RunAsMode.LocalSystem, "Système local"),
-                     (RunAsMode.LoggedOnUser, "Utilisateur connecté"),
-                 })
-            RunAsBox.Items.Add(new ComboBoxItem { Content = text, Tag = mode, IsSelected = Package.RunAs == mode });
-        foreach (var (mode, text) in new[] { (CopyMode.Push, "Push : le serveur copie les fichiers"), (CopyMode.Pull, "Pull : le poste lit le partage") })
-            CopyModeBox.Items.Add(new ComboBoxItem { Content = text, Tag = mode, IsSelected = Package.CopyMode == mode });
+        PackageConditions.Load(Package.Conditions, forPackage: true);
+        FillOptions();
 
         _propertiesNode = new TreeViewItem { Header = Ui.Header(Ui.IconProperties, "Propriétés"), Tag = "properties" };
         _stepsNode = new TreeViewItem { Header = Ui.Header(Ui.IconSteps, "Étapes"), IsExpanded = true };
@@ -51,7 +52,18 @@ public partial class PackageWindow : Window
         {
             if (e.Key == Key.S && Keyboard.Modifiers == ModifierKeys.Control) { Save_Click(this, e); e.Handled = true; }
         };
-        Loaded += (_, _) => { if (Package.Id == 0) NameBox.Focus(); };
+        Activated += (_, _) => UpdateButtons();
+        Loaded += async (_, _) =>
+        {
+            if (Package.Id == 0) NameBox.Focus();
+            try
+            {
+                _defaults = await Api.Defaults();
+                FillOptions();
+                if (SelectedStep is { } step) ShowStep(step);
+            }
+            catch (ApiException) { /* les libellés gardent les valeurs d'usine */ }
+        };
     }
 
     public static PackageStep NewStep(StepType type) => new()
@@ -98,17 +110,19 @@ public partial class PackageWindow : Window
 
     private void ShowStepsOverview()
     {
-        StepsGrid.ItemsSource = Package.Steps.Select((s, i) => new StepRow(i + 1, s.Name, MainWindow.StepTypeText(s.Type), s.Type switch
-        {
-            StepType.Install => $"{s.File} {s.Arguments}".Trim(),
-            _ => (s.Command ?? "").Split('\n')[0].Trim(),
-        })).ToList();
+        StepsGrid.ItemsSource = Package.Steps.Select((s, i) => new PackageStepRow(i + 1, s.Name, MainWindow.StepTypeText(s.Type),
+            s.Conditions.IsEmpty ? "" : "Oui",
+            s.Type switch
+            {
+                StepType.Install => $"{s.File} {s.Arguments}".Trim(),
+                _ => (s.Command ?? "").Split('\n')[0].Trim(),
+            })).ToList();
         ShowOnly(StepsOverview);
     }
 
     private void StepsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        if (StepsGrid.SelectedItem is StepRow row) SelectStep(Package.Steps[row.Number - 1]);
+        if (StepsGrid.SelectedItem is PackageStepRow row) SelectStep(Package.Steps[row.Number - 1]);
     }
 
     private void SelectStep(PackageStep step)
@@ -129,6 +143,8 @@ public partial class PackageWindow : Window
             new("Nouvelle étape : Installer", () => AddInstall_Click(this, new())),
             new("Nouvelle étape : Commande", () => AddCommand_Click(this, new())),
             new("Nouvelle étape : PowerShell", () => AddPowerShell_Click(this, new())),
+            Ui.Separator,
+            new("Coller", () => Paste_Click(this, new()), CanPaste, "Ctrl+V"),
         ];
 
         IEnumerable<Ui.MenuEntry> StepEntries(PackageStep step)
@@ -137,10 +153,12 @@ public partial class PackageWindow : Window
             return
             [
                 .. AddEntries(),
+                new("Couper", () => { SelectStep(step); Cut_Click(this, new()); }, Gesture: "Ctrl+X"),
+                new("Copier", () => { SelectStep(step); Copy_Click(this, new()); }, Gesture: "Ctrl+C"),
+                new("Dupliquer", () => { SelectStep(step); Duplicate_Click(this, new()); }),
                 Ui.Separator,
                 new("Monter", () => { SelectStep(step); Move(-1); }, i > 0),
                 new("Descendre", () => { SelectStep(step); Move(1); }, i < Package.Steps.Count - 1),
-                new("Dupliquer", () => { SelectStep(step); Duplicate_Click(this, new()); }),
                 Ui.Separator,
                 new("Supprimer", () => { SelectStep(step); DeleteStep_Click(this, new()); }, Gesture: "Suppr"),
             ];
@@ -150,13 +168,19 @@ public partial class PackageWindow : Window
             : Tree.SelectedItem == _stepsNode ? AddEntries()
             : []);
 
-        Ui.ContextMenu(StepsGrid, () => StepsGrid.SelectedItem is StepRow row
+        Ui.ContextMenu(StepsGrid, () => StepsGrid.SelectedItem is PackageStepRow row
             ? [new("Modifier", () => SelectStep(Package.Steps[row.Number - 1])), Ui.Separator, .. StepEntries(Package.Steps[row.Number - 1])]
             : AddEntries());
 
         Tree.KeyDown += (_, e) =>
         {
-            if (e.Key == Key.Delete && SelectedStep != null) { DeleteStep_Click(this, e); e.Handled = true; }
+            var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
+            if (e.Key == Key.Delete && SelectedStep != null) DeleteStep_Click(this, e);
+            else if (ctrl && e.Key == Key.C && SelectedStep != null) Copy_Click(this, e);
+            else if (ctrl && e.Key == Key.X && SelectedStep != null) Cut_Click(this, e);
+            else if (ctrl && e.Key == Key.V && CanPaste) Paste_Click(this, e);
+            else return;
+            e.Handled = true;
         };
     }
 
@@ -166,8 +190,8 @@ public partial class PackageWindow : Window
         var index = step == null ? -1 : Package.Steps.IndexOf(step);
         UpButton.IsEnabled = index > 0;
         DownButton.IsEnabled = index >= 0 && index < Package.Steps.Count - 1;
-        DuplicateButton.IsEnabled = step != null;
-        DeleteButton.IsEnabled = step != null;
+        CutButton.IsEnabled = CopyButton.IsEnabled = DeleteButton.IsEnabled = step != null;
+        PasteButton.IsEnabled = CanPaste;
     }
 
     // ---------- Détail d'une étape ----------
@@ -186,6 +210,8 @@ public partial class PackageWindow : Window
         CommandBox.MinHeight = step.Type == StepType.PowerShell ? 220 : 26;
         CommandBox.TextWrapping = step.Type == StepType.PowerShell ? TextWrapping.NoWrap : TextWrapping.Wrap;
 
+        StepConditions.Load(step.Conditions, forPackage: false);
+        StepTimeoutHint.Text = $"Vide : délai du paquet ({PackageTimeout} min). Au-delà, le processus est arrêté et l'étape échoue.";
         ErrorModeBox.SelectedIndex = step.ErrorMode == ErrorMode.Continue ? 1 : 0;
         UpdateSilentHint();
         _loadingStep = false;
@@ -262,6 +288,63 @@ public partial class PackageWindow : Window
     private void UpdateTitle() =>
         Title = string.IsNullOrWhiteSpace(Package.Name) ? "Nouveau paquet" : $"{Package.Name} — Paquet";
 
+    /// <summary>Délai qu'auront les étapes sans délai propre.</summary>
+    private int PackageTimeout => Package.TimeoutMinutes ?? _defaults.TimeoutMinutes;
+
+    /// <summary>Options et Hors ligne : chaque liste commence par « Par défaut (valeur des Préférences) ».</summary>
+    private void FillOptions()
+    {
+        _loadingOptions = true;
+        RunAsBox.Items.Clear();
+        RunAsBox.Items.Add(new ComboBoxItem { Content = $"Par défaut ({Ui.RunAsText(_defaults.RunAs)})", Tag = null, IsSelected = Package.RunAs == null });
+        foreach (var mode in Enum.GetValues<RunAsMode>())
+            RunAsBox.Items.Add(new ComboBoxItem { Content = Ui.RunAsText(mode), Tag = mode, IsSelected = Package.RunAs == mode });
+        CopyModeBox.Items.Clear();
+        CopyModeBox.Items.Add(new ComboBoxItem { Content = $"Par défaut ({Ui.CopyModeText(_defaults.CopyMode)})", Tag = null, IsSelected = Package.CopyMode == null });
+        foreach (var mode in Enum.GetValues<CopyMode>())
+            CopyModeBox.Items.Add(new ComboBoxItem { Content = Ui.CopyModeText(mode), Tag = mode, IsSelected = Package.CopyMode == mode });
+        TimeoutBox.Text = Package.TimeoutMinutes?.ToString() ?? "";
+        TimeoutHint.Text = $"Pour les étapes sans délai propre. Vide : valeur des Préférences ({_defaults.TimeoutMinutes} min).";
+        UpdateRunAsHint();
+
+        OfflineDefaultBox.Content = "Utiliser les réglages des Préférences (Options › Préférences › Hors ligne)";
+        OfflineDefaultBox.IsChecked = Package.Offline == null;
+        PackageOffline.Load(Package.Offline ?? Clone(_defaults.Offline));
+        PackageOffline.IsEnabled = Package.Offline != null;
+        _loadingOptions = false;
+    }
+
+    private void UpdateRunAsHint() =>
+        RunAsHint.Text = Ui.RunAsHint(Package.RunAs ?? _defaults.RunAs);
+
+    private void RunAsBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loadingOptions || RunAsBox.SelectedItem is not ComboBoxItem item) return;
+        Package.RunAs = item.Tag as RunAsMode?;
+        UpdateRunAsHint();
+    }
+
+    private void CopyModeBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_loadingOptions && CopyModeBox.SelectedItem is ComboBoxItem item) Package.CopyMode = item.Tag as CopyMode?;
+    }
+
+    private void TimeoutBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_loadingOptions) return;
+        var text = TimeoutBox.Text.Trim();
+        if (text.Length == 0) Package.TimeoutMinutes = null;
+        else if (int.TryParse(text, out var minutes)) Package.TimeoutMinutes = minutes;
+    }
+
+    /// <summary>Case cochée : le paquet suit les Préférences ; décochée : il garde ses propres réglages, partis de ceux des Préférences.</summary>
+    private void OfflineDefault_Click(object sender, RoutedEventArgs e)
+    {
+        Package.Offline = OfflineDefaultBox.IsChecked == true ? null : Clone(_defaults.Offline);
+        PackageOffline.Load(Package.Offline ?? Clone(_defaults.Offline));
+        PackageOffline.IsEnabled = Package.Offline != null;
+    }
+
     // ---------- Barre d'outils ----------
 
     private void NewStep_Click(object sender, RoutedEventArgs e)
@@ -299,9 +382,54 @@ public partial class PackageWindow : Window
     private void Duplicate_Click(object sender, RoutedEventArgs e)
     {
         if (SelectedStep is not { } step) return;
-        var copy = JsonSerializer.Deserialize<PackageStep>(JsonSerializer.Serialize(step, Api.Json), Api.Json)!;
+        var copy = Clone(step);
         copy.Name = string.IsNullOrWhiteSpace(step.Name) ? "" : step.Name + " (copie)";
         AddStep(copy);
+    }
+
+    private void Copy_Click(object sender, RoutedEventArgs e) => CopyStep();
+
+    private void Cut_Click(object sender, RoutedEventArgs e)
+    {
+        if (CopyStep()) DeleteStep_Click(sender, e);
+    }
+
+    private bool CopyStep()
+    {
+        if (SelectedStep is not { } step) return false;
+        try
+        {
+            Clipboard.SetDataObject(new DataObject(StepFormat, JsonSerializer.Serialize(step, Api.Json)), copy: true);
+        }
+        catch (System.Runtime.InteropServices.ExternalException)
+        {
+            MessageBox.Show(this, "Presse-papiers occupé par une autre application : réessayez.", "Paquet", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+        UpdateButtons();
+        return true;
+    }
+
+    private static bool CanPaste
+    {
+        get
+        {
+            try { return Clipboard.ContainsData(StepFormat); }
+            catch (System.Runtime.InteropServices.ExternalException) { return false; }
+        }
+    }
+
+    private void Paste_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (Clipboard.GetData(StepFormat) is not string json) return;
+            if (JsonSerializer.Deserialize<PackageStep>(json, Api.Json) is { } step) AddStep(step);
+        }
+        catch (Exception ex) when (ex is System.Runtime.InteropServices.ExternalException or JsonException)
+        {
+            MessageBox.Show(this, "Impossible de coller l'étape : " + ex.Message, "Paquet", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
     }
 
     private void DeleteStep_Click(object sender, RoutedEventArgs e)
@@ -313,30 +441,29 @@ public partial class PackageWindow : Window
         if (Package.Steps.Count == 0) _propertiesNode.IsSelected = true;
     }
 
-    private void RunAsBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (RunAsBox.SelectedItem is ComboBoxItem { Tag: RunAsMode mode }) Package.RunAs = mode;
-    }
-
-    private void CopyModeBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (CopyModeBox.SelectedItem is ComboBoxItem { Tag: CopyMode mode }) Package.CopyMode = mode;
-    }
-
     // ---------- Enregistrement ----------
 
     private async void Save_Click(object sender, RoutedEventArgs e) => await SaveAsync();
 
-    private async Task<bool> SaveAsync()
+    /// <summary>Champs lus à l'enregistrement (pas de liaison) : nom, version, description.</summary>
+    private void ReadTextFields()
     {
         Package.Name = NameBox.Text.Trim();
+        Package.Version = string.IsNullOrWhiteSpace(VersionBox.Text) ? null : VersionBox.Text.Trim();
         Package.Description = string.IsNullOrWhiteSpace(DescriptionBox.Text) ? null : DescriptionBox.Text.Trim();
+    }
+
+    private async Task<bool> SaveAsync()
+    {
+        ReadTextFields();
         try
         {
             var selected = SelectedStep == null ? -1 : Package.Steps.IndexOf(SelectedStep);
             Package = await Api.SavePackage(Package);
             Saved = true;
             _savedSnapshot = Snapshot();
+            PackageConditions.Load(Package.Conditions, forPackage: true);
+            FillOptions();
             RebuildSteps(selected >= 0 && selected < Package.Steps.Count ? Package.Steps[selected] : null);
             if (selected < 0) _propertiesNode.IsSelected = true;
             UpdateTitle();
@@ -352,7 +479,9 @@ public partial class PackageWindow : Window
     protected override async void OnClosing(CancelEventArgs e)
     {
         base.OnClosing(e);
-        Package.Description = string.IsNullOrWhiteSpace(DescriptionBox.Text) ? null : DescriptionBox.Text.Trim();
+        var name = Package.Name;
+        ReadTextFields();
+        Package.Name = name; // le nom n'est rogné qu'à l'enregistrement
         if (e.Cancel || Snapshot() == _savedSnapshot) return;
 
         var answer = MessageBox.Show(this, "Enregistrer les modifications du paquet ?", "Paquet",
@@ -369,6 +498,9 @@ public partial class PackageWindow : Window
 
     private string Snapshot() => JsonSerializer.Serialize(Package, Api.Json);
 
-    private static Package Clone(Package p) =>
-        JsonSerializer.Deserialize<Package>(JsonSerializer.Serialize(p, Api.Json), Api.Json)!;
+    private static T Clone<T>(T value) =>
+        JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(value, Api.Json), Api.Json)!;
 }
+
+/// <summary>Ligne de la vue d'ensemble des étapes.</summary>
+public record PackageStepRow(int Number, string Name, string Type, string Conditions, string Details);

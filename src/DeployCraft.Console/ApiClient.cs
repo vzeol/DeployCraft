@@ -26,6 +26,9 @@ public static class Api
 
     public static Task<ServerStatus> Status() => Get<ServerStatus>("status");
 
+    public static Task<DeploymentDefaults> Defaults() => Get<DeploymentDefaults>("settings/defaults");
+    public static Task<DeploymentDefaults> SaveDefaults(DeploymentDefaults d) => Send<DeploymentDefaults>(HttpMethod.Put, "settings/defaults", d);
+
     public static Task<List<Package>> Packages() => Get<List<Package>>("packages");
     public static Task<Package> Package(long id) => Get<Package>($"packages/{id}");
     public static Task<Package> SavePackage(Package p) =>

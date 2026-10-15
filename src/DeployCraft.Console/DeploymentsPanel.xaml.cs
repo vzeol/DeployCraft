@@ -219,7 +219,7 @@ public partial class DeploymentsPanel : UserControl
 
         var rows = d.Targets.Select(t => new TargetRow(
                 t, d.Id, t.Computer, t.Status.ToString(),
-                $"{t.Steps.Count(s => s.State == "success")} sur {d.Snapshot.Steps.Count - t.StartStep + 1}",
+                $"{t.Steps.Count(s => s.State == "success" || s.State == "skipped" && t.Status == TargetStatus.Successful)} sur {d.Snapshot.Steps.Count - t.StartStep + 1}",
                 t.Status == TargetStatus.Running ? t.Stage ?? "" : t.Error ?? "",
                 Ui.LocalTime(t.StartedUtc), Ui.Duration(t.StartedUtc, t.EndedUtc)))
             .Where(r => filter.Length == 0 || Matches(filter, r.Computer, Ui.StatusText(r.Status), r.Detail))

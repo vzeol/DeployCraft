@@ -352,7 +352,7 @@ public partial class MainWindow : Window
 
     private void ShowPackage(Package p)
     {
-        PackageTitle.Text = p.Name;
+        PackageTitle.Text = string.IsNullOrWhiteSpace(p.Version) ? p.Name : $"{p.Name} {p.Version}";
         var steps = p.Steps.Count == 1 ? "1 étape" : $"{p.Steps.Count} étapes";
         PackageSubtitle.Text = string.IsNullOrWhiteSpace(p.Description)
             ? $"Paquet · {steps} · modifié le {Ui.LocalTime(p.ModifiedUtc)}"
