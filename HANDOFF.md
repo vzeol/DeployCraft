@@ -26,7 +26,9 @@ arrêt puis réveil, messages avec le mainteneur devant l'écran). **Fenêtre d'
 non pilotables à distance) : à regarder par le mainteneur. Issue #60 (échec intermittent
 « runner arrêté sans résultat » alors que les étapes ont réussi) : corrigée (PR #68, testée par Prod : 10 sur 10).
 Suite (issue #69, branche `fix/suivi-robuste`) : coupure réseau tolérée 10 min pendant l'exécution, verrou de slot
-laissé par un serveur arrêté repris au lancement suivant ; à tester par Prod.
+laissé par un serveur arrêté repris au lancement suivant (PR #71 fusionnée ; vraie coupure réseau : issue #72).
+**Étape Installer (PARITE 2.20 à 2.22, PR #61, branche `feat/installer-options`)** : rebasée sur `main` le 16/10 ;
+fenêtre et import XML à voir par le mainteneur en local, déploiements réels à tester par Prod.
 
 La 0.13.0 est validée par le mainteneur. Le réveil Wake-on-LAN d'un vrai poste éteint a été testé (0.14.0).
 
