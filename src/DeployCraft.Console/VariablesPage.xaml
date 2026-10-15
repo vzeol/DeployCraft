@@ -8,11 +8,16 @@
                    AutomationProperties.Name="Avertissement"
                    Text="Les valeurs sont stockées en clair : n'y mettez jamais de mot de passe." />
         <DockPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+            <Button DockPanel.Dock="Left" Style="{StaticResource DialogButton}" x:Name="AddButton" Click="Add_Click" Margin="0,0,6,0"
+                    AutomationProperties.Name="Ajouter une variable" IsEnabled="False">Ajouter</Button>
+            <Button DockPanel.Dock="Left" Style="{StaticResource DialogButton}" x:Name="RemoveButton" Click="Remove_Click" Margin="0,0,12,0"
+                    AutomationProperties.Name="Supprimer la variable" IsEnabled="False">Supprimer</Button>
             <Button DockPanel.Dock="Right" Style="{StaticResource DialogButton}" x:Name="SaveButton" Click="Save_Click"
                     AutomationProperties.Name="Enregistrer les variables" IsEnabled="False">Enregistrer</Button>
             <TextBlock x:Name="Status" Style="{StaticResource Hint}" VerticalAlignment="Center" TextWrapping="Wrap" />
         </DockPanel>
-        <DataGrid x:Name="Grid" AutoGenerateColumns="False" CanUserAddRows="True" CanUserDeleteRows="True" IsEnabled="False"
+        <DataGrid x:Name="Grid" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="True" IsEnabled="False"
+                  SelectionMode="Single" SelectionChanged="Grid_SelectionChanged"
                   HeadersVisibility="Column" AutomationProperties.Name="Variables"
                   CellEditEnding="Grid_CellEditEnding" PreviewKeyDown="Grid_PreviewKeyDown">
             <DataGrid.Columns>

@@ -33,7 +33,9 @@ public partial class VariablesPage : UserControl
         try
         {
             Fill(await Api.Variables());
+            // Activée seulement après un chargement réussi : sinon « Enregistrer » effacerait les variables du serveur.
             Grid.IsEnabled = true;
+            UpdateState();
         }
         catch (ApiException ex)
         {
@@ -51,6 +53,8 @@ public partial class VariablesPage : UserControl
 
     private void UpdateState()
     {
+        AddButton.IsEnabled = Grid.IsEnabled;
+        RemoveButton.IsEnabled = Grid.IsEnabled && Grid.SelectedItem is Variable;
         SaveButton.IsEnabled = Grid.IsEnabled && HasChanges;
         Status.Text = HasChanges ? "Modifications non enregistrées." : "";
     }
@@ -61,6 +65,28 @@ public partial class VariablesPage : UserControl
     private void Grid_PreviewKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.Delete) Dispatcher.BeginInvoke(UpdateState);
+    }
+
+    private void Grid_SelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateState();
+
+    /// <summary>Nouvelle ligne, le nom en cours de saisie.</summary>
+    private void Add_Click(object sender, RoutedEventArgs e)
+    {
+        Grid.CommitEdit(DataGridEditingUnit.Row, true);
+        var variable = new Variable();
+        _variables.Add(variable);
+        Grid.SelectedItem = variable;
+        Grid.ScrollIntoView(variable);
+        Grid.CurrentCell = new DataGridCellInfo(variable, Grid.Columns[0]);
+        Grid.Focus();
+        Grid.BeginEdit();
+    }
+
+    private void Remove_Click(object sender, RoutedEventArgs e)
+    {
+        if (Grid.SelectedItem is not Variable variable) return;
+        Grid.CancelEdit(DataGridEditingUnit.Row);
+        _variables.Remove(variable);
     }
 
     private async void Save_Click(object sender, RoutedEventArgs e) => await SaveAsync();
