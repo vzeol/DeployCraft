@@ -91,6 +91,7 @@
                 <Separator />
                 <MenuItem Header="Assistant de _démarrage…" Click="Welcome_Click" />
                 <Separator />
+                <MenuItem Header="Rechercher une _mise à jour" Click="CheckUpdate_Click" />
                 <MenuItem Header="_À propos de DeployCraft" Click="About_Click" />
             </MenuItem>
         </Menu>
@@ -122,6 +123,16 @@
         <!-- Bandeau d'alerte -->
         <Border x:Name="Banner" DockPanel.Dock="Top" Background="{DynamicResource BannerBackground}" Padding="12,7" Visibility="Collapsed">
             <TextBlock x:Name="BannerText" Foreground="{DynamicResource KoBrush}" TextWrapping="Wrap" />
+        </Border>
+
+        <Border x:Name="UpdateBar" DockPanel.Dock="Top" Background="{DynamicResource BannerBackground}" Padding="12,7" Visibility="Collapsed">
+            <TextBlock TextWrapping="Wrap">
+                <Run x:Name="UpdateText" />
+                <Run Text="   " />
+                <Hyperlink Click="UpdateLink_Click">Voir la nouvelle version</Hyperlink>
+                <Run Text="   " />
+                <Hyperlink Click="UpdateHide_Click">Masquer</Hyperlink>
+            </TextBlock>
         </Border>
 
         <Grid x:Name="MainArea">
