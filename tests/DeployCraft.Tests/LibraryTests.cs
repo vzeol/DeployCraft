@@ -33,7 +33,7 @@ public class LibraryTests
             ManifestType: installer
             """;
 
-        var installer = WingetManifest.Choose(yaml, out var problem);
+        var installer = CatalogManifest.Choose(yaml, out var problem);
 
         Assert.Null(problem);
         Assert.NotNull(installer);
@@ -64,7 +64,7 @@ public class LibraryTests
               InstallerSha256: {Sha}
             """;
 
-        Assert.Null(WingetManifest.Choose(yaml, out var problem));
+        Assert.Null(CatalogManifest.Choose(yaml, out var problem));
         Assert.NotNull(problem);
     }
 
@@ -86,7 +86,7 @@ public class LibraryTests
               InstallerSha256: {Sha}
             """;
 
-        var installer = WingetManifest.Choose(yaml, out _);
+        var installer = CatalogManifest.Choose(yaml, out _);
 
         Assert.Equal("https://exemple.test/fr.exe", installer!.Url);
         Assert.Equal("/S /PreventRebootRequired=true", installer.Arguments);
@@ -110,7 +110,7 @@ public class LibraryTests
               InstallerSha256: {Sha}
             """;
 
-        Assert.Equal(expected, WingetManifest.Choose(yaml, out _)!.Arguments);
+        Assert.Equal(expected, CatalogManifest.Choose(yaml, out _)!.Arguments);
     }
 
     [Theory]
@@ -119,7 +119,7 @@ public class LibraryTests
     [InlineData("155.0.8059.40", "154.9.9999.9", 1)]
     [InlineData("1.13", "1.13.3", -1)]
     public void Versions_AreComparedNumerically(string a, string b, int sign) =>
-        Assert.Equal(sign, Math.Sign(WingetManifest.CompareVersions(a, b)));
+        Assert.Equal(sign, Math.Sign(CatalogManifest.CompareVersions(a, b)));
 
     [Fact]
     public void ManifestFolder_FollowsTheCatalogLayout()
@@ -156,7 +156,7 @@ public class LibraryTests
                     """;
                 cmd.ExecuteNonQuery();
             }
-            var index = new WingetIndex(path);
+            var index = new CatalogIndex(path);
 
             Assert.Equal(3, index.Count());
             Assert.Equal(["Exemple.Lecteur", "Exemple.LecteurPlus"], index.Search("lecteur", 10).Select(e => e.Id));
