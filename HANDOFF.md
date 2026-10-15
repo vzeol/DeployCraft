@@ -31,11 +31,11 @@ d'éteindre, avec le réveil réseau activé).
 
 Gestion du dépôt (15/10) : `main` protégée (PR + CI obligatoires), un sujet = une issue (qui le prend), voir `CLAUDE.md`.
 
-**Authentification de l'API du service (PARITE 8.10, issue #5, branche `feat/authentification-api`)** : la
-console s'identifie avec la session Windows (Negotiate) ; accès aux administrateurs du serveur + Options ›
-Utilisateurs de la console (comptes / groupes, sessions actives) ; « Lancé par » pris du compte authentifié.
-Testé : tests automatiques (dont une vraie authentification Windows en boucle locale). À tester sous Windows par
-Prod : console d'un administrateur non élevé, compte du domaine non administrateur refusé puis ajouté.
+**Authentification de l'API du service (PARITE 8.10, issue #5, PR #31 fusionnée)** : la console s'identifie avec
+la session Windows (Negotiate) ; accès aux administrateurs du serveur + Options › Utilisateurs de la console ;
+« Lancé par » pris du compte authentifié. Testé sur le domaine de test par Prod et le mainteneur.
+Suite (issue #45, branche `fix/commandes-acces-refuse`) : commandes grisées tant que l'accès est refusé ou le
+service injoignable (Actualiser / F5, Quitter et Aide restent actifs). À tester sous Windows par Prod.
 
 ## Point de reprise (Cloud, 15/10) : retours du mainteneur sur la 0.12.0
 
