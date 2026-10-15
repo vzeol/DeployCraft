@@ -29,17 +29,17 @@
         <!-- Menu -->
         <Menu DockPanel.Dock="Top" Padding="2">
             <MenuItem Header="_Fichier" SubmenuOpened="Menu_Opened">
-                <MenuItem Header="_Nouveau paquet" Click="NewPackage_Click" InputGestureText="Ctrl+N" />
+                <MenuItem Header="_Nouveau paquet" Click="NewPackage_Click" InputGestureText="Ctrl+N" x:Name="MenuNewPackage" />
                 <Separator />
                 <MenuItem Header="D_upliquer le paquet" Click="Duplicate_Click" InputGestureText="Alt+Inser" x:Name="MenuDuplicate" />
                 <MenuItem Header="_Modifier le paquet…" Click="EditPackage_Click" InputGestureText="Ctrl+O" x:Name="MenuOpen" />
                 <Separator />
                 <MenuItem Header="_Déployer une fois…" Click="DeployOnce_Click" InputGestureText="Ctrl+D" x:Name="MenuDeployOnce" />
-                <MenuItem Header="Nouvelle _planification…" Click="NewSchedule_Click" InputGestureText="Ctrl+Maj+N" />
+                <MenuItem Header="Nouvelle _planification…" Click="NewSchedule_Click" InputGestureText="Ctrl+Maj+N" x:Name="MenuNewSchedule" />
                 <Separator />
                 <MenuItem Header="_Quitter" Click="Exit_Click" InputGestureText="Alt+F4" />
             </MenuItem>
-            <MenuItem Header="_Édition" SubmenuOpened="Menu_Opened">
+            <MenuItem Header="_Édition" SubmenuOpened="Menu_Opened" x:Name="MenuEdit">
                 <MenuItem Header="_Annuler le déploiement" Click="Abort_Click" x:Name="MenuAbort" />
                 <Separator />
                 <MenuItem Header="_Redéployer" Click="Redeploy_Click" InputGestureText="Ctrl+R" x:Name="MenuRedeploy" />
@@ -52,7 +52,7 @@
             <MenuItem Header="_Affichage">
                 <MenuItem Header="_Actualiser" Click="Refresh_Click" InputGestureText="F5" />
             </MenuItem>
-            <MenuItem Header="_Options">
+            <MenuItem Header="_Options" x:Name="MenuOptions">
                 <MenuItem Header="_Identifiants…" Click="Credentials_Click" />
                 <MenuItem Header="_Utilisateurs de la console…" Click="ConsoleUsers_Click" />
                 <Separator />
@@ -69,16 +69,16 @@
         <!-- Barre d'outils -->
         <Border DockPanel.Dock="Top" Background="{DynamicResource ToolbarBackground}" BorderBrush="{DynamicResource PanelBorder}" BorderThickness="0,1,0,1">
             <StackPanel Orientation="Horizontal" Margin="4,3">
-                <Button Style="{StaticResource ToolButton}" Tag="&#xE710;" Click="NewPackage_Click">Nouveau paquet</Button>
+                <Button Style="{StaticResource ToolButton}" Tag="&#xE710;" Click="NewPackage_Click" x:Name="NewPackageButton">Nouveau paquet</Button>
                 <Button Style="{StaticResource ToolButton}" Tag="&#xE70F;" Click="EditPackage_Click" x:Name="EditButton">Modifier</Button>
                 <Border Style="{StaticResource ToolSeparator}" />
                 <Button Style="{StaticResource ToolButton}" Tag="&#xE724;" Click="DeployOnce_Click" x:Name="DeployButton">Déployer une fois</Button>
-                <Button Style="{StaticResource ToolButton}" Tag="&#xE787;" Click="NewSchedule_Click">Nouvelle planification</Button>
+                <Button Style="{StaticResource ToolButton}" Tag="&#xE787;" Click="NewSchedule_Click" x:Name="NewScheduleButton">Nouvelle planification</Button>
                 <Border Style="{StaticResource ToolSeparator}" />
                 <Button Style="{StaticResource ToolButton}" Tag="&#xE72C;" Click="Refresh_Click">Actualiser</Button>
                 <Button Style="{StaticResource ToolButton}" Tag="&#xE74D;" Click="DeletePackage_Click" x:Name="DeleteButton">Supprimer</Button>
                 <Border Style="{StaticResource ToolSeparator}" />
-                <Button Style="{StaticResource ToolButton}" Tag="&#xE713;" Click="Settings_Click">Réglages</Button>
+                <Button Style="{StaticResource ToolButton}" Tag="&#xE713;" Click="Settings_Click" x:Name="SettingsButton">Réglages</Button>
             </StackPanel>
         </Border>
 
@@ -95,7 +95,7 @@
             <TextBlock x:Name="BannerText" Foreground="{DynamicResource KoBrush}" TextWrapping="Wrap" />
         </Border>
 
-        <Grid>
+        <Grid x:Name="MainArea">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="250" MinWidth="180" />
                 <ColumnDefinition Width="5" />

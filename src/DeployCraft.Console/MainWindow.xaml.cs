@@ -53,6 +53,8 @@ public partial class MainWindow : Window
     private List<Package> _packages = [];
     private View _view = View.Deployments;
     private bool _refreshing;
+    // Faux tant que le service refuse l'accès ou ne répond pas : les commandes sont alors grisées.
+    private bool _connected;
     private bool _pendingRefresh;
     private bool _pendingPackages;
 
@@ -122,6 +124,8 @@ public partial class MainWindow : Window
         var key = e.Key == Key.System ? e.SystemKey : e.Key;
         // Ctrl+R sur la grille des postes : laissé au panneau (redéploie les postes sélectionnés).
         if (key == Key.R && ctrl && CurrentPanel.TargetsFocused) return;
+        // Sans accès au service, seul F5 (réessayer) reste disponible.
+        if (!_connected && key != Key.F5) return;
 
         Action? action = (key, ctrl, ctrlShift, alt) switch
         {
@@ -146,7 +150,8 @@ public partial class MainWindow : Window
     /// <summary>Active ou grise les entrées des menus Fichier et Édition selon la sélection.</summary>
     private void Menu_Opened(object sender, RoutedEventArgs e)
     {
-        var package = SelectedPackage != null;
+        var package = _connected && SelectedPackage != null;
+        MenuNewPackage.IsEnabled = MenuNewSchedule.IsEnabled = _connected;
         MenuDuplicate.IsEnabled = MenuOpen.IsEnabled = MenuDeployOnce.IsEnabled = MenuRename.IsEnabled = package;
         var panel = CurrentPanel;
         MenuAbort.IsEnabled = panel.CanAbort;
@@ -239,6 +244,7 @@ public partial class MainWindow : Window
         try
         {
             var s = await Api.Status();
+            _connected = true;
             StatusServer.Text = $"Service : {s.Machine} ({s.RunningAs}) — vous : {s.ConnectedAs}";
             StatusAccount.Text = s.DefaultCredential is { } c ? $"Identifiant par défaut : {c.Account}" : "Aucun identifiant";
 
@@ -250,6 +256,7 @@ public partial class MainWindow : Window
         }
         catch (ApiException ex)
         {
+            _connected = false;
             StatusServer.Text = ex.AccessDenied ? "Accès refusé" : "Service injoignable";
             StatusAccount.Text = "";
             ShowBanner(ex.Message);
@@ -344,10 +351,12 @@ public partial class MainWindow : Window
 
     private void UpdateButtons()
     {
-        var hasPackage = SelectedPackage != null && _view == View.Package;
+        var hasPackage = _connected && SelectedPackage != null && _view == View.Package;
         EditButton.IsEnabled = hasPackage;
         DeployButton.IsEnabled = hasPackage;
         DeleteButton.IsEnabled = hasPackage;
+        NewPackageButton.IsEnabled = NewScheduleButton.IsEnabled = SettingsButton.IsEnabled = _connected;
+        MenuEdit.IsEnabled = MenuOptions.IsEnabled = MainArea.IsEnabled = _connected;
     }
 
     private void ShowPackage(Package p)
