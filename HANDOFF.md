@@ -17,18 +17,16 @@ suivant qu'une fois qu'il a tout validé**.
 Les informations propres à l'environnement du mainteneur (serveurs, postes de test, comptes) sont dans ses notes
 **hors du dépôt** : ne jamais les recopier ici.
 
-## Dernière version : 0.13.0 — à valider par le mainteneur
+## Dernière version : 0.14.0 — à valider par le mainteneur
 
-Regroupe les PR #38, #39, #40, #42, #44, #31 et #46 : nettoyage automatique de l'historique (Préférences ›
-Déploiement, contribution externe), installeur qui gère une console restée ouverte, retrait des variables $(Nom)
-(choix du mainteneur), éléments cliquables plus visibles, « exécuter en tant que » par étape (2.8),
-authentification Windows de l'API (Options › Utilisateurs de la console) et commandes grisées tant que le service
-refuse l'accès ou ne répond pas. 120 tests automatiques. **Survols (boutons, lignes, arbres) pas vérifiés par
-Prod** (curseur non pilotable en RDP) : à regarder par le mainteneur.
+Regroupe les PR #49, #51, #55, #57 et #59 : étapes Copie de fichiers (2.23), Redémarrer / Éteindre (2.24) et
+Message (2.26), export et import de paquets (1.11, 2.12), et correctif du slot laissé sur le poste quand la
+préparation échoue. 162 tests automatiques. Chaque étape a été testée par Prod sur un vrai poste (redémarrages,
+arrêt puis réveil, messages avec le mainteneur devant l'écran). **Fenêtre d'import pas capturée par Prod** (menus
+non pilotables à distance) : à regarder par le mainteneur. Connu, non corrigé : issue #60 (échec intermittent
+« runner arrêté sans résultat » alors que les étapes ont réussi).
 
-La 0.12.0 a été testée par le mainteneur (ses retours sont dans la 0.13.0) ; la 0.10.0 est validée.
-**Pas encore testé** : le réveil d'un vrai poste éteint (il faut un poste de test que le mainteneur accepte
-d'éteindre, avec le réveil réseau activé).
+La 0.13.0 est validée par le mainteneur. Le réveil Wake-on-LAN d'un vrai poste éteint a été testé (0.14.0).
 
 Gestion du dépôt (15/10) : `main` protégée (PR + CI obligatoires), un sujet = une issue (qui le prend), voir `CLAUDE.md`.
 
@@ -137,7 +135,7 @@ version ni de release côté Cloud) :
 Autres sujets possibles : réglages hors ligne dans Déployer une fois et les planifications, LAPS (en option),
 listes de cibles.
 
-## Version actuelle : 0.13.0
+## Version actuelle : 0.14.0
 
 - Paquets multi-étapes (Installer / Commande / PowerShell), codes de succès, délai, comportement en cas d'erreur,
   exécuter en tant que et mode de copie par paquet
@@ -155,6 +153,7 @@ listes de cibles.
 - Glisser-déposer des étapes (0.12.0 ; les variables $(Nom) de la 0.12.0 sont retirées en 0.13.0)
 - Exécuter en tant que par étape, authentification de l'API (Options › Utilisateurs de la console), nettoyage
   automatique de l'historique (0.13.0)
+- Étapes Copie de fichiers, Redémarrer / Éteindre et Message ; export et import de paquets (0.14.0)
 - Pas encore testé : abandon des postes en attente après N minutes (il faut plus de 8 postes en même temps)
 
 Construire : `.\build.ps1 -Version x.y.z` → `dist\DeployCraft-Setup-x.y.z.exe` (prérequis : SDK .NET 10, Inno Setup 6).
