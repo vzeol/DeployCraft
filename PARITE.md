@@ -152,6 +152,6 @@ dans la même PR que le code qui la réalise.
 | 10.1 | Ligne de commande (déployer un paquet sur des cibles, lister…) | ❌ | Écarté : choix du mainteneur |
 | 10.2 | Assistant de premier démarrage | ⬜ | |
 | 10.3 | Aide intégrée | ⬜ | |
-| 10.4 | Bibliothèque de paquets en ligne, mise à jour automatique des paquets | ⛔ | Catalogue en ligne : impossible à reprendre. Possible : bibliothèque locale à nous |
+| 10.4 | Bibliothèque de paquets en ligne, mise à jour automatique des paquets | 🟡 | À partir du catalogue public winget : tout le catalogue avec recherche, téléchargement vérifié, paquet créé, mise à jour en un clic. Reste : mise à jour automatique (immédiate ou différée) |
 | 10.5 | Intégration d'un inventaire des postes | ⛔ | |
 | 10.6 | Licence, essai, statistiques d'usage | ⛔ | Sans objet |

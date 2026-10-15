@@ -325,6 +325,26 @@ déploiements possibles en même temps sur un poste.
     restent telles quelles (signalées). Dossiers de paquets : DeployCraft n'en a pas, les paquets vont à la racine.
     Planifications et listes de postes du fichier : signalées, non reprises.
 
+### Bibliothèque de paquets
+- Entrée **Bibliothèque de paquets** de l'arbre : tout le catalogue public de logiciels (winget, environ 15 000
+  logiciels), avec en tête les paquets déjà téléchargés puis une sélection de logiciels courants. Colonnes :
+  logiciel, identifiant, version disponible, version dans DeployCraft, installeur, état.
+- **Recherche** dans tout le catalogue : nom, identifiant, éditeur ou mot-clé ; chaque mot doit correspondre.
+- Le service télécharge l'index du catalogue (un seul petit fichier) et le relit de lui-même une fois par jour,
+  ou sur **Actualiser le catalogue**. La console charge la liste une fois, puis ne suit que les lignes qui changent.
+- **Télécharger** (ou double-clic, plusieurs lignes possibles) : DeployCraft lit la fiche du logiciel et choisit un
+  installeur **pour tout le poste et sans fenêtre** (64 bits de préférence, en français si l'éditeur en propose un,
+  .msi de préférence). Sans installeur de ce genre, le téléchargement est refusé avec la raison. Sinon l'état suit
+  chaque étape en pourcentage : téléchargement, vérification du fichier (empreinte du catalogue : un fichier
+  différent est rejeté), copie dans le dossier de la bibliothèque, création du paquet.
+- Le paquet créé porte le nom du logiciel et sa version, avec une étape « Installer » et les paramètres
+  silencieux du type d'installeur (.msi : `ALLUSERS=1` ; autres : paramètres de la fiche, ou ceux d'usine du type).
+- **Mise à jour disponible** quand le catalogue a une version plus récente que le paquet : **Mettre à jour**
+  remplace le fichier, les paramètres et la version du paquet, garde le reste (conditions, étapes ajoutées) et
+  supprime l'ancienne version du dossier. Un paquet supprimé n'est plus relié à la bibliothèque.
+- **Dossier…** : où ranger les installeurs (`<dossier>\<logiciel>\<version>\`). Par défaut un dossier du serveur
+  (mode push seulement) ; un partage est conseillé. Il est écrit avec l'identifiant par défaut.
+
 ### Préférences › Déploiement et Hors ligne (0.10.0)
 - Réglages du **serveur** (communs à toutes les consoles), enregistrés à la fermeture de la fenêtre : exécuter en
   tant que, mode de copie, délai max par étape (60 min d'usine), réglages hors ligne.
