@@ -218,8 +218,10 @@ public partial class PackageWindow : Window
         var copy = step.Type == StepType.CopyFiles;
         var reboot = step.Type == StepType.Reboot;
         var message = step.Type == StepType.Message;
-        foreach (UIElement el in new UIElement[] { FileLabel, FileBox, BrowseButton, FileHint, ArgsLabel, ArgsBox, SilentHint, IncludeDirBox })
+        foreach (UIElement el in new UIElement[] { FileLabel, FileBox, BrowseButton, FileHint, ArgsLabel, ArgsBox, SilentHint, IncludeDirBox, InstallPanel })
             el.Visibility = install ? Visibility.Visible : Visibility.Collapsed;
+        FilesPanel.Visibility = step.Type is StepType.Install or StepType.Command or StepType.PowerShell ? Visibility.Visible : Visibility.Collapsed;
+        if (install) LoadInstallOptions(step);
         CopyPanel.Visibility = copy ? Visibility.Visible : Visibility.Collapsed;
         RebootPanel.Visibility = reboot ? Visibility.Visible : Visibility.Collapsed;
         MessagePanel.Visibility = message ? Visibility.Visible : Visibility.Collapsed;
@@ -267,7 +269,91 @@ public partial class PackageWindow : Window
             node.Header = StepHeader(step, Package.Steps.IndexOf(step));
     }
 
-    private void InstallFields_Changed(object sender, TextChangedEventArgs e) => UpdateSilentHint();
+    private void InstallFields_Changed(object sender, TextChangedEventArgs e)
+    {
+        UpdateSilentHint();
+        UpdateCommandLine();
+    }
+
+    // ---------- Installer : options Windows Installer et ligne de commande ----------
+
+    private bool _updatingCommandLine;
+
+    private void LoadInstallOptions(PackageStep step)
+    {
+        (step.MsiOperation switch
+        {
+            MsiOperation.Repair => MsiRepairRadio,
+            MsiOperation.Uninstall => MsiUninstallRadio,
+            _ => MsiInstallRadio,
+        }).IsChecked = true;
+        (step.MsiRestart switch
+        {
+            MsiRestart.Always => RestartAlwaysRadio,
+            MsiRestart.Prompt => RestartPromptRadio,
+            MsiRestart.NotSet => RestartNotSetRadio,
+            _ => RestartNeverRadio,
+        }).IsChecked = true;
+        CustomCommandBox.IsChecked = !string.IsNullOrWhiteSpace(step.CustomCommandLine);
+        UpdateCommandLine();
+    }
+
+    /// <summary>Options Windows Installer selon le fichier ; ligne générée, ou ligne écrite à la main si « Personnalisée ».</summary>
+    private void UpdateCommandLine()
+    {
+        if (SelectedStep is not { Type: StepType.Install } step) return;
+        var ext = Path.GetExtension(step.File ?? "").ToLowerInvariant();
+        var msi = InstallCommand.HasMsiOptions(step.File);
+        foreach (UIElement el in new UIElement[] { MsiRestartLabel, MsiRestartPanel, MsiQuietBox })
+            el.Visibility = msi ? Visibility.Visible : Visibility.Collapsed;
+        // .msp : un correctif s'applique seulement ; .msu : pas de réparation.
+        MsiOperationLabel.Visibility = MsiOperationPanel.Visibility = msi && ext != ".msp" ? Visibility.Visible : Visibility.Collapsed;
+        MsiRepairRadio.Visibility = ext == ".msu" ? Visibility.Collapsed : Visibility.Visible;
+
+        var custom = CustomCommandBox.IsChecked == true;
+        _updatingCommandLine = true;
+        CommandLineBox.IsReadOnly = !custom;
+        CommandLineBox.Text = custom ? step.CustomCommandLine ?? "" : InstallCommand.Generate(step);
+        _updatingCommandLine = false;
+    }
+
+    private void MsiOption_Checked(object sender, RoutedEventArgs e)
+    {
+        if (_loadingStep || SelectedStep is not { Type: StepType.Install } step) return;
+        step.MsiOperation = MsiRepairRadio.IsChecked == true ? MsiOperation.Repair
+            : MsiUninstallRadio.IsChecked == true ? MsiOperation.Uninstall
+            : MsiOperation.Install;
+        step.MsiRestart = RestartAlwaysRadio.IsChecked == true ? MsiRestart.Always
+            : RestartPromptRadio.IsChecked == true ? MsiRestart.Prompt
+            : RestartNotSetRadio.IsChecked == true ? MsiRestart.NotSet
+            : MsiRestart.Never;
+        UpdateCommandLine();
+    }
+
+    /// <summary>Cochée : la ligne générée devient modifiable. Décochée : on revient à la ligne générée.</summary>
+    private void CustomCommand_Click(object sender, RoutedEventArgs e)
+    {
+        if (SelectedStep is not { Type: StepType.Install } step) return;
+        step.CustomCommandLine = CustomCommandBox.IsChecked == true ? InstallCommand.Generate(step) : null;
+        UpdateCommandLine();
+    }
+
+    private void CommandLine_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_updatingCommandLine || _loadingStep || CustomCommandBox.IsChecked != true || SelectedStep is not { Type: StepType.Install } step) return;
+        step.CustomCommandLine = CommandLineBox.Text;
+    }
+
+    private void BrowseAdditional_Click(object sender, RoutedEventArgs e)
+    {
+        if (SelectedStep is not { } step) return;
+        var dialog = new OpenFileDialog { Title = "Fichiers additionnels", Filter = "Tous les fichiers|*.*", Multiselect = true };
+        if (dialog.ShowDialog(this) != true) return;
+        var files = PackageStep.SplitLines(step.AdditionalFiles);
+        files.AddRange(dialog.FileNames.Where(f => !files.Contains(f, StringComparer.OrdinalIgnoreCase)));
+        step.AdditionalFiles = string.Join(Environment.NewLine, files);
+        AdditionalFilesBox.Text = step.AdditionalFiles;
+    }
 
     /// <summary>Un .exe sans paramètre silencieux attend un clic qui n'arrivera jamais : on prévient.</summary>
     private void UpdateSilentHint()
@@ -285,8 +371,7 @@ public partial class PackageWindow : Window
             SilentHint.Foreground = (System.Windows.Media.Brush)FindResource("MutedBrush");
             SilentHint.Text = ext switch
             {
-                ".msi" or ".msp" => "MSI : /qn /norestart sont ajoutés automatiquement.",
-                ".msu" => "MSU : /quiet /norestart sont ajoutés automatiquement.",
+                ".msi" or ".msp" or ".msu" => "Options de Windows Installer ci-dessous (silencieux et sans redémarrage par défaut).",
                 _ => "",
             };
         }
@@ -335,7 +420,7 @@ public partial class PackageWindow : Window
         var dialog = new OpenFileDialog
         {
             Title = "Fichier d'installation",
-            Filter = "Installeurs|*.exe;*.msi;*.msp;*.msu;*.ps1;*.bat;*.cmd|Tous les fichiers|*.*",
+            Filter = "Installeurs|" + string.Join(";", InstallCommand.Extensions.Select(e => "*" + e)) + "|Tous les fichiers|*.*",
         };
         if (!string.IsNullOrEmpty(step.File) && Directory.Exists(Path.GetDirectoryName(step.File)))
             dialog.InitialDirectory = Path.GetDirectoryName(step.File);

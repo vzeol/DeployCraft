@@ -183,14 +183,87 @@
                             <TextBox x:Name="FileBox" Grid.Column="1" Text="{Binding File, UpdateSourceTrigger=PropertyChanged}" TextChanged="InstallFields_Changed" />
                             <Button x:Name="BrowseButton" Grid.Column="2" Content="…" Width="32" Margin="6,0,0,0" Click="Browse_Click" />
                             <TextBlock x:Name="FileHint" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}"
-                                       Text="Chemin vu depuis le serveur DeployCraft (un partage réseau est conseillé). .exe .msi .msp .msu .ps1 .bat .cmd" />
+                                       Text="Chemin vu depuis le serveur DeployCraft (un partage réseau est conseillé). .exe .msi .msp .msu .ps1 .bat .cmd .vbs .reg" />
 
                             <TextBlock x:Name="ArgsLabel" Grid.Row="2" Style="{StaticResource FieldLabel}" Text="Paramètres" />
                             <TextBox x:Name="ArgsBox" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Arguments, UpdateSourceTrigger=PropertyChanged}" TextChanged="InstallFields_Changed" />
                             <TextBlock x:Name="SilentHint" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}" />
 
-                            <CheckBox x:Name="IncludeDirBox" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,0,10"
-                                      Content="Copier tout le dossier du fichier (installeurs en plusieurs fichiers)" IsChecked="{Binding IncludeDirectory}" />
+                            <!-- Fichiers additionnels (Installer, Commande, PowerShell) et dossier entier (Installer) -->
+                            <Grid x:Name="FilesPanel" Grid.Row="4" Grid.ColumnSpan="3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Style="{StaticResource FieldLabel}" Text="Fichiers additionnels" VerticalAlignment="Top" Margin="0,4,12,0" />
+                                <TextBox x:Name="AdditionalFilesBox" Grid.Column="1" MinHeight="26" MaxHeight="90" AcceptsReturn="True"
+                                         VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto"
+                                         AutomationProperties.Name="Fichiers additionnels, un par ligne"
+                                         Text="{Binding AdditionalFiles, UpdateSourceTrigger=PropertyChanged}" />
+                                <Button Grid.Column="2" Content="…" Width="32" Margin="6,0,0,0" VerticalAlignment="Top"
+                                        Height="{Binding ActualHeight, ElementName=FileBox}"
+                                        ToolTip="Ajouter des fichiers" Click="BrowseAdditional_Click" />
+                                <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}"
+                                           Text="Facultatif, un chemin par ligne (vu depuis le serveur) : copiés à côté de la commande avant l'étape, par exemple un fichier de configuration." />
+                                <CheckBox x:Name="IncludeDirBox" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,0,10"
+                                          Content="Copier tout le dossier du fichier (installeurs en plusieurs fichiers)" IsChecked="{Binding IncludeDirectory}" />
+                            </Grid>
+
+                            <!-- Installer : options Windows Installer, ligne de commande, garder le fichier -->
+                            <Grid x:Name="InstallPanel" Grid.Row="5" Grid.ColumnSpan="3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock x:Name="MsiOperationLabel" Style="{StaticResource FieldLabel}" Text="Opération" />
+                                <StackPanel x:Name="MsiOperationPanel" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,8">
+                                    <RadioButton x:Name="MsiInstallRadio" GroupName="MsiOperation" Content="Installer" Margin="0,0,16,0" Checked="MsiOption_Checked" />
+                                    <RadioButton x:Name="MsiRepairRadio" GroupName="MsiOperation" Content="Réparer" Margin="0,0,16,0" Checked="MsiOption_Checked" />
+                                    <RadioButton x:Name="MsiUninstallRadio" GroupName="MsiOperation" Content="Désinstaller" Checked="MsiOption_Checked" />
+                                </StackPanel>
+
+                                <TextBlock x:Name="MsiRestartLabel" Grid.Row="1" Style="{StaticResource FieldLabel}" Text="Redémarrage" />
+                                <StackPanel x:Name="MsiRestartPanel" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,8">
+                                    <RadioButton x:Name="RestartNeverRadio" GroupName="MsiRestart" Content="Jamais" Margin="0,0,16,0" Checked="MsiOption_Checked" />
+                                    <RadioButton x:Name="RestartAlwaysRadio" GroupName="MsiRestart" Content="Toujours" Margin="0,0,16,0" Checked="MsiOption_Checked" />
+                                    <RadioButton x:Name="RestartPromptRadio" GroupName="MsiRestart" Content="Demander" Margin="0,0,16,0" Checked="MsiOption_Checked"
+                                                 ToolTip="L'utilisateur connecté choisit de redémarrer ou non." />
+                                    <RadioButton x:Name="RestartNotSetRadio" GroupName="MsiRestart" Content="Non défini" Checked="MsiOption_Checked"
+                                                 ToolTip="Aucune consigne : le fichier d'installation décide." />
+                                </StackPanel>
+
+                                <CheckBox x:Name="MsiQuietBox" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,0,10"
+                                          Content="Silencieux (aucune fenêtre)" IsChecked="{Binding MsiQuiet}" Click="MsiOption_Checked"
+                                          ToolTip="Décoché : l'installation attend des clics que personne ne fera, sauf si elle est lancée dans la session de l'utilisateur connecté." />
+
+                                <TextBlock Grid.Row="3" Style="{StaticResource FieldLabel}" Text="Ligne de commande" />
+                                <TextBox x:Name="CommandLineBox" Grid.Row="3" Grid.Column="1" FontFamily="Consolas" TextWrapping="Wrap"
+                                         AutomationProperties.Name="Ligne de commande de l'installation" TextChanged="CommandLine_TextChanged" />
+                                <CheckBox x:Name="CustomCommandBox" Grid.Row="3" Grid.Column="2" Margin="8,0,0,0" VerticalAlignment="Center"
+                                          Content="Personnalisée" Click="CustomCommand_Click"
+                                          ToolTip="Cochée : la ligne est modifiable et lancée telle quelle. Décochée : elle suit le fichier, les paramètres et les options." />
+                                <TextBlock Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}"
+                                           Text="Lancée sur le poste dans le dossier de travail, où sont copiés le fichier et les fichiers additionnels." />
+
+                                <CheckBox Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,0,10" IsChecked="{Binding KeepInstallFile}"
+                                          Content="Garder le fichier d'installation sur le poste"
+                                          ToolTip="Copié après l'étape dans %ProgramData%\DeployCraft\Installeurs\(nom du paquet), avec les fichiers additionnels." />
+                            </Grid>
 
                             <!-- Commande / PowerShell -->
                             <TextBlock x:Name="CommandLabel" Grid.Row="5" Style="{StaticResource FieldLabel}" Text="Commande" VerticalAlignment="Top" Margin="0,4,12,0" />

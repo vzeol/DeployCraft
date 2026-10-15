@@ -17,6 +17,12 @@ public enum RunAsMode
     LoggedOnUser,
 }
 
+/// <summary>Installer : opération faite sur un fichier .msi (.msu : installer ou désinstaller seulement).</summary>
+public enum MsiOperation { Install, Repair, Uninstall }
+
+/// <summary>Installer : redémarrage demandé à Windows Installer après un .msi, .msp ou .msu (« non défini » : rien d'imposé).</summary>
+public enum MsiRestart { Never, Always, Prompt, NotSet }
+
 /// <summary>Push : le serveur copie les fichiers sur le poste. Pull : le poste les lit lui-même sur le partage.</summary>
 public enum CopyMode { Push, Pull }
 
@@ -32,6 +38,18 @@ public class PackageStep
     public bool IncludeDirectory { get; set; }
     /// <summary>Install : paramètres (silencieux). PowerShell : arguments du script.</summary>
     public string? Arguments { get; set; }
+    /// <summary>Install (.msi, .msu) : installer, réparer ou désinstaller.</summary>
+    public MsiOperation MsiOperation { get; set; }
+    /// <summary>Install (.msi, .msp, .msu) : redémarrage après l'installation.</summary>
+    public MsiRestart MsiRestart { get; set; }
+    /// <summary>Install (.msi, .msp, .msu) : sans aucune fenêtre (fortement conseillé : personne ne peut cliquer).</summary>
+    public bool MsiQuiet { get; set; } = true;
+    /// <summary>Install : ligne de commande écrite à la main, lancée telle quelle dans le dossier de travail (vide = générée).</summary>
+    public string? CustomCommandLine { get; set; }
+    /// <summary>Install : garder le fichier d'installation sur le poste après l'étape.</summary>
+    public bool KeepInstallFile { get; set; }
+    /// <summary>Install, Command, PowerShell : fichiers copiés à côté de la commande avant l'étape (un chemin par ligne).</summary>
+    public string? AdditionalFiles { get; set; }
     /// <summary>Command : ligne cmd. PowerShell : contenu du script.</summary>
     public string? Command { get; set; }
     public string SuccessCodes { get; set; } = Defaults.SuccessCodes;
@@ -80,6 +98,10 @@ public class PackageStep
     public ErrorMode ErrorMode { get; set; } = ErrorMode.Stop;
     /// <summary>Conditions de l'étape : non remplies sur un poste, l'étape y est sautée.</summary>
     public Conditions Conditions { get; set; } = new();
+
+    /// <summary>Fichiers additionnels, un par ligne (lignes vides ignorées).</summary>
+    public static List<string> SplitLines(string? text) =>
+        [.. (text ?? "").Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
 
     /// <summary>Motifs de la copie de fichiers, séparés par « ; » ou « , » (aucun = tous les fichiers).</summary>
     public static List<string> SplitPatterns(string? text)

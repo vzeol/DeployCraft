@@ -88,6 +88,14 @@ namespace DeployCraft.Runner
         [DataMember(Name = "shutdownOnly")] public bool ShutdownOnly { get; set; }
         /// <summary>message : attendre le clic de l'utilisateur (ou la fin de l'affichage).</summary>
         [DataMember(Name = "waitForUser")] public bool WaitForUser { get; set; }
+        /// <summary>install : ligne de commande complète, lancée par cmd dans exec\.</summary>
+        [DataMember(Name = "commandLine")] public string CommandLine { get; set; }
+        /// <summary>Mode pull : fichiers additionnels (UNC) à copier dans exec\ avant l'étape.</summary>
+        [DataMember(Name = "pullFiles")] public List<string> PullFiles { get; set; }
+        /// <summary>install : dossier où garder le fichier d'installation après l'étape (variables d'environnement acceptées).</summary>
+        [DataMember(Name = "keepFolder")] public string KeepFolder { get; set; }
+        /// <summary>install : noms (dans exec\) des fichiers additionnels, gardés avec le fichier d'installation.</summary>
+        [DataMember(Name = "additionalFiles")] public List<string> AdditionalFiles { get; set; }
         /// <summary>Conditions de l'étape : non remplies, l'étape est sautée.</summary>
         [DataMember(Name = "conditions")] public JobConditions Conditions { get; set; }
         /// <summary>Conditions supplémentaires (paquet imbriqué), vérifiées avant celles de l'étape (null = aucune).</summary>
