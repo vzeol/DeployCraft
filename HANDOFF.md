@@ -17,17 +17,17 @@ suivant qu'une fois qu'il a tout validé**.
 Les informations propres à l'environnement du mainteneur (serveurs, postes de test, comptes) sont dans ses notes
 **hors du dépôt** : ne jamais les recopier ici.
 
-## Dernier sujet : fenêtre paquet, conditions, options par défaut, hors ligne (0.10.0, issue #8) — à valider
+## Dernière version : 0.11.0 — à valider par le mainteneur
 
-Propriétés du paquet en onglets (Détails avec version, Conditions, Options, Hors ligne), étapes avec Conditions
-et Options, couper / copier / coller d'étapes (aussi entre paquets), Préférences › Déploiement et Hors ligne
-(réglages du serveur), Wake-on-LAN et nouveaux essais pour les postes hors ligne (désactivés par défaut).
-Détail : `SPEC.md` § « Conditions », « Fenêtre paquet », « Postes hors ligne ». 61 tests automatiques.
+Regroupe les PR #16, #18, #19, #21, #26 et #27 (détail ci-dessous) : étape activée / désactivée, arrêter en échec
+ou en succès, étape Pause, sections avant / principales / après, paquet imbriqué, correctif de `status.json`
+(étapes restantes perdues si l'écriture tombait pendant une lecture du serveur), étape annulée terminée en échec,
+« REMARQUE » au lieu de « ERREUR » pour un poste réussi, colonnes élargies, boîtes de message aux couleurs du thème.
+Chaque PR a été testée sous Windows sur une instance isolée et un poste de labo. 98 tests automatiques.
 
-Testé sur une instance isolée : conditions de chaque type sur un vrai poste (Windows, fichier, registre,
-PowerShell, architecture, utilisateur connecté, condition de paquet), adresse MAC apprise, nouveaux essais sur un
-nom inexistant. **Pas encore testé** : le réveil d'un vrai poste éteint (il faut un poste de test que le
-mainteneur accepte d'éteindre, avec le réveil réseau activé).
+La 0.10.0 (fenêtre paquet à onglets, conditions, options par défaut, hors ligne) a été validée par le mainteneur.
+**Pas encore testé** : le réveil d'un vrai poste éteint (il faut un poste de test que le mainteneur accepte
+d'éteindre, avec le réveil réseau activé).
 
 Gestion du dépôt (15/10) : `main` protégée (PR + CI obligatoires), un sujet = une issue (qui le prend), voir `CLAUDE.md`.
 
@@ -59,15 +59,13 @@ version ni de release côté Cloud) :
 - **D — 2.28 paquet imbriqué (PR #26)** : fusionné. `Package.Flatten` remplace les étapes « paquet imbriqué »
   au lancement (dans `Resolve`) ; conditions héritées dans `ExtraConditions` / `extraConditions`. « Arrêter le
   déploiement » renommé « Arrêter en échec ».
-- **Retours du mainteneur sur la 0.10.0 (PR #27)** : fusionnée (feu vert de Prod). Prod publie ensuite la 0.11.0
-  (#16, #18, #19, #21, #26, #27). « REMARQUE » au
-  lieu de « ERREUR » pour un poste réussi, « Raison : » pour une étape ignorée, boîte `MessageDialog` aux couleurs
-  du thème (plus aucun `MessageBox.Show`).
-- **E — 8.2 variables (branche `feat/variables`, rebasée sur main après #27)** : serveur, runner, API
+- **Retours du mainteneur sur la 0.10.0 (PR #27)** : fusionnée. « REMARQUE » (couleur atténuée) au lieu de
+  « ERREUR » rouge pour un poste réussi, « Raison : » pour une étape ignorée, colonnes élargies, boîte
+  `MessageDialog` aux couleurs du thème (plus aucun `MessageBox.Show`). **Version 0.11.0 publiée** par Prod.
+- **E — 8.2 variables (PR #30, branche `feat/variables`)** : en relecture par Prod. Serveur, runner, API
   `/variables`, `Store.Variables.cs` (Store en `partial`), `Data/VariableText.cs` (partagé avec la console),
   `VariablesPage` (onglet Préférences › Variables ; à la fermeture des Préférences, « enregistrer ? » Oui / Non /
-  Annuler via `MessageDialog`) et 15 tests. PR envoyée à Prod pour relecture et test Windows : fusion (squash)
-  seulement après son feu vert.
+  Annuler via `MessageDialog`) et 15 tests.
   Règles validées par Prod : seuls les noms connus sont remplacés (un `$(…)` inconnu reste tel quel, à cause de
   PowerShell) ; noms en lettres / chiffres / « _ » ; pas de remplacement récursif ; `$(Poste)` dans `Prepare`.
   Le message de boucle des paquets imbriqués donne maintenant le chemin (« B › C › B »), demandé par Prod.
@@ -78,7 +76,7 @@ version ni de release côté Cloud) :
 Autres sujets possibles : réglages hors ligne dans Déployer une fois et les planifications, LAPS (en option),
 listes de cibles.
 
-## Version actuelle : 0.10.0
+## Version actuelle : 0.11.0
 
 - Paquets multi-étapes (Installer / Commande / PowerShell), codes de succès, délai, comportement en cas d'erreur,
   exécuter en tant que et mode de copie par paquet
@@ -92,6 +90,8 @@ listes de cibles.
 - Conditions par paquet et par étape, version du paquet, options « par défaut » des Préférences, couper / copier /
   coller d'étapes (0.10.0)
 - Hors ligne (0.10.0, désactivé par défaut) : Wake-on-LAN, nouveaux essais (perdus si le service redémarre)
+- Étapes Pause et paquet imbriqué, sections avant / principales / après, étapes désactivables, arrêter en échec ou
+  en succès (0.11.0)
 - Pas encore testé : abandon des postes en attente après N minutes (il faut plus de 8 postes en même temps)
 
 Construire : `.\build.ps1 -Version x.y.z` → `dist\DeployCraft-Setup-x.y.z.exe` (prérequis : SDK .NET 10, Inno Setup 6).
