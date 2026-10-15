@@ -43,6 +43,23 @@ grisé, donc le thème ne peut pas changer sans service.
 
 **Fenêtre À propos (PARITE 1.13, branche `feat/a-propos`)** : versions de la console et du service, compte connecté, licence GPL v3, liens vers le projet et la licence, bouton « Copier les informations ». Vue par le mainteneur sur une instance de test ; ne dépend pas du domaine.
 
+## Point de reprise (White Room, nuit du 16/10)
+
+Fusionnées sur `main` depuis la 0.14.0 : bibliothèque de paquets (#66), À propos (#67), correctifs #60 (#68), #69 (#71)
+et #77 (#80), étape Installer complète (#61), planification depuis un déploiement (#74), statut « Annulé » et
+compteurs (#76), dossiers de paquets (#79). **Pas de 0.15.0** : le mainteneur veut ajouter d'autres fonctions avant.
+
+**Pré-version `v0.15.0-beta.2`** (branche `beta/0.15.0`, installeur dans les Releases) = `main` + les PR ouvertes,
+toutes « sans domaine », à valider par le mainteneur avant fusion : #82 avertissements des étapes, #84 sortie d'une
+étape, #86 page d'accueil, #88 assistant de démarrage, #90 aide intégrée (F1), #92 nouvelle version disponible,
+#94 couper / copier / coller dans l'arbre, #96 menu Affichage, #98 ajouter un paquet à une planification.
+À la fusion : conflits attendus dans `DeployCraft.Console.csproj`, `MainWindow.xaml(.cs)` et `PARITE.md` (garder les
+deux côtés) ; ajouter alors « Accueil » au menu Affichage. `v0.15.0-beta.1` est remplacée par la bêta 2.
+
+Reste dans PARITE : 1.6 (apparence, plus tard), 3.4 et 1.12 (contributeur), 4.4 progression de copie, 8.1, 8.4
+(bande passante, postes en parallèle), 8.9 (compte du service), 10.4 (mise à jour automatique des paquets) ;
+ceux qui touchent les déploiements réels se testent sur le domaine (Prod). Vraie coupure réseau : issue #72.
+
 ## Point de reprise (Cloud, 15/10) : retours du mainteneur sur la 0.12.0
 
 Glisser-déposer et remarque partielle : validés. Les trois points sont faits et publiés en 0.13.0 :
