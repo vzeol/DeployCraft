@@ -2,7 +2,8 @@
 
 Outil **libre** (GPL v3) de déploiement de logiciels sur un parc Windows, sans agent : un service sur un
 serveur du domaine, une console Windows, et un petit runner copié temporairement sur chaque poste.
-C'est une réalisation indépendante, écrite de zéro.
+Son organisation s'inspire des outils de déploiement du marché comme PDQ Deploy ; c'est une réalisation
+indépendante, écrite de zéro.
 
 ![Console DeployCraft : suivi des déploiements](docs/console.png)
 
@@ -72,3 +73,6 @@ Copyright (C) 2026 vzeol.
 DeployCraft est un logiciel libre : vous pouvez le redistribuer et le modifier selon les termes de la
 **GNU General Public License version 3** (voir `LICENSE`). Il est fourni **sans aucune garantie** : testez-le
 d'abord sur des postes de test.
+
+PDQ Deploy est une marque de PDQ.com Corporation. DeployCraft n'a aucun lien avec PDQ.com et n'est ni
+approuvé ni soutenu par cette société.
