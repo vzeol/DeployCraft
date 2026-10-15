@@ -100,6 +100,11 @@
                 </ScrollViewer>
             </TabItem>
 
+            <!-- Variables : $(Nom) remplacées au lancement du déploiement -->
+            <TabItem x:Name="VariablesTab" Header="Variables">
+                <local:VariablesPage x:Name="VariablesPage" />
+            </TabItem>
+
         </TabControl>
     </DockPanel>
 </Window>

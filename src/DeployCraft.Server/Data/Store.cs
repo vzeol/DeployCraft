@@ -8,7 +8,7 @@ namespace DeployCraft.Server.Data;
 /// Stockage SQLite. Les structures imbriquées (étapes, résultats) sont rangées en JSON :
 /// le schéma reste minuscule et facile à faire évoluer.
 /// </summary>
-public class Store
+public partial class Store
 {
     public static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
     {
@@ -136,6 +136,8 @@ public class Store
                 seen_utc TEXT NOT NULL
             );
             """);
+        // Variables personnalisées (Préférences › Variables).
+        MigrateVariables(db);
     }
 
     /// <summary>Renvoie true si la colonne vient d'être ajoutée.</summary>

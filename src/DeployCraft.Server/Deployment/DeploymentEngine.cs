@@ -62,13 +62,15 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
         var account = credential?.Account ?? "Compte du service";
 
         var defaults = store.GetDefaults();
+        // Variables figées au lancement ; $(Poste) est remplacé poste par poste au moment de la copie.
+        var variables = VariableText.AtLaunch(store.ListVariables(), DateTime.Now, Environment.MachineName);
         var deployments = new List<Data.Deployment>();
         var previous = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
         foreach (var (original, packageTargets) in plan.Where(p => p.Targets.Count > 0))
         {
             // Réglages « par défaut » remplacés par ceux des Préférences et paquets imbriqués remplacés par leurs
             // étapes : figés dans l'historique du déploiement.
-            var package = original.Resolve(defaults, store.GetPackage);
+            var package = original.Resolve(defaults, store.GetPackage, variables);
             var runAs = options.RunAs ?? package.RunAs!.Value;
             // Sans identifiant, le service ne peut tourner que sous un compte intégré.
             if (runAs == RunAsMode.DeployUser && credential == null) runAs = RunAsMode.LocalSystem;

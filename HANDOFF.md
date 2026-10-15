@@ -36,6 +36,12 @@ Gestion du dépôt (15/10) : `main` protégée (PR + CI obligatoires), un sujet 
 
 ## En cours : options et étapes manquantes (DeployCraft Cloud, relu par DeployCraft Prod)
 
+Fonctionnement (validé par le mainteneur) : la session Cloud code et ouvre les PR ; la session Windows
+« DeployCraft Prod » (même compte) pilote, relit et teste sur un poste de labo, et répond par message entre
+sessions. La session Cloud fusionne (squash) **seulement après son feu vert** ; versions, tags et releases sont
+faits par Prod avec l'accord du mainteneur. Le mainteneur est prévenu sur son téléphone pour ce qui demande une
+décision.
+
 Programme, une PR par sujet, chacune relue et testée sous Windows par DeployCraft Prod avant fusion (pas de
 version ni de release côté Cloud) :
 - **A — 2.6 étape activée / désactivée + 2.7 arrêter en succès (#15, PR #16)** : fusionnée. Enchaînement des
@@ -53,10 +59,16 @@ version ni de release côté Cloud) :
 - **D — 2.28 paquet imbriqué (PR #26)** : fusionné. `Package.Flatten` remplace les étapes « paquet imbriqué »
   au lancement (dans `Resolve`) ; conditions héritées dans `ExtraConditions` / `extraConditions`. « Arrêter le
   déploiement » renommé « Arrêter en échec ».
-- **Retours du mainteneur sur la 0.10.0 (PR #27)** : fusionné. « REMARQUE » (couleur atténuée)
-  au lieu de « ERREUR » rouge pour un poste réussi, « Raison : » pour une étape ignorée, colonnes élargies ;
-  boîtes de message aux couleurs du thème (`MessageDialog`, même signature que MessageBox).
-- E — 8.2 variables : en cours (branche `feat/variables`).
+- **Retours du mainteneur sur la 0.10.0 (PR #27)** : fusionnée. « REMARQUE » (couleur atténuée) au lieu de
+  « ERREUR » rouge pour un poste réussi, « Raison : » pour une étape ignorée, colonnes élargies, boîte
+  `MessageDialog` aux couleurs du thème (plus aucun `MessageBox.Show`). **Version 0.11.0 publiée** par Prod.
+- **E — 8.2 variables (PR #30, branche `feat/variables`)** : en relecture par Prod. Serveur, runner, API
+  `/variables`, `Store.Variables.cs` (Store en `partial`), `Data/VariableText.cs` (partagé avec la console),
+  `VariablesPage` (onglet Préférences › Variables ; à la fermeture des Préférences, « enregistrer ? » Oui / Non /
+  Annuler via `MessageDialog`) et 15 tests.
+  Règles validées par Prod : seuls les noms connus sont remplacés (un `$(…)` inconnu reste tel quel, à cause de
+  PowerShell) ; noms en lettres / chiffres / « _ » ; pas de remplacement récursif ; `$(Poste)` dans `Prepare`.
+  Le message de boucle des paquets imbriqués donne maintenant le chemin (« B › C › B »), demandé par Prod.
 - Contributeur externe (chromozone21, par fork) : issues #22, #23, #24, à ne pas prendre.
 - Ensuite : 2.8, 2.23, 2.24, 2.26, 2.27, 2.20–2.22 (à tester sur un vrai poste).
 - Import des paquets PDQ Deploy (#14) : en attente, après ces sujets.
