@@ -52,33 +52,65 @@ public partial class SettingsWindow : Window
         DeploymentPage.IsEnabled = DefaultOffline.IsEnabled = true;
     }
 
-    /// <summary>Les réglages du serveur modifiés sont enregistrés à la fermeture ; une erreur garde la fenêtre ouverte.</summary>
+    /// <summary>
+    /// Les réglages du serveur modifiés sont enregistrés à la fermeture ; les variables modifiées, après
+    /// confirmation. Une erreur garde la fenêtre ouverte.
+    /// </summary>
     protected override async void OnClosing(CancelEventArgs e)
     {
         base.OnClosing(e);
-        if (_closing || _defaults == null) return;
-        if (DefaultRunAsBox.SelectedItem is ComboBoxItem { Tag: RunAsMode runAs }) _defaults.RunAs = runAs;
-        if (DefaultCopyModeBox.SelectedItem is ComboBoxItem { Tag: CopyMode copy }) _defaults.CopyMode = copy;
-        if (!int.TryParse(DefaultTimeoutBox.Text.Trim(), out var timeout) || timeout < 1)
+        if (_closing) return;
+
+        var saveDefaults = false;
+        if (_defaults != null)
         {
-            e.Cancel = true;
-            Tabs.SelectedIndex = 1;
-            MessageDialog.Show(this, "Délai max : saisissez un nombre de minutes (1 ou plus).", "Préférences", MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
+            if (DefaultRunAsBox.SelectedItem is ComboBoxItem { Tag: RunAsMode runAs }) _defaults.RunAs = runAs;
+            if (DefaultCopyModeBox.SelectedItem is ComboBoxItem { Tag: CopyMode copy }) _defaults.CopyMode = copy;
+            if (!int.TryParse(DefaultTimeoutBox.Text.Trim(), out var timeout) || timeout < 1)
+            {
+                e.Cancel = true;
+                Tabs.SelectedIndex = 1;
+                MessageDialog.Show(this, "Délai max : saisissez un nombre de minutes (1 ou plus).", "Préférences", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            _defaults.TimeoutMinutes = timeout;
+            saveDefaults = JsonSerializer.Serialize(_defaults, Api.Json) != _loaded;
         }
-        _defaults.TimeoutMinutes = timeout;
-        if (JsonSerializer.Serialize(_defaults, Api.Json) == _loaded) return;
+
+        var saveVariables = false;
+        if (VariablesPage.HasChanges)
+        {
+            var answer = MessageDialog.Show(this, "Les variables ont été modifiées. Les enregistrer ?", "Préférences",
+                MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+            if (answer == MessageBoxResult.Cancel)
+            {
+                e.Cancel = true;
+                Tabs.SelectedItem = VariablesTab;
+                return;
+            }
+            saveVariables = answer == MessageBoxResult.Yes;
+        }
+        if (!saveDefaults && !saveVariables) return;
 
         e.Cancel = true; // fermeture reprise après l'enregistrement asynchrone
-        try
+        if (saveVariables && !await VariablesPage.SaveAsync())
         {
-            await Api.SaveDefaults(_defaults);
-            _closing = true;
-            Close();
+            Tabs.SelectedItem = VariablesTab;
+            return;
         }
-        catch (ApiException ex)
+        if (saveDefaults)
         {
-            Ui.Error(this, ex);
+            try
+            {
+                await Api.SaveDefaults(_defaults!);
+            }
+            catch (ApiException ex)
+            {
+                Ui.Error(this, ex);
+                return;
+            }
         }
+        _closing = true;
+        Close();
     }
 }
