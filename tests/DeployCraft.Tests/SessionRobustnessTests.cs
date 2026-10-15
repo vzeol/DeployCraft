@@ -7,7 +7,8 @@ namespace DeployCraft.Tests;
 public sealed class SessionRobustnessTests : IDisposable
 {
     private readonly string _dir = Directory.CreateTempSubdirectory("dc-tests-").FullName;
-    private const string Current = "SERVEUR-01|courant";
+    private const string Current = "SERVEUR-01|100|1";
+    private static readonly Func<string, bool> NoneAlive = _ => false;
 
     public void Dispose() => Directory.Delete(_dir, recursive: true);
 
@@ -33,22 +34,29 @@ public sealed class SessionRobustnessTests : IDisposable
     [Fact]
     public void Lock_LeftByAnEarlierRunOfThisServer_IsReclaimed()
     {
-        Assert.True(TargetSession.CanReclaim(Lock("SERVEUR-01|ancien"), Slot, Current, DateTime.UtcNow));
+        Assert.True(TargetSession.CanReclaim(Lock("SERVEUR-01|90|1"), Slot, Current, DateTime.UtcNow, NoneAlive));
+    }
+
+    [Fact]
+    public void Lock_OfAnotherServerStillRunningOnThisMachine_IsKept()
+    {
+        // Par exemple une instance de test lancée à côté du service.
+        Assert.False(TargetSession.CanReclaim(Lock("SERVEUR-01|90|1"), Slot, Current, DateTime.UtcNow, owner => owner == "SERVEUR-01|90|1"));
     }
 
     [Fact]
     public void Lock_OfThisRunOrOfAnotherServer_IsKept()
     {
-        Assert.False(TargetSession.CanReclaim(Lock(Current), Slot, Current, DateTime.UtcNow));
-        Assert.False(TargetSession.CanReclaim(Lock("SERVEUR-02|autre"), Slot, Current, DateTime.UtcNow));
+        Assert.False(TargetSession.CanReclaim(Lock(Current), Slot, Current, DateTime.UtcNow, NoneAlive));
+        Assert.False(TargetSession.CanReclaim(Lock("SERVEUR-02|90|1"), Slot, Current, DateTime.UtcNow, NoneAlive));
     }
 
     [Fact]
     public void Lock_WithoutOwner_IsReclaimedOnlyAfterADay()
     {
         var now = DateTime.UtcNow;
-        Assert.False(TargetSession.CanReclaim(Lock("", now.AddHours(-2)), Slot, Current, now));
-        Assert.True(TargetSession.CanReclaim(Lock("", now.AddDays(-2)), Slot, Current, now));
+        Assert.False(TargetSession.CanReclaim(Lock("", now.AddHours(-2)), Slot, Current, now, NoneAlive));
+        Assert.True(TargetSession.CanReclaim(Lock("", now.AddDays(-2)), Slot, Current, now, NoneAlive));
     }
 
     [Fact]
@@ -57,10 +65,10 @@ public sealed class SessionRobustnessTests : IDisposable
         Directory.CreateDirectory(Slot);
         var exe = Path.Combine(Slot, "DeployCraftRunner-1.exe");
         File.WriteAllText(exe, "");
-        var path = Lock("SERVEUR-01|ancien");
+        var path = Lock("SERVEUR-01|90|1");
 
         using (new FileStream(exe, FileMode.Open, FileAccess.Read, FileShare.Read)) // comme un programme lancé
-            Assert.False(TargetSession.CanReclaim(path, Slot, Current, DateTime.UtcNow));
-        Assert.True(TargetSession.CanReclaim(path, Slot, Current, DateTime.UtcNow));
+            Assert.False(TargetSession.CanReclaim(path, Slot, Current, DateTime.UtcNow, NoneAlive));
+        Assert.True(TargetSession.CanReclaim(path, Slot, Current, DateTime.UtcNow, NoneAlive));
     }
 }

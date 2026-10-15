@@ -463,10 +463,33 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
     }
 
     /// <summary>
-    /// Ce lancement du serveur, écrit dans les verrous de slot : un verrou laissé par un lancement précédent (serveur
-    /// arrêté en plein déploiement) peut ainsi être repris au lieu de bloquer son slot pour toujours.
+    /// Ce serveur (machine, processus et heure de démarrage), écrit dans les verrous de slot : un verrou laissé par un
+    /// serveur arrêté en plein déploiement peut ainsi être repris au lieu de bloquer son slot pour toujours.
     /// </summary>
-    private static readonly string Instance = $"{Environment.MachineName}|{Guid.NewGuid():N}";
+    private static readonly string Instance = OwnerOf(System.Diagnostics.Process.GetCurrentProcess());
+
+    private static string OwnerOf(System.Diagnostics.Process process) =>
+        $"{Environment.MachineName}|{process.Id}|{process.StartTime.ToUniversalTime().Ticks}";
+
+    /// <summary>Le serveur qui a posé ce verrou tourne-t-il encore sur cette machine ?</summary>
+    private static bool OwnerAlive(string owner)
+    {
+        var parts = owner.Split('|');
+        if (parts.Length != 3 || !int.TryParse(parts[1], out var pid)) return false;
+        try
+        {
+            using var process = System.Diagnostics.Process.GetProcessById(pid);
+            return OwnerOf(process) == owner; // même numéro mais autre démarrage : numéro réutilisé
+        }
+        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
+        {
+            return false; // plus de processus avec ce numéro
+        }
+        catch (System.ComponentModel.Win32Exception)
+        {
+            return true; // impossible de vérifier : dans le doute, le verrou est gardé
+        }
+    }
 
     /// <summary>Réserve un slot libre grâce à un fichier verrou créé de façon exclusive.</summary>
     private void AcquireSlot()
@@ -489,7 +512,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
     {
         lock (ReclaimGate)
         {
-            if (!CanReclaim(lockPath, slotDir, Instance, DateTime.UtcNow)) return false;
+            if (!CanReclaim(lockPath, slotDir, Instance, DateTime.UtcNow, OwnerAlive)) return false;
             try { File.Delete(lockPath); }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { return false; }
             return TryCreateLock(lockPath);
@@ -511,17 +534,19 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
     }
 
     /// <summary>
-    /// Un verrou peut être repris s'il a été posé par un lancement précédent de ce serveur (ou, sans auteur, par une
-    /// ancienne version il y a plus d'un jour) et qu'aucun runner ne tourne encore dans son slot.
+    /// Un verrou peut être repris s'il a été posé, sur la machine de ce serveur, par un serveur qui ne tourne plus (ou,
+    /// sans auteur, par une ancienne version il y a plus d'un jour) et qu'aucun runner ne tourne encore dans son slot.
+    /// Un autre serveur encore en marche sur la même machine (instance de test) garde ses verrous.
     /// </summary>
-    internal static bool CanReclaim(string lockPath, string slotDir, string instance, DateTime nowUtc)
+    internal static bool CanReclaim(string lockPath, string slotDir, string instance, DateTime nowUtc, Func<string, bool> ownerAlive)
     {
         try
         {
             var owner = File.ReadAllText(lockPath).Trim();
             var stale = owner.Length == 0
                 ? nowUtc - File.GetLastWriteTimeUtc(lockPath) > TimeSpan.FromDays(1)
-                : owner != instance && owner.Split('|')[0].Equals(instance.Split('|')[0], StringComparison.OrdinalIgnoreCase);
+                : owner != instance && owner.Split('|')[0].Equals(instance.Split('|')[0], StringComparison.OrdinalIgnoreCase)
+                    && !ownerAlive(owner);
             return stale && !(Directory.Exists(slotDir) && Directory.EnumerateFiles(slotDir, "*.exe").Any(IsInUse));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
