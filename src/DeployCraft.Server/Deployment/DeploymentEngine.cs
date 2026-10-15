@@ -242,7 +242,7 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
             countForSchedule = false;
             target.Status = TargetStatus.Failed;
             _abortedBy.TryRemove(target.Id, out var by);
-            target.Error = string.IsNullOrEmpty(by) ? "Annulé." : $"Annulé par {by}.";
+            target.Error = string.IsNullOrEmpty(by) ? $"{DeploymentSummary.AbortedPrefix}." : $"{DeploymentSummary.AbortedPrefix} par {by}.";
             MarkAborted(target.Steps, DateTime.UtcNow);
         }
         catch (Exception ex)

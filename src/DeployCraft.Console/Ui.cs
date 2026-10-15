@@ -35,6 +35,7 @@ public static class Ui
         "Successful" or "success" => "Réussi",
         "Failed" or "failed" => "Échec",
         "Partial" => "Partiel",
+        "Aborted" => "Annulé",
         "skipped" => "Ignoré",
         "stopped" => "Arrêt en succès",
         _ => status,
@@ -46,6 +47,7 @@ public static class Ui
         "Failed" or "failed" => "",      // croix dans un cercle
         "Partial" => "",                 // avertissement
         "Running" or "running" => "",    // synchro
+        "Aborted" => "",                 // croix simple (annulé)
         "skipped" => "",                 // ignoré
         "stopped" => "",                 // coche (arrêt compté réussi)
         _ => "",                         // horloge (en attente)
@@ -56,6 +58,7 @@ public static class Ui
         "Successful" or "success" or "stopped" => (Brush)Application.Current.Resources["OkBrush"],
         "Failed" or "failed" => (Brush)Application.Current.Resources["KoBrush"],
         "Partial" => (Brush)Application.Current.Resources["Accent"],
+        "Aborted" => (Brush)Application.Current.Resources["WarnBrush"],
         "Running" or "running" => (Brush)Application.Current.Resources["RunBrush"],
         _ => (Brush)Application.Current.Resources["MutedBrush"],
     };
