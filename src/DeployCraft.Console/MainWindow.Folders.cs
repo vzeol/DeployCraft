@@ -133,6 +133,56 @@ public partial class MainWindow
         if (selectId == null && selectFolderId == null) _packagesNode.IsSelected = true;
     }
 
+    // ---------- Couper / copier / coller (Ctrl+X / C / V dans l'arbre) ----------
+
+    /// <summary>Élément coupé ou copié dans l'arbre : un paquet, ou un dossier (seulement coupé).</summary>
+    private (long Id, bool IsFolder, bool Cut)? _treeClipboard;
+
+    private void CutOrCopyNode(bool cut)
+    {
+        if (SelectedPackage is { } p) _treeClipboard = (p.Id, false, cut);
+        else if (cut && SelectedFolder is { } f) _treeClipboard = (f.Id, true, true);
+    }
+
+    private bool CanPaste => _treeClipboard != null && _connected
+        && (Nav.SelectedItem == _packagesNode || SelectedFolder != null || SelectedPackage != null);
+
+    /// <summary>Colle dans le dossier sélectionné (ou celui du paquet sélectionné, ou la racine).</summary>
+    private async Task PasteNodeAsync()
+    {
+        if (!CanPaste || _treeClipboard is not { } item) return;
+        var target = CurrentFolderId;
+        try
+        {
+            if (item.IsFolder)
+            {
+                if (_folders.FirstOrDefault(f => f.Id == item.Id) is not { } folder || folder.ParentId == target) return;
+                await Api.SaveFolder(new PackageFolder { Id = folder.Id, Name = folder.Name, ParentId = target });
+                _treeClipboard = null;
+                if (target is { } open) _expandedFolders.Add(open);
+                await RefreshFoldersAsync(selectFolderId: folder.Id);
+            }
+            else if (item.Cut)
+            {
+                await Api.MovePackage(item.Id, target);
+                _treeClipboard = null;
+                if (target is { } open) _expandedFolders.Add(open);
+                await RefreshFoldersAsync(selectId: item.Id);
+            }
+            else
+            {
+                var copy = await Api.Package(item.Id);
+                copy.Id = 0;
+                copy.FolderId = target;
+                copy.Name = PackageFolder.CopyName(copy.Name, _packages.Where(p => p.FolderId == target).Select(p => p.Name));
+                var saved = await Api.SavePackage(copy);
+                if (target is { } open) _expandedFolders.Add(open);
+                await RefreshFoldersAsync(selectId: saved.Id);
+            }
+        }
+        catch (ApiException ex) { Ui.Error(this, ex); }
+    }
+
     // ---------- Glisser-déposer ----------
 
     private static TreeViewItem? NodeAt(object source)
