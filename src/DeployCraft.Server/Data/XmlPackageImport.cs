@@ -5,7 +5,7 @@ using System.Xml.Linq;
 namespace DeployCraft.Server.Data;
 
 /// <summary>
-/// Lecture des exports XML de paquets d'un autre outil de déploiement (paquets et dossiers de paquets).
+/// Lecture des fichiers XML de paquets (paquets et dossiers de paquets).
 /// Chaque réglage sans équivalent dans DeployCraft est signalé ; une étape dont les conditions ne peuvent pas être
 /// reprises exactement est importée désactivée, pour qu'elle ne s'exécute jamais sur plus de postes que prévu.
 /// </summary>
@@ -54,7 +54,7 @@ public static partial class XmlPackageImport
                     ReadChildren((e.Element("Children") ?? e).Elements(), report, repo);
                     break;
                 case "Installer":
-                    report.Notes.Add($"« {Text(e, "Name")} » : paquet d'un format très ancien, non repris. Ré-exportez-le depuis une version récente de l'outil d'origine.");
+                    report.Notes.Add($"« {Text(e, "Name")} » : paquet dans un format trop ancien, non repris.");
                     break;
                 case "Schedule":
                     report.Notes.Add($"Planification « {Text(e, "Name")} » : non reprise (seuls les paquets sont importés).");
@@ -94,7 +94,7 @@ public static partial class XmlPackageImport
 
         p.Conditions = ReadConditions(def.Element("Conditions"), note => result.Warn($"Conditions du paquet : {note}"), out var packageConditionsLost);
         if (Raw(e, "LibraryPackageId") is { Length: > 0 } lib && lib != "null")
-            result.Warn("Paquet d'une bibliothèque en ligne de l'outil d'origine : il ne sera plus mis à jour automatiquement.");
+            result.Warn("Paquet issu d'une bibliothèque en ligne : il ne sera plus mis à jour automatiquement.");
 
         // Les sections « avant » et « après » n'existent pas dans DeployCraft : les étapes sont mises bout à bout, dans l'ordre d'exécution.
         var stepElements = (def.Element("Steps")?.Elements() ?? []).ToList();
@@ -160,7 +160,7 @@ public static partial class XmlPackageImport
                     return (null, line);
                 }
                 if (isMsi && e.Elements("MsiQuiet").Any() && !Bool(e, "MsiQuiet"))
-                    line.Warn("MSI non silencieux à l'origine : DeployCraft installe toujours en silencieux.");
+                    line.Warn("MSI non silencieux dans le fichier : DeployCraft installe toujours en silencieux.");
                 if (isMsi && Text(e, "MsiRestart") is "Prompt" or "Always")
                     line.Warn("Redémarrage après l'installation MSI : DeployCraft ne redémarre jamais le poste.");
                 if (Bool(e, "LeaveInstallFile"))
@@ -233,7 +233,7 @@ public static partial class XmlPackageImport
                 line.Skip("Étape « Déconnexion » : pas encore disponible dans DeployCraft.");
                 return (null, line);
             case "ScanStep" or "Scan":
-                line.Skip("Scan d'inventaire : propre à un logiciel d'inventaire tiers, non repris.");
+                line.Skip("Scan d'inventaire : pas disponible dans DeployCraft, non repris.");
                 return (null, line);
             default:
                 line.Skip($"Type d'étape inconnu ({(type.Length > 0 ? type : e.Name.LocalName)}) : non repris.");
@@ -291,7 +291,7 @@ public static partial class XmlPackageImport
                     break;
                 case "Collection":
                     if (Text(e, "ConditionMode") is "IsMember" or "IsNotMember")
-                        Lose($"collection d'inventaire « {Text(e, "InventoryCollectionName")} » : propre à un logiciel d'inventaire tiers.");
+                        Lose($"collection d'inventaire « {Text(e, "InventoryCollectionName")} » : pas disponible dans DeployCraft.");
                     break;
                 case "File":
                     ReadFile(e, c, Lose);
@@ -463,7 +463,7 @@ public static partial class XmlPackageImport
             case "LoggedOnUser":
                 return RunAsMode.LoggedOnUser;
             case "AdminOnDesktop":
-                warn($"{what} : « compte de déploiement sur le bureau » à l'origine ; DeployCraft utilise le compte de déploiement, sans bureau.");
+                warn($"{what} : « compte de déploiement sur le bureau » dans le fichier ; DeployCraft utilise le compte de déploiement, sans bureau.");
                 return RunAsMode.DeployUser;
             default:
                 return null;

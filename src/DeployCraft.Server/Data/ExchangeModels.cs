@@ -72,7 +72,7 @@ public class ImportPackageResult
 public class ImportReport
 {
     public const string SourceDeployCraft = "DeployCraft";
-    /// <summary>Export XML de paquets d'un autre outil de déploiement.</summary>
+    /// <summary>Fichier XML de paquets.</summary>
     public const string SourceXml = "XML";
 
     /// <summary><see cref="SourceDeployCraft"/> ou <see cref="SourceXml"/>.</summary>

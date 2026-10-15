@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace DeployCraft.Server.Data;
 
-/// <summary>Export et import de paquets (format DeployCraft, ou export XML d'un autre outil de déploiement).</summary>
+/// <summary>Export et import de paquets (fichiers JSON DeployCraft, ou fichiers XML de paquets).</summary>
 public static class PackageExchange
 {
     private static readonly JsonSerializerOptions WriteOptions = new(Store.Json) { WriteIndented = true };
@@ -30,7 +30,7 @@ public static class PackageExchange
     public static string Serialize(PackageExport export) => JsonSerializer.Serialize(export, WriteOptions);
 
     /// <summary>
-    /// Lit un fichier d'import : export DeployCraft (JSON) ou export XML d'un autre outil de déploiement.
+    /// Lit un fichier d'import : export DeployCraft (JSON) ou fichier XML de paquets.
     /// <paramref name="repository"/> remplace <c>$(Repository)</c> dans les paquets XML.
     /// </summary>
     public static ImportReport Read(string content, string? repository = null)

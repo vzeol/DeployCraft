@@ -285,14 +285,14 @@ déploiements possibles en même temps sur un poste.
 - **Fichier › Exporter le paquet…** (aussi au clic droit) ou **Exporter tous les paquets…** : un fichier `.json`
   qui contient les paquets choisis **et les paquets imbriqués qu'ils utilisent**, pour qu'il se suffise à lui-même.
   Les identifiants (mots de passe) ne sont jamais exportés.
-- **Fichier › Importer des paquets…** : un export DeployCraft (`.json`) ou un **export XML de paquets d'un autre outil de déploiement**.
+- **Fichier › Importer des paquets…** : un export DeployCraft (`.json`) ou un **fichier XML de paquets**.
   Une fenêtre montre d'abord un **aperçu** (rien n'est créé) : pour chaque paquet et chaque étape, repris tel quel
   (vert), repris avec des réserves (orange, avec l'explication) ou non repris (rouge, avec la raison).
   « Importer » crée les paquets ; rien n'est perdu sans être signalé.
 - Toujours de **nouveaux** paquets : un nom déjà pris devient « Nom (2) », « Nom (3) »… Les étapes « paquet
   imbriqué » sont reliées aux paquets importés en même temps. Un paquet imbriqué est créé avant celui qui l'utilise ;
   une boucle de paquets imbriqués dans le fichier est refusée. Chaque paquet est vérifié comme à l'enregistrement.
-- Export XML d'un autre outil :
+- Fichier XML de paquets :
   - Étapes reprises : Installer, Commande, PowerShell, Copie de fichiers, Pause (« Sleep »), Paquet imbriqué.
     Pas encore reprises (signalées) : Redémarrer, Message, Déconnexion, désinstallation / réparation MSI,
     ligne de commande personnalisée d'une installation ; jamais : scan d'inventaire.

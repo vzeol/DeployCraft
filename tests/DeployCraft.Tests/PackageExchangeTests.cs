@@ -2,7 +2,7 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Export et import de paquets : format DeployCraft (JSON) et export XML d'un autre outil de déploiement.</summary>
+/// <summary>Export et import de paquets : format DeployCraft (JSON) et fichiers XML de paquets.</summary>
 public class PackageExchangeTests
 {
     private readonly Dictionary<long, Package> _library = [];
@@ -131,7 +131,7 @@ public class PackageExchangeTests
         Assert.Throws<FormatException>(() => PackageExchange.Read("bonjour"));
     }
 
-    // ---------- Export XML d'un autre outil ----------
+    // ---------- Fichiers XML de paquets ----------
 
     private static string Xml(string packages) => $"""
         <?xml version="1.0" encoding="utf-8"?>

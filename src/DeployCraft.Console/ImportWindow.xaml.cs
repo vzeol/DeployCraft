@@ -7,7 +7,7 @@ using DeployCraft.Server.Data;
 namespace DeployCraft.Console;
 
 /// <summary>
-/// Import d'un fichier de paquets (export DeployCraft ou XML d'un autre outil) : aperçu de ce qui est repris tel quel,
+/// Import d'un fichier de paquets (.json ou .xml) : aperçu de ce qui est repris tel quel,
 /// avec des réserves ou pas du tout, puis création des paquets.
 /// </summary>
 public partial class ImportWindow : Window
@@ -48,7 +48,6 @@ public partial class ImportWindow : Window
     private void Show(ImportReport report)
     {
         RepositoryPanel.Visibility = report.Source == ImportReport.SourceXml ? Visibility.Visible : Visibility.Collapsed;
-        FileText.Text = FileText.Text.Split(" — ")[0] + (report.Source == ImportReport.SourceXml ? " — export XML d'un autre outil de déploiement" : " — export DeployCraft");
 
         Tree.Items.Clear();
         foreach (var note in report.Notes)
