@@ -20,6 +20,17 @@ namespace DeployCraft.Runner
             return string.Join(" ", args);
         }
 
+        /// <summary>
+        /// Mode pull : une source fichier devient son dossier + son nom, sans sous-dossiers (sinon robocopy recréerait
+        /// l'arborescence du dossier et y copierait les fichiers du même nom).
+        /// </summary>
+        public static string PullArguments(string source, bool isFile, string destination, IEnumerable<string> patterns, bool subfolders, bool overwrite)
+        {
+            if (!isFile) return Arguments(source, destination, patterns, subfolders, overwrite);
+            var cut = source.LastIndexOf('\\');
+            return Arguments(source.Substring(0, cut), destination, new[] { source.Substring(cut + 1) }, false, overwrite);
+        }
+
         /// <summary>Chemin entre guillemets : un « \ » final échapperait le guillemet, la racine d'un disque devient « C:\. ».</summary>
         private static string Quote(string path)
         {

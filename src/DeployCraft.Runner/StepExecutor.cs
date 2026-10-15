@@ -262,22 +262,20 @@ namespace DeployCraft.Runner
                 case "copyfiles":
                     {
                         if (string.IsNullOrWhiteSpace(step.CopyDestination)) throw new ArgumentException("Copie de fichiers : aucun dossier de destination.");
-                        var folder = Path.Combine(_execDir, step.Command ?? "");
-                        var patterns = step.CopyPatterns;
-                        // Pull : le poste lit le partage ; une source fichier devient son dossier + son nom.
-                        if (!string.IsNullOrEmpty(step.SourcePath))
+                        string args;
+                        if (string.IsNullOrEmpty(step.SourcePath))
+                            args = FileCopy.Arguments(Path.Combine(_execDir, step.Command ?? ""), step.CopyDestination, step.CopyPatterns, step.CopySubfolders, step.CopyOverwrite);
+                        else
                         {
+                            // Pull : le poste lit lui-même le partage.
                             Log($"Copie depuis {step.SourcePath}");
-                            folder = step.SourcePath;
-                            if (File.Exists(step.SourcePath))
-                            {
-                                folder = Path.GetDirectoryName(step.SourcePath);
-                                patterns = new System.Collections.Generic.List<string> { Path.GetFileName(step.SourcePath) };
-                            }
+                            var isFile = File.Exists(step.SourcePath);
+                            if (!isFile && !Directory.Exists(step.SourcePath))
+                                throw new FileNotFoundException("Copie de fichiers : fichier ou dossier introuvable sur le partage (ou illisible avec l'identité de l'étape) : " + step.SourcePath);
+                            args = FileCopy.PullArguments(step.SourcePath, isFile, step.CopyDestination, step.CopyPatterns, step.CopySubfolders, step.CopyOverwrite);
                         }
                         // Par cmd : les %variables% de la destination prennent les valeurs de l'identité de l'étape.
-                        return new ProcessStartInfo(Path.Combine(system32, "cmd.exe"),
-                            "/c robocopy.exe " + FileCopy.Arguments(folder, step.CopyDestination, patterns, step.CopySubfolders, step.CopyOverwrite));
+                        return new ProcessStartInfo(Path.Combine(system32, "cmd.exe"), "/c robocopy.exe " + args);
                     }
                 default:
                     throw new NotSupportedException("Type d'étape inconnu : " + step.Type);

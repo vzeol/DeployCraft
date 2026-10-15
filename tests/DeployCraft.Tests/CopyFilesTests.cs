@@ -60,6 +60,17 @@ public sealed class CopyFilesTests : IDisposable
     }
 
     [Fact]
+    public void PullArguments_FileSource_CopiesOnlyThatFile_WithoutSubfolders()
+    {
+        // Source fichier : son dossier et son nom, jamais /E (sinon l'arborescence du dossier serait recréée sur le poste).
+        Assert.Equal("\"\\\\SERVEUR-01\\Logiciels\\Outil\" \"C:\\Outil\" \"outil.ini\" /R:1 /W:1 /NP",
+            FileCopy.PullArguments(@"\\SERVEUR-01\Logiciels\Outil\outil.ini", isFile: true, @"C:\Outil", ["*.txt"], subfolders: true, overwrite: true));
+
+        Assert.Equal(FileCopy.Arguments(@"\\SERVEUR-01\Logiciels\Outil", @"C:\Outil", ["*.ini"], true, false),
+            FileCopy.PullArguments(@"\\SERVEUR-01\Logiciels\Outil", isFile: false, @"C:\Outil", ["*.ini"], subfolders: true, overwrite: false));
+    }
+
+    [Fact]
     public void Stage_File_CopiesOnlyThatFile()
     {
         var source = Write("source", "outil.ini");
