@@ -66,9 +66,10 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 if (restarted) await StartAfterRestartAsync(trancheJob, tranche.AsDeployUser, ct);
                 else credentials.RunAs(account, computer, () => StartTranche(trancheJob, tranche.AsDeployUser));
                 restarted = false;
-                stage($"Exécution ({identity})");
+                var running = $"Exécution ({identity})";
+                stage(running);
 
-                var final = await WaitAsync(trancheJob, status => progress(RunAsPlan.Combine(done, status, later, last)), ct);
+                var final = await WaitAsync(trancheJob, stage, running, status => progress(RunAsPlan.Combine(done, status, later, last)), ct);
                 credentials.RunAs(account, computer, () =>
                 {
                     using var scm = new ServiceControl(_isLocal ? null : computer);
@@ -160,20 +161,49 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         scm.CreateAndStart(_service!, Path.Combine(RemoteRoot, $"slot-{_slot}", RunnerName), serviceAccount, password);
     }
 
+    /// <summary>Durée pendant laquelle le suivi supporte un poste injoignable (le runner, lui, continue sur le poste).</summary>
+    internal static readonly TimeSpan ReconnectGrace = TimeSpan.FromMinutes(10);
+
     /// <summary>Suit status.json jusqu'à la fin de la tranche ; renvoie son dernier état.</summary>
-    private async Task<RunnerStatus> WaitAsync(RunnerJob job, Action<RunnerStatus> progress, CancellationToken ct)
+    private async Task<RunnerStatus> WaitAsync(RunnerJob job, Action<string> stage, string runningStage, Action<RunnerStatus> progress,
+        CancellationToken ct)
     {
         var deadline = DateTime.UtcNow.AddSeconds(job.Steps.Sum(s => s.TimeoutSeconds) + 120);
         var statusPath = Path.Combine(SlotDir, "status.json");
+        DateTime? lostSince = null;
         while (true)
         {
             await Task.Delay(1000, ct);
-            var (status, running) = credentials.RunAs(account, computer, () =>
+            if (DateTime.UtcNow > deadline)
+                throw new DeployException("Délai global dépassé : le runner ne répond plus.");
+
+            RunnerStatus? status;
+            bool running;
+            try
             {
-                using var scm = new ServiceControl(_isLocal ? null : computer);
-                RefreshShareCache(SlotDir);
-                return (ReadStatus(statusPath), scm.IsRunning(_service!));
-            });
+                (status, running) = credentials.RunAs(account, computer, () =>
+                {
+                    using var scm = new ServiceControl(_isLocal ? null : computer);
+                    RefreshShareCache(SlotDir);
+                    return (ReadStatus(statusPath), scm.IsRunning(_service!));
+                });
+            }
+            catch (Exception ex) when (IsNetworkError(ex))
+            {
+                // Coupure réseau : on réessaie un moment au lieu d'abandonner un poste qui continue son travail.
+                lostSince ??= DateTime.UtcNow;
+                if (DateTime.UtcNow - lostSince > ReconnectGrace)
+                    throw new DeployException(
+                        $"Poste injoignable depuis {ReconnectGrace.TotalMinutes:0} min pendant l'exécution : {ex.Message}", ex);
+                stage("Poste injoignable, nouvelle tentative…");
+                await Task.Delay(4000, ct);
+                continue;
+            }
+            if (lostSince != null)
+            {
+                lostSince = null;
+                stage(runningStage);
+            }
 
             if (status != null)
             {
@@ -184,19 +214,31 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
             {
                 // Le service a pu finir entre les deux appels : dernières lectures, le temps que le partage montre le
                 // status.json final (il peut sembler absent ou ancien quelques secondes juste après son remplacement).
-                status = await FinalStatusAsync(() => credentials.RunAs(account, computer, () =>
+                status = await FinalStatusAsync(() =>
                 {
-                    RefreshShareCache(SlotDir);
-                    return ReadStatus(statusPath);
-                }), delay => Task.Delay(delay, ct));
+                    try
+                    {
+                        return credentials.RunAs(account, computer, () =>
+                        {
+                            RefreshShareCache(SlotDir);
+                            return ReadStatus(statusPath);
+                        });
+                    }
+                    catch (Exception ex) when (IsNetworkError(ex))
+                    {
+                        return null;
+                    }
+                }, delay => Task.Delay(delay, ct));
                 if (status != null) progress(status);
                 if (status?.State == "done") return status;
                 throw new DeployException("Le runner s'est arrêté sans rendre de résultat (voir runner.log sur la cible).");
             }
-            if (DateTime.UtcNow > deadline)
-                throw new DeployException("Délai global dépassé : le runner ne répond plus.");
         }
     }
+
+    /// <summary>Erreur d'accès au poste qui peut passer d'elle-même (réseau, partage, gestionnaire de services distant).</summary>
+    internal static bool IsNetworkError(Exception ex) =>
+        ex is IOException or System.ComponentModel.Win32Exception;
 
     /// <summary>
     /// Relit l'état jusqu'à trouver « done », au plus <paramref name="attempts"/> fois à une seconde d'intervalle ;
@@ -420,21 +462,111 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         };
     }
 
+    /// <summary>
+    /// Ce serveur (machine, processus et heure de démarrage), écrit dans les verrous de slot : un verrou laissé par un
+    /// serveur arrêté en plein déploiement peut ainsi être repris au lieu de bloquer son slot pour toujours.
+    /// </summary>
+    private static readonly string Instance = OwnerOf(System.Diagnostics.Process.GetCurrentProcess());
+
+    private static string OwnerOf(System.Diagnostics.Process process) =>
+        $"{Environment.MachineName}|{process.Id}|{process.StartTime.ToUniversalTime().Ticks}";
+
+    /// <summary>Le serveur qui a posé ce verrou tourne-t-il encore sur cette machine ?</summary>
+    private static bool OwnerAlive(string owner)
+    {
+        var parts = owner.Split('|');
+        if (parts.Length != 3 || !int.TryParse(parts[1], out var pid)) return false;
+        try
+        {
+            using var process = System.Diagnostics.Process.GetProcessById(pid);
+            return OwnerOf(process) == owner; // même numéro mais autre démarrage : numéro réutilisé
+        }
+        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
+        {
+            return false; // plus de processus avec ce numéro
+        }
+        catch (System.ComponentModel.Win32Exception)
+        {
+            return true; // impossible de vérifier : dans le doute, le verrou est gardé
+        }
+    }
+
     /// <summary>Réserve un slot libre grâce à un fichier verrou créé de façon exclusive.</summary>
     private void AcquireSlot()
     {
         for (var i = 1; i <= MaxSlots; i++)
         {
-            try
-            {
-                using (new FileStream(Path.Combine(Root, $"slot-{i}.lock"), FileMode.CreateNew)) { }
-                _slot = i;
-                if (Directory.Exists(SlotDir)) Directory.Delete(SlotDir, recursive: true); // reste d'un crash
-                return;
-            }
-            catch (IOException) { /* slot occupé */ }
+            var lockPath = Path.Combine(Root, $"slot-{i}.lock");
+            if (!TryCreateLock(lockPath) && !TryReclaim(lockPath, Path.Combine(Root, $"slot-{i}"))) continue;
+            _slot = i;
+            if (Directory.Exists(SlotDir)) Directory.Delete(SlotDir, recursive: true); // reste d'un crash
+            return;
         }
         throw new DeployException($"Trop de déploiements simultanés sur ce poste ({MaxSlots}).");
+    }
+
+    /// <summary>Deux déploiements de ce serveur ne reprennent jamais le même verrou en même temps.</summary>
+    private static readonly Lock ReclaimGate = new();
+
+    private static bool TryReclaim(string lockPath, string slotDir)
+    {
+        lock (ReclaimGate)
+        {
+            if (!CanReclaim(lockPath, slotDir, Instance, DateTime.UtcNow, OwnerAlive)) return false;
+            try { File.Delete(lockPath); }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { return false; }
+            return TryCreateLock(lockPath);
+        }
+    }
+
+    private static bool TryCreateLock(string lockPath)
+    {
+        try
+        {
+            using var stream = new FileStream(lockPath, FileMode.CreateNew);
+            stream.Write(System.Text.Encoding.UTF8.GetBytes(Instance));
+            return true;
+        }
+        catch (IOException)
+        {
+            return false; // slot occupé
+        }
+    }
+
+    /// <summary>
+    /// Un verrou peut être repris s'il a été posé, sur la machine de ce serveur, par un serveur qui ne tourne plus (ou,
+    /// sans auteur, par une ancienne version il y a plus d'un jour) et qu'aucun runner ne tourne encore dans son slot.
+    /// Un autre serveur encore en marche sur la même machine (instance de test) garde ses verrous.
+    /// </summary>
+    internal static bool CanReclaim(string lockPath, string slotDir, string instance, DateTime nowUtc, Func<string, bool> ownerAlive)
+    {
+        try
+        {
+            var owner = File.ReadAllText(lockPath).Trim();
+            var stale = owner.Length == 0
+                ? nowUtc - File.GetLastWriteTimeUtc(lockPath) > TimeSpan.FromDays(1)
+                : owner != instance && owner.Split('|')[0].Equals(instance.Split('|')[0], StringComparison.OrdinalIgnoreCase)
+                    && !ownerAlive(owner);
+            return stale && !(Directory.Exists(slotDir) && Directory.EnumerateFiles(slotDir, "*.exe").Any(IsInUse));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>Un programme en cours d'exécution ne peut pas être ouvert en écriture exclusive.</summary>
+    private static bool IsInUse(string file)
+    {
+        try
+        {
+            using (new FileStream(file, FileMode.Open, FileAccess.ReadWrite, FileShare.None)) { }
+            return false;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return true;
+        }
     }
 
     /// <summary>

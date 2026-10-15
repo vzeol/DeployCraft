@@ -52,10 +52,17 @@ internal sealed class ServiceControl : IDisposable
     public bool IsRunning(string name)
     {
         var service = OpenService(_scm, name, SERVICE_ALL_ACCESS);
-        if (service == IntPtr.Zero) return false;
+        if (service == IntPtr.Zero)
+        {
+            // Seul « service introuvable » veut dire arrêté ; une autre erreur (poste qui ne répond pas) remonte.
+            var error = LastError("Lecture de l'état du service");
+            if (error.NativeErrorCode == ERROR_SERVICE_DOES_NOT_EXIST) return false;
+            throw error;
+        }
         try
         {
-            return QueryServiceStatus(service, out var status) && status.dwCurrentState != SERVICE_STOPPED;
+            if (!QueryServiceStatus(service, out var status)) throw LastError("Lecture de l'état du service");
+            return status.dwCurrentState != SERVICE_STOPPED;
         }
         finally
         {
