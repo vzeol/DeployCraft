@@ -298,8 +298,8 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
     }
 
     /// <summary>
-    /// Résultat d'un poste d'après ses étapes : une étape en échec le met en échec. Arrêt en succès, ou toutes les
-    /// étapes ignorées (conditions du paquet non remplies…) : poste réussi, avec la raison dans le détail.
+    /// Résultat d'un poste d'après ses étapes : une étape en échec le met en échec. Arrêt en succès ou étapes
+    /// ignorées (conditions non remplies, étape désactivée…) : poste réussi, avec la raison en remarque.
     /// </summary>
     internal static (TargetStatus Status, string? Error) Outcome(List<StepOutcome> steps)
     {
@@ -307,7 +307,15 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
         if (steps.Count == 0) return (TargetStatus.Failed, null);
         if (steps.FirstOrDefault(s => s.State == "stopped") is { } stopped)
             return (TargetStatus.Successful, "Arrêt en succès demandé en cas d'erreur. " + ErrorMessages.ForStep(stopped));
-        return (TargetStatus.Successful, steps.All(s => s.State == "skipped") ? steps[0].Error : null);
+        var skipped = steps.Where(s => s.State == "skipped").ToList();
+        if (skipped.Count == 0) return (TargetStatus.Successful, null);
+        // Tout ignoré (conditions du paquet non remplies…) : la raison suffit.
+        if (skipped.Count == steps.Count) return (TargetStatus.Successful, steps[0].Error);
+        var first = skipped[0];
+        var reason = string.IsNullOrEmpty(first.Error) ? "" : $" ({first.Error})";
+        return (TargetStatus.Successful, skipped.Count == 1
+            ? $"1 étape ignorée : « {first.Name} »{reason}"
+            : $"{skipped.Count} étapes ignorées, dont « {first.Name} »{reason}");
     }
 
     /// <summary>Annulation : l'étape interrompue (encore « en cours ») passe en échec « Annulé. », avec une date de fin.</summary>

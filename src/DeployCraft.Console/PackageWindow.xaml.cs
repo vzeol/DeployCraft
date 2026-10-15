@@ -50,6 +50,7 @@ public partial class PackageWindow : Window
 
         UpdateTitle();
         SetupContextMenus();
+        SetupStepDragDrop();
         PreviewKeyDown += (_, e) =>
         {
             if (e.Key == Key.S && Keyboard.Modifiers == ModifierKeys.Control) { Save_Click(this, e); e.Handled = true; }
@@ -162,8 +163,8 @@ public partial class PackageWindow : Window
                 new("Dupliquer", () => { SelectStep(step); Duplicate_Click(this, new()); }),
                 new(step.Enabled ? "Désactiver" : "Activer", () => SetEnabled(step, !step.Enabled)),
                 Ui.Separator,
-                new("Monter", () => { SelectStep(step); Move(-1); }, CanMove(step, -1)),
-                new("Descendre", () => { SelectStep(step); Move(1); }, CanMove(step, 1)),
+                new("Monter", () => { SelectStep(step); Move(-1); }, CanMove(step, -1), "Ctrl+Haut"),
+                new("Descendre", () => { SelectStep(step); Move(1); }, CanMove(step, 1), "Ctrl+Bas"),
                 Ui.Separator,
                 new("Supprimer", () => { SelectStep(step); DeleteStep_Click(this, new()); }, Gesture: "Suppr"),
             ];
@@ -184,6 +185,8 @@ public partial class PackageWindow : Window
             else if (ctrl && e.Key == Key.C && SelectedStep != null) Copy_Click(this, e);
             else if (ctrl && e.Key == Key.X && SelectedStep != null) Cut_Click(this, e);
             else if (ctrl && e.Key == Key.V && CanPaste) Paste_Click(this, e);
+            else if (ctrl && e.Key == Key.Up && CanMove(SelectedStep, -1)) Move(-1);
+            else if (ctrl && e.Key == Key.Down && CanMove(SelectedStep, 1)) Move(1);
             else return;
             e.Handled = true;
         };

@@ -180,6 +180,27 @@ public sealed class StepFlowTests : IDisposable
         Assert.Equal(["success", "failed", "skipped"], States(status));
     }
 
+    [Fact]
+    public void Outcome_SomeSkippedSteps_GiveARemark_OnASuccessfulComputer()
+    {
+        var one = DeploymentEngine.Outcome([Step("success"), new StepOutcome { Name = "echo 2 W11", State = "skipped", Error = "Condition non remplie. Windows : 10." }]);
+        Assert.Equal((TargetStatus.Successful, "1 étape ignorée : « echo 2 W11 » (Condition non remplie. Windows : 10.)"), one);
+
+        var three = DeploymentEngine.Outcome([Step("success"), new StepOutcome { Name = "X", State = "skipped", Error = "raison" }, Step("skipped"), Step("skipped")]);
+        Assert.Equal((TargetStatus.Successful, "3 étapes ignorées, dont « X » (raison)"), three);
+
+        Assert.Equal((TargetStatus.Successful, null), DeploymentEngine.Outcome([Step("success"), Step("success")]));
+    }
+
+    [Fact]
+    public void Outcome_StopWithSuccess_KeepsItsMessage_EvenWithSkippedSteps()
+    {
+        var (status, error) = DeploymentEngine.Outcome([Step("stopped", code: 1), Step("skipped", "Paquet arrêté en succès…")]);
+
+        Assert.Equal(TargetStatus.Successful, status);
+        Assert.StartsWith("Arrêt en succès demandé", error);
+    }
+
     private static StepOutcome Step(string state, string? error = null, int? code = null) =>
         new() { Name = state, State = state, Error = error, ExitCode = code };
 
@@ -205,7 +226,8 @@ public sealed class StepFlowTests : IDisposable
     [Fact]
     public void Outcome_DisabledSteps_DoNotChangeASuccess()
     {
-        Assert.Equal((TargetStatus.Successful, null), DeploymentEngine.Outcome([Step("skipped", "Étape désactivée."), Step("success")]));
+        Assert.Equal((TargetStatus.Successful, "1 étape ignorée : « skipped » (Étape désactivée.)"),
+            DeploymentEngine.Outcome([Step("skipped", "Étape désactivée."), Step("success")]));
         Assert.Equal((TargetStatus.Successful, "Étape désactivée."), DeploymentEngine.Outcome([Step("skipped", "Étape désactivée.")]));
         Assert.Equal(TargetStatus.Failed, DeploymentEngine.Outcome([]).Status);
     }

@@ -199,7 +199,9 @@ déploiements possibles en même temps sur un poste.
 
 ### Fenêtre paquet (0.10.0)
 - À gauche : arbre **Propriétés** puis **Étapes** (une ligne par étape) ; à droite : la page du nœud choisi.
-  Barre d'outils : enregistrer, nouvelle étape ▾, monter, descendre, couper, copier, coller, supprimer.
+  Barre d'outils : enregistrer, nouvelle étape ▾, monter, descendre (Ctrl+Haut / Ctrl+Bas), couper, copier, coller,
+  supprimer. Une étape **glissée-déposée** dans l'arbre se place avant ou après l'étape visée, selon la moitié
+  survolée (trait d'insertion ; Échap annule).
   Couper / copier / coller (Ctrl+X / C / V) passent par le presse-papiers : on colle aussi dans un autre paquet.
 - Propriétés en 4 onglets :
   - **Détails** : nom, version (affichée à côté du nom dans la page du paquet), description.

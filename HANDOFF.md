@@ -69,6 +69,9 @@ version ni de release côté Cloud) :
   Règles validées par Prod : seuls les noms connus sont remplacés (un `$(…)` inconnu reste tel quel, à cause de
   PowerShell) ; noms en lettres / chiffres / « _ » ; pas de remplacement récursif ; `$(Poste)` dans `Prepare`.
   Le message de boucle des paquets imbriqués donne maintenant le chemin (« B › C › B »), demandé par Prod.
+- **Retours du mainteneur sur la 0.11.0 (PR #33)** : en relecture. Remarque aussi quand une partie seulement des
+  étapes est ignorée (« 1 étape ignorée : « X » (raison) ») ; glisser-déposer des étapes dans l'arbre de la fenêtre
+  paquet (`PackageWindow.DragDrop.cs`, déplacement libre), Ctrl+Haut / Ctrl+Bas.
 - Contributeur externe (chromozone21, par fork) : issues #22, #23, #24, à ne pas prendre.
 - Ensuite : 2.8, 2.23, 2.24, 2.26, 2.27, 2.20–2.22 (à tester sur un vrai poste).
 - Import des paquets PDQ Deploy (#14) : en attente, après ces sujets.
