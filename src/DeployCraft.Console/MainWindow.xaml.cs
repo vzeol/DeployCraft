@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -152,7 +153,9 @@ public partial class MainWindow : Window
     {
         var package = _connected && SelectedPackage != null;
         MenuNewPackage.IsEnabled = MenuNewSchedule.IsEnabled = _connected;
-        MenuDuplicate.IsEnabled = MenuOpen.IsEnabled = MenuDeployOnce.IsEnabled = MenuRename.IsEnabled = package;
+        MenuDuplicate.IsEnabled = MenuOpen.IsEnabled = MenuDeployOnce.IsEnabled = MenuRename.IsEnabled = MenuExport.IsEnabled = package;
+        MenuImport.IsEnabled = _connected;
+        MenuExportAll.IsEnabled = _connected && _packages.Count > 0;
         var panel = CurrentPanel;
         MenuAbort.IsEnabled = panel.CanAbort;
         MenuRedeploy.IsEnabled = panel.CanRedeploy;
@@ -177,11 +180,18 @@ public partial class MainWindow : Window
                     Ui.Separator,
                     new("Dupliquer", () => Duplicate_Click(this, new()), Gesture: "Alt+Inser"),
                     new("Renommer", () => Rename_Click(this, new()), Gesture: "F2"),
+                    new("Exporter…", () => ExportPackage_Click(this, new())),
                     Ui.Separator,
                     new("Supprimer", () => DeletePackage_Click(this, new()), Gesture: "Suppr"),
                 ];
             if (Nav.SelectedItem == _packagesNode)
-                return [new("Nouveau paquet…", () => NewPackage_Click(this, new()), Gesture: "Ctrl+N")];
+                return
+                [
+                    new("Nouveau paquet…", () => NewPackage_Click(this, new()), Gesture: "Ctrl+N"),
+                    Ui.Separator,
+                    new("Importer des paquets…", () => Import_Click(this, new())),
+                    new("Exporter tous les paquets…", () => ExportAll_Click(this, new()), _packages.Count > 0),
+                ];
             return [new("Actualiser", () => Refresh_Click(this, new()), Gesture: "F5")];
         });
 
@@ -463,6 +473,59 @@ public partial class MainWindow : Window
             await AfterPackageSaved(await Api.SavePackage(copy));
         }
         catch (ApiException ex) { Ui.Error(this, ex); }
+    }
+
+    // ---------- Import / export ----------
+
+    private const string ExportFilter = "Paquets DeployCraft (*.json)|*.json";
+
+    private async void ExportPackage_Click(object sender, RoutedEventArgs e)
+    {
+        if (SelectedPackage is { } p) await ExportAsync([p.Id], p.Name);
+    }
+
+    private async void ExportAll_Click(object sender, RoutedEventArgs e)
+    {
+        if (_packages.Count > 0) await ExportAsync(_packages.Select(p => p.Id), "Paquets DeployCraft");
+    }
+
+    /// <summary>Enregistre les paquets (et les paquets imbriqués qu'ils utilisent) dans un fichier .json.</summary>
+    private async Task ExportAsync(IEnumerable<long> ids, string defaultName)
+    {
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = "Exporter",
+            Filter = ExportFilter,
+            FileName = string.Concat(defaultName.Split(System.IO.Path.GetInvalidFileNameChars())) + ".json",
+        };
+        if (dialog.ShowDialog(this) != true) return;
+        try
+        {
+            var export = await Api.ExportPackages(ids);
+            await System.IO.File.WriteAllTextAsync(dialog.FileName, JsonSerializer.Serialize(export, Api.JsonIndented));
+            var nested = export.Packages.Count - ids.Distinct().Count();
+            StatusRunning.Text = nested > 0
+                ? $"{export.Packages.Count} paquet(s) exporté(s), dont {nested} paquet(s) imbriqué(s) ajouté(s)"
+                : $"{export.Packages.Count} paquet(s) exporté(s)";
+        }
+        catch (ApiException ex) { Ui.Error(this, ex); }
+        catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException)
+        {
+            MessageDialog.Show(this, $"Impossible d'écrire le fichier : {ex.Message}", "Exporter", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private async void Import_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "Importer des paquets",
+            Filter = "Exports de paquets (*.json;*.xml)|*.json;*.xml|Tous les fichiers|*.*",
+        };
+        if (dialog.ShowDialog(this) != true || ImportWindow.ReadFile(this, dialog.FileName) is not { } content) return;
+        var window = new ImportWindow(System.IO.Path.GetFileName(dialog.FileName), content) { Owner = this };
+        if (window.ShowDialog() != true) return;
+        await RefreshAsync(packages: true);
     }
 
     private async void Rename_Click(object sender, RoutedEventArgs e)

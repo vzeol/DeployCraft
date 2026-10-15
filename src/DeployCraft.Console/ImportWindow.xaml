@@ -1,0 +1,27 @@
+<Window x:Class="DeployCraft.Console.ImportWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Importer des paquets" Height="560" Width="760" MinHeight="380" MinWidth="560"
+        WindowStartupLocation="CenterOwner" Background="{DynamicResource WindowBackground}" Foreground="{DynamicResource TextBrush}" ShowInTaskbar="False">
+    <DockPanel Margin="12">
+        <DockPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
+            <Button DockPanel.Dock="Right" Style="{StaticResource DialogButton}" IsCancel="True">Annuler</Button>
+            <Button DockPanel.Dock="Right" Style="{StaticResource DialogButton}" IsDefault="True" Click="Import_Click" x:Name="ImportButton">Importer</Button>
+            <TextBlock x:Name="Summary" TextWrapping="Wrap" VerticalAlignment="Center" />
+        </DockPanel>
+
+        <TextBlock DockPanel.Dock="Top" x:Name="FileText" TextWrapping="Wrap" Margin="0,0,0,8" />
+
+        <!-- Dossier qui remplace $(Repository) dans les chemins -->
+        <DockPanel DockPanel.Dock="Top" x:Name="RepositoryPanel" Margin="0,0,0,8" Visibility="Collapsed">
+            <TextBlock DockPanel.Dock="Top" Style="{StaticResource Hint}" Margin="0,0,0,4"
+                       Text="Dossier du dépôt (partage réseau) : il remplace $(Repository) dans les chemins des paquets. Laissez vide si vos paquets ne l'utilisent pas." />
+            <Button DockPanel.Dock="Right" Style="{StaticResource DialogButton}" Margin="8,0,0,0" Click="Preview_Click">Mettre à jour l'aperçu</Button>
+            <TextBox x:Name="Repository" VerticalContentAlignment="Center" />
+        </DockPanel>
+
+        <TextBlock DockPanel.Dock="Top" Style="{StaticResource Hint}" Margin="0,0,0,6"
+                   Text="Aperçu : rien n'est encore créé. Dépliez un paquet pour voir le détail de ses étapes." />
+        <TreeView x:Name="Tree" BorderBrush="{DynamicResource PanelBorder}" Padding="2,4" />
+    </DockPanel>
+</Window>

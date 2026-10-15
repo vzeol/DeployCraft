@@ -37,6 +37,10 @@
                 <MenuItem Header="_Déployer une fois…" Click="DeployOnce_Click" InputGestureText="Ctrl+D" x:Name="MenuDeployOnce" />
                 <MenuItem Header="Nouvelle _planification…" Click="NewSchedule_Click" InputGestureText="Ctrl+Maj+N" x:Name="MenuNewSchedule" />
                 <Separator />
+                <MenuItem Header="_Importer des paquets…" Click="Import_Click" x:Name="MenuImport" />
+                <MenuItem Header="_Exporter le paquet…" Click="ExportPackage_Click" x:Name="MenuExport" />
+                <MenuItem Header="Exporter _tous les paquets…" Click="ExportAll_Click" x:Name="MenuExportAll" />
+                <Separator />
                 <MenuItem Header="_Quitter" Click="Exit_Click" InputGestureText="Alt+F4" />
             </MenuItem>
             <MenuItem Header="_Édition" SubmenuOpened="Menu_Opened" x:Name="MenuEdit">
