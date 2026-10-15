@@ -34,6 +34,28 @@ Gestion du dépôt (15/10) : `main` protégée (PR + CI obligatoires), un sujet 
 **Sujet en cours ailleurs : authentification de l'API du service (PARITE 8.10, issue #5).** Aujourd'hui l'API
 (`localhost:5080`) n'a pas d'authentification : un utilisateur ouvert sur le serveur pourrait lancer un déploiement.
 
+## Point de reprise (Cloud, 15/10) : retours du mainteneur sur la 0.12.0
+
+Glisser-déposer et remarque partielle : validés. Dans l'ordre :
+
+1. **En cours — branche `refactor/retirer-variables`** (décision du mainteneur : retirer complètement les
+   variables de la PR #30, il ne s'en sert pas ; bug vu : « Ajouter » crée une ligne non modifiable). Supprimer
+   `Data/VariableText.cs`, `Data/Store.Variables.cs` (Store redevient non `partial`, retirer `MigrateVariables`
+   dans `Store.cs`), la classe `Variable` (`Models.cs`), `ReplaceVariables` et le paramètre `variables` de
+   `Resolve`, `ForComputer` / `WithComputer` (`TargetSession.cs`, utiliser `package` directement), les routes
+   `/api/variables` (`Program.cs`), `VariableText.AtLaunch` (`DeploymentEngine.cs`), console : `VariablesPage`,
+   onglet et logique dans `SettingsWindow`, `Api.Variables` / `SaveVariables`, lien `VariableText.cs` du csproj ;
+   `VariableTests.cs`. Garder le message de boucle avec chemin (« A › B › A »). Table `variables` en base laissée
+   telle quelle (rien supprimé). Un `$(…)` reste toujours tel quel. Doc : PARITE 8.2 ❌ « écarté : choix du
+   mainteneur », SPEC, README, HANDOFF. PR « refactor: », relue par Prod.
+2. Puis rebaser `feat/executer-en-tant-que-etape` (2.8) dessus (conflit attendu dans `TargetSession.Prepare`).
+   Toujours pas de PR ; décision (c) « compte de déploiement sur le bureau » en attente du mainteneur.
+3. Puis PR « style: » : rendre visible ce qui est cliquable. Boutons de barre d'outils (fenêtre principale et
+   fenêtre paquet) : fond `ControlBackground` ou bordure fine au repos, survol nettement plus clair, état pressé
+   visible, inactifs atténués comme aujourd'hui. Liens (« Redéployer », « 2 sur 2 étapes »…) : soulignés, couleur
+   Accent, curseur main, survol plus clair. Arbre et grilles : fond de survol visible. Ni tailles ni disposition
+   changées, contrastes WCAG comme la #36. Capture-test par Prod en sombre.
+
 ## En cours : options et étapes manquantes (DeployCraft Cloud, relu par DeployCraft Prod)
 
 Fonctionnement (validé par le mainteneur) : la session Cloud code et ouvre les PR ; la session Windows
