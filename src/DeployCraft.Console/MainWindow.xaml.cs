@@ -102,6 +102,7 @@ public partial class MainWindow : Window
         foreach (var panel in new[] { AllDeployments, PackageDeployments, ScheduleDeployments })
         {
             panel.DeployRequested += (id, targets) => Deploy(id, targets);
+            panel.ScheduleRequested += OpenSchedule;
             panel.Changed += () => _ = RefreshAsync(packages: false);
         }
 

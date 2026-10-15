@@ -452,6 +452,17 @@ public class Schedule
     public string? LastResult { get; set; }
     public DateTime? NextRunUtc { get; set; }
     public DateTime ModifiedUtc { get; set; }
+
+    /// <summary>Planification qui refait ce déploiement (même paquet, mêmes postes, mêmes options), sans déclencheur.</summary>
+    public static Schedule From(Deployment deployment) => new()
+    {
+        Name = deployment.PackageName,
+        PackageIds = [deployment.PackageId],
+        Targets = [.. deployment.Targets.Select(t => t.Computer).Distinct(StringComparer.OrdinalIgnoreCase)],
+        RunAs = deployment.RunAsMode,
+        CopyMode = deployment.CopyMode,
+        CredentialId = deployment.CredentialId,
+    };
 }
 
 public enum TriggerType { Once, Interval, Daily, Weekly, Monthly }
