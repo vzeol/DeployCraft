@@ -247,7 +247,7 @@ api.MapPut("/packages/{id:long}/targets", (long id, List<string> computers, Stor
 
 // ---------- Bibliothèque de paquets ----------
 
-api.MapGet("/library", (PackageLibrary library) => library.Info());
+api.MapGet("/library", (string? search, PackageLibrary library) => library.Info(search));
 
 api.MapPost("/library/refresh", (PackageLibrary library) =>
 {
@@ -258,9 +258,9 @@ api.MapPost("/library/refresh", (PackageLibrary library) =>
 api.MapPut("/library/folder", (LibraryFolderInput input, PackageLibrary library) =>
     library.SetFolder(input.Folder) is { } error ? Results.BadRequest(new { error }) : Results.NoContent());
 
-// Téléchargement en arrière-plan : la console suit sa progression dans GET /library.
-api.MapPost("/library/download", (LibraryDownloadInput input, PackageLibrary library) =>
-    library.StartDownload(input.Id ?? "") is { } error ? Results.BadRequest(new { error }) : Results.NoContent());
+// La fiche du logiciel est lue tout de suite (refus expliqué) ; le téléchargement continue en arrière-plan.
+api.MapPost("/library/download", async (LibraryDownloadInput input, PackageLibrary library) =>
+    await library.StartDownloadAsync(input.Id ?? "") is { } error ? Results.BadRequest(new { error }) : Results.NoContent());
 
 // ---------- Déploiements ----------
 

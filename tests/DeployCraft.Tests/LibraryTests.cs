@@ -1,4 +1,5 @@
 using DeployCraft.Server.Library;
+using Microsoft.Data.Sqlite;
 
 namespace DeployCraft.Tests;
 
@@ -128,8 +129,47 @@ public class LibraryTests
     }
 
     [Fact]
-    public void Catalog_HasUniqueIds() =>
-        Assert.Equal(LibraryCatalog.Apps.Count, LibraryCatalog.Apps.Select(a => a.Id).Distinct().Count());
+    public void Suggestions_HaveUniqueIds() =>
+        Assert.Equal(LibraryCatalog.Suggested.Count, LibraryCatalog.Suggested.Distinct(StringComparer.OrdinalIgnoreCase).Count());
+
+    [Fact]
+    public void Index_SearchesNamesPublishersAndTags_BestNamesFirst()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"dc-index-{Guid.NewGuid():N}.db");
+        try
+        {
+            using (var db = new SqliteConnection($"Data Source={path};Pooling=False"))
+            {
+                db.Open();
+                using var cmd = db.CreateCommand();
+                cmd.CommandText = """
+                    CREATE TABLE packages(rowid INTEGER PRIMARY KEY, id TEXT NOT NULL, name TEXT NOT NULL, moniker TEXT, latest_version TEXT NOT NULL);
+                    CREATE TABLE tags2(rowid INTEGER PRIMARY KEY, tag TEXT NOT NULL);
+                    CREATE TABLE tags2_map(tag INT64 NOT NULL, package INT64 NOT NULL);
+                    CREATE TABLE norm_publishers2(norm_publisher TEXT NOT NULL, package INT64 NOT NULL);
+                    INSERT INTO packages VALUES (1, 'Exemple.LecteurPlus', 'Lecteur Plus Media', NULL, '2.0'),
+                                                (2, 'Exemple.Lecteur', 'Lecteur', 'lecteur', '1.5'),
+                                                (3, 'Autre.Editeur', 'Bloc-notes', NULL, '8.1');
+                    INSERT INTO tags2 VALUES (1, 'video');
+                    INSERT INTO tags2_map VALUES (1, 1);
+                    INSERT INTO norm_publishers2 VALUES ('studio exemple', 3);
+                    """;
+                cmd.ExecuteNonQuery();
+            }
+            var index = new WingetIndex(path);
+
+            Assert.Equal(3, index.Count());
+            Assert.Equal(["Exemple.Lecteur", "Exemple.LecteurPlus"], index.Search("lecteur", 10).Select(e => e.Id));
+            Assert.Equal("Exemple.LecteurPlus", index.Search("VIDEO", 10).Single().Id);
+            Assert.Equal("Autre.Editeur", index.Search("studio bloc", 10).Single().Id);
+            Assert.Empty(index.Search("lecteur bloc", 10));
+            Assert.Equal("1.5", index.Get(["exemple.lecteur"])["Exemple.Lecteur"].Version);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
 
     [Fact]
     public void SafeName_RemovesForbiddenCharacters() =>

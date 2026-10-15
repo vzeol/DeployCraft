@@ -48,7 +48,6 @@ public record LibraryRow(LibraryItem Item)
 {
     public string Id => Item.Id;
     public string Name => Item.Name;
-    public string Category => Item.Category;
     public string Latest => Item.LatestVersion ?? "—";
     public string Downloaded => Item.PackageVersion ?? "—";
     public string Installer => Item.Installer ?? "";
@@ -104,6 +103,12 @@ public partial class MainWindow : Window
             panel.DeployRequested += (id, targets) => Deploy(id, targets);
             panel.Changed += () => _ = RefreshAsync(packages: false);
         }
+
+        _librarySearchDelay.Tick += async (_, _) =>
+        {
+            _librarySearchDelay.Stop();
+            await RefreshAsync(packages: false);
+        };
 
         PreviewKeyDown += OnShortcut;
         SetupContextMenus();
@@ -398,12 +403,15 @@ public partial class MainWindow : Window
 
     private string _libraryPackages = "";
     private bool _refreshingLibrary;
+    // La recherche part un court instant après la dernière touche, pas à chaque lettre.
+    private readonly DispatcherTimer _librarySearchDelay = new() { Interval = TimeSpan.FromMilliseconds(350) };
 
     private List<LibraryRow> SelectedLibraryRows => LibraryGrid.SelectedItems.OfType<LibraryRow>().ToList();
 
     private async Task RefreshLibraryAsync()
     {
-        var info = await Api.Library();
+        var search = LibrarySearch.Text.Trim();
+        var info = await Api.Library(search);
         var selected = SelectedLibraryRows.Select(r => r.Id).ToHashSet();
         var rows = info.Items.Select(i => new LibraryRow(i)).ToList();
         _refreshingLibrary = true;
@@ -412,9 +420,11 @@ public partial class MainWindow : Window
         _refreshingLibrary = false;
 
         var refreshed = info.Refreshing ? "lecture du catalogue en cours…"
-            : info.LastRefreshUtc is { } at ? $"catalogue lu le {Ui.LocalTime(at)}" : "catalogue pas encore lu";
+            : info.LastRefreshUtc is { } at ? $"lu le {Ui.LocalTime(at)}" : "pas encore lu";
         var updates = rows.Count(r => r.Item.UpdateAvailable);
-        LibrarySubtitle.Text = $"{rows.Count} logiciels du catalogue public winget · {refreshed}" +
+        var shown = search.Length == 0 ? "vos paquets et des logiciels courants ; cherchez pour voir les autres"
+            : rows.Count == 0 ? "aucun résultat" : $"{rows.Count}{(rows.Count >= 100 ? " premiers" : "")} résultat(s)";
+        LibrarySubtitle.Text = $"Catalogue public winget ({info.CatalogCount:N0} logiciels, {refreshed}) · {shown}" +
                                (updates > 0 ? $" · {updates} mise(s) à jour disponible(s)" : "");
         LibraryFolderText.Text = (info.RefreshError is { } error ? error + Environment.NewLine : "") +
             $"Les installeurs sont rangés dans {info.Folder}" +
@@ -437,6 +447,12 @@ public partial class MainWindow : Window
         var ready = SelectedLibraryRows.Where(r => r.CanDownload).ToList();
         LibraryDownloadButton.IsEnabled = ready.Count > 0;
         LibraryDownloadText.Text = ready.Count > 0 && ready.All(r => r.Item.UpdateAvailable) ? "Mettre à jour" : "Télécharger";
+    }
+
+    private void LibrarySearch_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        _librarySearchDelay.Stop();
+        _librarySearchDelay.Start();
     }
 
     private void LibraryGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)

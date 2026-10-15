@@ -3,20 +3,22 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using DeployCraft.Server.Data;
 using DeployCraft.Server.Remote;
+using Microsoft.Data.Sqlite;
 
 namespace DeployCraft.Server.Library;
 
 /// <summary>
-/// Bibliothèque de paquets : lit le catalogue public winget pour les logiciels de <see cref="LibraryCatalog"/>,
-/// télécharge l'installeur choisi (empreinte vérifiée) dans le dossier de la bibliothèque et crée ou met à jour
-/// le paquet DeployCraft correspondant. Lecture et téléchargements se font en arrière-plan ; la console suit l'état.
+/// Bibliothèque de paquets : recherche dans l'index du catalogue public winget, lit la fiche du logiciel choisi,
+/// télécharge son installeur (empreinte vérifiée) dans le dossier de la bibliothèque et crée ou met à jour le paquet
+/// DeployCraft correspondant. Index et téléchargements sont traités en arrière-plan ; la console suit l'état.
 /// </summary>
 public class PackageLibrary(Store store, DeployCredentials credentials, string dataDir, ILogger<PackageLibrary> log)
 {
     private const string SettingKey = "library";
-    private const string CatalogApi = "https://api.github.com/repos/microsoft/winget-pkgs/contents/";
     private const string CatalogRaw = "https://raw.githubusercontent.com/microsoft/winget-pkgs/master/";
-    /// <summary>Le catalogue est relu de lui-même quand la console l'affiche et qu'il a plus d'un jour.</summary>
+    /// <summary>Résultats affichés au plus pour une recherche.</summary>
+    private const int SearchLimit = 100;
+    /// <summary>L'index est relu de lui-même quand la console l'affiche et qu'il a plus d'un jour.</summary>
     private static readonly TimeSpan MaxAge = TimeSpan.FromDays(1);
 
     private static readonly HttpClient Http = CreateClient();
@@ -28,16 +30,49 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
 
     private readonly object _lock = new();
     private readonly Dictionary<string, (string Stage, int Percent)> _progress = [];
+    private readonly WingetIndex _index = new(Path.Combine(dataDir, "library-index.db"));
     private bool _refreshing;
 
     public string DefaultFolder => Path.Combine(dataDir, "Bibliotheque");
 
     // ---------- État ----------
 
-    public LibraryInfo Info()
+    /// <summary>
+    /// Sans recherche : les logiciels déjà téléchargés puis la sélection de logiciels courants.
+    /// Avec recherche : les logiciels du catalogue qui correspondent.
+    /// </summary>
+    public LibraryInfo Info(string? search)
     {
         var state = Load();
-        if (!_refreshing && (state.LastRefreshUtc == null || DateTime.UtcNow - state.LastRefreshUtc > MaxAge)) StartRefresh();
+        if (!_index.Exists || state.LastRefreshUtc == null || DateTime.UtcNow - state.LastRefreshUtc > MaxAge) StartRefresh();
+
+        var entries = new List<IndexEntry>();
+        var count = 0;
+        if (_index.Exists)
+        {
+            try
+            {
+                count = _index.Count();
+                if (string.IsNullOrWhiteSpace(search))
+                {
+                    var linked = state.Links.Where(l => store.GetPackage(l.Value.PackageId) != null).Select(l => l.Key).ToList();
+                    var found = _index.Get(linked.Concat(LibraryCatalog.Suggested));
+                    entries.AddRange(linked.Where(found.ContainsKey).Select(id => found[id]).OrderBy(e => e.Name, StringComparer.CurrentCultureIgnoreCase));
+                    entries.AddRange(LibraryCatalog.Suggested.Where(id => found.ContainsKey(id) && !linked.Contains(id, StringComparer.OrdinalIgnoreCase))
+                        .Select(id => found[id]).OrderBy(e => e.Name, StringComparer.CurrentCultureIgnoreCase));
+                }
+                else
+                {
+                    entries = _index.Search(search, SearchLimit);
+                }
+            }
+            catch (SqliteException ex)
+            {
+                // Index remplacé pendant la lecture : la console redemandera dans un instant.
+                log.LogDebug(ex, "Lecture de l'index de la bibliothèque");
+            }
+        }
+
         lock (_lock)
         {
             return new LibraryInfo
@@ -47,31 +82,32 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
                 LastRefreshUtc = state.LastRefreshUtc,
                 Refreshing = _refreshing,
                 RefreshError = state.RefreshError,
-                Items = LibraryCatalog.Apps.Select(app => Item(app, state)).ToList(),
+                CatalogCount = count,
+                Items = entries.Select(e => Item(e, state)).ToList(),
             };
         }
     }
 
-    private LibraryItem Item(LibraryApp app, LibraryState state)
+    private LibraryItem Item(IndexEntry e, LibraryState state)
     {
-        var entry = state.Entries.GetValueOrDefault(app.Id);
-        var link = state.Links.GetValueOrDefault(app.Id);
+        // La fiche lue ne vaut que pour la version qu'elle décrit.
+        var entry = state.Entries.GetValueOrDefault(e.Id) is { } known && known.Version == e.Version ? known : null;
+        var link = state.Links.GetValueOrDefault(e.Id);
         // Un paquet supprimé dans DeployCraft n'est plus relié.
         if (link != null && store.GetPackage(link.PackageId) == null) link = null;
         return new LibraryItem
         {
-            Id = app.Id,
-            Name = app.Name,
-            Category = app.Category,
-            LatestVersion = entry?.Version,
+            Id = e.Id,
+            Name = e.Name,
+            LatestVersion = e.Version,
             Installer = entry?.Installer is { } i ? $"{i.Type} {i.Architecture}" : null,
             Problem = entry?.Problem,
             PackageId = link?.PackageId,
             PackageVersion = link?.Version,
-            Stage = _progress.TryGetValue(app.Id, out var p) ? p.Stage : null,
-            Progress = _progress.ContainsKey(app.Id) ? p.Percent : null,
-            Error = state.Errors.GetValueOrDefault(app.Id),
-            UpdateAvailable = link != null && entry?.Installer != null && WingetManifest.CompareVersions(entry.Version, link.Version) > 0,
+            Stage = _progress.TryGetValue(e.Id, out var p) ? p.Stage : null,
+            Progress = _progress.ContainsKey(e.Id) ? p.Percent : null,
+            Error = state.Errors.GetValueOrDefault(e.Id),
+            UpdateAvailable = link != null && WingetManifest.CompareVersions(e.Version, link.Version) > 0,
         };
     }
 
@@ -92,7 +128,7 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
 
     // ---------- Lecture du catalogue ----------
 
-    /// <summary>Relit le catalogue en arrière-plan (sans effet si une lecture est déjà en cours).</summary>
+    /// <summary>Relit l'index en arrière-plan (sans effet si une lecture est déjà en cours).</summary>
     public void StartRefresh()
     {
         lock (_lock)
@@ -103,22 +139,26 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
         _ = Task.Run(RefreshAsync);
     }
 
+    /// <summary>
+    /// Télécharge l'index, puis relit les fiches des logiciels affichés sans recherche dont la version a changé
+    /// (pour indiquer tout de suite leur installeur, ou pourquoi ils ne sont pas disponibles).
+    /// </summary>
     private async Task RefreshAsync()
     {
-        var entries = new Dictionary<string, LibraryEntry>();
         string? error = null;
         try
         {
-            foreach (var app in LibraryCatalog.Apps)
+            await _index.DownloadAsync(Http);
+            var state = Load();
+            var known = _index.Get(state.Links.Keys.Concat(LibraryCatalog.Suggested));
+            foreach (var e in known.Values.Where(e => state.Entries.GetValueOrDefault(e.Id)?.Version != e.Version))
             {
-                try
+                var entry = await ReadEntryAsync(e);
+                lock (_lock)
                 {
-                    entries[app.Id] = await ReadEntryAsync(app);
-                }
-                catch (HttpRequestException ex) when (ex.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.TooManyRequests)
-                {
-                    error = "Le catalogue limite le nombre de lectures par heure : réessayez dans une heure.";
-                    break;
+                    var current = Load();
+                    current.Entries[e.Id] = entry;
+                    Save(current);
                 }
             }
         }
@@ -134,8 +174,6 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
         lock (_lock)
         {
             var state = Load();
-            // Une lecture interrompue garde les fiches déjà connues des logiciels non relus.
-            foreach (var (id, entry) in entries) state.Entries[id] = entry;
             state.RefreshError = error;
             if (error == null) state.LastRefreshUtc = DateTime.UtcNow;
             Save(state);
@@ -143,43 +181,63 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
         }
     }
 
-    private static async Task<LibraryEntry> ReadEntryAsync(LibraryApp app)
+    /// <summary>Fiche d'installation de la dernière version : installeur retenu, ou raison de son absence.</summary>
+    private static async Task<LibraryEntry> ReadEntryAsync(IndexEntry e)
     {
-        var folder = LibraryCatalog.ManifestFolder(app.Id);
-        using var listing = JsonDocument.Parse(await Http.GetStringAsync(CatalogApi + Escape(folder)));
-        var version = listing.RootElement.EnumerateArray()
-            .Where(e => e.GetProperty("type").GetString() == "dir")
-            .Select(e => e.GetProperty("name").GetString() ?? "")
-            .Where(v => v.Length > 0 && char.IsDigit(v[0]))
-            .OrderByDescending(v => v, Comparer<string>.Create(WingetManifest.CompareVersions))
-            .FirstOrDefault();
-        if (version == null) return new LibraryEntry { Problem = "introuvable dans le catalogue." };
-        var yaml = await Http.GetStringAsync($"{CatalogRaw}{Escape(folder)}/{Escape(version)}/{Escape(app.Id)}.installer.yaml");
-        var installer = WingetManifest.Choose(yaml, out var problem);
-        return new LibraryEntry { Version = version, Installer = installer, Problem = problem };
+        var url = $"{CatalogRaw}{Escape(LibraryCatalog.ManifestFolder(e.Id))}/{Escape(e.Version)}/{Escape(e.Id)}.installer.yaml";
+        using var response = await Http.GetAsync(url);
+        if (response.StatusCode == HttpStatusCode.NotFound)
+            return new LibraryEntry { Version = e.Version, Problem = "fiche d'installation introuvable dans le catalogue." };
+        response.EnsureSuccessStatusCode();
+        var installer = WingetManifest.Choose(await response.Content.ReadAsStringAsync(), out var problem);
+        return new LibraryEntry { Version = e.Version, Installer = installer, Problem = problem };
     }
 
     private static string Escape(string path) => string.Join('/', path.Split('/').Select(Uri.EscapeDataString));
 
     // ---------- Téléchargement ----------
 
-    /// <summary>Lance le téléchargement d'un logiciel ; renvoie une erreur s'il ne peut pas commencer.</summary>
-    public string? StartDownload(string id)
+    /// <summary>
+    /// Lit la fiche du logiciel puis lance le téléchargement en arrière-plan ; renvoie une erreur s'il ne peut pas
+    /// commencer (pas d'installeur silencieux pour tout le poste…).
+    /// </summary>
+    public async Task<string?> StartDownloadAsync(string id)
     {
-        if (LibraryCatalog.Apps.FirstOrDefault(a => a.Id == id) is not { } app) return "Logiciel inconnu de la bibliothèque.";
-        LibraryEntry? entry;
+        if (!_index.Exists) return "Le catalogue n'a pas encore été lu : patientez quelques secondes.";
+        if (_index.Get([id]).GetValueOrDefault(id) is not { } e) return "Logiciel introuvable dans le catalogue.";
+        lock (_lock)
+            if (_progress.ContainsKey(e.Id)) return null;
+
+        var entry = Load().Entries.GetValueOrDefault(e.Id);
+        if (entry?.Version != e.Version)
+        {
+            try
+            {
+                entry = await ReadEntryAsync(e);
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                return $"Catalogue injoignable ({ex.Message}). Vérifiez l'accès à Internet du serveur.";
+            }
+            lock (_lock)
+            {
+                var state = Load();
+                state.Entries[e.Id] = entry;
+                Save(state);
+            }
+        }
+        if (entry.Installer is not { } installer) return $"{e.Name} : {entry.Problem}";
+
         lock (_lock)
         {
-            entry = Load().Entries.GetValueOrDefault(id);
-            if (entry?.Installer == null) return entry?.Problem is { } p ? $"{app.Name} : {p}" : "Le catalogue n'a pas encore été lu : actualisez-le.";
-            if (_progress.ContainsKey(id)) return null;
-            _progress[id] = (StageDownload, 0);
+            if (_progress.ContainsKey(e.Id)) return null;
+            _progress[e.Id] = (StageDownload, 0);
         }
-        _ = Task.Run(() => DownloadAsync(app, entry.Version!, entry.Installer));
+        _ = Task.Run(() => DownloadAsync(e, installer));
         return null;
     }
 
-    private async Task DownloadAsync(LibraryApp app, string version, LibraryInstaller installer)
+    private async Task DownloadAsync(IndexEntry app, LibraryInstaller installer)
     {
         string? error = null;
         var temp = Path.Combine(dataDir, "temp", $"{Guid.NewGuid():N}{installer.Extension}");
@@ -188,6 +246,7 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
             Directory.CreateDirectory(Path.GetDirectoryName(temp)!);
             await FetchAsync(app.Id, installer, temp);
             var folder = Folder(Load());
+            var version = app.Version;
             var file = Path.Combine(folder, SafeName(app.Name), SafeName(version), SafeName($"{app.Name} {version}") + installer.Extension);
             // Un partage s'écrit avec l'identifiant par défaut, comme il sera lu au déploiement.
             credentials.RunAs(credentials.Default, null, () =>
@@ -291,7 +350,7 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
     /// Crée le paquet, ou met à jour celui déjà relié : version, fichier et paramètres de son étape d'installation.
     /// Les autres réglages modifiés à la main (conditions, étapes ajoutées…) sont gardés.
     /// </summary>
-    private Package SavePackage(LibraryApp app, string version, LibraryInstaller installer, string file, LibraryLink? previous)
+    private Package SavePackage(IndexEntry app, string version, LibraryInstaller installer, string file, LibraryLink? previous)
     {
         if (previous != null && store.GetPackage(previous.PackageId) is { } existing)
         {
@@ -308,7 +367,7 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
         {
             Name = app.Name,
             Version = version,
-            Description = $"Bibliothèque de paquets ({app.Category})",
+            Description = $"Bibliothèque de paquets (winget : {app.Id})",
             Steps =
             [
                 new PackageStep

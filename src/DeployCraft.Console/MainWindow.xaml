@@ -208,11 +208,17 @@
                             </StackPanel>
                         </StackPanel>
                     </DockPanel>
+                    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+                        <TextBlock DockPanel.Dock="Left" Text="&#xE721;" FontFamily="{StaticResource IconFont}" Foreground="{DynamicResource MutedBrush}"
+                                   VerticalAlignment="Center" Margin="2,0,8,0" />
+                        <TextBox x:Name="LibrarySearch" TextChanged="LibrarySearch_TextChanged"
+                                 ToolTip="Cherche dans tout le catalogue : nom, éditeur ou mot-clé (ex. vlc, adobe, java)" />
+                    </DockPanel>
                     <TextBlock x:Name="LibraryFolderText" DockPanel.Dock="Bottom" Margin="0,8,0,0" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" />
                     <DataGrid x:Name="LibraryGrid" SelectionMode="Extended" MouseDoubleClick="LibraryDownload_Click" SelectionChanged="LibraryGrid_SelectionChanged">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Logiciel" Binding="{Binding Name}" Width="200" />
-                            <DataGridTextColumn Header="Catégorie" Binding="{Binding Category}" Width="120" />
+                            <DataGridTextColumn Header="Logiciel" Binding="{Binding Name}" Width="220" />
+                            <DataGridTextColumn Header="Identifiant" Binding="{Binding Id}" Width="200" />
                             <DataGridTextColumn Header="Version disponible" Binding="{Binding Latest}" Width="140" />
                             <DataGridTextColumn Header="Dans DeployCraft" Binding="{Binding Downloaded}" Width="130" />
                             <DataGridTextColumn Header="Installeur" Binding="{Binding Installer}" Width="110" />

@@ -6,7 +6,6 @@ public class LibraryItem
     /// <summary>Identifiant du logiciel dans le catalogue public winget (ex. VideoLAN.VLC).</summary>
     public string Id { get; set; } = "";
     public string Name { get; set; } = "";
-    public string Category { get; set; } = "";
     /// <summary>Dernière version connue du catalogue (null tant qu'il n'a pas été lu).</summary>
     public string? LatestVersion { get; set; }
     /// <summary>Type d'installeur retenu (msi, nullsoft, inno…) et architecture.</summary>
@@ -37,5 +36,7 @@ public class LibraryInfo
     public bool Refreshing { get; set; }
     /// <summary>Erreur de la dernière lecture du catalogue.</summary>
     public string? RefreshError { get; set; }
+    /// <summary>Nombre de logiciels dans le catalogue.</summary>
+    public int CatalogCount { get; set; }
     public List<LibraryItem> Items { get; set; } = [];
 }
