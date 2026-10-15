@@ -52,7 +52,13 @@ namespace DeployCraft.Runner
             {
                 var job = Json.Read<Job>(Path.Combine(_slotDir, "job.json"));
                 Log($"Job chargé : {job.Steps.Count} étape(s)");
+                status.Network = LocalFacts.NetworkCards();
                 Json.Write(_statusPath, status);
+
+                var facts = new LocalFacts();
+                // Conditions du paquet non remplies : toutes les étapes sont sautées, sans échec.
+                var packageSkip = Unmet(job.Conditions, facts, out var packageError);
+                if (packageSkip != null) Log("Conditions du paquet non remplies : " + packageSkip);
 
                 var stop = false;
                 for (var i = 0; i < job.Steps.Count; i++)
@@ -65,6 +71,37 @@ namespace DeployCraft.Runner
                     {
                         result.State = "skipped";
                         result.EndedUtc = Json.Now();
+                        continue;
+                    }
+
+                    string stepSkip = null, stepError = null;
+                    if (packageSkip != null)
+                    {
+                        result.State = "skipped";
+                        result.Error = "Conditions du paquet non remplies. " + packageSkip;
+                    }
+                    else if (packageError != null)
+                    {
+                        result.State = "failed";
+                        result.Error = packageError;
+                        stop = true;
+                    }
+                    else if ((stepSkip = Unmet(step.Conditions, facts, out stepError)) != null)
+                    {
+                        result.State = "skipped";
+                        result.Error = "Condition non remplie. " + stepSkip;
+                    }
+                    else if (stepError != null)
+                    {
+                        result.State = "failed";
+                        result.Error = stepError;
+                        if (!step.ContinueOnError) stop = true;
+                    }
+                    if (result.State != "running")
+                    {
+                        result.EndedUtc = Json.Now();
+                        Log($"Étape {i + 1} « {step.Name} » : {result.State} ({result.Error})");
+                        Json.Write(_statusPath, status);
                         continue;
                     }
 
@@ -86,6 +123,24 @@ namespace DeployCraft.Runner
             status.State = "done";
             Json.Write(_statusPath, status);
             Log("Terminé.");
+        }
+
+        /// <summary>
+        /// Raison pour laquelle les conditions ne sont pas remplies (null = remplies).
+        /// Une condition impossible à vérifier (clé de registre mal écrite…) est une erreur, rendue dans <paramref name="error"/>.
+        /// </summary>
+        private static string Unmet(JobConditions conditions, ITargetFacts facts, out string error)
+        {
+            error = null;
+            try
+            {
+                return ConditionCheck.Failure(conditions, facts);
+            }
+            catch (Exception ex)
+            {
+                error = "Vérification des conditions impossible : " + ex.Message;
+                return null;
+            }
         }
 
         private void RunStep(int index, JobStep step, StepResult result)

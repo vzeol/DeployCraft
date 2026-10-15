@@ -31,19 +31,120 @@ public class PackageStep
     /// <summary>Command : ligne cmd. PowerShell : contenu du script.</summary>
     public string? Command { get; set; }
     public string SuccessCodes { get; set; } = Defaults.SuccessCodes;
-    public int TimeoutMinutes { get; set; } = 60;
+    /// <summary>Délai max de l'étape (null = celui du paquet, sinon celui des Préférences).</summary>
+    public int? TimeoutMinutes { get; set; }
     public ErrorMode ErrorMode { get; set; } = ErrorMode.Stop;
+    /// <summary>Conditions de l'étape : non remplies sur un poste, l'étape y est sautée.</summary>
+    public Conditions Conditions { get; set; } = new();
+}
+
+/// <summary>Versions de Windows acceptées par une condition (aucune cochée = toutes).</summary>
+[Flags]
+public enum WindowsVersions
+{
+    None = 0,
+    Windows10 = 1,
+    Windows11 = 2,
+    Server = 4,
+    /// <summary>Windows 8.1 et versions antérieures.</summary>
+    Older = 8,
+}
+
+public enum ArchitectureCondition { Any, X64, X86 }
+
+public enum LoggedOnCondition { Any, LoggedOn, NotLoggedOn }
+
+/// <summary>Condition sur un fichier ou une clé de registre.</summary>
+public enum PresenceCondition { None, Exists, NotExists }
+
+/// <summary>
+/// Conditions d'un paquet ou d'une étape, vérifiées sur le poste juste avant l'exécution.
+/// Toutes doivent être remplies ; sinon l'étape (ou tout le paquet) est sautée, sans échec.
+/// </summary>
+public class Conditions
+{
+    public WindowsVersions Windows { get; set; }
+    public ArchitectureCondition Architecture { get; set; }
+    /// <summary>Version minimale de PowerShell (3, 4, 5 ou 7 ; null = aucune).</summary>
+    public int? MinPowerShell { get; set; }
+    public LoggedOnCondition LoggedOn { get; set; }
+    public PresenceCondition File { get; set; }
+    /// <summary>Fichier ou dossier sur le poste (variables d'environnement acceptées).</summary>
+    public string? FilePath { get; set; }
+    public PresenceCondition Registry { get; set; }
+    /// <summary>Clé de registre, par exemple HKLM\SOFTWARE\Éditeur\Logiciel.</summary>
+    public string? RegistryKey { get; set; }
+    /// <summary>Nom d'une valeur de la clé (vide = la clé elle-même).</summary>
+    public string? RegistryValue { get; set; }
+
+    public bool IsEmpty => Windows == WindowsVersions.None && Architecture == ArchitectureCondition.Any && MinPowerShell == null
+                           && LoggedOn == LoggedOnCondition.Any && File == PresenceCondition.None && Registry == PresenceCondition.None;
+}
+
+/// <summary>
+/// Postes hors ligne : réveil (Wake-on-LAN) et nouveaux essais. Un poste est toujours testé
+/// (nom DNS et partage de fichiers) avant la copie ; ces réglages disent quoi faire s'il ne répond pas.
+/// </summary>
+public class OfflineSettings
+{
+    /// <summary>Envoyer un paquet de réveil Wake-on-LAN, puis attendre que le poste réponde.</summary>
+    public bool WakeOnLan { get; set; }
+    public int WakeWaitMinutes { get; set; } = 3;
+    /// <summary>Réessayer plus tard un poste hors ligne au lieu de le marquer en échec.</summary>
+    public bool Retry { get; set; }
+    /// <summary>Nombre total d'essais, le premier compris.</summary>
+    public int RetryAttempts { get; set; } = 5;
+    public int RetryIntervalMinutes { get; set; } = 30;
+}
+
+/// <summary>Carte réseau d'un poste : adresse MAC et adresse de diffusion de son sous-réseau (pour le réveiller).</summary>
+public record NetworkCard(string Mac, string? Broadcast);
+
+/// <summary>Réglages par défaut des paquets (Préférences › Déploiement et Hors ligne).</summary>
+public class DeploymentDefaults
+{
+    public RunAsMode RunAs { get; set; } = RunAsMode.DeployUser;
+    public CopyMode CopyMode { get; set; } = CopyMode.Push;
+    public int TimeoutMinutes { get; set; } = 60;
+    public OfflineSettings Offline { get; set; } = new();
 }
 
 public class Package
 {
     public long Id { get; set; }
     public string Name { get; set; } = "";
+    public string? Version { get; set; }
     public string? Description { get; set; }
     public List<PackageStep> Steps { get; set; } = [];
-    public RunAsMode RunAs { get; set; } = RunAsMode.DeployUser;
-    public CopyMode CopyMode { get; set; } = CopyMode.Push;
+    /// <summary>null = valeur des Préférences.</summary>
+    public RunAsMode? RunAs { get; set; }
+    /// <summary>null = valeur des Préférences.</summary>
+    public CopyMode? CopyMode { get; set; }
+    /// <summary>Délai max des étapes qui n'en fixent pas (null = valeur des Préférences).</summary>
+    public int? TimeoutMinutes { get; set; }
+    /// <summary>Conditions du paquet : non remplies sur un poste, aucune étape n'y est exécutée.</summary>
+    public Conditions Conditions { get; set; } = new();
+    /// <summary>null = réglages hors ligne des Préférences.</summary>
+    public OfflineSettings? Offline { get; set; }
     public DateTime ModifiedUtc { get; set; }
+
+    /// <summary>
+    /// Copie prête à déployer : chaque réglage laissé « par défaut » prend sa valeur (étape → paquet → Préférences).
+    /// L'historique du déploiement garde ainsi les valeurs réellement utilisées.
+    /// </summary>
+    public Package Resolve(DeploymentDefaults defaults)
+    {
+        var copy = Clone(this);
+        copy.RunAs ??= defaults.RunAs;
+        copy.CopyMode ??= defaults.CopyMode;
+        copy.TimeoutMinutes ??= defaults.TimeoutMinutes;
+        copy.Offline ??= Clone(defaults.Offline);
+        foreach (var step in copy.Steps) step.TimeoutMinutes ??= copy.TimeoutMinutes;
+        return copy;
+    }
+
+    private static T Clone<T>(T value) =>
+        System.Text.Json.JsonSerializer.Deserialize<T>(System.Text.Json.JsonSerializer.Serialize(value))!;
 }
 
 public enum DeploymentStatus { Queued, Running, Successful, Failed }

@@ -122,6 +122,20 @@ public class Store
             );
             """);
         AddColumnIfMissing(db, "deployments", "credential_id", "INTEGER");
+
+        // 0.10 : version, délai, conditions et réglages hors ligne du paquet ; run_as / copy_mode « Default » = Préférences.
+        AddColumnIfMissing(db, "packages", "version", "TEXT");
+        AddColumnIfMissing(db, "packages", "timeout", "INTEGER");
+        AddColumnIfMissing(db, "packages", "conditions", "TEXT");
+        AddColumnIfMissing(db, "packages", "offline", "TEXT");
+        // Adresses MAC apprises lors des déploiements, pour le Wake-on-LAN.
+        Exec(db, """
+            CREATE TABLE IF NOT EXISTS computers (
+                name TEXT PRIMARY KEY COLLATE NOCASE,
+                network TEXT NOT NULL,
+                seen_utc TEXT NOT NULL
+            );
+            """);
     }
 
     /// <summary>Renvoie true si la colonne vient d'être ajoutée.</summary>
@@ -156,7 +170,7 @@ public class Store
 
     // ---------- Paquets ----------
 
-    private const string PackageColumns = "id, name, description, steps, modified_utc, run_as, copy_mode";
+    private const string PackageColumns = "id, name, description, steps, modified_utc, run_as, copy_mode, version, timeout, conditions, offline";
 
     public List<Package> ListPackages()
     {
@@ -184,13 +198,16 @@ public class Store
         {
             ("$id", p.Id), ("$name", p.Name), ("$desc", p.Description),
             ("$steps", JsonSerializer.Serialize(p.Steps, Json)), ("$mod", p.ModifiedUtc.ToString("o")),
-            ("$runas", p.RunAs.ToString()), ("$copy", p.CopyMode.ToString()),
+            ("$runas", p.RunAs?.ToString() ?? DefaultValue), ("$copy", p.CopyMode?.ToString() ?? DefaultValue),
+            ("$version", string.IsNullOrWhiteSpace(p.Version) ? null : p.Version.Trim()), ("$timeout", p.TimeoutMinutes),
+            ("$conditions", JsonSerializer.Serialize(p.Conditions, Json)),
+            ("$offline", p.Offline == null ? null : JsonSerializer.Serialize(p.Offline, Json)),
         };
         if (p.Id == 0)
         {
             using var cmd = Command(db, """
-                INSERT INTO packages (name, description, steps, modified_utc, run_as, copy_mode)
-                VALUES ($name, $desc, $steps, $mod, $runas, $copy);
+                INSERT INTO packages (name, description, steps, modified_utc, run_as, copy_mode, version, timeout, conditions, offline)
+                VALUES ($name, $desc, $steps, $mod, $runas, $copy, $version, $timeout, $conditions, $offline);
                 SELECT last_insert_rowid();
                 """, args);
             p.Id = (long)cmd.ExecuteScalar()!;
@@ -198,7 +215,8 @@ public class Store
         else
         {
             using var cmd = Command(db, """
-                UPDATE packages SET name=$name, description=$desc, steps=$steps, modified_utc=$mod, run_as=$runas, copy_mode=$copy
+                UPDATE packages SET name=$name, description=$desc, steps=$steps, modified_utc=$mod, run_as=$runas, copy_mode=$copy,
+                    version=$version, timeout=$timeout, conditions=$conditions, offline=$offline
                 WHERE id=$id
                 """, args);
             cmd.ExecuteNonQuery();
@@ -221,9 +239,44 @@ public class Store
         Description = r.IsDBNull(2) ? null : r.GetString(2),
         Steps = JsonSerializer.Deserialize<List<PackageStep>>(r.GetString(3), Json) ?? [],
         ModifiedUtc = DateTime.Parse(r.GetString(4)).ToUniversalTime(),
-        RunAs = Enum.TryParse<RunAsMode>(r.GetString(5), out var runAs) ? runAs : RunAsMode.DeployUser,
-        CopyMode = Enum.TryParse<CopyMode>(r.GetString(6), out var copy) ? copy : CopyMode.Push,
+        RunAs = Enum.TryParse<RunAsMode>(r.GetString(5), out var runAs) ? runAs : null,
+        CopyMode = Enum.TryParse<CopyMode>(r.GetString(6), out var copy) ? copy : null,
+        Version = r.IsDBNull(7) ? null : r.GetString(7),
+        TimeoutMinutes = r.IsDBNull(8) ? null : r.GetInt32(8),
+        Conditions = r.IsDBNull(9) ? new() : JsonSerializer.Deserialize<Conditions>(r.GetString(9), Json) ?? new(),
+        Offline = r.IsDBNull(10) ? null : JsonSerializer.Deserialize<OfflineSettings>(r.GetString(10), Json),
     };
+
+    /// <summary>Valeur rangée dans run_as / copy_mode quand le paquet suit les Préférences.</summary>
+    private const string DefaultValue = "Default";
+
+    // ---------- Préférences de déploiement ----------
+
+    public DeploymentDefaults GetDefaults() =>
+        GetSetting("defaults") is { } json ? JsonSerializer.Deserialize<DeploymentDefaults>(json, Json) ?? new() : new();
+
+    public void SaveDefaults(DeploymentDefaults defaults) => SetSetting("defaults", JsonSerializer.Serialize(defaults, Json));
+
+    // ---------- Postes connus (Wake-on-LAN) ----------
+
+    /// <summary>Retient les cartes réseau d'un poste (adresse MAC et diffusion de son sous-réseau).</summary>
+    public void SaveComputerNetwork(string computer, IReadOnlyCollection<NetworkCard> cards)
+    {
+        if (cards.Count == 0) return;
+        using var db = Open();
+        using var cmd = Command(db, """
+            INSERT INTO computers (name, network, seen_utc) VALUES ($n, $j, $s)
+            ON CONFLICT(name) DO UPDATE SET network = excluded.network, seen_utc = excluded.seen_utc
+            """, ("$n", computer), ("$j", JsonSerializer.Serialize(cards, Json)), ("$s", DateTime.UtcNow.ToString("o")));
+        cmd.ExecuteNonQuery();
+    }
+
+    public List<NetworkCard> GetComputerNetwork(string computer)
+    {
+        using var db = Open();
+        using var cmd = Command(db, "SELECT network FROM computers WHERE name = $n", ("$n", computer));
+        return cmd.ExecuteScalar() is string json ? JsonSerializer.Deserialize<List<NetworkCard>>(json, Json) ?? [] : [];
+    }
 
     /// <summary>Cibles mémorisées pour un paquet (« Mémoriser ces cibles » de la fenêtre Déployer une fois).</summary>
     public List<string> GetPackageTargets(long packageId) =>

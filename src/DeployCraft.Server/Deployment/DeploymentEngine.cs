@@ -59,14 +59,17 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
         if (options.CredentialId != null && credential == null) throw new ArgumentException("Identifiant introuvable (supprimé ?).");
         var account = credential?.Account ?? "Compte du service";
 
+        var defaults = store.GetDefaults();
         var deployments = new List<Data.Deployment>();
         var previous = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
-        foreach (var (package, packageTargets) in plan.Where(p => p.Targets.Count > 0))
+        foreach (var (original, packageTargets) in plan.Where(p => p.Targets.Count > 0))
         {
-            var runAs = options.RunAs ?? package.RunAs;
+            // Réglages « par défaut » remplacés par ceux des Préférences, figés dans l'historique du déploiement.
+            var package = original.Resolve(defaults);
+            var runAs = options.RunAs ?? package.RunAs!.Value;
             // Sans identifiant, le service ne peut tourner que sous un compte intégré.
             if (runAs == RunAsMode.DeployUser && credential == null) runAs = RunAsMode.LocalSystem;
-            var copyMode = options.CopyMode ?? package.CopyMode;
+            var copyMode = options.CopyMode ?? package.CopyMode!.Value;
 
             var deployment = store.CreateDeployment(package, packageTargets, launchedBy, account, credential?.Id, runAs, copyMode, options.Prioritize, schedule);
             foreach (var t in deployment.Targets)
@@ -177,19 +180,63 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
             if (deployment.CredentialId is { } credentialId)
                 credential = credentials.Get(credentialId)
                     ?? throw new DeployException($"L'identifiant {deployment.RunAs} a été supprimé depuis le lancement.");
-            var session = new TargetSession(target.Computer, credentials, credential, _runnerExe);
-            await session.RunAsync(
-                deployment.Snapshot,
-                target.StartStep,
-                deployment.RunAsMode,
-                deployment.CopyMode,
-                stage: s => { target.Stage = s; store.UpdateTarget(target); },
-                progress: status => { target.Steps = ToOutcomes(status); store.UpdateTarget(target); },
-                cts.Token);
+
+            // Hors ligne : nouvel essai plus tard si le paquet le prévoit (le créneau est rendu pendant l'attente).
+            var offline = deployment.Snapshot.Offline ?? new OfflineSettings();
+            var attempts = offline.Retry ? Math.Max(1, offline.RetryAttempts) : 1;
+            for (var attempt = 1; ; attempt++)
+            {
+                try
+                {
+                    if (offline.WakeOnLan) await WakeAsync(target, offline.WakeWaitMinutes, cts.Token);
+                    var session = new TargetSession(target.Computer, credentials, credential, _runnerExe);
+                    var networkSaved = false;
+                    await session.RunAsync(
+                        deployment.Snapshot,
+                        target.StartStep,
+                        deployment.RunAsMode,
+                        deployment.CopyMode,
+                        stage: s => { target.Stage = s; store.UpdateTarget(target); },
+                        progress: status =>
+                        {
+                            if (!networkSaved && status.Network is { Count: > 0 } cards)
+                            {
+                                store.SaveComputerNetwork(target.Computer, cards.Select(c => new NetworkCard(c.Mac, c.Broadcast)).ToList());
+                                networkSaved = true;
+                            }
+                            target.Steps = ToOutcomes(status);
+                            store.UpdateTarget(target);
+                        },
+                        cts.Token);
+                    break;
+                }
+                catch (DeployException ex) when (ex.Offline && attempt < attempts)
+                {
+                    _slots.Release();
+                    slotTaken = false;
+                    var next = DateTime.Now.AddMinutes(Math.Max(1, offline.RetryIntervalMinutes));
+                    target.Status = TargetStatus.Queued;
+                    target.Error = ex.Message;
+                    target.Stage = $"Hors ligne : nouvel essai à {next:HH:mm} (essai {attempt + 1} sur {attempts})";
+                    store.UpdateTarget(target);
+
+                    await Task.Delay(next - DateTime.Now, cts.Token);
+                    target.Stage = "En attente d'un créneau";
+                    store.UpdateTarget(target);
+                    await _slots.WaitAsync(target.Prioritized, cts.Token);
+                    slotTaken = true;
+                    target.Status = TargetStatus.Running;
+                    target.Error = null;
+                    target.Stage = "Démarrage";
+                    store.UpdateTarget(target);
+                }
+            }
 
             var failed = target.Steps.FirstOrDefault(s => s.State == "failed");
             target.Status = failed == null && target.Steps.Count > 0 ? TargetStatus.Successful : TargetStatus.Failed;
             if (failed != null) target.Error = ErrorMessages.ForStep(failed);
+            // Conditions du paquet non remplies : rien d'exécuté, la raison s'affiche dans le suivi.
+            else if (target.Steps.Count > 0 && target.Steps.All(s => s.State == "skipped")) target.Error = target.Steps[0].Error;
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested && !appStopping.IsCancellationRequested)
         {
@@ -223,6 +270,29 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
             cts.Dispose();
             if (_done.TryRemove(target.Id, out var done)) done.TrySetResult();
         }
+    }
+
+    /// <summary>
+    /// Poste qui ne répond pas : envoie le paquet de réveil puis attend qu'il réponde.
+    /// Renvoie sans rien faire si le poste répond déjà ; lève une erreur « hors ligne » s'il ne se réveille pas.
+    /// </summary>
+    private async Task WakeAsync(DeploymentTarget target, int waitMinutes, CancellationToken ct)
+    {
+        if (await TargetSession.ProbeAsync(target.Computer, ct) is not { } down) return;
+        var cards = store.GetComputerNetwork(target.Computer);
+        if (cards.Count == 0)
+            throw new DeployException(down.Message + " Réveil impossible : adresse MAC inconnue (elle est apprise au premier déploiement réussi sur ce poste).") { Offline = true };
+
+        target.Stage = "Réveil du poste (Wake-on-LAN)";
+        store.UpdateTarget(target);
+        WakeOnLan.Send(cards);
+        var deadline = DateTime.UtcNow.AddMinutes(Math.Max(1, waitMinutes));
+        while (DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(10), ct);
+            if (await TargetSession.ProbeAsync(target.Computer, ct) == null) return;
+        }
+        throw new DeployException($"{target.Computer} ne répond toujours pas {Math.Max(1, waitMinutes)} min après le réveil (Wake-on-LAN désactivé sur le poste, ou poste débranché ?).") { Offline = true };
     }
 
     private static List<StepOutcome> ToOutcomes(RunnerStatus status) =>

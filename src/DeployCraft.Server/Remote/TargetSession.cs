@@ -151,7 +151,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         var config = runnerExe + ".config";
         if (File.Exists(config)) File.Copy(config, Path.Combine(SlotDir, RunnerName + ".config"), overwrite: true);
 
-        var job = new RunnerJob();
+        var job = new RunnerJob { Conditions = RunnerConditions.From(package.Conditions) };
         foreach (var step in package.Steps.Skip(Math.Max(0, startStep - 1)))
         {
             var jobStep = new RunnerJobStep
@@ -161,9 +161,10 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 Arguments = step.Arguments,
                 Command = step.Command,
                 SuccessCodes = ParseCodes(step.SuccessCodes),
-                TimeoutSeconds = Math.Max(1, step.TimeoutMinutes) * 60,
+                TimeoutSeconds = Math.Max(1, step.TimeoutMinutes ?? package.TimeoutMinutes ?? 60) * 60,
                 ContinueOnError = step.ErrorMode == ErrorMode.Continue,
                 RunAsLoggedOnUser = runAs == RunAsMode.LoggedOnUser,
+                Conditions = RunnerConditions.From(step.Conditions),
             };
 
             if (step.Type == StepType.Install)

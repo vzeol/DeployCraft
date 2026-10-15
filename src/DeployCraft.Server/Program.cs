@@ -49,6 +49,19 @@ api.MapGet("/status", (DeployCredentials cred) =>
     };
 });
 
+// ---------- Préférences de déploiement ----------
+
+api.MapGet("/settings/defaults", (Store store) => store.GetDefaults());
+
+api.MapPut("/settings/defaults", (DeploymentDefaults defaults, Store store) =>
+{
+    defaults.Offline ??= new();
+    if (defaults.TimeoutMinutes < 1) return Results.BadRequest(new { error = "Le délai max doit être d'au moins 1 minute." });
+    if (ValidateOffline(defaults.Offline) is { } error) return Results.BadRequest(new { error = $"Hors ligne : {error}" });
+    store.SaveDefaults(defaults);
+    return Results.Ok(defaults);
+});
+
 // ---------- Identifiants ----------
 
 api.MapGet("/credentials", (DeployCredentials cred) => cred.List());
@@ -274,7 +287,13 @@ static string? ValidateSchedule(Schedule s, DeployCredentials cred)
 
 static string? Validate(Package p)
 {
+    // Un client qui envoie null obtient « aucune condition ».
+    p.Conditions ??= new();
+    foreach (var step in p.Steps) step.Conditions ??= new();
     if (string.IsNullOrWhiteSpace(p.Name)) return "Le paquet doit avoir un nom.";
+    if (p.TimeoutMinutes is < 1) return "Options : le délai max doit être d'au moins 1 minute.";
+    if (ValidateConditions(p.Conditions) is { } conditionError) return $"Conditions du paquet : {conditionError}";
+    if (p.Offline != null && ValidateOffline(p.Offline) is { } offlineError) return $"Hors ligne : {offlineError}";
     for (var i = 0; i < p.Steps.Count; i++)
     {
         var s = p.Steps[i];
@@ -286,7 +305,30 @@ static string? Validate(Package p)
             case StepType.Command or StepType.PowerShell when string.IsNullOrWhiteSpace(s.Command):
                 return $"{label} : la commande est vide.";
         }
+        if (s.TimeoutMinutes is < 1) return $"{label} : le délai max doit être d'au moins 1 minute.";
+        if (ValidateConditions(s.Conditions) is { } error) return $"{label}, conditions : {error}";
     }
+    return null;
+}
+
+static string? ValidateConditions(Conditions c)
+{
+    if (c.File != PresenceCondition.None && string.IsNullOrWhiteSpace(c.FilePath)) return "indiquez le chemin du fichier.";
+    if (c.Registry != PresenceCondition.None)
+    {
+        if (string.IsNullOrWhiteSpace(c.RegistryKey)) return "indiquez la clé de registre.";
+        var hive = c.RegistryKey.Trim().Split('\\')[0].ToUpperInvariant();
+        if (hive is not ("HKLM" or "HKEY_LOCAL_MACHINE" or "HKCU" or "HKEY_CURRENT_USER" or "HKCR" or "HKEY_CLASSES_ROOT" or "HKU" or "HKEY_USERS"))
+            return "la clé de registre doit commencer par HKLM, HKCU, HKCR ou HKU.";
+    }
+    return null;
+}
+
+static string? ValidateOffline(OfflineSettings o)
+{
+    if (o.WakeOnLan && o.WakeWaitMinutes < 1) return "l'attente après le réveil doit être d'au moins 1 minute.";
+    if (o.Retry && o.RetryAttempts < 2) return "il faut au moins 2 essais pour réessayer.";
+    if (o.Retry && o.RetryIntervalMinutes < 1) return "l'intervalle entre deux essais doit être d'au moins 1 minute.";
     return null;
 }
 

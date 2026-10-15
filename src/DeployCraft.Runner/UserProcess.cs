@@ -100,6 +100,20 @@ namespace DeployCraft.Runner
             _process = IntPtr.Zero;
         }
 
+        /// <summary>Quelqu'un a-t-il ouvert une session sur le poste (écran verrouillé compris) ?</summary>
+        public static bool IsUserLoggedOn()
+        {
+            try
+            {
+                FindActiveSession(out var user);
+                return !string.IsNullOrEmpty(user);
+            }
+            catch (InvalidOperationException)
+            {
+                return false;
+            }
+        }
+
         private static uint FindActiveSession(out string user)
         {
             user = null;

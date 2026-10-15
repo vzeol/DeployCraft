@@ -18,6 +18,12 @@
     <ProjectReference Include="..\..\src\DeployCraft.Server\DeployCraft.Server.csproj" />
   </ItemGroup>
 
+  <!-- Vérification des conditions faite par le runner (.NET Framework, sur les postes) : mêmes fichiers, testés ici. -->
+  <ItemGroup>
+    <Compile Include="..\..\src\DeployCraft.Runner\Job.cs" Link="Runner\Job.cs" />
+    <Compile Include="..\..\src\DeployCraft.Runner\Conditions.cs" Link="Runner\Conditions.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>

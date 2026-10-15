@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,7 +14,33 @@ namespace DeployCraft.Runner
     [DataContract]
     public class Job
     {
+        /// <summary>Conditions du paquet : non remplies, aucune étape n'est exécutée.</summary>
+        [DataMember(Name = "conditions")] public JobConditions Conditions { get; set; }
         [DataMember(Name = "steps")] public List<JobStep> Steps { get; set; } = new List<JobStep>();
+    }
+
+    [DataContract]
+    public class JobConditions
+    {
+        /// <summary>« 10 », « 11 », « server », « older » (vide = toutes).</summary>
+        [DataMember(Name = "windows")] public List<string> Windows { get; set; } = new List<string>();
+        /// <summary>« x64 », « x86 » ou null.</summary>
+        [DataMember(Name = "architecture")] public string Architecture { get; set; }
+        [DataMember(Name = "minPowerShell")] public int? MinPowerShell { get; set; }
+        /// <summary>true = quelqu'un doit être connecté, false = personne, null = indifférent.</summary>
+        [DataMember(Name = "loggedOn")] public bool? LoggedOn { get; set; }
+        [DataMember(Name = "filePath")] public string FilePath { get; set; }
+        [DataMember(Name = "fileExists")] public bool? FileExists { get; set; }
+        [DataMember(Name = "registryKey")] public string RegistryKey { get; set; }
+        [DataMember(Name = "registryValue")] public string RegistryValue { get; set; }
+        [DataMember(Name = "registryExists")] public bool? RegistryExists { get; set; }
+    }
+
+    [DataContract]
+    public class NetworkCard
+    {
+        [DataMember(Name = "mac")] public string Mac { get; set; }
+        [DataMember(Name = "broadcast")] public string Broadcast { get; set; }
     }
 
     [DataContract]
@@ -33,6 +60,8 @@ namespace DeployCraft.Runner
         /// <summary>Mode pull : fichier (UNC) à copier dans exec\ avant l'étape, avec l'identité du runner.</summary>
         [DataMember(Name = "sourcePath")] public string SourcePath { get; set; }
         [DataMember(Name = "includeDirectory")] public bool IncludeDirectory { get; set; }
+        /// <summary>Conditions de l'étape : non remplies, l'étape est sautée.</summary>
+        [DataMember(Name = "conditions")] public JobConditions Conditions { get; set; }
     }
 
     [DataContract]
@@ -42,6 +71,8 @@ namespace DeployCraft.Runner
         [DataMember(Name = "state")] public string State { get; set; } = "running";
         [DataMember(Name = "error")] public string Error { get; set; }
         [DataMember(Name = "steps")] public List<StepResult> Steps { get; set; } = new List<StepResult>();
+        /// <summary>Cartes réseau du poste, retenues par le serveur pour le réveiller plus tard (Wake-on-LAN).</summary>
+        [DataMember(Name = "network")] public List<NetworkCard> Network { get; set; }
     }
 
     [DataContract]
