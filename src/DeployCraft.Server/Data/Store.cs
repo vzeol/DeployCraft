@@ -128,6 +128,15 @@ public class Store
         AddColumnIfMissing(db, "packages", "timeout", "INTEGER");
         AddColumnIfMissing(db, "packages", "conditions", "TEXT");
         AddColumnIfMissing(db, "packages", "offline", "TEXT");
+        // Dossiers de l'arbre des paquets.
+        Exec(db, """
+            CREATE TABLE IF NOT EXISTS package_folders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                parent_id INTEGER
+            );
+            """);
+        AddColumnIfMissing(db, "packages", "folder_id", "INTEGER");
         // Adresses MAC apprises lors des déploiements, pour le Wake-on-LAN.
         Exec(db, """
             CREATE TABLE IF NOT EXISTS computers (
@@ -170,7 +179,7 @@ public class Store
 
     // ---------- Paquets ----------
 
-    private const string PackageColumns = "id, name, description, steps, modified_utc, run_as, copy_mode, version, timeout, conditions, offline";
+    private const string PackageColumns = "id, name, description, steps, modified_utc, run_as, copy_mode, version, timeout, conditions, offline, folder_id";
 
     public List<Package> ListPackages()
     {
@@ -202,18 +211,21 @@ public class Store
             ("$version", string.IsNullOrWhiteSpace(p.Version) ? null : p.Version.Trim()), ("$timeout", p.TimeoutMinutes),
             ("$conditions", JsonSerializer.Serialize(p.Conditions, Json)),
             ("$offline", p.Offline == null ? null : JsonSerializer.Serialize(p.Offline, Json)),
+            ("$folder", p.FolderId),
         };
         if (p.Id == 0)
         {
             using var cmd = Command(db, """
-                INSERT INTO packages (name, description, steps, modified_utc, run_as, copy_mode, version, timeout, conditions, offline)
-                VALUES ($name, $desc, $steps, $mod, $runas, $copy, $version, $timeout, $conditions, $offline);
+                INSERT INTO packages (name, description, steps, modified_utc, run_as, copy_mode, version, timeout, conditions, offline, folder_id)
+                VALUES ($name, $desc, $steps, $mod, $runas, $copy, $version, $timeout, $conditions, $offline, $folder);
                 SELECT last_insert_rowid();
                 """, args);
             p.Id = (long)cmd.ExecuteScalar()!;
         }
         else
         {
+            // Le dossier n'est pas modifié ici (seulement par MovePackage) : enregistrer un paquet ouvert avant un
+            // déplacement ne le remet pas à son ancienne place.
             using var cmd = Command(db, """
                 UPDATE packages SET name=$name, description=$desc, steps=$steps, modified_utc=$mod, run_as=$runas, copy_mode=$copy,
                     version=$version, timeout=$timeout, conditions=$conditions, offline=$offline
@@ -245,7 +257,52 @@ public class Store
         TimeoutMinutes = r.IsDBNull(8) ? null : r.GetInt32(8),
         Conditions = r.IsDBNull(9) ? new() : JsonSerializer.Deserialize<Conditions>(r.GetString(9), Json) ?? new(),
         Offline = r.IsDBNull(10) ? null : JsonSerializer.Deserialize<OfflineSettings>(r.GetString(10), Json),
+        FolderId = r.IsDBNull(11) ? null : r.GetInt64(11),
     };
+
+    public void MovePackage(long id, long? folderId)
+    {
+        using var db = Open();
+        using var cmd = Command(db, "UPDATE packages SET folder_id = $f WHERE id = $id", ("$f", folderId), ("$id", id));
+        cmd.ExecuteNonQuery();
+    }
+
+    // ---------- Dossiers de paquets ----------
+
+    public List<PackageFolder> ListFolders()
+    {
+        using var db = Open();
+        using var cmd = Command(db, "SELECT id, name, parent_id FROM package_folders ORDER BY name COLLATE NOCASE");
+        using var r = cmd.ExecuteReader();
+        var list = new List<PackageFolder>();
+        while (r.Read()) list.Add(new() { Id = r.GetInt64(0), Name = r.GetString(1), ParentId = r.IsDBNull(2) ? null : r.GetInt64(2) });
+        return list;
+    }
+
+    public PackageFolder SaveFolder(PackageFolder f)
+    {
+        using var db = Open();
+        var args = new (string, object?)[] { ("$id", f.Id), ("$name", f.Name.Trim()), ("$parent", f.ParentId) };
+        if (f.Id == 0)
+        {
+            using var cmd = Command(db, "INSERT INTO package_folders (name, parent_id) VALUES ($name, $parent); SELECT last_insert_rowid();", args);
+            f.Id = (long)cmd.ExecuteScalar()!;
+        }
+        else
+        {
+            using var cmd = Command(db, "UPDATE package_folders SET name = $name, parent_id = $parent WHERE id = $id", args);
+            cmd.ExecuteNonQuery();
+        }
+        f.Name = f.Name.Trim();
+        return f;
+    }
+
+    public void DeleteFolder(long id)
+    {
+        using var db = Open();
+        using var cmd = Command(db, "DELETE FROM package_folders WHERE id = $id", ("$id", id));
+        cmd.ExecuteNonQuery();
+    }
 
     /// <summary>Valeur rangée dans run_as / copy_mode quand le paquet suit les Préférences.</summary>
     private const string DefaultValue = "Default";

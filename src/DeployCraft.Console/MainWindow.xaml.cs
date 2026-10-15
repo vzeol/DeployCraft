@@ -98,6 +98,7 @@ public partial class MainWindow : Window
         Nav.Items.Add(_schedulesNode);
         Nav.Items.Add(_libraryNode);
         Nav.Items.Add(_packagesNode);
+        SetupFolderDragDrop();
 
         foreach (var panel in new[] { AllDeployments, PackageDeployments, ScheduleDeployments })
         {
@@ -169,6 +170,7 @@ public partial class MainWindow : Window
             (Key.F5, _, _, _) => () => Refresh_Click(this, e),
             (Key.N, true, _, _) => () => NewPackage_Click(this, e),
             (Key.N, _, true, _) => () => NewSchedule_Click(this, e),
+            (Key.F, _, true, _) => () => NewFolder_Click(this, e),
             (Key.O, true, _, _) => () => EditPackage_Click(this, e),
             (Key.D, true, _, _) => () => DeployOnce_Click(this, e),
             (Key.R, true, _, _) => () => Redeploy_Click(this, e),
@@ -189,14 +191,17 @@ public partial class MainWindow : Window
     {
         var package = _connected && SelectedPackage != null;
         MenuNewPackage.IsEnabled = MenuNewSchedule.IsEnabled = _connected;
-        MenuDuplicate.IsEnabled = MenuOpen.IsEnabled = MenuDeployOnce.IsEnabled = MenuRename.IsEnabled = MenuExport.IsEnabled = package;
+        MenuNewFolder.IsEnabled = _connected;
+        MenuDuplicate.IsEnabled = MenuOpen.IsEnabled = MenuDeployOnce.IsEnabled = MenuExport.IsEnabled = package;
+        var folder = _connected && SelectedFolder != null;
+        MenuRename.IsEnabled = package || folder;
         MenuImport.IsEnabled = _connected;
         MenuExportAll.IsEnabled = _connected && _packages.Count > 0;
         var panel = CurrentPanel;
         MenuAbort.IsEnabled = panel.CanAbort;
         MenuRedeploy.IsEnabled = panel.CanRedeploy;
         MenuRedeployFailed.IsEnabled = MenuRedeployFromStep.IsEnabled = panel.CanRedeployFailed;
-        MenuDelete.IsEnabled = TreeHasFocus ? package : panel.CanDelete;
+        MenuDelete.IsEnabled = TreeHasFocus ? package || folder : panel.CanDelete;
     }
 
     // ---------- Menus clic droit ----------
@@ -220,10 +225,20 @@ public partial class MainWindow : Window
                     Ui.Separator,
                     new("Supprimer", () => DeletePackage_Click(this, new()), Gesture: "Suppr"),
                 ];
+            if (SelectedFolder is { } folder)
+                return
+                [
+                    new("Nouveau paquet…", () => NewPackage_Click(this, new()), Gesture: "Ctrl+N"),
+                    new("Nouveau dossier…", () => NewFolder_Click(this, new()), Gesture: "Ctrl+Maj+F"),
+                    Ui.Separator,
+                    new("Renommer", () => _ = RenameFolderAsync(folder), Gesture: "F2"),
+                    new("Supprimer", () => _ = DeleteFolderAsync(folder), Gesture: "Suppr"),
+                ];
             if (Nav.SelectedItem == _packagesNode)
                 return
                 [
                     new("Nouveau paquet…", () => NewPackage_Click(this, new()), Gesture: "Ctrl+N"),
+                    new("Nouveau dossier…", () => NewFolder_Click(this, new()), Gesture: "Ctrl+Maj+F"),
                     Ui.Separator,
                     new("Importer des paquets…", () => Import_Click(this, new())),
                     new("Exporter tous les paquets…", () => ExportAll_Click(this, new()), _packages.Count > 0),
@@ -335,20 +350,10 @@ public partial class MainWindow : Window
     private async Task RefreshPackagesAsync()
     {
         var selectedId = SelectedPackage?.Id;
+        var selectedFolderId = SelectedFolder?.Id;
+        _folders = await Api.Folders();
         _packages = await Api.Packages();
-        RebuildPackageNodes(selectedId);
-    }
-
-    private void RebuildPackageNodes(long? selectId)
-    {
-        var filter = Filter.Text.Trim();
-        _packagesNode.Items.Clear();
-        foreach (var p in _packages.Where(p => filter.Length == 0 || p.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)))
-        {
-            var node = new TreeViewItem { Header = Ui.Header(Ui.IconPackage, p.Name), Tag = p };
-            _packagesNode.Items.Add(node);
-            if (p.Id == selectId) node.IsSelected = true;
-        }
+        RebuildPackageNodes(selectedId, selectedFolderId);
     }
 
     private async Task RefreshViewAsync()
@@ -546,17 +551,6 @@ public partial class MainWindow : Window
         catch (ApiException ex) { Ui.Error(this, ex); }
     }
 
-    private void SelectPackageNode(long packageId)
-    {
-        foreach (TreeViewItem node in _packagesNode.Items)
-            if (node.Tag is Package p && p.Id == packageId)
-            {
-                node.IsSelected = true;
-                node.BringIntoView();
-                return;
-            }
-    }
-
     // ---------- Vues ----------
 
     private void SwitchTo(View view)
@@ -650,7 +644,7 @@ public partial class MainWindow : Window
 
     private async void NewPackage_Click(object sender, RoutedEventArgs e)
     {
-        var window = new PackageWindow(new Package { Steps = [PackageWindow.NewStep(StepType.Install)] }) { Owner = this };
+        var window = new PackageWindow(new Package { Steps = [PackageWindow.NewStep(StepType.Install)], FolderId = CurrentFolderId }) { Owner = this };
         window.ShowDialog();
         if (window.Saved) await AfterPackageSaved(window.Package);
     }
@@ -670,7 +664,9 @@ public partial class MainWindow : Window
     private async Task AfterPackageSaved(Package saved)
     {
         _packages = await Api.Packages();
+        if (saved.FolderId is { } folder) _expandedFolders.Add(folder);
         RebuildPackageNodes(saved.Id);
+        SelectPackageNode(saved.Id);
         if (_packages.FirstOrDefault(p => p.Id == saved.Id) is { } fresh) ShowPackage(fresh);
         await RefreshAsync(packages: false);
     }
@@ -743,6 +739,11 @@ public partial class MainWindow : Window
 
     private async void Rename_Click(object sender, RoutedEventArgs e)
     {
+        if (SelectedFolder is { } folder)
+        {
+            await RenameFolderAsync(folder);
+            return;
+        }
         if (SelectedPackage is not { } selected) return;
         if (InputDialog.Ask(this, "Renommer", "Nouveau nom du paquet :", selected.Name) is not { } name || name == selected.Name) return;
         try
@@ -793,7 +794,8 @@ public partial class MainWindow : Window
     /// <summary>Suppr : le paquet si l'arbre a le focus, la planification si sa grille l'a, sinon le déploiement sélectionné.</summary>
     private void Delete_Click(object sender, RoutedEventArgs e)
     {
-        if (TreeHasFocus) DeletePackage_Click(sender, e);
+        if (TreeHasFocus && SelectedFolder is { } folder) _ = DeleteFolderAsync(folder);
+        else if (TreeHasFocus) DeletePackage_Click(sender, e);
         else if (SchedulesGrid.IsKeyboardFocusWithin && SelectedSchedule is { } s) DeleteSchedule(s);
         else if (CurrentPanel.CanDelete) CurrentPanel.DeleteSelected();
     }

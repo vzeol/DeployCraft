@@ -42,6 +42,12 @@ public static class Api
     public static Task<Package> SavePackage(Package p) =>
         p.Id == 0 ? Send<Package>(HttpMethod.Post, "packages", p) : Send<Package>(HttpMethod.Put, $"packages/{p.Id}", p);
     public static Task DeletePackage(long id) => Send<object>(HttpMethod.Delete, $"packages/{id}");
+    public static Task MovePackage(long id, long? folderId) => Send<object>(HttpMethod.Put, $"packages/{id}/folder", new { folderId });
+
+    public static Task<List<PackageFolder>> Folders() => Get<List<PackageFolder>>("folders");
+    public static Task<PackageFolder> SaveFolder(PackageFolder f) =>
+        f.Id == 0 ? Send<PackageFolder>(HttpMethod.Post, "folders", f) : Send<PackageFolder>(HttpMethod.Put, $"folders/{f.Id}", f);
+    public static Task DeleteFolder(long id) => Send<object>(HttpMethod.Delete, $"folders/{id}");
 
     /// <summary>Fichier d'export : les paquets choisis et les paquets imbriqués qu'ils utilisent.</summary>
     public static Task<PackageExport> ExportPackages(IEnumerable<long> ids) => Send<PackageExport>(HttpMethod.Post, "packages/export", ids.ToList());

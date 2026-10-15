@@ -30,6 +30,7 @@
         <Menu DockPanel.Dock="Top" Padding="2">
             <MenuItem Header="_Fichier" SubmenuOpened="Menu_Opened">
                 <MenuItem Header="_Nouveau paquet" Click="NewPackage_Click" InputGestureText="Ctrl+N" x:Name="MenuNewPackage" />
+                <MenuItem Header="Nouveau d_ossier" Click="NewFolder_Click" InputGestureText="Ctrl+Maj+F" x:Name="MenuNewFolder" />
                 <Separator />
                 <MenuItem Header="D_upliquer le paquet" Click="Duplicate_Click" InputGestureText="Alt+Inser" x:Name="MenuDuplicate" />
                 <MenuItem Header="_Modifier le paquet…" Click="EditPackage_Click" InputGestureText="Ctrl+O" x:Name="MenuOpen" />
