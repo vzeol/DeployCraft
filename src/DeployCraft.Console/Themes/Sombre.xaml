@@ -4,7 +4,7 @@
     <SolidColorBrush x:Key="Accent" Color="#F5892B" />
     <SolidColorBrush x:Key="AccentText" Color="#1A1A1A" />
     <SolidColorBrush x:Key="TextBrush" Color="#E0E0E0" />
-    <SolidColorBrush x:Key="MutedBrush" Color="#A0A0A0" />
+    <SolidColorBrush x:Key="MutedBrush" Color="#A8A8A8" />
     <SolidColorBrush x:Key="WindowBackground" Color="#333333" />
     <SolidColorBrush x:Key="ContentBackground" Color="#333333" />
     <SolidColorBrush x:Key="AltBackground" Color="#2B2B2B" />
@@ -18,6 +18,13 @@
     <SolidColorBrush x:Key="OkBrush" Color="#66BB6A" />
     <SolidColorBrush x:Key="KoBrush" Color="#EF5350" />
     <SolidColorBrush x:Key="RunBrush" Color="#29B6F6" />
+    <!-- Boutons et champs : bordure ≥ 3:1 sur le fond, texte ≥ 4,5:1 (WCAG). Bouton principal = accent. -->
+    <SolidColorBrush x:Key="ControlBackground" Color="#3E3E3E" />
+    <SolidColorBrush x:Key="ControlHoverBackground" Color="#4D4D4D" />
+    <SolidColorBrush x:Key="ControlBorder" Color="#8A8A8A" />
+    <SolidColorBrush x:Key="PrimaryBackground" Color="#F5892B" />
+    <SolidColorBrush x:Key="PrimaryHoverBackground" Color="#F7A65C" />
+    <SolidColorBrush x:Key="PrimaryText" Color="#1A1A1A" />
 
     <!-- Accent des contrôles Fluent (sélection, focus, cases à cocher) : notre orange au lieu de la couleur de Windows. -->
     <Color x:Key="SystemAccentColor">#E8710A</Color>
