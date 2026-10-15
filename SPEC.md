@@ -29,7 +29,7 @@
 | Installer | Lancer un MSI / EXE / MSU avec paramètres silencieux, codes de succès configurables |
 | Commande | Ligne de commande cmd |
 | PowerShell | Script PowerShell |
-| Copie de fichiers *(à venir)* | Copier des fichiers / dossiers vers la cible |
+| Copie de fichiers | Copier un fichier ou un dossier vers un dossier du poste (voir § Étape « Copie de fichiers ») |
 | Redémarrer *(à venir)* | Redémarrer et attendre le retour du poste |
 | Pause | Attendre N secondes (1 s à 24 h) sur le poste avant l'étape suivante ; rien n'est lancé, pas de code de succès ; l'attente s'arrête si le déploiement est annulé |
 | Message *(à venir)* | Afficher un message à l'utilisateur connecté |
@@ -119,6 +119,23 @@
 - Fichier (chemin local ou UNC), paramètres, dossier entier si l'installeur a plusieurs fichiers
 - **Codes de succès par défaut : `0, 1641, 3010, 2359302`** (OK, OK + redémarrage lancé, OK + redémarrage
   requis, mise à jour MSU déjà installée)
+
+### Étape « Copie de fichiers »
+- **Source** : fichier ou dossier vu depuis le serveur (chemin local ou UNC). **Destination** : dossier du poste,
+  créé s'il manque ; les variables d'environnement (`%ProgramData%`, `%PUBLIC%`…) prennent les valeurs de
+  l'identité de l'étape (celles de l'utilisateur connecté si l'étape s'exécute en son nom).
+- Pour une source dossier : **motifs** séparés par « ; » (`*` par défaut), **sous-dossiers** (cochés par défaut,
+  recréés même vides). Une source fichier copie ce seul fichier.
+- **Remplacer les fichiers déjà présents** (coché par défaut) ; décoché, un fichier présent sur le poste est gardé.
+- **Réussir même si des fichiers ne peuvent pas être remplacés** (fichier en cours d'utilisation…) : décoché, un
+  seul fichier non copié fait échouer l'étape. Une source introuvable reste toujours une erreur.
+- Push : le serveur dépose les fichiers retenus dans `exec\copie-N` (avec le compte de déploiement si la source
+  est sur un partage). Pull (source `\\serveur\…`) : le poste lit lui-même le partage. Dans les deux cas, la copie
+  vers la destination est faite sur le poste par `robocopy` (fourni avec Windows), sous l'identité de l'étape ; sa
+  sortie apparaît dans le détail de l'étape. Un fichier bloqué est réessayé une fois.
+- Pas de codes de succès à saisir : ceux de robocopy sont utilisés (0 à 7 = réussite ; 8 à 15 = des fichiers non
+  copiés, acceptés seulement avec « réussir même si… » ; 16 = erreur grave).
+- Refusé à l'enregistrement : source ou destination vide.
 
 ## 3. Déroulé d'un déploiement sur un poste
 

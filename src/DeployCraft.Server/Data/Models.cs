@@ -1,7 +1,7 @@
 namespace DeployCraft.Server.Data;
 
 /// <summary>Nested : paquet imbriqué, remplacé par ses étapes au lancement (jamais envoyé tel quel au poste).</summary>
-public enum StepType { Install, Command, PowerShell, Pause, Nested }
+public enum StepType { Install, Command, PowerShell, Pause, Nested, CopyFiles }
 
 /// <summary>En cas d'erreur d'une étape : arrêter en échec, continuer, ou arrêter le paquet en comptant le poste réussi.</summary>
 public enum ErrorMode { Stop, Continue, StopSuccess }
@@ -39,6 +39,18 @@ public class PackageStep
     public int PauseSeconds { get; set; } = 30;
     /// <summary>Paquet imbriqué : paquet dont les étapes prennent la place de celle-ci au lancement.</summary>
     public long? NestedPackageId { get; set; }
+    /// <summary>Copie de fichiers : fichier ou dossier à copier (chemin local ou UNC) côté serveur.</summary>
+    public string? CopySource { get; set; }
+    /// <summary>Copie de fichiers : dossier du poste (variables d'environnement acceptées), créé s'il manque.</summary>
+    public string? CopyDestination { get; set; }
+    /// <summary>Copie de fichiers : motifs séparés par « ; » (source dossier seulement).</summary>
+    public string CopyPatterns { get; set; } = "*";
+    /// <summary>Copie de fichiers : copier aussi les sous-dossiers de la source.</summary>
+    public bool CopySubfolders { get; set; } = true;
+    /// <summary>Copie de fichiers : remplacer les fichiers déjà présents (sinon ils sont gardés).</summary>
+    public bool CopyOverwrite { get; set; } = true;
+    /// <summary>Copie de fichiers : un fichier impossible à remplacer (en cours d'utilisation…) n'est pas une erreur.</summary>
+    public bool CopyIgnoreErrors { get; set; }
     /// <summary>
     /// Conditions à remplir en plus de celles de l'étape : posées au lancement sur les étapes d'un paquet imbriqué
     /// (conditions de l'étape « paquet imbriqué » et du paquet imbriqué lui-même).
@@ -54,6 +66,14 @@ public class PackageStep
     public ErrorMode ErrorMode { get; set; } = ErrorMode.Stop;
     /// <summary>Conditions de l'étape : non remplies sur un poste, l'étape y est sautée.</summary>
     public Conditions Conditions { get; set; } = new();
+
+    /// <summary>Motifs de la copie de fichiers, séparés par « ; » ou « , » (aucun = tous les fichiers).</summary>
+    public static List<string> SplitPatterns(string? text)
+    {
+        var patterns = (text ?? "").Split([';', ','], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        return patterns.Count > 0 ? patterns : ["*"];
+    }
 }
 
 /// <summary>Conditions héritées, avec leur origine pour expliquer une étape ignorée.</summary>

@@ -34,6 +34,13 @@ public class RunnerJobStep
     /// <summary>Mode pull : fichier (UNC) que le runner copie lui-même dans exec avant l'étape.</summary>
     [JsonPropertyName("sourcePath")] public string? SourcePath { get; set; }
     [JsonPropertyName("includeDirectory")] public bool IncludeDirectory { get; set; }
+    /// <summary>copyfiles : dossier du poste où copier (variables d'environnement acceptées).</summary>
+    [JsonPropertyName("copyDestination")] public string? CopyDestination { get; set; }
+    /// <summary>copyfiles : motifs des fichiers à copier (« * » = tous).</summary>
+    [JsonPropertyName("copyPatterns")] public List<string>? CopyPatterns { get; set; }
+    [JsonPropertyName("copySubfolders")] public bool CopySubfolders { get; set; }
+    /// <summary>copyfiles : remplacer les fichiers déjà présents sur le poste.</summary>
+    [JsonPropertyName("copyOverwrite")] public bool CopyOverwrite { get; set; }
     /// <summary>Conditions de l'étape : non remplies, l'étape est sautée.</summary>
     [JsonPropertyName("conditions")] public RunnerConditions? Conditions { get; set; }
     /// <summary>Conditions supplémentaires (paquet imbriqué), vérifiées avant celles de l'étape (null = aucune).</summary>
