@@ -15,25 +15,25 @@ dans la même PR que le code qui la réalise.
 
 | # | Fonction | État | Notes |
 |---|---|---|---|
-| 1.1 | Arbre de navigation à gauche : Paquets, Listes de cibles, Planifications, Tous les déploiements, File de réessai | 🟡 | Paquets, déploiements, planifications (0.8.0) |
+| 1.1 | Arbre de navigation à gauche : Paquets, Listes de cibles, Planifications, Tous les déploiements, File de réessai | ✅ | Paquets, déploiements, planifications (0.8.0). Listes de cibles et file de réessai écartées (choix du mainteneur) |
 | 1.2 | Dossiers dans l'arbre (paquets et listes de cibles), sous-dossiers, glisser-déposer | ⬜ | Ctrl+Maj+F |
 | 1.3 | Page d'un paquet : détails, étapes, déploiements du paquet, planifications attachées | 🟡 | Onglet Planifications en 0.8.0 |
-| 1.4 | Page d'un dossier, page « plusieurs paquets sélectionnés » | ⬜ | |
+| 1.4 | Page d'un dossier, page « plusieurs paquets sélectionnés » | ❌ | Écarté : choix du mainteneur |
 | 1.5 | Renommer (F2), dupliquer, couper / copier / coller, supprimer dans l'arbre | 🟡 | |
-| 1.6 | Apparence d'un nœud de l'arbre (couleur / mise en forme) | ⬜ | |
+| 1.6 | Apparence d'un nœud de l'arbre (couleur / mise en forme) | ⬜ | Avec la reprise de l'apparence générale, après les fonctions (choix du mainteneur) |
 | 1.7 | Menus Fichier / Édition / Affichage / Options / Aide + clic droit partout | 🟡 | 0.5.0 : Fichier, Édition, Options, Aide |
-| 1.8 | Fenêtre des raccourcis clavier | ⬜ | |
+| 1.8 | Fenêtre des raccourcis clavier | ❌ | Écarté : choix du mainteneur (à revoir selon les retours d'usage) |
 | 1.9 | Thèmes clair / sombre | ✅ | 0.7.0 : Clair, Sombre ou Selon Windows ; Préférences › Interface, appliqué à chaud |
 | 1.10 | Page d'accueil | ⬜ | |
-| 1.11 | Import / export (paquets, dossiers, listes de cibles, planifications, réglages) | 🟡 | Paquets : export / import JSON à nous, import de fichiers XML de paquets avec aperçu. Manquent dossiers, listes de cibles, planifications, réglages |
-| 1.12 | Imprimer, aperçu avant impression, mise en page, enregistrer une grille en CSV | ⬜ | |
+| 1.11 | Import / export (paquets, dossiers, listes de cibles, planifications, réglages) | ✅ | Paquets : export / import JSON à nous, import de fichiers XML de paquets avec aperçu. Le reste écarté (choix du mainteneur) |
+| 1.12 | Imprimer, aperçu avant impression, mise en page, enregistrer une grille en CSV | ❌ | Écarté : choix du mainteneur (le résultat dans la console suffit) |
 | 1.13 | À propos | 🟡 | |
 
 ## 2. Paquets
 
 | # | Fonction | État | Notes |
 |---|---|---|---|
-| 2.1 | Nom, description (texte riche), version, dossier | 🟡 | Version en 0.10.0. Pas de texte riche ni de dossier |
+| 2.1 | Nom, description (texte riche), version, dossier | ✅ | Nom, version, description. Texte riche écarté (choix du mainteneur) ; dossiers : voir 1.2 |
 | 2.2 | Fenêtre paquet à onglets : Détails, Conditions, Options, Hors ligne | ✅ | 0.10.0 ; l'étape a aussi Détails, Conditions, Options |
 | 2.3 | Options du paquet : délai personnalisé, mode de copie, exécuter en tant que, réessai | ✅ | 0.10.0 : chaque option peut suivre les Préférences ; réessai dans l'onglet Hors ligne |
 | 2.4 | Conditions du paquet : version d'OS + architecture, version PowerShell, utilisateur connecté, fichier, registre | ✅ | 0.10.0 : vérifiées par le runner ; non remplies = poste réussi sans rien exécuter |
@@ -45,7 +45,7 @@ dans la même PR que le code qui la réalise.
 | 2.10 | Copier / couper / coller / réordonner des étapes, y compris entre paquets | ✅ | 0.10.0 : presse-papiers (Ctrl+X / C / V), barre d'outils et clic droit |
 | 2.11 | Avertissements : fichier introuvable, pas de paramètre silencieux, conflit avec le mode « pull » | 🟡 | |
 | 2.12 | Dupliquer, exporter un paquet | ✅ | Export avec ses paquets imbriqués |
-| 2.13 | Dossiers de paquets publics / privés | ⬜ | |
+| 2.13 | Dossiers de paquets publics / privés | ❌ | Écarté : choix du mainteneur (une seule console) |
 
 ### Types d'étapes
 
@@ -58,7 +58,7 @@ dans la même PR que le code qui la réalise.
 | 2.24 | Redémarrer | ✅ | Message, délai (30 s à 1 h), arrêt au lieu du redémarrage ; attend le retour du poste (délai max de l'étape) avant l'étape suivante |
 | 2.25 | Pause | ✅ | N secondes (1 s à 24 h), interrompue par l'annulation |
 | 2.26 | Message | ✅ | Titre, texte, durée d'affichage (0 = jusqu'au clic), attendre le clic sur OK avant l'étape suivante ; affiché dans chaque session ouverte |
-| 2.27 | Déconnexion de l'utilisateur | ⬜ | Message, délai |
+| 2.27 | Déconnexion de l'utilisateur | ❌ | Écarté : choix du mainteneur (outil de déploiement silencieux) |
 | 2.28 | Paquet imbriqué | ✅ | Remplacé par ses étapes au lancement ; conditions combinées, boucles et plus de 5 niveaux refusés |
 | 2.29 | Scan d'inventaire | ⛔ | Nécessite un inventaire des postes |
 
@@ -68,12 +68,12 @@ dans la même PR que le code qui la réalise.
 |---|---|---|---|
 | 3.1 | Plusieurs paquets, ordonnés | ✅ | 0.6.0 : un déploiement par paquet ; sur un poste, le suivant attend la fin du précédent (même en échec) |
 | 3.2 | Cibles : saisie, collage, Active Directory | ✅ | Arbre AD dépliable (0.5.1) |
-| 3.3 | Cibles : liste de cibles, fichier texte | 🟡 | Fichier texte en 0.6.0 ; listes de cibles avec §6 |
+| 3.3 | Cibles : liste de cibles, fichier texte | ✅ | Fichier texte en 0.6.0. Listes de cibles écartées (choix du mainteneur) : les postes se choisissent dans l'AD |
 | 3.4 | Résolution DNS des noms saisis (vérification en direct) | ⬜ | |
 | 3.5 | Démarrer à l'étape N, **par poste** | ✅ | 0.6.0 ; porte sur le premier paquet. « Reprendre à l'étape en échec » = un seul déploiement |
 | 3.6 | Options : compte, mode de copie, exécuter en tant que | ✅ | 0.6.0 ; identifiant au choix en 0.9.0 ; « Paramètre du paquet » par défaut. Compte de déploiement / Système local / Utilisateur connecté ; push / pull (UNC) |
-| 3.7 | Options : notifications, mémoriser les cibles, prioritaire | 🟡 | Mémoriser + prioritaire en 0.6.0 ; notifications avec §9 |
-| 3.8 | Onglet Hors ligne : ping avant, Wake-on-LAN, file de réessai | 🟡 | 0.10.0 : réglé dans le paquet (et les Préférences), pas encore dans Déployer une fois. Test DNS + partage de fichiers toujours fait avant la copie |
+| 3.7 | Options : notifications, mémoriser les cibles, prioritaire | ✅ | Mémoriser + prioritaire en 0.6.0. Notifications écartées (choix du mainteneur) |
+| 3.8 | Onglet Hors ligne : ping avant, Wake-on-LAN, file de réessai | ✅ | 0.10.0 : réglé dans le paquet (et les Préférences). Dans Déployer une fois : écarté (choix du mainteneur, les postes sont allumés avant ; le réveil existe) |
 | 3.9 | Bouton « Planifier » (crée une planification à partir de la fenêtre) | ✅ | 0.8.0 : reprend paquets, cibles, options |
 | 3.10 | Cibles depuis un inventaire des postes | ⛔ | |
 
@@ -86,10 +86,10 @@ dans la même PR que le code qui la réalise.
 | 4.3 | Compteurs par déploiement (en attente / en cours / réussis / échecs) + « partiellement échoué », « annulé » | 🟡 | |
 | 4.4 | Progression de copie (% et débit), note par étape, compte d'exécution par étape | ⬜ | |
 | 4.5 | Annuler, redéployer, redéployer les échecs, reprendre à l'étape en échec | ✅ | |
-| 4.6 | Prioriser un poste en attente | ⬜ | |
+| 4.6 | Prioriser un poste en attente | ❌ | Écarté : choix du mainteneur |
 | 4.7 | Créer une planification depuis un déploiement | ⬜ | |
 | 4.8 | Nettoyage automatique de l'historique après N jours | ✅ | Préférences › Déploiement : désactivé d'usine, de 1 à 3650 jours ; au démarrage du service puis une fois par jour ; seuls les déploiements terminés sont supprimés (jamais en attente ou en cours, ni l'historique des planifications) |
-| 4.9 | Fichier de sortie complet téléchargeable par étape | ⬜ | |
+| 4.9 | Fichier de sortie complet téléchargeable par étape | ⬜ | Ouvrir depuis le détail d'une étape sa sortie complète ou son journal, pour comprendre un échec |
 
 ## 5. Planifications
 
@@ -98,7 +98,7 @@ dans la même PR que le code qui la réalise.
 | 5.1 | Page « Toutes les planifications », fenêtre planification | ✅ | 0.8.0 : grille + déploiements de la planification ; fenêtre à onglets Déclencheurs / Cibles / Paquets / Options / Historique des cibles |
 | 5.2 | Déclencheurs : une fois, quotidien, hebdomadaire, mensuel (jour N ou « le 1er lundi »), intervalle | ✅ | 0.8.0 : plusieurs par planification, plage horaire pour l'intervalle, fin facultative, « dernier jour / dernier lundi » |
 | 5.3 | Déclencheur « heartbeat » (poste qui revient en ligne) | ⛔ | Nécessite un inventaire des postes ; un équivalent maison reste possible |
-| 5.4 | Paquets ordonnés, cibles, options (compte, copie, exécuter en tant que, délai, notifications, hors ligne, réessai) | 🟡 | 0.8.0 : paquets, cibles, copie, exécuter en tant que, délai d'attente ; identifiant en 0.9.0 ; manquent notifications et hors ligne |
+| 5.4 | Paquets ordonnés, cibles, options (compte, copie, exécuter en tant que, délai, notifications, hors ligne, réessai) | ✅ | 0.8.0 : paquets, cibles, copie, exécuter en tant que, délai d'attente ; identifiant en 0.9.0. Notifications et hors ligne écartés (choix du mainteneur) |
 | 5.5 | Arrêter après N échecs, arrêter après un succès (par poste) | ✅ | 0.8.0 : historique des cibles par poste × paquet, effaçable |
 | 5.6 | Activer / désactiver, prochaine et dernière exécution, dernière erreur | ✅ | 0.8.0 : « Dernier résultat » |
 | 5.7 | Attacher / détacher à un paquet, dupliquer, déployer maintenant | 🟡 | 0.8.0 : dupliquer, démarrer maintenant, nouvelle planification depuis un paquet ; pas d'« attacher » depuis l'arbre |
@@ -107,17 +107,17 @@ dans la même PR que le code qui la réalise.
 
 | # | Fonction | État | Notes |
 |---|---|---|---|
-| 6.1 | Listes de cibles réutilisables (Ctrl+Maj+T), dans des dossiers | ⬜ | |
-| 6.2 | Sources : postes, Active Directory (OU, groupe, conteneur), autre liste de cibles | ⬜ | |
-| 6.3 | Filtres globaux d'inclusion / exclusion (nom, IPv4, IPv6) | ⬜ | Préférences |
+| 6.1 | Listes de cibles réutilisables (Ctrl+Maj+T), dans des dossiers | ❌ | Écarté : choix du mainteneur (les postes se choisissent dans l'AD) |
+| 6.2 | Sources : postes, Active Directory (OU, groupe, conteneur), autre liste de cibles | ❌ | Écarté : choix du mainteneur |
+| 6.3 | Filtres globaux d'inclusion / exclusion (nom, IPv4, IPv6) | ❌ | Écarté : choix du mainteneur (à reconsidérer bien plus tard, selon les retours) |
 
 ## 7. File de réessai (hors ligne)
 
 | # | Fonction | État | Notes |
 |---|---|---|---|
 | 7.1 | Ping avant déploiement, Wake-on-LAN | ✅ | 0.10.0 : test DNS + partage toujours fait ; réveil avec l'adresse MAC apprise au dernier déploiement |
-| 7.2 | File de réessai : activée, nombre d'essais max, intervalle, expiration ; héritage préférences → paquet → déploiement | 🟡 | Retirée en 0.5.0, remise en 0.10.0 comme **option désactivée par défaut** : nombre d'essais et intervalle, préférences → paquet. Pas de page « File de réessai » ni d'expiration ; perdue au redémarrage du service |
-| 7.3 | Page de la file : poste × paquet, essais restants, prochain essai, « essayer maintenant », supprimer | ⬜ | |
+| 7.2 | File de réessai : activée, nombre d'essais max, intervalle, expiration ; héritage préférences → paquet → déploiement | ✅ | Retirée en 0.5.0, remise en 0.10.0 comme **option désactivée par défaut** : nombre d'essais et intervalle, préférences → paquet ; perdue au redémarrage du service. Expiration écartée (choix du mainteneur) |
+| 7.3 | Page de la file : poste × paquet, essais restants, prochain essai, « essayer maintenant », supprimer | ❌ | Écarté : choix du mainteneur (hors ligne non utilisé ; « Redéployer sur les postes en échec » existe) |
 
 ## 8. Préférences
 
@@ -127,29 +127,29 @@ dans la même PR que le code qui la réalise.
 | 8.2 | Variables | ❌ | Écarté : choix du mainteneur (ajoutées en 0.12.0, retirées ensuite ; un `$(…)` reste tel quel) |
 | 8.3 | Déploiement | ✅ | 0.10.0 : exécuter en tant que, délai par étape, comportement hors ligne par défaut ; nettoyage de l'historique (4.8) |
 | 8.4 | Performance | 🟡 | 0.10.0 : mode de copie par défaut. Reste : limite de bande passante, postes en parallèle (aujourd'hui fixé à 8) |
-| 8.5 | Dépôt de fichiers (`$(Repository)`) | ⬜ | Chemin, fichiers inutilisés, exclusions |
-| 8.6 | Filtres de cibles | ⬜ | cf. 6.3 |
-| 8.7 | Serveur de messagerie + notifications | ⬜ | |
-| 8.8 | Interface, impression | 🟡 | 0.7.0 : page Interface (thème) ; fenêtre des Préférences en liste de pages. Reste : écran de démarrage (on n'en a pas), impression |
+| 8.5 | Dépôt de fichiers (`$(Repository)`) | ❌ | Écarté : choix du mainteneur (les fichiers sont sur un partage du serveur) |
+| 8.6 | Filtres de cibles | ❌ | Écarté : choix du mainteneur (cf. 6.3) |
+| 8.7 | Serveur de messagerie + notifications | ❌ | Écarté : choix du mainteneur |
+| 8.8 | Interface, impression | ✅ | 0.7.0 : page Interface (thème) ; fenêtre des Préférences en liste de pages. Impression écartée (choix du mainteneur) |
 | 8.9 | Service en arrière-plan | ⬜ | Compte du service |
 | 8.10 | Utilisateurs de la console, sessions actives | ✅ | Authentification Windows ; administrateurs du serveur + liste de comptes et groupes |
-| 8.11 | Mode serveur central (local / serveur / client) | ⬜ | Notre console parle déjà en HTTP au service |
-| 8.12 | Service sur la cible | ⬜ | Nom d'hôte utilisé (FQDN / court / IP), réglages du service temporaire |
-| 8.13 | Proxy, base de données, journalisation | ⬜ | |
+| 8.11 | Mode serveur central (local / serveur / client) | ❌ | Écarté : choix du mainteneur (console et service sur la même machine) |
+| 8.12 | Service sur la cible | ❌ | Écarté : choix du mainteneur |
+| 8.13 | Proxy, base de données, journalisation | ❌ | Écarté : choix du mainteneur |
 | 8.14 | Mises à jour automatiques | ⬜ | À brancher sur nos Releases GitHub |
 
 ## 9. Rapports et notifications
 
 | # | Fonction | État | Notes |
 |---|---|---|---|
-| 9.1 | Rapports : déploiements, paquets, planifications, listes de cibles | ⬜ | |
-| 9.2 | Notification e-mail après déploiement ou planification : destinataires (à / cc / cci), objet, corps, pièce jointe, détails, seulement si changement, pas pour les réessais | ⬜ | |
+| 9.1 | Rapports : déploiements, paquets, planifications, listes de cibles | ❌ | Écarté : choix du mainteneur |
+| 9.2 | Notification e-mail après déploiement ou planification : destinataires (à / cc / cci), objet, corps, pièce jointe, détails, seulement si changement, pas pour les réessais | ❌ | Écarté : choix du mainteneur |
 
 ## 10. Divers
 
 | # | Fonction | État | Notes |
 |---|---|---|---|
-| 10.1 | Ligne de commande (déployer un paquet sur des cibles, lister…) | ⬜ | |
+| 10.1 | Ligne de commande (déployer un paquet sur des cibles, lister…) | ❌ | Écarté : choix du mainteneur |
 | 10.2 | Assistant de premier démarrage | ⬜ | |
 | 10.3 | Aide intégrée | ⬜ | |
 | 10.4 | Bibliothèque de paquets en ligne, mise à jour automatique des paquets | ⛔ | Catalogue en ligne : impossible à reprendre. Possible : bibliothèque locale à nous |
