@@ -26,6 +26,8 @@ arrêt puis réveil, messages avec le mainteneur devant l'écran). **Fenêtre d'
 non pilotables à distance) : à regarder par le mainteneur. Issue #60 (échec intermittent
 « runner arrêté sans résultat » alors que les étapes ont réussi) : correctif en PR (branche `fix/resultat-runner`),
 à tester par Prod sur un vrai poste.
+Suite (issue #69, branche `fix/suivi-robuste`, PR empilée sur la précédente) : coupure réseau tolérée 10 min pendant
+l'exécution, verrou de slot laissé par un serveur arrêté repris au lancement suivant.
 
 La 0.13.0 est validée par le mainteneur. Le réveil Wake-on-LAN d'un vrai poste éteint a été testé (0.14.0).
 
