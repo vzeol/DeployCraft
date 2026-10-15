@@ -157,6 +157,12 @@ public partial class MainWindow : Window
 
     private void OnShortcut(object sender, KeyEventArgs e)
     {
+        if (e.Key == Key.F1)
+        {
+            Help_Click(this, e);
+            e.Handled = true;
+            return;
+        }
         // Pas de raccourci pendant la saisie dans une zone de texte (sauf F5).
         if (e.Key != Key.F5 && Keyboard.FocusedElement is TextBox) return;
 
@@ -961,6 +967,15 @@ public partial class MainWindow : Window
 
     /// <summary>Affiche la bibliothèque de paquets (depuis l'assistant de démarrage).</summary>
     public void OpenLibrary() => _libraryNode.IsSelected = true;
+    /// <summary>F1 : l'aide, ouverte sur le sujet de la vue affichée.</summary>
+    private void Help_Click(object sender, RoutedEventArgs e) => HelpWindow.Show(this, _view switch
+    {
+        View.Deployments => "suivi",
+        View.Package => "paquets",
+        View.Schedules => "planifications",
+        View.Library => "bibliotheque",
+        _ => "accueil",
+    });
 
     private void ConsoleUsers_Click(object sender, RoutedEventArgs e) => new ConsoleUsersWindow { Owner = this }.ShowDialog();
 
