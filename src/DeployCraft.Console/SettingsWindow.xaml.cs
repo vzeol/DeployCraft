@@ -63,7 +63,7 @@ public partial class SettingsWindow : Window
         {
             e.Cancel = true;
             Tabs.SelectedIndex = 1;
-            MessageBox.Show(this, "Délai max : saisissez un nombre de minutes (1 ou plus).", "Préférences", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageDialog.Show(this, "Délai max : saisissez un nombre de minutes (1 ou plus).", "Préférences", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
         _defaults.TimeoutMinutes = timeout;

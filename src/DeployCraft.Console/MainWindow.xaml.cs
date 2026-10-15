@@ -475,7 +475,7 @@ public partial class MainWindow : Window
     private async void DeletePackage_Click(object sender, RoutedEventArgs e)
     {
         if (SelectedPackage is not { } p) return;
-        if (MessageBox.Show(this, $"Supprimer le paquet « {p.Name} » ?\nL'historique de ses déploiements est conservé.",
+        if (MessageDialog.Show(this, $"Supprimer le paquet « {p.Name} » ?\nL'historique de ses déploiements est conservé.",
                 "Supprimer", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         try
         {
@@ -570,7 +570,7 @@ public partial class MainWindow : Window
         {
             var run = await Api.RunSchedule(s.Id);
             if (run.Deployments.Count == 0)
-                MessageBox.Show(this, run.Result ?? "Rien à déployer.", s.Name, MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageDialog.Show(this, run.Result ?? "Rien à déployer.", s.Name, MessageBoxButton.OK, MessageBoxImage.Information);
             await RefreshAsync(packages: false);
         }
         catch (ApiException ex) { Ui.Error(this, ex); }
@@ -603,7 +603,7 @@ public partial class MainWindow : Window
 
     private async void DeleteSchedule(Schedule s)
     {
-        if (MessageBox.Show(this, $"Supprimer la planification « {s.Name} » ?\nSes déploiements passés restent dans l'historique.",
+        if (MessageDialog.Show(this, $"Supprimer la planification « {s.Name} » ?\nSes déploiements passés restent dans l'historique.",
                 "Supprimer", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         try
         {
@@ -664,7 +664,7 @@ public partial class MainWindow : Window
     }
 
     private void About_Click(object sender, RoutedEventArgs e) =>
-        MessageBox.Show(this, $"DeployCraft {typeof(MainWindow).Assembly.GetName().Version?.ToString(3)}\nDéploiement de logiciels sur le parc Windows.",
+        MessageDialog.Show(this, $"DeployCraft {typeof(MainWindow).Assembly.GetName().Version?.ToString(3)}\nDéploiement de logiciels sur le parc Windows.",
             "À propos", MessageBoxButton.OK, MessageBoxImage.Information);
 
     private void Exit_Click(object sender, RoutedEventArgs e) => Close();

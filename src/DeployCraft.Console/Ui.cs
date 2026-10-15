@@ -109,7 +109,7 @@ public static class Ui
     }
 
     public static void Error(Window? owner, Exception ex) =>
-        MessageBox.Show(owner!, ex.Message, "DeployCraft", MessageBoxButton.OK, MessageBoxImage.Warning);
+        MessageDialog.Show(owner!, ex.Message, "DeployCraft", MessageBoxButton.OK, MessageBoxImage.Warning);
 
     // ---------- Menus clic droit ----------
 

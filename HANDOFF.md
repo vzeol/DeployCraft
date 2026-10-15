@@ -50,10 +50,13 @@ version ni de release côté Cloud) :
 - **C — 2.5 sections avant / principales / après (PR #21)** : fusionnée. Règle (la nôtre, à faire confirmer par
   la session du mainteneur qui observe l'outil de référence) dans `SPEC.md` § Sections. Les étapes sont rangées
   par section à l'enregistrement (`Package.SortSteps`).
-- **D — 2.28 paquet imbriqué** : codé, en relecture. `Package.Flatten` remplace les étapes « paquet imbriqué »
+- **D — 2.28 paquet imbriqué (PR #26)** : fusionné. `Package.Flatten` remplace les étapes « paquet imbriqué »
   au lancement (dans `Resolve`) ; conditions héritées dans `ExtraConditions` / `extraConditions`. « Arrêter le
   déploiement » renommé « Arrêter en échec ».
-- E — 8.2 variables.
+- **Retours du mainteneur sur la 0.10.0** : correctif console en relecture. « REMARQUE » (couleur atténuée)
+  au lieu de « ERREUR » rouge pour un poste réussi, « Raison : » pour une étape ignorée, colonnes élargies ;
+  boîtes de message aux couleurs du thème (`MessageDialog`, même signature que MessageBox).
+- E — 8.2 variables : en cours (branche `feat/variables`).
 - Contributeur externe (chromozone21, par fork) : issues #22, #23, #24, à ne pas prendre.
 - Ensuite : 2.8, 2.23, 2.24, 2.26, 2.27, 2.20–2.22 (à tester sur un vrai poste).
 - Import des paquets PDQ Deploy (#14) : en attente, après ces sujets.

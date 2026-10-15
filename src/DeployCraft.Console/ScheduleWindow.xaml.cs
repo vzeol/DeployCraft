@@ -455,7 +455,7 @@ public partial class ScheduleWindow : Window
     private async void ClearAllHistory_Click(object sender, RoutedEventArgs e)
     {
         if (_schedule.Id == 0 || HistoryGrid.Items.Count == 0) return;
-        if (MessageBox.Show(this, "Effacer tout l'historique des cibles ?\nTous les postes recevront de nouveau les paquets au prochain déclenchement.",
+        if (MessageDialog.Show(this, "Effacer tout l'historique des cibles ?\nTous les postes recevront de nouveau les paquets au prochain déclenchement.",
                 "Historique des cibles", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         await ClearHistoryAsync([]);
     }
@@ -526,7 +526,7 @@ public partial class ScheduleWindow : Window
     private Schedule? Invalid(string message, int? tab, Control? focus)
     {
         if (tab is { } i) Tabs.SelectedIndex = i;
-        MessageBox.Show(this, message, Title, MessageBoxButton.OK, MessageBoxImage.Warning);
+        MessageDialog.Show(this, message, Title, MessageBoxButton.OK, MessageBoxImage.Warning);
         focus?.Focus();
         return null;
     }

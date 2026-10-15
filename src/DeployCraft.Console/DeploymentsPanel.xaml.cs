@@ -99,7 +99,7 @@ public partial class DeploymentsPanel : UserControl
     {
         var what = targets == null ? $"le déploiement {d.Id} ({d.PackageName})"
             : targets.Count == 1 ? $"le déploiement sur {targets[0].Computer}" : $"le déploiement sur ces {targets.Count} postes";
-        if (MessageBox.Show(Owner!, $"Annuler {what} ?\nUne installation en cours sera interrompue.",
+        if (MessageDialog.Show(Owner!, $"Annuler {what} ?\nUne installation en cours sera interrompue.",
                 "Annuler", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
         try
         {
@@ -112,7 +112,7 @@ public partial class DeploymentsPanel : UserControl
     private async Task DeleteSelectedAsync()
     {
         if (Selected is not { } d || IsActive(d)) return;
-        if (MessageBox.Show(Owner!, $"Supprimer le déploiement {d.Id} ({d.PackageName}) de l'historique ?",
+        if (MessageDialog.Show(Owner!, $"Supprimer le déploiement {d.Id} ({d.PackageName}) de l'historique ?",
                 "Supprimer", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         try
         {

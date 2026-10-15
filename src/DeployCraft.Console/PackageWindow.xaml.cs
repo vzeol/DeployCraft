@@ -498,7 +498,7 @@ public partial class PackageWindow : Window
         }
         catch (System.Runtime.InteropServices.ExternalException)
         {
-            MessageBox.Show(this, "Presse-papiers occupé par une autre application : réessayez.", "Paquet", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageDialog.Show(this, "Presse-papiers occupé par une autre application : réessayez.", "Paquet", MessageBoxButton.OK, MessageBoxImage.Warning);
             return false;
         }
         UpdateButtons();
@@ -523,7 +523,7 @@ public partial class PackageWindow : Window
         }
         catch (Exception ex) when (ex is System.Runtime.InteropServices.ExternalException or JsonException)
         {
-            MessageBox.Show(this, "Impossible de coller l'étape : " + ex.Message, "Paquet", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageDialog.Show(this, "Impossible de coller l'étape : " + ex.Message, "Paquet", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 
@@ -579,7 +579,7 @@ public partial class PackageWindow : Window
         Package.Name = name; // le nom n'est rogné qu'à l'enregistrement
         if (e.Cancel || Snapshot() == _savedSnapshot) return;
 
-        var answer = MessageBox.Show(this, "Enregistrer les modifications du paquet ?", "Paquet",
+        var answer = MessageDialog.Show(this, "Enregistrer les modifications du paquet ?", "Paquet",
             MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
         if (answer == MessageBoxResult.No) return;
 

@@ -94,7 +94,7 @@ public partial class CredentialsWindow : Window
     private async void Remove_Click(object sender, RoutedEventArgs e)
     {
         if (Selected is not { } c) return;
-        if (MessageBox.Show(this, $"Supprimer l'identifiant {c.Display} ?", Title, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+        if (MessageDialog.Show(this, $"Supprimer l'identifiant {c.Display} ?", Title, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
             return;
         try
         {
