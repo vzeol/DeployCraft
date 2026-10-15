@@ -117,6 +117,18 @@
 
 ### Étape « Installer »
 - Fichier (chemin local ou UNC), paramètres, dossier entier si l'installeur a plusieurs fichiers
+- Types : .exe, .msi, .msp, .msu, .ps1, .bat / .cmd, .vbs, .reg. **Ligne de commande** affichée, générée d'après le
+  fichier, les paramètres et les options (msi : `msiexec /i|/f|/x "fichier" ALLUSERS=1 /qn /norestart /log output.log …` ;
+  msp : `/p` ; msu : `wusa` ; ps1 : PowerShell `-File` ; vbs : `cscript //B` ; reg : `reg import`). Case **Personnalisée** :
+  la ligne, pré-remplie, devient modifiable et est lancée telle quelle (par cmd, dans le dossier de travail du poste).
+- Options Windows Installer (.msi, .msp, .msu) : opération installer / réparer / désinstaller (pas de réparation pour
+  un .msu, pas d'opération pour un .msp), redémarrage jamais / toujours / demander / non défini, silencieux.
+- Le journal de Windows Installer (`output.log`) est ajouté au résultat de l'étape (sa fin s'il est trop long) ; les
+  codes d'erreur courants (1603, 1618, 1638…) sont expliqués.
+- **Fichiers additionnels** (aussi pour Commande et PowerShell) : un chemin par ligne, copiés à côté de la commande
+  avant l'étape (par le serveur, ou par le poste en mode pull pour un chemin UNC). Fichier introuvable : erreur.
+- **Garder le fichier sur le poste** : après l'étape, le fichier (et ses fichiers additionnels, ou tout le dossier)
+  est copié dans `%ProgramData%\DeployCraft\Installeurs\<paquet>`.
 - **Codes de succès par défaut : `0, 1641, 3010, 2359302`** (OK, OK + redémarrage lancé, OK + redémarrage
   requis, mise à jour MSU déjà installée)
 
@@ -310,8 +322,10 @@ déploiements possibles en même temps sur un poste.
   une boucle de paquets imbriqués dans le fichier est refusée. Chaque paquet est vérifié comme à l'enregistrement.
 - Fichier XML de paquets :
   - Étapes reprises : Installer, Commande, PowerShell, Copie de fichiers, Pause, Redémarrer, Paquet imbriqué.
-    Pas encore reprises (signalées) : Message, Déconnexion, désinstallation / réparation MSI,
-    ligne de commande personnalisée d'une installation ; jamais : scan d'inventaire.
+    Pas encore reprises (signalées) : Message, Déconnexion ; jamais : scan d'inventaire.
+  - Installer : options Windows Installer (installer / réparer / désinstaller, redémarrage, silencieux), ligne de
+    commande personnalisée et « garder le fichier sur le poste » sont repris. Une opération impossible pour le type
+    de fichier (réparer un .msu, opération sur un .msp) est remplacée par l'installation (signalé).
   - Paquet imbriqué : relié au paquet du même fichier, sinon à un paquet du même nom déjà dans DeployCraft
     (signalé), sinon l'étape n'est pas reprise.
   - Étapes « avant » et « après » : mises à la suite, dans l'ordre d'exécution (signalé).
@@ -320,7 +334,7 @@ déploiements possibles en même temps sur un poste.
     registre comparée, Windows Server version par version, collection d'un logiciel d'inventaire…) est signalée et l'étape est
     **importée désactivée** (toutes les étapes si c'est une condition du paquet) : elle ne s'exécute jamais sur plus
     de postes que prévu. On la vérifie, puis on la réactive.
-  - Fichiers additionnels d'une étape : pas encore copiés par DeployCraft, l'étape est importée désactivée.
+  - Fichiers additionnels d'une étape (Installer, Commande, PowerShell) : repris, `$(Repository)` compris.
   - `$(Repository)` est remplacé par le dossier du dépôt saisi dans la fenêtre d'import ; les autres variables
     restent telles quelles (signalées). Dossiers de paquets : DeployCraft n'en a pas, les paquets vont à la racine.
     Planifications et listes de postes du fichier : signalées, non reprises.

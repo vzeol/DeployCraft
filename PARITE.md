@@ -51,9 +51,9 @@ dans la même PR que le code qui la réalise.
 
 | # | Étape | État | Détails à couvrir |
 |---|---|---|---|
-| 2.20 | Installer | 🟡 | Types exe, cmd, msi, msu, msp, vbs, ps1, reg ; MSI : installer / désinstaller / réparer, silencieux, redémarrage (jamais / demander / toujours) ; ligne de commande personnalisée ; dossier entier ; fichiers additionnels ; garder le fichier sur le poste. Manquent : vbs, reg, opérations MSI, fichiers additionnels, garder le fichier |
-| 2.21 | Commande | 🟡 | Fichiers additionnels manquants |
-| 2.22 | PowerShell | 🟡 | Ligne de commande personnalisée, fichiers additionnels, alerte `Write-Host` |
+| 2.20 | Installer | ✅ | exe, bat/cmd, msi, msp, msu, ps1, vbs, reg ; MSI installer / réparer / désinstaller, redémarrage, silencieux ; ligne de commande générée ou personnalisée ; journal MSI ; fichiers additionnels ; garder le fichier |
+| 2.21 | Commande | ✅ | Fichiers additionnels |
+| 2.22 | PowerShell | ✅ | Fichiers additionnels. Écartés : ligne de commande personnalisée (choix du mainteneur) ; alerte `Write-Host` inutile (sa sortie est bien reprise dans le résultat) |
 | 2.23 | Copie de fichiers | ✅ | Fichier ou dossier (push ou pull), motifs, sous-dossiers, écraser ou garder, réussir malgré les fichiers impossibles à remplacer ; copie sur le poste par robocopy |
 | 2.24 | Redémarrer | ✅ | Message, délai (30 s à 1 h), arrêt au lieu du redémarrage ; attend le retour du poste (délai max de l'étape) avant l'étape suivante |
 | 2.25 | Pause | ✅ | N secondes (1 s à 24 h), interrompue par l'annulation |

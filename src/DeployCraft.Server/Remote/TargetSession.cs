@@ -347,10 +347,15 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
             var jobStep = ToJobStep(step, package, mode);
 
             // Étape désactivée : transmise pour apparaître « Ignoré », mais aucun fichier n'est copié ni vérifié.
+            if (step.Enabled && step.Type is StepType.Install or StepType.Command or StepType.PowerShell)
+                StageAdditionalFiles(step, jobStep, copyMode, exec);
+
             if (step.Type == StepType.Install && step.Enabled)
             {
                 if (string.IsNullOrWhiteSpace(step.File)) throw new DeployException($"Étape « {jobStep.Name} » : aucun fichier d'installation.");
                 jobStep.Command = Path.GetFileName(step.File);
+                jobStep.CommandLine = InstallCommand.For(step);
+                if (step.KeepInstallFile) jobStep.KeepFolder = KeepFolder(package.Name);
                 // Pull : le poste lit lui-même le partage, avec l'identité du runner. Un chemin local reste en push.
                 if (copyMode == CopyMode.Pull && step.File.StartsWith(@"\\"))
                 {
@@ -412,6 +417,34 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
                 File.Copy(file, destination, overwrite: true);
             }
+    }
+
+    /// <summary>
+    /// Fichiers additionnels : déposés par le serveur à côté de la commande (exec\), ou, en mode pull, lus par le poste
+    /// lui-même sur le partage. Un fichier introuvable arrête la préparation du poste.
+    /// </summary>
+    internal static void StageAdditionalFiles(PackageStep step, RunnerJobStep jobStep, CopyMode copyMode, string exec)
+    {
+        var files = PackageStep.SplitLines(step.AdditionalFiles).Select(Environment.ExpandEnvironmentVariables).ToList();
+        if (files.Count == 0) return;
+        jobStep.AdditionalFiles = [.. files.Select(Path.GetFileName).OfType<string>()];
+        foreach (var file in files)
+        {
+            if (copyMode == CopyMode.Pull && file.StartsWith(@"\\"))
+            {
+                (jobStep.PullFiles ??= []).Add(file);
+                continue;
+            }
+            if (!File.Exists(file)) throw new DeployException($"Étape « {jobStep.Name} » : fichier additionnel introuvable : {file}");
+            File.Copy(file, Path.Combine(exec, Path.GetFileName(file)), overwrite: true);
+        }
+    }
+
+    /// <summary>Dossier du poste où sont gardés les fichiers d'installation d'un paquet (option de l'étape « Installer »).</summary>
+    internal static string KeepFolder(string packageName)
+    {
+        var safe = string.Concat(packageName.Split(Path.GetInvalidFileNameChars())).Trim().TrimEnd('.');
+        return $@"%ProgramData%\DeployCraft\Installeurs\{(safe.Length > 0 ? safe : "Paquet")}";
     }
 
     /// <summary>Étapes envoyées au poste quand on (re)commence à l'étape N.</summary>

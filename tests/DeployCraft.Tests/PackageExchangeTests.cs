@@ -305,12 +305,37 @@ public class PackageExchangeTests
     }
 
     [Fact]
-    public void Xml_AdditionalFiles_DisableTheStep()
+    public void Xml_AdditionalFiles_AreKept_WithTheRepository()
     {
-        var report = Import(Xml(XmlPackage("Fichiers", Step("Command", "CommandStep", "<Command>x</Command><Files>C:\\a.cfg</Files>"))));
+        var report = Import(Xml(XmlPackage("Fichiers", Step("Command", "CommandStep", "<Command>x</Command><Files>$(Repository)\\App\\a.cfg\r\n\r\nC:\\b.cfg</Files>"))),
+            repository: @"\\SERVEUR-01\Depot");
 
-        Assert.False(_library[report.Packages[0].NewId!.Value].Steps[0].Enabled);
-        Assert.Equal(ImportState.Warning, report.Packages[0].Steps[0].State);
+        var step = _library[report.Packages[0].NewId!.Value].Steps[0];
+        Assert.True(step.Enabled);
+        Assert.Equal("\\\\SERVEUR-01\\Depot\\App\\a.cfg\nC:\\b.cfg", step.AdditionalFiles);
+        Assert.Equal(ImportState.Ok, report.Packages[0].Steps[0].State);
+    }
+
+    [Fact]
+    public void Xml_InstallOptions_AreConverted()
+    {
+        var xml = Xml(XmlPackage("Options",
+            Step("Install", "InstallStep", "<FileName>C:\\app.msi</FileName><MsiOperation>Uninstall</MsiOperation><MsiRestart>Prompt</MsiRestart><MsiQuiet value=\"false\" /><LeaveInstallFile value=\"true\" />") +
+            Step("Install", "InstallStep", "<FileName>C:\\setup.exe</FileName><CustomCommandLine>setup.exe /S /D=C:\\App</CustomCommandLine><MsiOperation>Repair</MsiOperation>") +
+            Step("Install", "InstallStep", "<FileName>C:\\maj.msu</FileName><MsiOperation>Repair</MsiOperation>")));
+
+        var report = Import(xml);
+
+        var steps = _library[report.Packages[0].NewId!.Value].Steps;
+        Assert.Equal(MsiOperation.Uninstall, steps[0].MsiOperation);
+        Assert.Equal(MsiRestart.Prompt, steps[0].MsiRestart);
+        Assert.False(steps[0].MsiQuiet);
+        Assert.True(steps[0].KeepInstallFile);
+        Assert.Equal("setup.exe /S /D=C:\\App", steps[1].CustomCommandLine);
+        Assert.Equal(MsiOperation.Install, steps[1].MsiOperation);
+        Assert.True(steps[1].MsiQuiet);
+        Assert.Equal(MsiOperation.Install, steps[2].MsiOperation);
+        Assert.Equal([ImportState.Ok, ImportState.Ok, ImportState.Warning], report.Packages[0].Steps.Select(s => s.State));
     }
 
     [Fact]

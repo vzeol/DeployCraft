@@ -45,6 +45,14 @@ public class RunnerJobStep
     [JsonPropertyName("shutdownOnly")] public bool ShutdownOnly { get; set; }
     /// <summary>message : attendre le clic de l'utilisateur (ou la fin de l'affichage).</summary>
     [JsonPropertyName("waitForUser")] public bool WaitForUser { get; set; }
+    /// <summary>install : ligne de commande complète, lancée par cmd dans exec\ (null pour les autres types).</summary>
+    [JsonPropertyName("commandLine")] public string? CommandLine { get; set; }
+    /// <summary>Mode pull : fichiers additionnels (UNC) que le runner copie lui-même dans exec\ avant l'étape.</summary>
+    [JsonPropertyName("pullFiles")] public List<string>? PullFiles { get; set; }
+    /// <summary>install : dossier du poste où garder le fichier d'installation après l'étape (null = ne pas le garder).</summary>
+    [JsonPropertyName("keepFolder")] public string? KeepFolder { get; set; }
+    /// <summary>install : noms (dans exec\) des fichiers additionnels, gardés avec le fichier d'installation.</summary>
+    [JsonPropertyName("additionalFiles")] public List<string>? AdditionalFiles { get; set; }
     /// <summary>Conditions de l'étape : non remplies, l'étape est sautée.</summary>
     [JsonPropertyName("conditions")] public RunnerConditions? Conditions { get; set; }
     /// <summary>Conditions supplémentaires (paquet imbriqué), vérifiées avant celles de l'étape (null = aucune).</summary>

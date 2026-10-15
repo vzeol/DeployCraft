@@ -102,7 +102,8 @@ namespace DeployCraft.Runner
                 return;
             }
 
-            result.CommandLine = $"{psi.FileName} {psi.Arguments}".Trim();
+            var install = step.Type == "install";
+            result.CommandLine = install ? step.CommandLine : $"{psi.FileName} {psi.Arguments}".Trim();
             psi.WorkingDirectory = _execDir;
             psi.UseShellExecute = false;
             psi.CreateNoWindow = true;
@@ -174,6 +175,7 @@ namespace DeployCraft.Runner
                 }
                 result.ExitCode = exitCode;
                 result.State = step.SuccessCodes.Contains(exitCode) ? "success" : "failed";
+                if (install && result.State == "failed") result.Error = InstallLog.ErrorMessage(step.Command, exitCode);
             }
             catch (Exception ex)
             {
@@ -184,6 +186,11 @@ namespace DeployCraft.Runner
             {
                 _current = 0;
                 lock (output) result.Output = output.ToString();
+                if (install)
+                {
+                    result.Output = InstallLog.Append(result.Output, _execDir, MaxOutputChars);
+                    Keep(step);
+                }
             }
         }
 
@@ -246,6 +253,46 @@ namespace DeployCraft.Runner
             result.Error = $"Délai dépassé ({step.TimeoutSeconds / 60} min). Paramètres silencieux manquants ?";
         }
 
+        /// <summary>Mode pull : un fichier additionnel copié dans exec\ depuis le partage, avec l'identité du runner.</summary>
+        private void PullFile(string path)
+        {
+            Log($"Copie depuis {path}");
+            try
+            {
+                File.Copy(path, Path.Combine(_execDir, Path.GetFileName(path)), true);
+            }
+            catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException)
+            {
+                throw new IOException($"Mode pull : fichier additionnel illisible ou introuvable : {path} ({ex.Message}).", ex);
+            }
+        }
+
+        /// <summary>
+        /// « Garder le fichier sur le poste » : le fichier d'installation et ses fichiers additionnels sont copiés dans
+        /// le dossier demandé (avec tout exec\ si l'étape copie le dossier entier). Un échec est noté sans changer le résultat.
+        /// </summary>
+        private void Keep(JobStep step)
+        {
+            if (string.IsNullOrWhiteSpace(step.KeepFolder)) return;
+            try
+            {
+                var folder = Environment.ExpandEnvironmentVariables(step.KeepFolder);
+                Directory.CreateDirectory(folder);
+                if (step.IncludeDirectory) CopyDirectory(_execDir, folder);
+                else
+                    foreach (var name in new[] { step.Command }.Concat(step.AdditionalFiles ?? Enumerable.Empty<string>()))
+                    {
+                        var file = Path.Combine(_execDir, name ?? "");
+                        if (File.Exists(file)) File.Copy(file, Path.Combine(folder, Path.GetFileName(file)), true);
+                    }
+                Log($"Fichier d'installation gardé dans {folder}");
+            }
+            catch (Exception ex)
+            {
+                Log("Fichier d'installation non gardé : " + ex.Message);
+            }
+        }
+
         /// <summary>Mode pull : le poste copie lui-même le fichier (ou son dossier) depuis le partage.</summary>
         private void Pull(JobStep step)
         {
@@ -284,6 +331,8 @@ namespace DeployCraft.Runner
         private ProcessStartInfo BuildStartInfo(int index, JobStep step)
         {
             var system32 = Environment.GetFolderPath(Environment.SpecialFolder.System);
+            if (step.PullFiles != null)
+                foreach (var file in step.PullFiles) PullFile(file);
             switch ((step.Type ?? "").ToLowerInvariant())
             {
                 case "install":
@@ -291,23 +340,11 @@ namespace DeployCraft.Runner
                         if (!string.IsNullOrEmpty(step.SourcePath)) Pull(step);
                         var file = Path.Combine(_execDir, step.Command ?? "");
                         if (!File.Exists(file)) throw new FileNotFoundException("Fichier d'installation introuvable sur la cible : " + step.Command);
-                        var args = step.Arguments ?? "";
-                        switch (Path.GetExtension(file).ToLowerInvariant())
-                        {
-                            case ".msi":
-                                return new ProcessStartInfo(Path.Combine(system32, "msiexec.exe"), $"/i \"{file}\" /qn /norestart {args}".Trim());
-                            case ".msp":
-                                return new ProcessStartInfo(Path.Combine(system32, "msiexec.exe"), $"/p \"{file}\" /qn /norestart {args}".Trim());
-                            case ".msu":
-                                return new ProcessStartInfo(Path.Combine(system32, "wusa.exe"), $"\"{file}\" /quiet /norestart {args}".Trim());
-                            case ".ps1":
-                                return PowerShell(system32, file, args);
-                            case ".bat":
-                            case ".cmd":
-                                return new ProcessStartInfo(Path.Combine(system32, "cmd.exe"), $"/c \"\"{file}\" {args}\"");
-                            default:
-                                return new ProcessStartInfo(file, args);
-                        }
+                        if (string.IsNullOrWhiteSpace(step.CommandLine)) throw new ArgumentException("Installer : aucune ligne de commande.");
+                        // Journal de Windows Installer : celui d'une étape précédente ne doit pas être repris.
+                        File.Delete(Path.Combine(_execDir, InstallLog.FileName));
+                        // Par cmd : la ligne (générée ou écrite à la main) est lancée telle quelle, dans exec\.
+                        return new ProcessStartInfo(Path.Combine(system32, "cmd.exe"), "/s /c \"" + step.CommandLine + "\"");
                     }
                 case "command":
                     return new ProcessStartInfo(Path.Combine(system32, "cmd.exe"), "/c " + step.Command);

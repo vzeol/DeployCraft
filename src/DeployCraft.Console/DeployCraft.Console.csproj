@@ -20,6 +20,7 @@
     <Compile Include="..\DeployCraft.Server\Data\ExchangeModels.cs" Link="Shared\ExchangeModels.cs" />
     <Compile Include="..\DeployCraft.Server\Data\LibraryModels.cs" Link="Shared\LibraryModels.cs" />
     <Compile Include="..\DeployCraft.Server\Data\AboutInfo.cs" Link="Shared\AboutInfo.cs" />
+    <Compile Include="..\DeployCraft.Server\Data\InstallCommand.cs" Link="Shared\InstallCommand.cs" />
   </ItemGroup>
 
 </Project>

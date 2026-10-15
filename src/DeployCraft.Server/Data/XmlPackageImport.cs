@@ -148,31 +148,39 @@ public static partial class XmlPackageImport
                 step.Arguments = NullIfEmpty(Text(e, "Parameters"));
                 step.IncludeDirectory = Bool(e, "IncludeDirectory");
                 step.SuccessCodes = SuccessCodes(e);
-                if (Text(e, "CustomCommandLine").Trim().Length > 0)
+                step.CustomCommandLine = NullIfEmpty(Text(e, "CustomCommandLine").Trim());
+                step.KeepInstallFile = Bool(e, "LeaveInstallFile");
+                if (InstallCommand.HasMsiOptions(step.File))
                 {
-                    line.Skip("Ligne de commande personnalisée : pas encore disponible dans DeployCraft.");
-                    return (null, line);
+                    var extension = Path.GetExtension(step.File).ToLowerInvariant();
+                    step.MsiQuiet = !e.Elements("MsiQuiet").Any() || Bool(e, "MsiQuiet");
+                    if (Text(e, "MsiOperation").Trim() is { Length: > 0 } operation)
+                    {
+                        if (!Enum.TryParse<MsiOperation>(operation, true, out var op))
+                            line.Warn($"Opération MSI inconnue ({operation}) : installation.");
+                        else if (extension == ".msp" && op != MsiOperation.Install)
+                            line.Warn("Opération MSI ignorée : un correctif .msp s'installe toujours.");
+                        else if (extension == ".msu" && op == MsiOperation.Repair)
+                            line.Warn("Réparation impossible pour une mise à jour .msu : installation.");
+                        else
+                            step.MsiOperation = op;
+                    }
+                    if (Text(e, "MsiRestart").Trim() is { Length: > 0 } restart)
+                    {
+                        if (Enum.TryParse<MsiRestart>(restart, true, out var r))
+                            step.MsiRestart = r;
+                        else
+                            line.Warn($"Redémarrage MSI inconnu ({restart}) : jamais.");
+                    }
                 }
-                var isMsi = Path.GetExtension(step.File).ToLowerInvariant() is ".msi" or ".msp";
-                if (isMsi && Text(e, "MsiOperation") is "Uninstall" or "Repair")
-                {
-                    line.Skip("Désinstallation ou réparation MSI : pas encore disponible dans DeployCraft.");
-                    return (null, line);
-                }
-                if (isMsi && e.Elements("MsiQuiet").Any() && !Bool(e, "MsiQuiet"))
-                    line.Warn("MSI non silencieux dans le fichier : DeployCraft installe toujours en silencieux.");
-                if (isMsi && Text(e, "MsiRestart") is "Prompt" or "Always")
-                    line.Warn("Redémarrage après l'installation MSI : DeployCraft ne redémarre jamais le poste.");
-                if (Bool(e, "LeaveInstallFile"))
-                    line.Warn("« Garder le fichier sur le poste » : pas disponible, le fichier est supprimé après l'étape.");
-                AdditionalFiles(e, step, line);
+                step.AdditionalFiles = AdditionalFiles(e);
                 break;
 
             case "Command":
                 step.Type = StepType.Command;
                 step.Command = Text(e, "Command");
                 step.SuccessCodes = SuccessCodes(e);
-                AdditionalFiles(e, step, line);
+                step.AdditionalFiles = AdditionalFiles(e);
                 break;
 
             case "PowerShell":
@@ -181,7 +189,7 @@ public static partial class XmlPackageImport
                 step.SuccessCodes = SuccessCodes(e);
                 if (Text(e, "CustomCommandLine").Trim().Length > 0)
                     line.Warn("Ligne de commande personnalisée ignorée : DeployCraft lance le script avec ses propres réglages.");
-                AdditionalFiles(e, step, line);
+                step.AdditionalFiles = AdditionalFiles(e);
                 break;
 
             case "FileCopy":
@@ -261,18 +269,9 @@ public static partial class XmlPackageImport
         return (step, line);
     }
 
-    /// <summary>Fichiers additionnels : pas encore copiés par DeployCraft, l'étape risquerait d'échouer.</summary>
-    private static void AdditionalFiles(XElement e, PackageStep step, ImportStepResult line)
-    {
-        var files = Text(e, "Files").Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (files.Length == 0) return;
-        line.Warn($"Fichiers additionnels non copiés ({string.Join(", ", files)}).");
-        if (step.Enabled)
-        {
-            step.Enabled = false;
-            line.Warn("Désactivée : elle a besoin des fichiers additionnels. Ajoutez une étape « Copie de fichiers » avant, puis réactivez-la.");
-        }
-    }
+    /// <summary>Fichiers additionnels, un chemin par ligne (aucun = null).</summary>
+    private static string? AdditionalFiles(XElement e) =>
+        PackageStep.SplitLines(Text(e, "Files")) is { Count: > 0 } files ? string.Join("\n", files) : null;
 
     /// <summary>
     /// Conditions du fichier → conditions DeployCraft. <paramref name="lost"/> : une condition n'a pas d'équivalent exact
@@ -435,6 +434,8 @@ public static partial class XmlPackageImport
         step.File = Replace(step.File);
         step.Arguments = Replace(step.Arguments);
         step.Command = Replace(step.Command);
+        step.CustomCommandLine = Replace(step.CustomCommandLine);
+        step.AdditionalFiles = Replace(step.AdditionalFiles);
         step.CopySource = Replace(step.CopySource);
         step.CopyDestination = Replace(step.CopyDestination);
         step.Conditions.FilePath = Replace(step.Conditions.FilePath);
