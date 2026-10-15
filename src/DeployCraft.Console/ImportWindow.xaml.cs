@@ -57,12 +57,12 @@ public partial class ImportWindow : Window
         {
             var title = p.State == ImportState.Skipped ? p.Name
                 : p.FinalName == p.Name ? p.Name : $"{p.Name} → {p.FinalName}";
-            var node = new TreeViewItem { Header = Ui.Header(Icon(p.State), $"{title} — {StateText(p.State)}", StateBrush(p.State)) };
+            var node = new TreeViewItem { Header = Ui.Header(StateIcon(p.State), $"{title} — {StateText(p.State)}", StateBrush(p.State)) };
             foreach (var note in p.Notes)
                 node.Items.Add(new TreeViewItem { Header = Wrapped(note) });
             foreach (var s in p.Steps)
             {
-                var stepNode = new TreeViewItem { Header = Ui.Header(Icon(s.State), s.Name, StateBrush(s.State)) };
+                var stepNode = new TreeViewItem { Header = Ui.Header(StateIcon(s.State), s.Name, StateBrush(s.State)) };
                 foreach (var note in s.Notes) stepNode.Items.Add(new TreeViewItem { Header = Wrapped(note) });
                 stepNode.IsExpanded = s.State != ImportState.Ok;
                 node.Items.Add(stepNode);
@@ -84,7 +84,7 @@ public partial class ImportWindow : Window
     private static TextBlock Wrapped(string text) =>
         new() { Text = text, TextWrapping = TextWrapping.Wrap, MaxWidth = 620, Margin = new Thickness(0, 1, 0, 1), Foreground = Brush("MutedBrush") };
 
-    private static string Icon(ImportState state) => state switch
+    private static string StateIcon(ImportState state) => state switch
     {
         ImportState.Ok => IconOk,
         ImportState.Warning => IconWarning,
