@@ -17,15 +17,15 @@ suivant qu'une fois qu'il a tout validé**.
 Les informations propres à l'environnement du mainteneur (serveurs, postes de test, comptes) sont dans ses notes
 **hors du dépôt** : ne jamais les recopier ici.
 
-## Dernière version : 0.11.0 — à valider par le mainteneur
+## Dernière version : 0.12.0 — à valider par le mainteneur
 
-Regroupe les PR #16, #18, #19, #21, #26 et #27 (détail ci-dessous) : étape activée / désactivée, arrêter en échec
-ou en succès, étape Pause, sections avant / principales / après, paquet imbriqué, correctif de `status.json`
-(étapes restantes perdues si l'écriture tombait pendant une lecture du serveur), étape annulée terminée en échec,
-« REMARQUE » au lieu de « ERREUR » pour un poste réussi, colonnes élargies, boîtes de message aux couleurs du thème.
-Chaque PR a été testée sous Windows sur une instance isolée et un poste de labo. 98 tests automatiques.
+Regroupe les PR #30, #33, #34 et #36 : variables $(Nom) (Préférences › Variables, plus $(Date), $(Heure),
+$(Serveur), $(Poste)), retrait des sections avant / principales / après (choix du mainteneur : un échec arrête le
+paquet), remarque aussi quand une partie seulement des étapes est ignorée, glisser-déposer des étapes (Ctrl+Haut /
+Ctrl+Bas), onglets, boutons et champs mieux marqués. 107 tests automatiques. **Glisser-déposer pas testé par
+Prod** (session Windows verrouillée) : à vérifier par le mainteneur.
 
-La 0.10.0 (fenêtre paquet à onglets, conditions, options par défaut, hors ligne) a été validée par le mainteneur.
+La 0.11.0 a été testée par le mainteneur (ses retours sont dans la 0.12.0) ; la 0.10.0 est validée.
 **Pas encore testé** : le réveil d'un vrai poste éteint (il faut un poste de test que le mainteneur accepte
 d'éteindre, avec le réveil réseau activé).
 
@@ -82,7 +82,7 @@ version ni de release côté Cloud) :
 Autres sujets possibles : réglages hors ligne dans Déployer une fois et les planifications, LAPS (en option),
 listes de cibles.
 
-## Version actuelle : 0.11.0
+## Version actuelle : 0.12.0
 
 - Paquets multi-étapes (Installer / Commande / PowerShell), codes de succès, délai, comportement en cas d'erreur,
   exécuter en tant que et mode de copie par paquet
@@ -96,8 +96,8 @@ listes de cibles.
 - Conditions par paquet et par étape, version du paquet, options « par défaut » des Préférences, couper / copier /
   coller d'étapes (0.10.0)
 - Hors ligne (0.10.0, désactivé par défaut) : Wake-on-LAN, nouveaux essais (perdus si le service redémarre)
-- Étapes Pause et paquet imbriqué, sections avant / principales / après, étapes désactivables, arrêter en échec ou
-  en succès (0.11.0)
+- Étapes Pause et paquet imbriqué, étapes désactivables, arrêter en échec ou en succès (0.11.0)
+- Variables $(Nom), glisser-déposer des étapes (0.12.0)
 - Pas encore testé : abandon des postes en attente après N minutes (il faut plus de 8 postes en même temps)
 
 Construire : `.\build.ps1 -Version x.y.z` → `dist\DeployCraft-Setup-x.y.z.exe` (prérequis : SDK .NET 10, Inno Setup 6).
