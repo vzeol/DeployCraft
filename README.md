@@ -9,10 +9,11 @@ indépendante, écrite de zéro.
 
 ## Fonctions
 
-Paquets multi-étapes (installeur, commande, PowerShell) avec conditions (version de Windows, fichier,
-registre…), « Déployer une fois » sur des postes saisis ou choisis dans l'Active Directory, suivi en direct
-poste par poste, planifications (réessai en boucle jusqu'à réussite), réveil Wake-on-LAN et nouveaux essais des
-postes hors ligne, identifiants multiples, thème clair / sombre. Liste complète et état : `PARITE.md`.
+Paquets multi-étapes (installeur, commande, PowerShell, pause, paquet imbriqué) avec sections avant / principales /
+après, conditions (version de Windows, fichier, registre…) et étapes désactivables, « Déployer une fois » sur des
+postes saisis ou choisis dans l'Active Directory, suivi en direct poste par poste, planifications (réessai en boucle
+jusqu'à réussite), réveil Wake-on-LAN et nouveaux essais des postes hors ligne, identifiants multiples, thème clair /
+sombre. Liste complète et état : `PARITE.md`.
 
 ## Installation (sur un serveur du domaine)
 
