@@ -37,6 +37,8 @@ Suite (issue #45, PR #46 fusionnée) : commandes grisées tant que l'accès est 
 (Actualiser / F5, Quitter et Aide restent actifs). Testé à l'écran par Prod. Petit reste : Préférences est aussi
 grisé, donc le thème ne peut pas changer sans service.
 
+**Fenêtre À propos (PARITE 1.13, branche `feat/a-propos`)** : versions de la console et du service, compte connecté, licence GPL v3, liens vers le projet et la licence, bouton « Copier les informations ». Vue par le mainteneur sur une instance de test ; ne dépend pas du domaine.
+
 ## Point de reprise (Cloud, 15/10) : retours du mainteneur sur la 0.12.0
 
 Glisser-déposer et remarque partielle : validés. Les trois points sont faits et publiés en 0.13.0 :

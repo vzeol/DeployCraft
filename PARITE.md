@@ -27,7 +27,7 @@ dans la même PR que le code qui la réalise.
 | 1.10 | Page d'accueil | ⬜ | |
 | 1.11 | Import / export (paquets, dossiers, listes de cibles, planifications, réglages) | ✅ | Paquets : export / import JSON à nous, import de fichiers XML de paquets avec aperçu. Le reste écarté (choix du mainteneur) |
 | 1.12 | Imprimer, aperçu avant impression, mise en page, enregistrer une grille en CSV | ❌ | Écarté : choix du mainteneur (le résultat dans la console suffit) |
-| 1.13 | À propos | 🟡 | |
+| 1.13 | À propos | ✅ | Aide › À propos : versions console et service, compte connecté, licence, liens, copie des informations |
 
 ## 2. Paquets
 
