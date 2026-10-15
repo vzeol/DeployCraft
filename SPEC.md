@@ -49,6 +49,27 @@
   le relance donc pas.
 - Condition impossible à vérifier (clé mal écrite…) → étape en échec avec le message.
 
+### Exécuter en tant que (par étape)
+- Onglet Options de l'étape : **Paramètre du paquet** (par défaut), compte de déploiement, Système local ou
+  utilisateur connecté. « Paramètre du paquet » suit le paquet, ou le choix fait dans Déployer une fois / la
+  planification ; une étape avec son propre réglage le garde. Sans identifiant enregistré, « compte de
+  déploiement » devient Système local. Dans un paquet imbriqué, les sous-étapes sans réglage prennent celui de
+  l'étape « paquet imbriqué ».
+- Sur le poste, un service runner n'a qu'une identité : les étapes consécutives de même service (compte de
+  déploiement, ou Système, qui sert aussi pour l'utilisateur connecté) forment une **tranche**. Le serveur lance les
+  tranches l'une après l'autre dans le même dossier (les fichiers copiés restent), chacune avec son propre service
+  (`DeployCraftRunner-N-1`, `-2`…), la suivante seulement après la suppression du précédent. Le mot de passe du
+  compte ne sert qu'à créer le service : il n'est jamais écrit sur le poste.
+- Une tranche qui arrête le paquet (échec en « Arrêter en échec », arrêt en succès, conditions du paquet non
+  remplies) : les tranches suivantes ne sont pas lancées, leurs étapes sont « Ignoré » avec la même raison.
+  Runner interrompu par une erreur : pas de tranche suivante non plus, raison « Tranche précédente interrompue : … ».
+  Annulation (pendant une tranche ou entre deux) : la tranche en cours est arrêtée, aucune autre n'est lancée.
+  Pendant l'exécution, le détail du poste indique l'identité de la tranche (« Exécution (Système) »). Le journal `runner.log` cumule les
+  tranches ; les numéros d'étape y sont ceux du paquet.
+- Mode pull : le partage est lu avec l'identité de la tranche (Système : le compte ordinateur `POSTE$`).
+- Changer d'identité coûte quelques secondes (création et arrêt d'un service) ; un paquet sans réglage par étape
+  garde un seul service, comme avant.
+
 ### Gestion d'erreur (par étape)
 - **Arrêter en échec** (par défaut) : les étapes suivantes ne s'exécutent pas, le poste est en échec. Un paquet
   s'arrête donc net à la première étape en échec (choix du mainteneur : plus prudent, et des paquets plus propres).
@@ -224,20 +245,8 @@ déploiements possibles en même temps sur un poste.
   vide = celui du paquet ; en cas d'erreur). La vue d'ensemble des étapes a une colonne Conditions.
 - Héritage des réglages : étape → paquet → Préférences. Au lancement, les valeurs réellement utilisées sont
   figées dans l'historique du déploiement.
-
-### Variables
-- Syntaxe `$(Nom)`, insensible à la casse, dans : fichier, paramètres et commande / script des étapes ; chemin de
-  fichier et clé de registre des conditions (paquet, étape, paquet imbriqué).
-- Variables système : `$(Date)` (aaaa-MM-jj) et `$(Heure)` (HH-mm), heure locale du serveur au lancement ;
-  `$(Serveur)` (nom du serveur DeployCraft) ; `$(Poste)` (nom du poste cible).
-- Variables personnalisées : Préférences › Variables (nom, valeur, description), réglage du serveur. Noms en
-  lettres sans accent, chiffres et « _ » seulement (pas de « - » ni d'espace, pour ne jamais ressembler à une
-  commande PowerShell), uniques, différents des noms système. **Valeurs stockées en clair : jamais de mot de passe.**
-- Remplacement par le serveur au lancement, après le remplacement des paquets imbriqués, et figé dans l'historique ;
-  `$(Poste)` est remplacé poste par poste juste avant la copie (le fichier d'un Installer est cherché au chemin
-  remplacé). Une seule passe : la valeur d'une variable n'est pas relue.
-- Seuls les noms connus sont remplacés : un `$(…)` inconnu reste tel quel (c'est aussi une sous-expression
-  PowerShell, `$(Get-Date)`). Les `%VAR%` restent ceux de Windows sur le poste.
+- Le texte des étapes et des conditions est envoyé tel quel : pas de variables `$(…)` (une sous-expression
+  PowerShell comme `$(Get-Date)` reste intacte) ; les `%VAR%` sont celles de Windows sur le poste.
 
 ### Préférences › Déploiement et Hors ligne (0.10.0)
 - Réglages du **serveur** (communs à toutes les consoles), enregistrés à la fermeture de la fenêtre : exécuter en

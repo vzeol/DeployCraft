@@ -24,6 +24,8 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
     private string SlotDir => Path.Combine(Root, $"slot-{_slot}");
     private string LockFile => Path.Combine(Root, $"slot-{_slot}.lock");
     private string ServiceName => $"DeployCraftRunner-{_slot}";
+    /// <summary>Service de la tranche en cours (suffixé -1, -2… quand il y a plusieurs identités).</summary>
+    private string? _service;
     private string RunnerName => $"{ServiceName}.exe";
 
     public async Task RunAsync(Package package, int startStep, RunAsMode runAs, CopyMode copyMode,
@@ -33,51 +35,42 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         await CheckReachableAsync(ct);
 
         stage("Copie des fichiers");
-        var job = credentials.RunAs(account, computer, () => Prepare(package, startStep, runAs, copyMode));
+        var (job, modes) = credentials.RunAs(account, computer, () => Prepare(package, startStep, runAs, copyMode));
+        var tranches = RunAsPlan.Split(modes);
+        var done = new List<RunnerStepResult>();
 
         try
         {
-            stage("Démarrage du runner");
-            credentials.RunAs(account, computer, () =>
+            // Une tranche par identité ; la suivante ne démarre qu'une fois le service de la précédente supprimé.
+            for (var t = 0; t < tranches.Count; t++)
             {
-                string? serviceAccount = null, password = null;
-                if (runAs == RunAsMode.DeployUser && account != null)
+                var tranche = tranches[t];
+                var last = t == tranches.Count - 1;
+                var trancheJob = new RunnerJob
                 {
-                    // Le compte local « .\utilisateur » se cherche sous le nom du poste.
-                    serviceAccount = account.Account;
-                    LogonRight.GrantServiceLogon(_isLocal ? null : computer, DeployCredentials.LogonDomain(account, computer) + "\\" + account.User);
-                    password = credentials.Password(account);
-                }
-                using var scm = new ServiceControl(_isLocal ? null : computer);
-                scm.CreateAndStart(ServiceName, Path.Combine(RemoteRoot, $"slot-{_slot}", RunnerName), serviceAccount, password);
-            });
+                    Conditions = job.Conditions,
+                    FirstNumber = startStep + tranche.Start,
+                    Steps = job.Steps.GetRange(tranche.Start, tranche.Count),
+                };
+                var later = job.Steps.Skip(tranche.Start + tranche.Count).Select(s => s.Name).ToList();
+                _service = tranches.Count == 1 ? ServiceName : $"{ServiceName}-{t + 1}";
 
-            var deadline = DateTime.UtcNow.AddSeconds(job.Steps.Sum(s => s.TimeoutSeconds) + 120);
-            var statusPath = Path.Combine(SlotDir, "status.json");
-            while (true)
-            {
-                await Task.Delay(1000, ct);
-                var (status, running) = credentials.RunAs(account, computer, () =>
+                var identity = tranche.AsDeployUser && account != null ? "compte de déploiement" : "Système";
+                // Annulé entre deux tranches : aucune nouvelle n'est lancée.
+                ct.ThrowIfCancellationRequested();
+                stage(tranches.Count == 1 ? "Démarrage du runner" : $"Démarrage du runner ({t + 1}/{tranches.Count}, {identity})");
+                credentials.RunAs(account, computer, () => StartTranche(trancheJob, tranche.AsDeployUser));
+                stage($"Exécution ({identity})");
+
+                var final = await WaitAsync(trancheJob, status => progress(RunAsPlan.Combine(done, status, later, last)), ct);
+                credentials.RunAs(account, computer, () =>
                 {
                     using var scm = new ServiceControl(_isLocal ? null : computer);
-                    return (ReadStatus(statusPath), scm.IsRunning(ServiceName));
+                    scm.Remove(_service);
                 });
-
-                if (status != null)
-                {
-                    progress(status);
-                    if (status.State == "done") return;
-                }
-                if (!running)
-                {
-                    // Dernière lecture : le service a pu finir entre les deux appels.
-                    status = credentials.RunAs(account, computer, () => ReadStatus(statusPath));
-                    if (status != null) progress(status);
-                    if (status?.State == "done") return;
-                    throw new DeployException("Le runner s'est arrêté sans rendre de résultat (voir runner.log sur la cible).");
-                }
-                if (DateTime.UtcNow > deadline)
-                    throw new DeployException("Délai global dépassé : le runner ne répond plus.");
+                _service = null;
+                done.AddRange(final.Steps);
+                if (RunAsPlan.Stops(final)) return;
             }
         }
         finally
@@ -85,6 +78,56 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
             stage("Nettoyage");
             try { credentials.RunAs(account, computer, Cleanup); }
             catch { /* un nettoyage raté ne doit pas masquer le vrai résultat */ }
+        }
+    }
+
+    /// <summary>Écrit les consignes de la tranche et crée son service, sous le compte de déploiement ou en Système.</summary>
+    private void StartTranche(RunnerJob job, bool asDeployUser)
+    {
+        File.WriteAllText(Path.Combine(SlotDir, "job.json"), JsonSerializer.Serialize(job));
+        File.Delete(Path.Combine(SlotDir, "status.json"));
+
+        string? serviceAccount = null, password = null;
+        if (asDeployUser && account != null)
+        {
+            // Le compte local « .\utilisateur » se cherche sous le nom du poste.
+            serviceAccount = account.Account;
+            LogonRight.GrantServiceLogon(_isLocal ? null : computer, DeployCredentials.LogonDomain(account, computer) + "\\" + account.User);
+            password = credentials.Password(account);
+        }
+        using var scm = new ServiceControl(_isLocal ? null : computer);
+        scm.CreateAndStart(_service!, Path.Combine(RemoteRoot, $"slot-{_slot}", RunnerName), serviceAccount, password);
+    }
+
+    /// <summary>Suit status.json jusqu'à la fin de la tranche ; renvoie son dernier état.</summary>
+    private async Task<RunnerStatus> WaitAsync(RunnerJob job, Action<RunnerStatus> progress, CancellationToken ct)
+    {
+        var deadline = DateTime.UtcNow.AddSeconds(job.Steps.Sum(s => s.TimeoutSeconds) + 120);
+        var statusPath = Path.Combine(SlotDir, "status.json");
+        while (true)
+        {
+            await Task.Delay(1000, ct);
+            var (status, running) = credentials.RunAs(account, computer, () =>
+            {
+                using var scm = new ServiceControl(_isLocal ? null : computer);
+                return (ReadStatus(statusPath), scm.IsRunning(_service!));
+            });
+
+            if (status != null)
+            {
+                progress(status);
+                if (status.State == "done") return status;
+            }
+            if (!running)
+            {
+                // Dernière lecture : le service a pu finir entre les deux appels.
+                status = credentials.RunAs(account, computer, () => ReadStatus(statusPath));
+                if (status != null) progress(status);
+                if (status?.State == "done") return status;
+                throw new DeployException("Le runner s'est arrêté sans rendre de résultat (voir runner.log sur la cible).");
+            }
+            if (DateTime.UtcNow > deadline)
+                throw new DeployException("Délai global dépassé : le runner ne répond plus.");
         }
     }
 
@@ -130,7 +173,8 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         return new DeployException($"{computer} est hors ligne (éteint, ou partage de fichiers bloqué par le pare-feu).") { Offline = true };
     }
 
-    private RunnerJob Prepare(Package package, int startStep, RunAsMode runAs, CopyMode copyMode)
+    /// <summary>Copie le runner et les fichiers, prépare les consignes de toutes les étapes et l'identité de chacune.</summary>
+    private (RunnerJob Job, List<RunAsMode> Modes) Prepare(Package package, int startStep, RunAsMode runAs, CopyMode copyMode)
     {
         try
         {
@@ -151,11 +195,13 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         var config = runnerExe + ".config";
         if (File.Exists(config)) File.Copy(config, Path.Combine(SlotDir, RunnerName + ".config"), overwrite: true);
 
-        var forComputer = ForComputer(package);
-        var job = new RunnerJob { Conditions = RunnerConditions.From(forComputer.Conditions) };
-        foreach (var step in StepsFrom(forComputer, startStep))
+        var job = new RunnerJob { Conditions = RunnerConditions.From(package.Conditions), FirstNumber = startStep };
+        var modes = new List<RunAsMode>();
+        foreach (var step in StepsFrom(package, startStep))
         {
-            var jobStep = ToJobStep(step, package, runAs);
+            var mode = RunAsPlan.Effective(step, runAs, account != null);
+            modes.Add(mode);
+            var jobStep = ToJobStep(step, package, mode);
 
             // Étape désactivée : transmise pour apparaître « Ignoré », mais aucun fichier n'est copié ni vérifié.
             if (step.Type == StepType.Install && step.Enabled)
@@ -178,25 +224,14 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
             job.Steps.Add(jobStep);
         }
 
-        File.WriteAllText(Path.Combine(SlotDir, "job.json"), JsonSerializer.Serialize(job));
-        return job;
-    }
-
-    /// <summary>Copie du paquet où $(Poste) est remplacé par le nom de ce poste (avant la copie des fichiers).</summary>
-    private Package ForComputer(Package package) => WithComputer(package, computer);
-
-    internal static Package WithComputer(Package package, string computer)
-    {
-        var copy = JsonSerializer.Deserialize<Package>(JsonSerializer.Serialize(package))!;
-        copy.ReplaceVariables(new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { [VariableText.Computer] = computer });
-        return copy;
+        return (job, modes);
     }
 
     /// <summary>Étapes envoyées au poste quand on (re)commence à l'étape N.</summary>
     internal static IEnumerable<PackageStep> StepsFrom(Package package, int startStep) =>
         package.Steps.Skip(Math.Max(0, startStep - 1));
 
-    /// <summary>Consignes d'une étape pour le runner (hors fichiers à copier).</summary>
+    /// <summary>Consignes d'une étape pour le runner (hors fichiers à copier), lancée sous l'identité <paramref name="runAs"/>.</summary>
     internal static RunnerJobStep ToJobStep(PackageStep step, Package package, RunAsMode runAs)
     {
         if (step.Type == StepType.Nested)
@@ -270,7 +305,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
     private void Cleanup()
     {
         if (_slot == 0) return;
-        using (var scm = new ServiceControl(_isLocal ? null : computer)) scm.Remove(ServiceName);
+        using (var scm = new ServiceControl(_isLocal ? null : computer)) scm.Remove(_service ?? ServiceName);
 
         // L'exe du service peut rester verrouillé quelques instants après l'arrêt.
         for (var attempt = 0; attempt < 10; attempt++)

@@ -8,14 +8,17 @@
             <Setter Property="FontSize" Value="13" />
         </Style>
 
-        <!-- Gros bouton de barre d'outils : icône au-dessus, libellé en dessous. Tag = glyphe. -->
+        <!-- Gros bouton de barre d'outils : icône au-dessus, libellé en dessous. Tag = glyphe.
+             Fond et bordure fine au repos pour qu'il se voie cliquable ; marge + bordure + espacement = même taille qu'avant. -->
         <Style x:Key="ToolButton" TargetType="Button">
             <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Margin" Value="1,0" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" Background="Transparent" Padding="8,4" CornerRadius="3" MinWidth="58">
+                        <Border x:Name="Bd" Background="{DynamicResource ControlBackground}" BorderBrush="{DynamicResource ControlBorder}"
+                                BorderThickness="1" Padding="6,3" CornerRadius="3" MinWidth="56">
                             <StackPanel>
                                 <TextBlock Text="{TemplateBinding Tag}" FontFamily="{StaticResource IconFont}" FontSize="22"
                                            HorizontalAlignment="Center" Foreground="{DynamicResource Accent}" />
@@ -24,10 +27,12 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource HoverBackground}" />
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ToolHoverBackground}" />
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Accent}" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource PressedBackground}" />
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ToolPressedBackground}" />
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Accent}" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.35" />
@@ -186,6 +191,22 @@
             </Setter>
         </Style>
 
+        <!-- Liens (« Redéployer », « 2 sur 2 étapes »…) : soulignés, couleur d'accent, main au survol. -->
+        <Style TargetType="Hyperlink" BasedOn="{StaticResource {x:Type Hyperlink}}">
+            <Setter Property="Foreground" Value="{DynamicResource LinkBrush}" />
+            <Setter Property="TextDecorations" Value="Underline" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource LinkHoverBrush}" />
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+                    <Setter Property="TextDecorations" Value="{x:Null}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
         <Style TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
             <Setter Property="AutoGenerateColumns" Value="False" />
             <Setter Property="IsReadOnly" Value="True" />
@@ -197,6 +218,14 @@
             <Setter Property="Background" Value="{DynamicResource ContentBackground}" />
             <Setter Property="RowHeight" Value="26" />
             <Setter Property="SelectionMode" Value="Single" />
+        </Style>
+        <!-- Survol des lignes (les cellules sont transparentes : la ligne choisie garde sa couleur de sélection). -->
+        <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource RowHoverBackground}" />
+                </Trigger>
+            </Style.Triggers>
         </Style>
         <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
             <Setter Property="Padding" Value="8,5" />

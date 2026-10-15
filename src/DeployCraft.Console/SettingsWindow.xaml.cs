@@ -54,78 +54,46 @@ public partial class SettingsWindow : Window
         DeploymentPage.IsEnabled = DefaultOffline.IsEnabled = true;
     }
 
-    /// <summary>
-    /// Les réglages du serveur modifiés sont enregistrés à la fermeture ; les variables modifiées, après
-    /// confirmation. Une erreur garde la fenêtre ouverte.
-    /// </summary>
+    /// <summary>Les réglages du serveur modifiés sont enregistrés à la fermeture ; une erreur garde la fenêtre ouverte.</summary>
     protected override async void OnClosing(CancelEventArgs e)
     {
         base.OnClosing(e);
-        if (_closing) return;
-
-        var saveDefaults = false;
-        if (_defaults != null)
+        if (_closing || _defaults == null) return;
+        if (DefaultRunAsBox.SelectedItem is ComboBoxItem { Tag: RunAsMode runAs }) _defaults.RunAs = runAs;
+        if (DefaultCopyModeBox.SelectedItem is ComboBoxItem { Tag: CopyMode copy }) _defaults.CopyMode = copy;
+        if (!int.TryParse(DefaultTimeoutBox.Text.Trim(), out var timeout) || timeout < 1)
         {
-            if (DefaultRunAsBox.SelectedItem is ComboBoxItem { Tag: RunAsMode runAs }) _defaults.RunAs = runAs;
-            if (DefaultCopyModeBox.SelectedItem is ComboBoxItem { Tag: CopyMode copy }) _defaults.CopyMode = copy;
-            if (!int.TryParse(DefaultTimeoutBox.Text.Trim(), out var timeout) || timeout < 1)
-            {
-                e.Cancel = true;
-                Tabs.SelectedIndex = 1;
-                MessageDialog.Show(this, "Délai max : saisissez un nombre de minutes (1 ou plus).", "Préférences", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-            _defaults.TimeoutMinutes = timeout;
-
-            // Case décochée : un nombre de jours illisible n'empêche pas de fermer, on garde la dernière valeur valide.
-            var cleanup = CleanupBox.IsChecked == true;
-            var daysValid = int.TryParse(CleanupDaysBox.Text.Trim(), out var days) && HistorySettings.Validate(days) == null;
-            if (cleanup && !daysValid)
-            {
-                e.Cancel = true;
-                Tabs.SelectedIndex = 1;
-                MessageDialog.Show(this, $"Historique : saisissez un nombre de jours entre {HistorySettings.MinDays} et {HistorySettings.MaxDays}.", "Préférences", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-            _defaults.History.Cleanup = cleanup;
-            if (daysValid) _defaults.History.KeepDays = days;
-            saveDefaults = JsonSerializer.Serialize(_defaults, Api.Json) != _loaded;
-        }
-
-        var saveVariables = false;
-        if (VariablesPage.HasChanges)
-        {
-            var answer = MessageDialog.Show(this, "Les variables ont été modifiées. Les enregistrer ?", "Préférences",
-                MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
-            if (answer == MessageBoxResult.Cancel)
-            {
-                e.Cancel = true;
-                Tabs.SelectedItem = VariablesTab;
-                return;
-            }
-            saveVariables = answer == MessageBoxResult.Yes;
-        }
-        if (!saveDefaults && !saveVariables) return;
-
-        e.Cancel = true; // fermeture reprise après l'enregistrement asynchrone
-        if (saveVariables && !await VariablesPage.SaveAsync())
-        {
-            Tabs.SelectedItem = VariablesTab;
+            e.Cancel = true;
+            Tabs.SelectedIndex = 1;
+            MessageDialog.Show(this, "Délai max : saisissez un nombre de minutes (1 ou plus).", "Préférences", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
-        if (saveDefaults)
+        _defaults.TimeoutMinutes = timeout;
+
+        // Case décochée : un nombre de jours illisible n'empêche pas de fermer, on garde la dernière valeur valide.
+        var cleanup = CleanupBox.IsChecked == true;
+        var daysValid = int.TryParse(CleanupDaysBox.Text.Trim(), out var days) && HistorySettings.Validate(days) == null;
+        if (cleanup && !daysValid)
         {
-            try
-            {
-                await Api.SaveDefaults(_defaults!);
-            }
-            catch (ApiException ex)
-            {
-                Ui.Error(this, ex);
-                return;
-            }
+            e.Cancel = true;
+            Tabs.SelectedIndex = 1;
+            MessageDialog.Show(this, $"Historique : saisissez un nombre de jours entre {HistorySettings.MinDays} et {HistorySettings.MaxDays}.", "Préférences", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
         }
-        _closing = true;
-        Close();
+        _defaults.History.Cleanup = cleanup;
+        if (daysValid) _defaults.History.KeepDays = days;
+        if (JsonSerializer.Serialize(_defaults, Api.Json) == _loaded) return;
+
+        e.Cancel = true; // fermeture reprise après l'enregistrement asynchrone
+        try
+        {
+            await Api.SaveDefaults(_defaults);
+            _closing = true;
+            Close();
+        }
+        catch (ApiException ex)
+        {
+            Ui.Error(this, ex);
+        }
     }
 }

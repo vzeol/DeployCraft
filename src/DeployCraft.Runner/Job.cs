@@ -17,6 +17,8 @@ namespace DeployCraft.Runner
         /// <summary>Conditions du paquet : non remplies, aucune étape n'est exécutée.</summary>
         [DataMember(Name = "conditions")] public JobConditions Conditions { get; set; }
         [DataMember(Name = "steps")] public List<JobStep> Steps { get; set; } = new List<JobStep>();
+        /// <summary>Numéro (dans le paquet) de la première étape du job, pour les messages (0 = 1).</summary>
+        [DataMember(Name = "firstNumber")] public int FirstNumber { get; set; }
     }
 
     [DataContract]
@@ -89,6 +91,10 @@ namespace DeployCraft.Runner
         [DataMember(Name = "steps")] public List<StepResult> Steps { get; set; } = new List<StepResult>();
         /// <summary>Cartes réseau du poste, retenues par le serveur pour le réveiller plus tard (Wake-on-LAN).</summary>
         [DataMember(Name = "network")] public List<NetworkCard> Network { get; set; }
+        /// <summary>Le paquet s'arrête ici : les étapes suivantes (autre identité) ne doivent pas être lancées.</summary>
+        [DataMember(Name = "halt")] public bool Halt { get; set; }
+        /// <summary>Raison donnée aux étapes non lancées (null : aucune, comme après un échec).</summary>
+        [DataMember(Name = "haltReason")] public string HaltReason { get; set; }
     }
 
     [DataContract]

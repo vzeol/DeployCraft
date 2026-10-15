@@ -36,6 +36,7 @@ namespace DeployCraft.Runner
             var packageSkip = Unmet(job.Conditions, facts, out var packageError);
             if (packageSkip != null) log("Conditions du paquet non remplies : " + packageSkip);
 
+            var first = Math.Max(1, job.FirstNumber);
             var stop = false;
             string stopReason = null;
             for (var i = 0; i < job.Steps.Count; i++)
@@ -99,15 +100,19 @@ namespace DeployCraft.Runner
                 if (result.State == Failed && packageError == null && step.StopSuccessOnError)
                 {
                     result.State = Stopped;
-                    stopReason = $"Paquet arrêté en succès par l'étape {i + 1} « {step.Name} ».";
+                    stopReason = $"Paquet arrêté en succès par l'étape {first + i} « {step.Name} ».";
                 }
                 if (result.State == Stopped || result.State == Failed && (packageError != null || !step.ContinueOnError))
                     stop = true;
 
-                log($"Étape {i + 1} « {step.Name} » : {result.State}" +
+                log($"Étape {first + i} « {step.Name} » : {result.State}" +
                     (result.Error != null ? $" ({result.Error})" : result.ExitCode != null ? $" (code {result.ExitCode})" : ""));
                 Save();
             }
+
+            // Pour le serveur, qui enchaîne d'éventuelles autres identités : faut-il s'arrêter là ?
+            status.Halt = stop || packageSkip != null;
+            status.HaltReason = stop ? stopReason : packageSkip != null ? "Conditions du paquet non remplies. " + packageSkip : null;
         }
 
         /// <summary>Attend <paramref name="seconds"/> secondes par tranches courtes ; false si le déploiement est annulé entre-temps.</summary>

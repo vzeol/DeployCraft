@@ -46,20 +46,14 @@ public class PackageStep
     public List<ConditionGroup>? ExtraConditions { get; set; }
     /// <summary>Délai max de l'étape (null = celui du paquet, sinon celui des Préférences).</summary>
     public int? TimeoutMinutes { get; set; }
+    /// <summary>
+    /// Identité de l'étape (null = celle du déploiement : paquet, ou choix de Déployer une fois / planification).
+    /// Les étapes consécutives de même identité sont lancées ensemble sur le poste.
+    /// </summary>
+    public RunAsMode? RunAs { get; set; }
     public ErrorMode ErrorMode { get; set; } = ErrorMode.Stop;
     /// <summary>Conditions de l'étape : non remplies sur un poste, l'étape y est sautée.</summary>
     public Conditions Conditions { get; set; } = new();
-}
-
-/// <summary>
-/// Variable personnalisée (Préférences › Variables), écrite $(Nom) dans les chemins, paramètres, commandes et
-/// conditions des étapes. Stockée en clair : jamais de mot de passe.
-/// </summary>
-public class Variable
-{
-    public string Name { get; set; } = "";
-    public string Value { get; set; } = "";
-    public string? Description { get; set; }
 }
 
 /// <summary>Conditions héritées, avec leur origine pour expliquer une étape ignorée.</summary>
@@ -180,27 +174,15 @@ public class Package
     /// Copie prête à déployer : chaque réglage laissé « par défaut » prend sa valeur (étape → paquet → Préférences).
     /// L'historique du déploiement garde ainsi les valeurs réellement utilisées.
     /// </summary>
-    public Package Resolve(DeploymentDefaults defaults, Func<long, Package?>? lookup = null,
-        IReadOnlyDictionary<string, string>? variables = null)
+    public Package Resolve(DeploymentDefaults defaults, Func<long, Package?>? lookup = null)
     {
         var copy = Flatten(lookup ?? (_ => null), defaults.TimeoutMinutes);
-        if (variables != null) copy.ReplaceVariables(variables);
         copy.RunAs ??= defaults.RunAs;
         copy.CopyMode ??= defaults.CopyMode;
         copy.TimeoutMinutes ??= defaults.TimeoutMinutes;
         copy.Offline ??= Clone(defaults.Offline);
         foreach (var step in copy.Steps) step.TimeoutMinutes ??= copy.TimeoutMinutes;
         return copy;
-    }
-
-    /// <summary>
-    /// Remplace les variables $(Nom) connues de <paramref name="values"/> dans les chemins, paramètres et commandes des
-    /// étapes et dans les chemins et clés des conditions (du paquet, des étapes et héritées).
-    /// </summary>
-    public void ReplaceVariables(IReadOnlyDictionary<string, string> values)
-    {
-        VariableText.Replace(Conditions, values);
-        foreach (var step in Steps) VariableText.Replace(step, values);
     }
 
     /// <summary>Niveaux de paquets imbriqués acceptés (un paquet qui en contient un qui en contient un…).</summary>
@@ -240,6 +222,7 @@ public class Package
             {
                 s.Name = $"{label} › {(string.IsNullOrWhiteSpace(s.Name) ? s.Type.ToString() : s.Name)}";
                 s.Enabled = step.Enabled && s.Enabled;
+                s.RunAs ??= step.RunAs;
                 s.TimeoutMinutes ??= nested.TimeoutMinutes ?? defaultTimeout;
                 var extras = new List<ConditionGroup>();
                 if (!step.Conditions.IsEmpty) extras.Add(new() { Label = $"Conditions de l'étape « {label} »", Conditions = step.Conditions });
