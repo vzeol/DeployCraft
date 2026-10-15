@@ -110,14 +110,14 @@ version ni de release côté Cloud) :
   fichiers retenus dans `exec\copie-N` (`TargetSession.StageCopy`) ; pull : le poste lit le partage. La copie finale
   est faite par `robocopy` via `cmd /c` (`Runner/FileCopy.cs`, lié aux tests), codes de succès 0–7 (0–15 si on
   ignore les fichiers non copiés). Tests : `CopyFilesTests`.
-- **2.24 redémarrer (branche `feat/redemarrer`)** : en relecture par Prod. Type `Reboot` : délai (30 s à 1 h), message,
-  éteindre au lieu de redémarrer. Le runner programme `shutdown.exe` (`Runner/Shutdown.cs`) ; l'étape termine sa
-  tranche (`RunAsPlan.Split(modes, cutAfter)`) ; `TargetSession.WaitForRestartAsync` attend l'arrêt puis le retour
-  (délai max de l'étape), `StartAfterRestartAsync` réessaie la création du service. Arrêt : `RunAsPlan.Finish`
-  ignore les étapes suivantes. Tests : `RebootTests`. Retouches visuelles de la copie de fichiers (demandées par
-  Prod) dans la même PR.
+- **2.24 redémarrer (issue #50, PR #51)** : relue et testée par Prod sur un vrai poste (redémarrage en Système et en
+  compte de déploiement, arrêt puis rallumage par Wake-on-LAN, annulation sur le poste). Type `Reboot` : délai (30 s à
+  1 h), message, éteindre au lieu de redémarrer. Le runner programme `shutdown.exe` (`Runner/Shutdown.cs`) ; l'étape
+  termine sa tranche (`RunAsPlan.Split(modes, cutAfter)`) ; `TargetSession.WaitForRestartAsync` attend l'arrêt puis le
+  retour (délai max de l'étape), `StartAfterRestartAsync` réessaie la création du service. Arrêt : `RunAsPlan.Finish`
+  ignore les étapes suivantes. Tests : `RebootTests`. Retouches visuelles de la copie de fichiers dans la même PR.
 - Ensuite : 2.26, 2.27, 2.20–2.22 (à tester sur un vrai poste).
-- Import des paquets PDQ Deploy (#14) : en attente, après ces sujets.
+- Import des exports XML de paquets d'un autre outil (#14) : en attente, après ces sujets.
 
 Autres sujets possibles : réglages hors ligne dans Déployer une fois et les planifications, LAPS (en option),
 listes de cibles.

@@ -1,10 +1,10 @@
 # Fonctions — liste de travail
 
-> **Objectif** : couvrir les fonctions qu'on attend d'un outil de déploiement comme PDQ Deploy
+> **Objectif** : couvrir les fonctions qu'on attend d'un outil de déploiement
 > (fonctionnement + organisation de l'interface), puis seulement à la fin retirer ce qui ne sert pas et
 > ajouter nos propres fonctions. Les libellés et le code de DeployCraft sont entièrement les nôtres.
 
-Légende : ✅ fait · 🟡 partiel · ⬜ à faire · ❌ écarté (décision du mainteneur) · ⛔ dépend d'un service PDQ ou tiers (à remplacer ou à écarter, décision du mainteneur)
+Légende : ✅ fait · 🟡 partiel · ⬜ à faire · ❌ écarté (décision du mainteneur) · ⛔ dépend d'un service tiers (à remplacer ou à écarter, décision du mainteneur)
 
 Pour prendre une tâche : voir `CONTRIBUTING.md` (§ « Choisir une tâche »). Une ligne passe à ✅
 dans la même PR que le code qui la réalise.
@@ -60,7 +60,7 @@ dans la même PR que le code qui la réalise.
 | 2.26 | Message | ⬜ | Durée d'affichage, attendre que l'utilisateur clique |
 | 2.27 | Déconnexion de l'utilisateur | ⬜ | Message, délai |
 | 2.28 | Paquet imbriqué | ✅ | Remplacé par ses étapes au lancement ; conditions combinées, boucles et plus de 5 niveaux refusés |
-| 2.29 | Scan d'inventaire | ⛔ | Dépend de PDQ Inventory |
+| 2.29 | Scan d'inventaire | ⛔ | Dépend d'un logiciel d'inventaire tiers |
 
 ## 3. Déployer une fois
 
@@ -75,7 +75,7 @@ dans la même PR que le code qui la réalise.
 | 3.7 | Options : notifications, mémoriser les cibles, prioritaire | 🟡 | Mémoriser + prioritaire en 0.6.0 ; notifications avec §9 |
 | 3.8 | Onglet Hors ligne : ping avant, Wake-on-LAN, file de réessai | 🟡 | 0.10.0 : réglé dans le paquet (et les Préférences), pas encore dans Déployer une fois. Test DNS + partage de fichiers toujours fait avant la copie |
 | 3.9 | Bouton « Planifier » (crée une planification à partir de la fenêtre) | ✅ | 0.8.0 : reprend paquets, cibles, options |
-| 3.10 | Cibles depuis PDQ Inventory / Spiceworks | ⛔ | |
+| 3.10 | Cibles depuis un logiciel d'inventaire tiers | ⛔ | |
 
 ## 4. Suivi des déploiements
 
@@ -97,7 +97,7 @@ dans la même PR que le code qui la réalise.
 |---|---|---|---|
 | 5.1 | Page « Toutes les planifications », fenêtre planification | ✅ | 0.8.0 : grille + déploiements de la planification ; fenêtre à onglets Déclencheurs / Cibles / Paquets / Options / Historique des cibles |
 | 5.2 | Déclencheurs : une fois, quotidien, hebdomadaire, mensuel (jour N ou « le 1er lundi »), intervalle | ✅ | 0.8.0 : plusieurs par planification, plage horaire pour l'intervalle, fin facultative, « dernier jour / dernier lundi » |
-| 5.3 | Déclencheur « heartbeat » (poste qui revient en ligne) | ⛔ | Dépend de PDQ Inventory ; un équivalent maison reste possible |
+| 5.3 | Déclencheur « heartbeat » (poste qui revient en ligne) | ⛔ | Dépend d'un logiciel d'inventaire tiers ; un équivalent maison reste possible |
 | 5.4 | Paquets ordonnés, cibles, options (compte, copie, exécuter en tant que, délai, notifications, hors ligne, réessai) | 🟡 | 0.8.0 : paquets, cibles, copie, exécuter en tant que, délai d'attente ; identifiant en 0.9.0 ; manquent notifications et hors ligne |
 | 5.5 | Arrêter après N échecs, arrêter après un succès (par poste) | ✅ | 0.8.0 : historique des cibles par poste × paquet, effaçable |
 | 5.6 | Activer / désactiver, prochaine et dernière exécution, dernière erreur | ✅ | 0.8.0 : « Dernier résultat » |
@@ -152,6 +152,6 @@ dans la même PR que le code qui la réalise.
 | 10.1 | Ligne de commande (déployer un paquet sur des cibles, lister…) | ⬜ | |
 | 10.2 | Assistant de premier démarrage | ⬜ | |
 | 10.3 | Aide intégrée | ⬜ | |
-| 10.4 | Bibliothèque de paquets PDQ, Auto Deploy | ⛔ | Catalogue en ligne de PDQ : impossible à reprendre. Possible : bibliothèque locale à nous |
-| 10.5 | Intégration PDQ Inventory, Spiceworks | ⛔ | |
+| 10.4 | Bibliothèque de paquets en ligne, mise à jour automatique des paquets | ⛔ | Catalogue en ligne d'un éditeur : impossible à reprendre. Possible : bibliothèque locale à nous |
+| 10.5 | Intégration d'un logiciel d'inventaire tiers | ⛔ | |
 | 10.6 | Licence, essai, statistiques d'usage | ⛔ | Sans objet |
