@@ -11,6 +11,7 @@ public static class Ui
 {
     public static readonly FontFamily IconFont = new("Segoe Fluent Icons, Segoe MDL2 Assets");
 
+    public const string IconHome = "\uE80F"; // maison
     public const string IconHistory = "";
     public const string IconFolder = "";
     public const string IconPackage = "";

@@ -23,6 +23,7 @@
     <Compile Include="..\DeployCraft.Server\Data\InstallCommand.cs" Link="Shared\InstallCommand.cs" />
     <Compile Include="..\DeployCraft.Server\Data\DeploymentSummary.cs" Link="Shared\DeploymentSummary.cs" />
     <Compile Include="..\DeployCraft.Server\Data\StepWarnings.cs" Link="Shared\StepWarnings.cs" />
+    <Compile Include="..\DeployCraft.Server\Data\HomeSummary.cs" Link="Shared\HomeSummary.cs" />
   </ItemGroup>
 
 </Project>

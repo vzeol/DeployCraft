@@ -71,15 +71,16 @@ public record LibraryRow(LibraryItem Item)
 
 public partial class MainWindow : Window
 {
-    private enum View { Deployments, Package, Schedules, Library }
+    private enum View { Home, Deployments, Package, Schedules, Library }
 
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(2) };
+    private readonly TreeViewItem _homeNode;
     private readonly TreeViewItem _deploymentsNode;
     private readonly TreeViewItem _schedulesNode;
     private readonly TreeViewItem _libraryNode;
     private readonly TreeViewItem _packagesNode;
     private List<Package> _packages = [];
-    private View _view = View.Deployments;
+    private View _view = View.Home;
     private bool _refreshing;
     // Faux tant que le service refuse l'accès ou ne répond pas : les commandes sont alors grisées.
     private bool _connected;
@@ -90,10 +91,12 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
+        _homeNode = new TreeViewItem { Header = Ui.Header(Ui.IconHome, "Accueil"), Tag = "home" };
         _deploymentsNode = new TreeViewItem { Header = Ui.Header(Ui.IconHistory, "Tous les déploiements"), Tag = "deployments" };
         _schedulesNode = new TreeViewItem { Header = Ui.Header(Ui.IconSchedule, "Toutes les planifications"), Tag = "schedules" };
         _libraryNode = new TreeViewItem { Header = Ui.Header(Ui.IconLibrary, "Bibliothèque de paquets"), Tag = "library" };
         _packagesNode = new TreeViewItem { Header = Ui.Header(Ui.IconFolder, "Paquets"), IsExpanded = true };
+        Nav.Items.Add(_homeNode);
         Nav.Items.Add(_deploymentsNode);
         Nav.Items.Add(_schedulesNode);
         Nav.Items.Add(_libraryNode);
@@ -128,7 +131,7 @@ public partial class MainWindow : Window
         countdown.Start();
         Loaded += async (_, _) =>
         {
-            _deploymentsNode.IsSelected = true;
+            _homeNode.IsSelected = true;
             await RefreshAsync(packages: true);
             _timer.Start();
         };
@@ -362,7 +365,8 @@ public partial class MainWindow : Window
         var running = list.Count(d => d.Status is DeploymentStatus.Running or DeploymentStatus.Queued);
         StatusRunning.Text = running == 0 ? "Aucun déploiement en cours" : $"{running} déploiement(s) en cours";
 
-        if (_view == View.Deployments) AllDeployments.SetDeployments(list);
+        if (_view == View.Home) await RefreshHomeAsync(list);
+        else if (_view == View.Deployments) AllDeployments.SetDeployments(list);
         else if (_view == View.Library) await RefreshLibraryAsync();
         else if (_view == View.Schedules)
         {
@@ -556,6 +560,7 @@ public partial class MainWindow : Window
     private void SwitchTo(View view)
     {
         _view = view;
+        HomeView.Visibility = view == View.Home ? Visibility.Visible : Visibility.Collapsed;
         DeploymentsView.Visibility = view == View.Deployments ? Visibility.Visible : Visibility.Collapsed;
         PackageView.Visibility = view == View.Package ? Visibility.Visible : Visibility.Collapsed;
         SchedulesView.Visibility = view == View.Schedules ? Visibility.Visible : Visibility.Collapsed;
@@ -624,6 +629,7 @@ public partial class MainWindow : Window
     {
         if (Nav.SelectedItem is not TreeViewItem item) return;
         if (item.Tag is Package p) ShowPackage(p);
+        else if (item == _homeNode) SwitchTo(View.Home);
         else if (item == _deploymentsNode) SwitchTo(View.Deployments);
         else if (item == _schedulesNode) SwitchTo(View.Schedules);
         else if (item == _libraryNode) SwitchTo(View.Library);
