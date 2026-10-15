@@ -441,7 +441,7 @@ public partial class MainWindow : Window
         var updates = status.Items.Count(i => i.UpdateAvailable);
         var shown = search.Length == 0 ? "vos paquets et les logiciels courants en tête"
             : _libraryRows.Count == 0 ? "aucun résultat" : $"{_libraryRows.Count:N0} résultat(s)";
-        LibrarySubtitle.Text = $"Catalogue public de logiciels ({status.CatalogCount:N0} logiciels, {refreshed}) · {shown}" +
+        LibrarySubtitle.Text = $"Catalogue public winget ({status.CatalogCount:N0} logiciels, {refreshed}) · {shown}" +
                                (updates > 0 ? $" · {updates} mise(s) à jour disponible(s)" : "");
         LibraryFolderText.Text = (status.RefreshError is { } error ? error + Environment.NewLine : "") +
             $"Les installeurs sont rangés dans {status.Folder}" +

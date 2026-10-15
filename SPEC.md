@@ -326,7 +326,7 @@ déploiements possibles en même temps sur un poste.
     Planifications et listes de postes du fichier : signalées, non reprises.
 
 ### Bibliothèque de paquets
-- Entrée **Bibliothèque de paquets** de l'arbre : tout le catalogue public de logiciels (winget, environ 15 000
+- Entrée **Bibliothèque de paquets** de l'arbre : tout le catalogue public winget (environ 15 000
   logiciels), avec en tête les paquets déjà téléchargés puis une sélection de logiciels courants. Colonnes :
   logiciel, identifiant, version disponible, version dans DeployCraft, installeur, état.
 - **Recherche** dans tout le catalogue : nom, identifiant, éditeur ou mot-clé ; chaque mot doit correspondre.

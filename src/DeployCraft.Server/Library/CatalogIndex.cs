@@ -7,7 +7,7 @@ namespace DeployCraft.Server.Library;
 public record IndexEntry(string Id, string Name, string Version);
 
 /// <summary>
-/// Index du catalogue public de logiciels : un petit fichier (base SQLite dans une archive) qui liste tous les logiciels
+/// Index du catalogue public winget : un petit fichier (base SQLite dans une archive) qui liste tous les logiciels
 /// avec leur nom, leur éditeur, leurs mots-clés et leur dernière version. Téléchargé d'un coup, interrogé en local.
 /// </summary>
 public class CatalogIndex(string path)

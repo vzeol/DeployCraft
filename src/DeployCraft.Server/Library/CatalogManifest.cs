@@ -4,7 +4,7 @@ namespace DeployCraft.Server.Library;
 public record LibraryInstaller(string Type, string Architecture, string Url, string Sha256, string Extension, string Arguments);
 
 /// <summary>
-/// Lecture des fiches d'installation du catalogue public de logiciels (format YAML) et choix de l'installeur à déployer :
+/// Lecture des fiches d'installation du catalogue public winget (format YAML) et choix de l'installeur à déployer :
 /// pour tout le poste, sans fenêtre, en 64 bits de préférence et en français si l'éditeur en propose un.
 /// </summary>
 public static class CatalogManifest

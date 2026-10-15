@@ -8,7 +8,7 @@ using Microsoft.Data.Sqlite;
 namespace DeployCraft.Server.Library;
 
 /// <summary>
-/// Bibliothèque de paquets : recherche dans l'index du catalogue public de logiciels, lit la fiche du logiciel choisi,
+/// Bibliothèque de paquets : recherche dans l'index du catalogue public winget, lit la fiche du logiciel choisi,
 /// télécharge son installeur (empreinte vérifiée) dans le dossier de la bibliothèque et crée ou met à jour le paquet
 /// DeployCraft correspondant. Index et téléchargements sont traités en arrière-plan ; la console suit l'état.
 /// </summary>
@@ -382,7 +382,7 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
         {
             Name = app.Name,
             Version = version,
-            Description = $"Bibliothèque de paquets ({app.Id})",
+            Description = $"Bibliothèque de paquets (winget : {app.Id})",
             Steps =
             [
                 new PackageStep

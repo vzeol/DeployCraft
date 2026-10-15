@@ -3,7 +3,7 @@ namespace DeployCraft.Server.Data;
 /// <summary>Un logiciel proposé par la bibliothèque de paquets, et ce que DeployCraft en a fait.</summary>
 public class LibraryItem
 {
-    /// <summary>Identifiant du logiciel dans le catalogue public de logiciels (ex. VideoLAN.VLC).</summary>
+    /// <summary>Identifiant du logiciel dans le catalogue public winget (ex. VideoLAN.VLC).</summary>
     public string Id { get; set; } = "";
     public string Name { get; set; } = "";
     /// <summary>Dernière version connue du catalogue (null tant qu'il n'a pas été lu).</summary>
