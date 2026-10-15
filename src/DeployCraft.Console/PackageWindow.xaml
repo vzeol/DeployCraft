@@ -218,8 +218,10 @@
                                 <TextBox x:Name="CopySourceBox" Grid.Column="1" AutomationProperties.Name="Fichier ou dossier à copier"
                                          Text="{Binding CopySource, UpdateSourceTrigger=PropertyChanged}" />
                                 <StackPanel Grid.Column="2" Orientation="Horizontal">
-                                    <Button Content="Fichier…" Margin="6,0,0,0" Padding="8,0" Click="BrowseCopyFile_Click" />
-                                    <Button Content="Dossier…" Margin="6,0,0,0" Padding="8,0" Click="BrowseCopyFolder_Click" />
+                                    <Button Content="Fichier…" Margin="6,0,0,0" Padding="8,0" Click="BrowseCopyFile_Click"
+                                            Height="{Binding ActualHeight, ElementName=CopySourceBox}" />
+                                    <Button Content="Dossier…" Margin="6,0,0,0" Padding="8,0" Click="BrowseCopyFolder_Click"
+                                            Height="{Binding ActualHeight, ElementName=CopySourceBox}" />
                                 </StackPanel>
                                 <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}"
                                            Text="Fichier ou dossier vu depuis le serveur DeployCraft (un partage réseau est conseillé)." />
@@ -228,10 +230,10 @@
                                 <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" AutomationProperties.Name="Dossier de destination sur le poste"
                                          Text="{Binding CopyDestination, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}"
-                                           Text="Dossier du poste, créé s'il n'existe pas. Variables acceptées : %ProgramData%\Logiciel, %PUBLIC%\Desktop…" />
+                                           Text="Dossier du poste, créé s'il n'existe pas. Variables acceptées, par exemple %ProgramData%\Logiciel." />
 
                                 <TextBlock Grid.Row="4" Style="{StaticResource FieldLabel}" Text="Fichiers" />
-                                <TextBox Grid.Row="4" Grid.Column="1" Style="{StaticResource CompactBox}" HorizontalAlignment="Left" Width="220"
+                                <TextBox Grid.Row="4" Grid.Column="1" HorizontalAlignment="Left" Width="220"
                                          AutomationProperties.Name="Motifs des fichiers à copier"
                                          Text="{Binding CopyPatterns, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}"
