@@ -207,6 +207,26 @@ api.MapDelete("/packages/{id:long}", (long id, Store store) =>
 });
 
 // Export : les paquets choisis et les paquets imbriqués qu'ils utilisent, dans un fichier qui se suffit à lui-même.
+// Avertissements de la fenêtre du paquet : chemins introuvables depuis le serveur, lus comme pour un déploiement
+// (partage ouvert avec l'identifiant par défaut). Une vérification impossible (identifiant refusé…) ne signale rien.
+api.MapPost("/files/missing", (List<string> paths, DeployCredentials cred) =>
+{
+    var account = cred.Default;
+    return paths.Where(p => !string.IsNullOrWhiteSpace(p)).Distinct(StringComparer.OrdinalIgnoreCase).Where(path =>
+    {
+        try
+        {
+            var expanded = Environment.ExpandEnvironmentVariables(path.Trim());
+            var host = expanded.StartsWith(@"\\") ? expanded[2..].Split('\\')[0] : null;
+            return !cred.RunAs(account, host, () => File.Exists(expanded) || Directory.Exists(expanded));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception or ArgumentException)
+        {
+            return false;
+        }
+    }).ToList();
+});
+
 // ---------- Dossiers de paquets ----------
 
 api.MapGet("/folders", (Store store) => store.ListFolders());

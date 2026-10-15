@@ -44,6 +44,9 @@ public static class Api
     public static Task DeletePackage(long id) => Send<object>(HttpMethod.Delete, $"packages/{id}");
     public static Task MovePackage(long id, long? folderId) => Send<object>(HttpMethod.Put, $"packages/{id}/folder", new { folderId });
 
+    /// <summary>Parmi ces chemins, ceux que le serveur ne trouve pas (avec l'identifiant par défaut).</summary>
+    public static Task<List<string>> MissingFiles(IEnumerable<string> paths) => Send<List<string>>(HttpMethod.Post, "files/missing", paths.ToList());
+
     public static Task<List<PackageFolder>> Folders() => Get<List<PackageFolder>>("folders");
     public static Task<PackageFolder> SaveFolder(PackageFolder f) =>
         f.Id == 0 ? Send<PackageFolder>(HttpMethod.Post, "folders", f) : Send<PackageFolder>(HttpMethod.Put, $"folders/{f.Id}", f);
