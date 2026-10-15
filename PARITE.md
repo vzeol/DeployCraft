@@ -24,7 +24,7 @@ dans la même PR que le code qui la réalise.
 | 1.7 | Menus Fichier / Édition / Affichage / Options / Aide + clic droit partout | 🟡 | 0.5.0 : Fichier, Édition, Options, Aide |
 | 1.8 | Fenêtre des raccourcis clavier | ❌ | Écarté : choix du mainteneur (à revoir selon les retours d'usage) |
 | 1.9 | Thèmes clair / sombre | ✅ | 0.7.0 : Clair, Sombre ou Selon Windows ; Préférences › Interface, appliqué à chaud |
-| 1.10 | Page d'accueil | ⬜ | |
+| 1.10 | Page d'accueil | ✅ | Ouverte au démarrage : en ce moment, dernières 24 heures (échecs cliquables), prochaines planifications, bibliothèque, raccourcis |
 | 1.11 | Import / export (paquets, dossiers, listes de cibles, planifications, réglages) | ✅ | Paquets : export / import JSON à nous, import de fichiers XML de paquets avec aperçu. Le reste écarté (choix du mainteneur) |
 | 1.12 | Imprimer, aperçu avant impression, mise en page, enregistrer une grille en CSV | ❌ | Écarté : choix du mainteneur (le résultat dans la console suffit) |
 | 1.13 | À propos | ✅ | Aide › À propos : versions console et service, compte connecté, licence, liens, copie des informations |
