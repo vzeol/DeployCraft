@@ -63,17 +63,11 @@ version ni de release côté Cloud) :
   (#16, #18, #19, #21, #26, #27). « REMARQUE » au
   lieu de « ERREUR » pour un poste réussi, « Raison : » pour une étape ignorée, boîte `MessageDialog` aux couleurs
   du thème (plus aucun `MessageBox.Show`).
-- **E — 8.2 variables (branche `feat/variables`, poussée, PAS encore de PR ni d'issue)** : serveur, runner, API
+- **E — 8.2 variables (branche `feat/variables`, rebasée sur main après #27)** : serveur, runner, API
   `/variables`, `Store.Variables.cs` (Store en `partial`), `Data/VariableText.cs` (partagé avec la console),
-  `VariablesPage` et 15 tests faits. **Reste** :
-  1. #27 est fusionnée : `git fetch origin main && git rebase origin/main` sur `feat/variables`, puis
-     `git push --force-with-lease` (branche à nous) ;
-  2. brancher la page dans `SettingsWindow.xaml` (onglet « Variables » contenant `<local:VariablesPage x:Name="VariablesPage" />`)
-     et, dans `OnClosing`, si `VariablesPage.HasChanges`, demander via `MessageDialog.Show` (Oui / Non / Annuler)
-     puis `await VariablesPage.SaveAsync()` ; ne toucher qu'à ça dans SettingsWindow (fichier aussi visé par #23) ;
-  3. ouvrir l'issue « [8.2] Variables » (Pris par DeployCraft Cloud), puis la PR, et l'envoyer à Prod avec un
-     scénario Windows ($(Depot) dans un fichier Installer, $(Poste) dans une commande, $(Get-Date) PowerShell
-     intact, nom « Get-Date » refusé, avertissement « stockées en clair »).
+  `VariablesPage` (onglet Préférences › Variables ; à la fermeture des Préférences, « enregistrer ? » Oui / Non /
+  Annuler via `MessageDialog`) et 15 tests. PR envoyée à Prod pour relecture et test Windows : fusion (squash)
+  seulement après son feu vert.
   Règles validées par Prod : seuls les noms connus sont remplacés (un `$(…)` inconnu reste tel quel, à cause de
   PowerShell) ; noms en lettres / chiffres / « _ » ; pas de remplacement récursif ; `$(Poste)` dans `Prepare`.
   Le message de boucle des paquets imbriqués donne maintenant le chemin (« B › C › B »), demandé par Prod.
