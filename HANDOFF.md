@@ -34,6 +34,20 @@ Gestion du dépôt (15/10) : `main` protégée (PR + CI obligatoires), un sujet 
 **Sujet en cours ailleurs : authentification de l'API du service (PARITE 8.10, issue #5).** Aujourd'hui l'API
 (`localhost:5080`) n'a pas d'authentification : un utilisateur ouvert sur le serveur pourrait lancer un déploiement.
 
+## Point de reprise (Cloud, 15/10) : retours du mainteneur sur la 0.12.0
+
+Glisser-déposer et remarque partielle : validés. Dans l'ordre (1 et 3 faits, 2 en cours) :
+
+1. **Fait — PR #40 fusionnée** : variables $(Nom) retirées (choix du mainteneur), relu et testé par Prod (un
+   `$(Poste)` / `$(Get-Date)` part tel quel). Table `variables` laissée en base, plus lue. PARITE 8.2 ❌.
+2. **En cours — branche `feat/executer-en-tant-que-etape` (2.8)** : `main` intégrée par une fusion (pas de
+   réécriture d'historique ; la PR sera fusionnée en squash). Conflit de `TargetSession.Prepare` résolu (plus de
+   `ForComputer`). Décision (c) « bureau » écartée par le mainteneur, reportée dans PARITE 2.8. Pas de PR avant le
+   feu vert de Prod.
+3. **Fait — PR #42 fusionnée** : boutons de barre d'outils (fond et bordure au repos, survol bordé d'accent),
+   liens soulignés en orange, survol des grilles et des arbres. Vu par Prod au repos en sombre et en clair ;
+   **survols pas vérifiés** (curseur non pilotable en RDP) : à regarder par le mainteneur dans la 0.13.0.
+
 ## En cours : options et étapes manquantes (DeployCraft Cloud, relu par DeployCraft Prod)
 
 Fonctionnement (validé par le mainteneur) : la session Cloud code et ouvre les PR ; la session Windows
@@ -74,13 +88,20 @@ version ni de release côté Cloud) :
   paquet (`PackageWindow.DragDrop.cs`, déplacement libre), Ctrl+Haut / Ctrl+Bas. **Glisser-déposer pas encore
   testé pour de vrai** (session Windows verrouillée pendant les tests de Prod) : à vérifier dans la 0.12.0.
 - **Thème sombre trop « plat » (PR #36)** : fusionnée. Onglets soulignés d'accent, boutons et champs bordés, clés
-  `Control*` / `Primary*` dans les deux thèmes (contrastes WCAG). **0.12.0 publiée** par Prod (variables, retrait des sections,
-  remarque partielle, glisser-déposer, thème) : en attente du test du mainteneur, aucun nouveau sujet avant.
-- **2.8 exécuter en tant que par étape (branche `feat/executer-en-tant-que-etape`)** : codé et poussé, **PR à ouvrir
-  seulement après le test de la 0.12.0**. Tranches par identité (`Remote/RunAsPlan.cs`), un service par tranche,
-  `halt` / `haltReason` dans status.json, `firstNumber` dans job.json. « Compte de déploiement sur le bureau » :
-  décision du mainteneur attendue (pas dans l'interface).
+  `Control*` / `Primary*` dans les deux thèmes (contrastes WCAG). **0.12.0 publiée** par Prod.
+- **Installeur (PR #39)** : fusionnée. Une mise à jour avec la console ouverte échouait (code 5) après avoir supprimé
+  le service. Désormais : console fermée proprement (Restart Manager, filtre `DeployCraft.exe`), service seulement
+  arrêté juste avant la copie, reconfiguré par `sc config`, et redémarré si l'installation échoue.
+- **2.8 exécuter en tant que par étape (branche `feat/executer-en-tant-que-etape`)** : codé, `main` intégrée
+  (variables et style), **PR seulement après le feu vert de Prod**. Tranches par identité (`Remote/RunAsPlan.cs`),
+  un service par tranche, `halt` / `haltReason` dans status.json, `firstNumber` dans job.json. « Compte de
+  déploiement sur le bureau » : écarté par le mainteneur (déploiements toujours silencieux, sans mot de passe sur
+  le poste).
 - Contributeur externe (chromozone21, par fork) : issues #22, #23, #24, à ne pas prendre.
+  **#23 — 4.8 nettoyage de l'historique (PR #38)** : fusionnée. Réglage `DeploymentDefaults.History`
+  (`HistorySettings` : `Cleanup`, `KeepDays` de 1 à 3650, désactivé d'usine), `Store.PurgeFinishedDeployments`,
+  service `HistoryCleaner` (au démarrage puis chaque jour), case et champ dans Préférences › Déploiement. Le premier
+  ménage a lieu au prochain démarrage du service ou dans les 24 h, pas à l'activation du réglage.
 - Ensuite : 2.23, 2.24, 2.26, 2.27, 2.20–2.22 (à tester sur un vrai poste).
 - Import des paquets PDQ Deploy (#14) : en attente, après ces sujets.
 
@@ -102,7 +123,7 @@ listes de cibles.
   coller d'étapes (0.10.0)
 - Hors ligne (0.10.0, désactivé par défaut) : Wake-on-LAN, nouveaux essais (perdus si le service redémarre)
 - Étapes Pause et paquet imbriqué, étapes désactivables, arrêter en échec ou en succès (0.11.0)
-- Variables $(Nom), glisser-déposer des étapes (0.12.0)
+- Glisser-déposer des étapes (0.12.0 ; les variables $(Nom) de la 0.12.0 sont retirées par la PR #40)
 - Pas encore testé : abandon des postes en attente après N minutes (il faut plus de 8 postes en même temps)
 
 Construire : `.\build.ps1 -Version x.y.z` → `dist\DeployCraft-Setup-x.y.z.exe` (prérequis : SDK .NET 10, Inno Setup 6).

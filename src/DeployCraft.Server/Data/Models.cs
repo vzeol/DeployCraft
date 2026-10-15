@@ -56,17 +56,6 @@ public class PackageStep
     public Conditions Conditions { get; set; } = new();
 }
 
-/// <summary>
-/// Variable personnalisée (Préférences › Variables), écrite $(Nom) dans les chemins, paramètres, commandes et
-/// conditions des étapes. Stockée en clair : jamais de mot de passe.
-/// </summary>
-public class Variable
-{
-    public string Name { get; set; } = "";
-    public string Value { get; set; } = "";
-    public string? Description { get; set; }
-}
-
 /// <summary>Conditions héritées, avec leur origine pour expliquer une étape ignorée.</summary>
 public class ConditionGroup
 {
@@ -134,6 +123,21 @@ public class OfflineSettings
     public int RetryIntervalMinutes { get; set; } = 30;
 }
 
+/// <summary>Nettoyage automatique de l'historique des déploiements (Préférences › Déploiement).</summary>
+public class HistorySettings
+{
+    public const int MinDays = 1;
+    public const int MaxDays = 3650;
+
+    /// <summary>Supprimer les déploiements terminés depuis plus de <see cref="KeepDays"/> jours (désactivé d'usine).</summary>
+    public bool Cleanup { get; set; }
+    public int KeepDays { get; set; } = 30;
+
+    /// <summary>Message d'erreur si le nombre de jours est hors limites, sinon null.</summary>
+    public static string? Validate(int keepDays) =>
+        keepDays is < MinDays or > MaxDays ? $"le nombre de jours doit être compris entre {MinDays} et {MaxDays}." : null;
+}
+
 /// <summary>Carte réseau d'un poste : adresse MAC et adresse de diffusion de son sous-réseau (pour le réveiller).</summary>
 public record NetworkCard(string Mac, string? Broadcast);
 
@@ -144,6 +148,7 @@ public class DeploymentDefaults
     public CopyMode CopyMode { get; set; } = CopyMode.Push;
     public int TimeoutMinutes { get; set; } = 60;
     public OfflineSettings Offline { get; set; } = new();
+    public HistorySettings History { get; set; } = new();
 }
 
 public class Package
@@ -169,27 +174,15 @@ public class Package
     /// Copie prête à déployer : chaque réglage laissé « par défaut » prend sa valeur (étape → paquet → Préférences).
     /// L'historique du déploiement garde ainsi les valeurs réellement utilisées.
     /// </summary>
-    public Package Resolve(DeploymentDefaults defaults, Func<long, Package?>? lookup = null,
-        IReadOnlyDictionary<string, string>? variables = null)
+    public Package Resolve(DeploymentDefaults defaults, Func<long, Package?>? lookup = null)
     {
         var copy = Flatten(lookup ?? (_ => null), defaults.TimeoutMinutes);
-        if (variables != null) copy.ReplaceVariables(variables);
         copy.RunAs ??= defaults.RunAs;
         copy.CopyMode ??= defaults.CopyMode;
         copy.TimeoutMinutes ??= defaults.TimeoutMinutes;
         copy.Offline ??= Clone(defaults.Offline);
         foreach (var step in copy.Steps) step.TimeoutMinutes ??= copy.TimeoutMinutes;
         return copy;
-    }
-
-    /// <summary>
-    /// Remplace les variables $(Nom) connues de <paramref name="values"/> dans les chemins, paramètres et commandes des
-    /// étapes et dans les chemins et clés des conditions (du paquet, des étapes et héritées).
-    /// </summary>
-    public void ReplaceVariables(IReadOnlyDictionary<string, string> values)
-    {
-        VariableText.Replace(Conditions, values);
-        foreach (var step in Steps) VariableText.Replace(step, values);
     }
 
     /// <summary>Niveaux de paquets imbriqués acceptés (un paquet qui en contient un qui en contient un…).</summary>

@@ -25,6 +25,12 @@
     <SolidColorBrush x:Key="PrimaryBackground" Color="#F5892B" />
     <SolidColorBrush x:Key="PrimaryHoverBackground" Color="#F7A65C" />
     <SolidColorBrush x:Key="PrimaryText" Color="#1A1A1A" />
+    <!-- Cliquable : boutons de barre d'outils (texte ≥ 4,5:1 au survol), liens soulignés (≥ 4,5:1), survol des arbres et grilles. -->
+    <SolidColorBrush x:Key="ToolHoverBackground" Color="#5A5A5A" />
+    <SolidColorBrush x:Key="ToolPressedBackground" Color="#686868" />
+    <SolidColorBrush x:Key="LinkBrush" Color="#F7A65C" />
+    <SolidColorBrush x:Key="LinkHoverBrush" Color="#FBC48F" />
+    <SolidColorBrush x:Key="RowHoverBackground" Color="#4A4A4A" />
 
     <!-- Accent des contrôles Fluent (sélection, focus, cases à cocher) : notre orange au lieu de la couleur de Windows. -->
     <Color x:Key="SystemAccentColor">#E8710A</Color>
@@ -42,6 +48,7 @@
     <Color x:Key="{x:Static SystemColors.AccentColorDark2Key}">#A04C04</Color>
     <Color x:Key="{x:Static SystemColors.AccentColorDark3Key}">#7A3A03</Color>
     <SolidColorBrush x:Key="TreeViewItemSelectionIndicatorForeground" Color="#F5892B" />
+    <SolidColorBrush x:Key="TreeViewItemBackgroundPointerOver" Color="#4A4A4A" />
     <SolidColorBrush x:Key="ListViewItemPillFillBrush" Color="#F5892B" />
     <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#F5892B" />
     <SolidColorBrush x:Key="AccentFillColorSecondaryBrush" Color="#E6F5892B" />

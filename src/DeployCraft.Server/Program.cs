@@ -27,6 +27,7 @@ builder.Services.AddSingleton<DeploymentEngine>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<DeploymentEngine>());
 builder.Services.AddSingleton<Scheduler>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<Scheduler>());
+builder.Services.AddHostedService<HistoryCleaner>();
 
 var app = builder.Build();
 
@@ -56,27 +57,12 @@ api.MapGet("/settings/defaults", (Store store) => store.GetDefaults());
 api.MapPut("/settings/defaults", (DeploymentDefaults defaults, Store store) =>
 {
     defaults.Offline ??= new();
+    defaults.History ??= new();
     if (defaults.TimeoutMinutes < 1) return Results.BadRequest(new { error = "Le délai max doit être d'au moins 1 minute." });
     if (ValidateOffline(defaults.Offline) is { } error) return Results.BadRequest(new { error = $"Hors ligne : {error}" });
+    if (HistorySettings.Validate(defaults.History.KeepDays) is { } historyError) return Results.BadRequest(new { error = $"Historique : {historyError}" });
     store.SaveDefaults(defaults);
     return Results.Ok(defaults);
-});
-
-// ---------- Variables ----------
-
-api.MapGet("/variables", (Store store) => store.ListVariables());
-
-// La page enregistre toutes les variables d'un bloc.
-api.MapPut("/variables", (List<Variable> variables, Store store) =>
-{
-    foreach (var v in variables)
-    {
-        v.Name = (v.Name ?? "").Trim();
-        v.Value ??= "";
-    }
-    if (VariableText.Validate(variables) is { } error) return Results.BadRequest(new { error });
-    store.SaveVariables(variables);
-    return Results.Ok(store.ListVariables());
 });
 
 // ---------- Identifiants ----------
