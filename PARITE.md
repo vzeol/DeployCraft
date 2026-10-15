@@ -82,8 +82,8 @@ dans la même PR que le code qui la réalise.
 | # | Fonction | État | Notes |
 |---|---|---|---|
 | 4.1 | Liste maître / détail : déploiements, postes, étapes, sortie | ✅ | |
-| 4.2 | Statuts de poste détaillés : en attente, ping, réveil (WoL), connexion, copie, exécution, reconnexion, annulation, finalisation… | 🟡 | |
-| 4.3 | Compteurs par déploiement (en attente / en cours / réussis / échecs) + « partiellement échoué », « annulé » | 🟡 | |
+| 4.2 | Statuts de poste détaillés : en attente, ping, réveil (WoL), connexion, copie, exécution, reconnexion, annulation, finalisation… | ✅ | Étape en cours affichée (attente de créneau, réveil, résolution du nom, copie, exécution, poste injoignable, redémarrage, nettoyage) ; statut « Annulé » |
+| 4.3 | Compteurs par déploiement (en attente / en cours / réussis / échecs) + « partiellement échoué », « annulé » | ✅ | Colonnes En attente, En cours, Réussis, Échecs, Annulés ; statuts « Partiel » et « Annulé » |
 | 4.4 | Progression de copie (% et débit), note par étape, compte d'exécution par étape | ⬜ | |
 | 4.5 | Annuler, redéployer, redéployer les échecs, reprendre à l'étape en échec | ✅ | |
 | 4.6 | Prioriser un poste en attente | ❌ | Écarté : choix du mainteneur |
