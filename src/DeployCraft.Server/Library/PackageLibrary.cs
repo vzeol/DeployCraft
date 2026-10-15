@@ -17,7 +17,7 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
     private const string SettingKey = "library";
     private const string CatalogRaw = "https://raw.githubusercontent.com/microsoft/winget-pkgs/master/";
     /// <summary>Résultats affichés au plus pour une recherche.</summary>
-    private const int SearchLimit = 100;
+    private const int SearchLimit = 1000;
     /// <summary>L'index est relu de lui-même quand la console l'affiche et qu'il a plus d'un jour.</summary>
     private static readonly TimeSpan MaxAge = TimeSpan.FromDays(1);
 
@@ -38,10 +38,28 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
     // ---------- État ----------
 
     /// <summary>
-    /// Sans recherche : les logiciels déjà téléchargés puis la sélection de logiciels courants.
-    /// Avec recherche : les logiciels du catalogue qui correspondent.
+    /// Sans recherche : tout le catalogue, avec en tête les logiciels déjà téléchargés puis les logiciels courants.
+    /// Avec recherche : les logiciels qui correspondent. La console charge cette liste une fois, puis suit seulement
+    /// les changements avec <see cref="Status"/>.
     /// </summary>
-    public LibraryInfo Info(string? search)
+    public LibraryInfo Info(string? search) => Read(state =>
+    {
+        if (string.IsNullOrWhiteSpace(search)) return Ordered(_index.All(), state);
+        return _index.Search(search, SearchLimit);
+    });
+
+    /// <summary>
+    /// Seulement les logiciels qui ont un état propre : téléchargement en cours, erreur, ou paquet créé.
+    /// Petit : la console le demande toutes les deux secondes pour mettre à jour ces lignes.
+    /// </summary>
+    public LibraryInfo Status() => Read(state =>
+    {
+        IEnumerable<string> ids;
+        lock (_lock) ids = [.. _progress.Keys, .. state.Links.Keys, .. state.Errors.Keys];
+        return [.. _index.Get(ids).Values];
+    });
+
+    private LibraryInfo Read(Func<LibraryState, List<IndexEntry>> list)
     {
         var state = Load();
         if (!_index.Exists || state.LastRefreshUtc == null || DateTime.UtcNow - state.LastRefreshUtc > MaxAge) StartRefresh();
@@ -53,18 +71,7 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
             try
             {
                 count = _index.Count();
-                if (string.IsNullOrWhiteSpace(search))
-                {
-                    var linked = state.Links.Where(l => store.GetPackage(l.Value.PackageId) != null).Select(l => l.Key).ToList();
-                    var found = _index.Get(linked.Concat(LibraryCatalog.Suggested));
-                    entries.AddRange(linked.Where(found.ContainsKey).Select(id => found[id]).OrderBy(e => e.Name, StringComparer.CurrentCultureIgnoreCase));
-                    entries.AddRange(LibraryCatalog.Suggested.Where(id => found.ContainsKey(id) && !linked.Contains(id, StringComparer.OrdinalIgnoreCase))
-                        .Select(id => found[id]).OrderBy(e => e.Name, StringComparer.CurrentCultureIgnoreCase));
-                }
-                else
-                {
-                    entries = _index.Search(search, SearchLimit);
-                }
+                entries = list(state);
             }
             catch (SqliteException ex)
             {
@@ -86,6 +93,14 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
                 Items = entries.Select(e => Item(e, state)).ToList(),
             };
         }
+    }
+
+    /// <summary>Logiciels déjà téléchargés, puis logiciels courants, puis le reste par ordre alphabétique.</summary>
+    private List<IndexEntry> Ordered(List<IndexEntry> all, LibraryState state)
+    {
+        var linked = state.Links.Where(l => store.GetPackage(l.Value.PackageId) != null).Select(l => l.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var suggested = LibraryCatalog.Suggested.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        return [.. all.OrderBy(e => linked.Contains(e.Id) ? 0 : suggested.Contains(e.Id) ? 1 : 2)];
     }
 
     private LibraryItem Item(IndexEntry e, LibraryState state)

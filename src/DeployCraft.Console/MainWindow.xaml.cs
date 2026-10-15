@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Windows;
@@ -405,42 +406,92 @@ public partial class MainWindow : Window
     private bool _refreshingLibrary;
     // La recherche part un court instant après la dernière touche, pas à chaque lettre.
     private readonly DispatcherTimer _librarySearchDelay = new() { Interval = TimeSpan.FromMilliseconds(350) };
+    // Liste chargée une fois (tout le catalogue ou une recherche) ; ensuite seules les lignes qui changent sont remplacées.
+    private ObservableCollection<LibraryRow> _libraryRows = [];
+    private Dictionary<string, int> _libraryPositions = new(StringComparer.OrdinalIgnoreCase);
+    private HashSet<string> _libraryActive = new(StringComparer.OrdinalIgnoreCase);
+    private string? _librarySearch;
+    private DateTime? _libraryCatalogDate;
 
     private List<LibraryRow> SelectedLibraryRows => LibraryGrid.SelectedItems.OfType<LibraryRow>().ToList();
 
     private async Task RefreshLibraryAsync()
     {
         var search = LibrarySearch.Text.Trim();
-        var info = await Api.Library(search);
-        var selected = SelectedLibraryRows.Select(r => r.Id).ToHashSet();
-        var rows = info.Items.Select(i => new LibraryRow(i)).ToList();
-        _refreshingLibrary = true;
-        LibraryGrid.ItemsSource = rows;
-        foreach (var row in rows.Where(r => selected.Contains(r.Id))) LibraryGrid.SelectedItems.Add(row);
-        _refreshingLibrary = false;
+        var status = await Api.LibraryStatus();
+        // Liste rechargée seulement si la recherche ou le catalogue ont changé.
+        if (search != _librarySearch || status.LastRefreshUtc != _libraryCatalogDate)
+        {
+            var list = await Api.Library(search);
+            var selected = SelectedLibraryRows.Select(r => r.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            _librarySearch = search;
+            _libraryCatalogDate = list.LastRefreshUtc;
+            _libraryRows = new(list.Items.Select(i => new LibraryRow(i)));
+            _libraryPositions = _libraryRows.Select((r, i) => (r.Id, i)).ToDictionary(x => x.Id, x => x.i, StringComparer.OrdinalIgnoreCase);
+            _libraryActive = new(StringComparer.OrdinalIgnoreCase);
+            _refreshingLibrary = true;
+            LibraryGrid.ItemsSource = _libraryRows;
+            foreach (var row in _libraryRows.Where(r => selected.Contains(r.Id))) LibraryGrid.SelectedItems.Add(row);
+            _refreshingLibrary = false;
+        }
+        MergeLibraryStatus(status.Items);
 
-        var refreshed = info.Refreshing ? "lecture du catalogue en cours…"
-            : info.LastRefreshUtc is { } at ? $"lu le {Ui.LocalTime(at)}" : "pas encore lu";
-        var updates = rows.Count(r => r.Item.UpdateAvailable);
-        var shown = search.Length == 0 ? "vos paquets et des logiciels courants ; cherchez pour voir les autres"
-            : rows.Count == 0 ? "aucun résultat" : $"{rows.Count}{(rows.Count >= 100 ? " premiers" : "")} résultat(s)";
-        LibrarySubtitle.Text = $"Catalogue public winget ({info.CatalogCount:N0} logiciels, {refreshed}) · {shown}" +
+        var refreshed = status.Refreshing ? "lecture du catalogue en cours…"
+            : status.LastRefreshUtc is { } at ? $"lu le {Ui.LocalTime(at)}" : "pas encore lu";
+        var updates = status.Items.Count(i => i.UpdateAvailable);
+        var shown = search.Length == 0 ? "vos paquets et les logiciels courants en tête"
+            : _libraryRows.Count == 0 ? "aucun résultat" : $"{_libraryRows.Count:N0} résultat(s)";
+        LibrarySubtitle.Text = $"Catalogue public winget ({status.CatalogCount:N0} logiciels, {refreshed}) · {shown}" +
                                (updates > 0 ? $" · {updates} mise(s) à jour disponible(s)" : "");
-        LibraryFolderText.Text = (info.RefreshError is { } error ? error + Environment.NewLine : "") +
-            $"Les installeurs sont rangés dans {info.Folder}" +
-            (info.DefaultFolder ? " (dossier du serveur : préférez un partage, lisible aussi par les postes en mode pull)." : ".") +
+        LibraryFolderText.Text = (status.RefreshError is { } error ? error + Environment.NewLine : "") +
+            $"Les installeurs sont rangés dans {status.Folder}" +
+            (status.DefaultFolder ? " (dossier du serveur : préférez un partage, lisible aussi par les postes en mode pull)." : ".") +
             " Chaque téléchargement crée ou met à jour un paquet du même nom, prêt à déployer.";
-        LibraryRefreshButton.IsEnabled = !info.Refreshing;
+        LibraryRefreshButton.IsEnabled = !status.Refreshing;
         UpdateLibraryButton();
 
         // Un téléchargement terminé crée ou met à jour un paquet : l'arbre suit.
-        var packages = string.Join(";", info.Items.Select(i => $"{i.PackageId}:{i.PackageVersion}"));
+        var packages = string.Join(";", status.Items.Select(i => $"{i.PackageId}:{i.PackageVersion}"));
         if (packages != _libraryPackages)
         {
             if (_libraryPackages.Length > 0) await RefreshPackagesAsync();
             _libraryPackages = packages;
         }
     }
+
+    /// <summary>
+    /// Remplace les lignes dont l'état a changé : téléchargement en cours, erreur, paquet créé. Une ligne qui n'a plus
+    /// d'état propre (paquet supprimé, erreur effacée) revient à l'état « pas encore téléchargé ».
+    /// </summary>
+    private void MergeLibraryStatus(List<LibraryItem> items)
+    {
+        var active = items.ToDictionary(i => i.Id, StringComparer.OrdinalIgnoreCase);
+        _refreshingLibrary = true;
+        foreach (var id in _libraryActive.Union(active.Keys, StringComparer.OrdinalIgnoreCase).ToList())
+        {
+            if (!_libraryPositions.TryGetValue(id, out var position)) continue;
+            var current = _libraryRows[position];
+            var item = active.GetValueOrDefault(id) ?? new LibraryItem
+            {
+                Id = current.Item.Id,
+                Name = current.Item.Name,
+                LatestVersion = current.Item.LatestVersion,
+                Installer = current.Item.Installer,
+                Problem = current.Item.Problem,
+            };
+            if (SameState(current.Item, item)) continue;
+            var wasSelected = LibraryGrid.SelectedItems.Contains(current);
+            _libraryRows[position] = new LibraryRow(item);
+            if (wasSelected) LibraryGrid.SelectedItems.Add(_libraryRows[position]);
+        }
+        _refreshingLibrary = false;
+        _libraryActive = active.Keys.ToHashSet(StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static bool SameState(LibraryItem a, LibraryItem b) =>
+        a.Stage == b.Stage && a.Progress == b.Progress && a.Error == b.Error && a.PackageId == b.PackageId &&
+        a.PackageVersion == b.PackageVersion && a.UpdateAvailable == b.UpdateAvailable && a.Installer == b.Installer &&
+        a.Problem == b.Problem && a.LatestVersion == b.LatestVersion;
 
     private void UpdateLibraryButton()
     {

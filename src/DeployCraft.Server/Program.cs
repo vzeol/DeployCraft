@@ -249,6 +249,8 @@ api.MapPut("/packages/{id:long}/targets", (long id, List<string> computers, Stor
 
 api.MapGet("/library", (string? search, PackageLibrary library) => library.Info(search));
 
+api.MapGet("/library/status", (PackageLibrary library) => library.Status());
+
 api.MapPost("/library/refresh", (PackageLibrary library) =>
 {
     library.StartRefresh();

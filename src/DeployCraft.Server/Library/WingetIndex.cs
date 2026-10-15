@@ -49,6 +49,15 @@ public class WingetIndex(string path)
         return Convert.ToInt32(cmd.ExecuteScalar());
     }
 
+    /// <summary>Tout le catalogue, par ordre alphabétique.</summary>
+    public List<IndexEntry> All()
+    {
+        using var db = Open();
+        using var cmd = db.CreateCommand();
+        cmd.CommandText = "SELECT id, name, latest_version FROM packages ORDER BY name COLLATE NOCASE";
+        return Read(cmd);
+    }
+
     /// <summary>
     /// Logiciels dont le nom, l'identifiant, l'éditeur ou un mot-clé contient chacun des mots cherchés ;
     /// d'abord le nom exact, puis les noms qui commencent par la recherche, puis ceux qui contiennent tous les mots.
