@@ -73,10 +73,13 @@
                     <DataGridTextColumn x:Name="PackageColumn" Header="Paquet" Binding="{Binding PackageName}" Width="*" MinWidth="120" />
                     <DataGridTextColumn Header="Lancé le" Binding="{Binding Created}" Width="140" SortMemberPath="CreatedUtc" />
                     <DataGridTextColumn Header="Durée" Binding="{Binding Duration}" Width="90" />
-                    <DataGridTextColumn Header="Postes" Binding="{Binding Total}" Width="75" />
+                    <DataGridTextColumn Header="Postes" Binding="{Binding Counts.Total}" Width="75" />
                     <DataGridTextColumn Header="Prioritaire" Binding="{Binding Prioritized}" Width="95" />
-                    <DataGridTextColumn Header="Réussis" Binding="{Binding Ok}" Width="80" />
-                    <DataGridTextColumn Header="Échecs" Binding="{Binding Ko}" Width="75" />
+                    <DataGridTextColumn Header="En attente" Binding="{Binding Counts.Queued}" Width="95" />
+                    <DataGridTextColumn Header="En cours" Binding="{Binding Counts.Running}" Width="85" />
+                    <DataGridTextColumn Header="Réussis" Binding="{Binding Counts.Successful}" Width="80" />
+                    <DataGridTextColumn Header="Échecs" Binding="{Binding Counts.Failed}" Width="75" />
+                    <DataGridTextColumn Header="Annulés" Binding="{Binding Counts.Aborted}" Width="80" />
                 </DataGrid.Columns>
             </DataGrid>
         </DockPanel>

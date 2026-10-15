@@ -6,7 +6,7 @@ using DeployCraft.Server.Data;
 namespace DeployCraft.Console;
 
 public record DeploymentRow(Deployment Deployment, long Id, string Status, string PackageName, DateTime CreatedUtc,
-    string Created, string Duration, int Total, int Ok, int Ko)
+    string Created, string Duration, DeploymentSummary.Counts Counts)
 {
     public string Prioritized => Deployment.Targets.Any(t => t.Prioritized) ? "Oui" : "";
 }
@@ -158,12 +158,8 @@ public partial class DeploymentsPanel : UserControl
     }
 
     private static DeploymentRow ToRow(Deployment d) => new(
-        d, d.Id, DisplayStatus(d), d.PackageName, d.CreatedUtc, Ui.LocalTime(d.CreatedUtc), Ui.Duration(d.CreatedUtc, d.EndedUtc),
-        d.Targets.Count, d.Targets.Count(t => t.Status == TargetStatus.Successful), d.Targets.Count(t => t.Status == TargetStatus.Failed));
-
-    /// <summary>Un déploiement terminé avec une partie des postes en échec est affiché « Partiel ».</summary>
-    private static string DisplayStatus(Deployment d) =>
-        d.Status == DeploymentStatus.Failed && d.Targets.Any(t => t.Status == TargetStatus.Successful) ? "Partial" : d.Status.ToString();
+        d, d.Id, DeploymentSummary.StatusOf(d), d.PackageName, d.CreatedUtc, Ui.LocalTime(d.CreatedUtc), Ui.Duration(d.CreatedUtc, d.EndedUtc),
+        DeploymentSummary.Count(d));
 
     private static bool Matches(string filter, params string?[] values) =>
         values.Any(v => v?.Contains(filter, StringComparison.OrdinalIgnoreCase) == true);
@@ -183,7 +179,7 @@ public partial class DeploymentsPanel : UserControl
             return;
         }
 
-        var status = DisplayStatus(d);
+        var status = DeploymentSummary.StatusOf(d);
         DStatusIcon.Text = Ui.StatusIcon(status);
         DStatusIcon.Foreground = DStatus.Foreground = Ui.StatusBrush(status);
         DTitle.Text = $"Déploiement {d.Id}";
@@ -220,7 +216,7 @@ public partial class DeploymentsPanel : UserControl
         var filter = TargetFilter.Text.Trim();
 
         var rows = d.Targets.Select(t => new TargetRow(
-                t, d.Id, t.Computer, t.Status.ToString(),
+                t, d.Id, t.Computer, DeploymentSummary.TargetStatusOf(t),
                 $"{t.Steps.Count(s => s.State is "success" or "stopped" || s.State == "skipped" && t.Status == TargetStatus.Successful)} sur {d.Snapshot.Steps.Count - t.StartStep + 1}",
                 t.Status == TargetStatus.Running ? t.Stage ?? "" : t.Error ?? "",
                 Ui.LocalTime(t.StartedUtc), Ui.Duration(t.StartedUtc, t.EndedUtc)))

@@ -21,6 +21,7 @@
     <Compile Include="..\DeployCraft.Server\Data\LibraryModels.cs" Link="Shared\LibraryModels.cs" />
     <Compile Include="..\DeployCraft.Server\Data\AboutInfo.cs" Link="Shared\AboutInfo.cs" />
     <Compile Include="..\DeployCraft.Server\Data\InstallCommand.cs" Link="Shared\InstallCommand.cs" />
+    <Compile Include="..\DeployCraft.Server\Data\DeploymentSummary.cs" Link="Shared\DeploymentSummary.cs" />
   </ItemGroup>
 
 </Project>
