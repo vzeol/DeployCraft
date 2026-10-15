@@ -20,7 +20,7 @@ public class RunnerJobStep
     [JsonPropertyName("type")] public string Type { get; set; } = "";
     [JsonPropertyName("command")] public string? Command { get; set; }
     [JsonPropertyName("arguments")] public string? Arguments { get; set; }
-    /// <summary>pause : durée d'attente en secondes. reboot : délai avant le redémarrage.</summary>
+    /// <summary>pause : durée d'attente en secondes. reboot : délai avant le redémarrage. message : durée d'affichage (0 = jusqu'au clic).</summary>
     [JsonPropertyName("seconds")] public int Seconds { get; set; }
     [JsonPropertyName("successCodes")] public List<int> SuccessCodes { get; set; } = [0];
     [JsonPropertyName("timeoutSeconds")] public int TimeoutSeconds { get; set; }
@@ -43,6 +43,8 @@ public class RunnerJobStep
     [JsonPropertyName("copyOverwrite")] public bool CopyOverwrite { get; set; }
     /// <summary>reboot : éteindre au lieu de redémarrer.</summary>
     [JsonPropertyName("shutdownOnly")] public bool ShutdownOnly { get; set; }
+    /// <summary>message : attendre le clic de l'utilisateur (ou la fin de l'affichage).</summary>
+    [JsonPropertyName("waitForUser")] public bool WaitForUser { get; set; }
     /// <summary>Conditions de l'étape : non remplies, l'étape est sautée.</summary>
     [JsonPropertyName("conditions")] public RunnerConditions? Conditions { get; set; }
     /// <summary>Conditions supplémentaires (paquet imbriqué), vérifiées avant celles de l'étape (null = aucune).</summary>

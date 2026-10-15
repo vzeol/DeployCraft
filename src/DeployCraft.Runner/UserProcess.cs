@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -22,9 +23,17 @@ namespace DeployCraft.Runner
         /// <summary>Utilisateur de la session ciblée (DOMAINE\nom), pour le journal.</summary>
         public string User { get; private set; }
 
-        public static UserProcess Start(string fileName, string arguments, string workingDirectory, Encoding encoding, Action<string> onLine)
+        /// <param name="sessionId">Session où lancer le processus (null = la première session ouverte).</param>
+        public static UserProcess Start(string fileName, string arguments, string workingDirectory, Encoding encoding, Action<string> onLine, uint? sessionId = null)
         {
-            var session = FindActiveSession(out var user);
+            string user;
+            uint session;
+            if (sessionId is uint id)
+            {
+                session = id;
+                user = SessionUser(id);
+            }
+            else session = FindActiveSession(out user);
             if (!WTSQueryUserToken(session, out var token))
             {
                 var code = Marshal.GetLastWin32Error();
@@ -114,26 +123,35 @@ namespace DeployCraft.Runner
             }
         }
 
+        /// <summary>Sessions ouvertes sur le poste (hors session des services), avec leur utilisateur.</summary>
+        public static List<KeyValuePair<uint, string>> ActiveSessions()
+        {
+            var list = new List<KeyValuePair<uint, string>>();
+            if (!WTSEnumerateSessions(IntPtr.Zero, 0, 1, out var sessions, out var count)) return list;
+            try
+            {
+                var size = Marshal.SizeOf(typeof(WTS_SESSION_INFO));
+                for (var i = 0; i < count; i++)
+                {
+                    var info = (WTS_SESSION_INFO)Marshal.PtrToStructure(new IntPtr(sessions.ToInt64() + i * size), typeof(WTS_SESSION_INFO));
+                    if (info.State != WTSActive || info.SessionId == 0) continue;
+                    list.Add(new KeyValuePair<uint, string>((uint)info.SessionId, SessionUser((uint)info.SessionId)));
+                }
+            }
+            finally
+            {
+                WTSFreeMemory(sessions);
+            }
+            return list;
+        }
+
         private static uint FindActiveSession(out string user)
         {
-            user = null;
-            if (WTSEnumerateSessions(IntPtr.Zero, 0, 1, out var sessions, out var count))
+            var sessions = ActiveSessions();
+            if (sessions.Count > 0)
             {
-                try
-                {
-                    var size = Marshal.SizeOf(typeof(WTS_SESSION_INFO));
-                    for (var i = 0; i < count; i++)
-                    {
-                        var info = (WTS_SESSION_INFO)Marshal.PtrToStructure(new IntPtr(sessions.ToInt64() + i * size), typeof(WTS_SESSION_INFO));
-                        if (info.State != WTSActive || info.SessionId == 0) continue;
-                        user = SessionUser((uint)info.SessionId);
-                        return (uint)info.SessionId;
-                    }
-                }
-                finally
-                {
-                    WTSFreeMemory(sessions);
-                }
+                user = sessions[0].Value;
+                return sessions[0].Key;
             }
             var console = WTSGetActiveConsoleSessionId();
             if (console == 0xFFFFFFFF) throw new InvalidOperationException("Aucun utilisateur n'est connecté sur ce poste : étape impossible en « utilisateur connecté ».");

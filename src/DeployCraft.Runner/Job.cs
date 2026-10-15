@@ -57,12 +57,13 @@ namespace DeployCraft.Runner
     public class JobStep
     {
         [DataMember(Name = "name")] public string Name { get; set; }
-        /// <summary>install | command | powershell | pause | copyfiles | reboot</summary>
+        /// <summary>install | command | powershell | pause | copyfiles | reboot | message</summary>
         [DataMember(Name = "type")] public string Type { get; set; }
-        /// <summary>install : nom du fichier dans exec\. command : ligne cmd. powershell : script. copyfiles : dossier dans exec\ (push). reboot : message.</summary>
+        /// <summary>install : nom du fichier dans exec\. command : ligne cmd. powershell : script. copyfiles : dossier dans exec\ (push). reboot et message : texte du message.</summary>
         [DataMember(Name = "command")] public string Command { get; set; }
+        /// <summary>message : titre de la fenêtre.</summary>
         [DataMember(Name = "arguments")] public string Arguments { get; set; }
-        /// <summary>pause : durée d'attente en secondes. reboot : délai avant le redémarrage.</summary>
+        /// <summary>pause : durée d'attente en secondes. reboot : délai avant le redémarrage. message : durée d'affichage (0 = jusqu'au clic).</summary>
         [DataMember(Name = "seconds")] public int Seconds { get; set; }
         [DataMember(Name = "successCodes")] public List<int> SuccessCodes { get; set; } = new List<int> { 0 };
         [DataMember(Name = "timeoutSeconds")] public int TimeoutSeconds { get; set; } = 3600;
@@ -85,6 +86,8 @@ namespace DeployCraft.Runner
         [DataMember(Name = "copyOverwrite")] public bool CopyOverwrite { get; set; }
         /// <summary>reboot : éteindre au lieu de redémarrer.</summary>
         [DataMember(Name = "shutdownOnly")] public bool ShutdownOnly { get; set; }
+        /// <summary>message : attendre le clic de l'utilisateur (ou la fin de l'affichage).</summary>
+        [DataMember(Name = "waitForUser")] public bool WaitForUser { get; set; }
         /// <summary>Conditions de l'étape : non remplies, l'étape est sautée.</summary>
         [DataMember(Name = "conditions")] public JobConditions Conditions { get; set; }
         /// <summary>Conditions supplémentaires (paquet imbriqué), vérifiées avant celles de l'étape (null = aucune).</summary>

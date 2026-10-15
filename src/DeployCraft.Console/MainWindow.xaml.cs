@@ -388,13 +388,14 @@ public partial class MainWindow : Window
 
     private Package? FindPackage(long id) => _packages.FirstOrDefault(p => p.Id == id);
 
-    /// <summary>Résumé d'une étape pour les listes : fichier, première ligne de commande, durée de pause, copie, redémarrage, paquet imbriqué.</summary>
+    /// <summary>Résumé d'une étape pour les listes : fichier, première ligne de commande, durée de pause, copie, redémarrage, message, paquet imbriqué.</summary>
     public static string StepDetails(PackageStep s, Func<long, Package?> lookup) => s.Type switch
     {
         StepType.Install => $"{s.File} {s.Arguments}".Trim(),
         StepType.Pause => $"{s.PauseSeconds} s",
         StepType.CopyFiles => $"{s.CopySource} → {s.CopyDestination}",
         StepType.Reboot => $"{(s.RebootShutdownOnly ? "Arrêt" : "Redémarrage")} dans {s.RebootDelaySeconds} s",
+        StepType.Message => (s.MessageText ?? "").Split('\n')[0].Trim(),
         StepType.Nested => s.NestedPackageId is { } id && lookup(id) is { } p
             ? $"Paquet : {p.Name} ({p.Steps.Count} étape{(p.Steps.Count > 1 ? "s" : "")})"
             : "Paquet : (introuvable)",
@@ -408,6 +409,7 @@ public partial class MainWindow : Window
         StepType.Pause => "Pause",
         StepType.CopyFiles => "Copie de fichiers",
         StepType.Reboot => "Redémarrer",
+        StepType.Message => "Message",
         StepType.Nested => "Paquet imbriqué",
         _ => "PowerShell",
     };

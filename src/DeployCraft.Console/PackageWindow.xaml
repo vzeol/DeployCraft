@@ -20,6 +20,7 @@
                             <MenuItem Header="Copie de fichiers" Click="AddCopy_Click" />
                             <MenuItem Header="Pause" Click="AddPause_Click" />
                             <MenuItem Header="Redémarrer" Click="AddReboot_Click" />
+                            <MenuItem Header="Message" Click="AddMessage_Click" />
                             <MenuItem Header="Paquet imbriqué" Click="AddNested_Click" />
                         </ContextMenu>
                     </Button.ContextMenu>
@@ -125,6 +126,7 @@
                     <Button Style="{StaticResource DialogButton}" Click="AddCopy_Click">Copie de fichiers</Button>
                     <Button Style="{StaticResource DialogButton}" Click="AddPause_Click">Pause</Button>
                     <Button Style="{StaticResource DialogButton}" Click="AddReboot_Click">Redémarrer</Button>
+                    <Button Style="{StaticResource DialogButton}" Click="AddMessage_Click">Message</Button>
                     <Button Style="{StaticResource DialogButton}" Click="AddNested_Click">Paquet imbriqué</Button>
                 </StackPanel>
                 <DataGrid x:Name="StepsGrid" MouseDoubleClick="StepsGrid_MouseDoubleClick">
@@ -281,6 +283,43 @@
                                           Content="Éteindre le poste au lieu de le redémarrer" IsChecked="{Binding RebootShutdownOnly}" />
                                 <TextBlock Grid.Row="5" Grid.Column="1" Style="{StaticResource Hint}" TextWrapping="Wrap"
                                            Text="Redémarrage : DeployCraft attend que le poste revienne (au plus le délai max de l'étape), puis passe à l'étape suivante. Arrêt : les étapes suivantes sont ignorées." />
+                            </Grid>
+
+                            <!-- Message -->
+                            <Grid x:Name="MessagePanel" Grid.RowSpan="8" Grid.ColumnSpan="3" VerticalAlignment="Top">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Style="{StaticResource FieldLabel}" Text="Titre" />
+                                <TextBox Grid.Column="1" Margin="0,0,0,8" MaxLength="100" AutomationProperties.Name="Titre du message"
+                                         Text="{Binding MessageTitle, UpdateSourceTrigger=PropertyChanged}" />
+
+                                <TextBlock Grid.Row="1" Style="{StaticResource FieldLabel}" Text="Message" VerticalAlignment="Top" Margin="0,4,12,0" />
+                                <TextBox Grid.Row="1" Grid.Column="1" MinHeight="90" TextWrapping="Wrap" AcceptsReturn="True" MaxLength="2000"
+                                         VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto" AutomationProperties.Name="Texte du message"
+                                         Text="{Binding MessageText, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource Hint}"
+                                           Text="Affiché dans chaque session ouverte sur le poste. Personne de connecté : l'étape réussit sans rien afficher." />
+
+                                <TextBlock Grid.Row="3" Style="{StaticResource FieldLabel}" Text="Durée (secondes)" />
+                                <TextBox Grid.Row="3" Grid.Column="1" Style="{StaticResource CompactBox}" HorizontalAlignment="Left" Width="90"
+                                         AutomationProperties.Name="Durée d'affichage (secondes)"
+                                         Text="{Binding MessageSeconds, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Grid.Row="4" Grid.Column="1" Style="{StaticResource Hint}"
+                                           Text="Fermeture automatique après ce délai ; 0 = le message reste jusqu'au clic sur OK." />
+
+                                <CheckBox Grid.Row="5" Grid.Column="1" Margin="0,6,0,6"
+                                          Content="Attendre que l'utilisateur clique sur OK avant l'étape suivante" IsChecked="{Binding MessageWait}"
+                                          ToolTip="Avec une durée : attente jusqu'au clic ou à la fin de l'affichage. Sans durée : un message toujours ouvert à la fin du délai max de l'étape la fait échouer." />
                             </Grid>
 
                             <!-- Pause -->

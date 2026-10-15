@@ -402,6 +402,12 @@ static string? Validate(Package p, Func<long, Package?> lookup)
                 return $"{label} : le délai avant le redémarrage doit être de 30 secondes à 1 heure (3 600 secondes).";
             case StepType.Reboot when s.RebootMessage?.Length > 500:
                 return $"{label} : le message ne doit pas dépasser 500 caractères.";
+            case StepType.Message when string.IsNullOrWhiteSpace(s.MessageText):
+                return $"{label} : le message est vide.";
+            case StepType.Message when s.MessageText!.Length > 2000 || s.MessageTitle?.Length > 100:
+                return $"{label} : 2 000 caractères au plus pour le message, 100 pour le titre.";
+            case StepType.Message when s.MessageSeconds is < 0 or > 86400:
+                return $"{label} : la durée d'affichage doit aller de 0 (jusqu'au clic) à 24 heures (86 400 secondes).";
         }
         if (s.TimeoutMinutes is < 1) return $"{label} : le délai max doit être d'au moins 1 minute.";
         if (ValidateConditions(s.Conditions) is { } error) return $"{label}, conditions : {error}";

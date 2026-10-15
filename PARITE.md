@@ -57,7 +57,7 @@ dans la même PR que le code qui la réalise.
 | 2.23 | Copie de fichiers | ✅ | Fichier ou dossier (push ou pull), motifs, sous-dossiers, écraser ou garder, réussir malgré les fichiers impossibles à remplacer ; copie sur le poste par robocopy |
 | 2.24 | Redémarrer | ✅ | Message, délai (30 s à 1 h), arrêt au lieu du redémarrage ; attend le retour du poste (délai max de l'étape) avant l'étape suivante |
 | 2.25 | Pause | ✅ | N secondes (1 s à 24 h), interrompue par l'annulation |
-| 2.26 | Message | ⬜ | Durée d'affichage, attendre que l'utilisateur clique |
+| 2.26 | Message | ✅ | Titre, texte, durée d'affichage (0 = jusqu'au clic), attendre le clic sur OK avant l'étape suivante ; affiché dans chaque session ouverte |
 | 2.27 | Déconnexion de l'utilisateur | ⬜ | Message, délai |
 | 2.28 | Paquet imbriqué | ✅ | Remplacé par ses étapes au lancement ; conditions combinées, boucles et plus de 5 niveaux refusés |
 | 2.29 | Scan d'inventaire | ⛔ | Nécessite un inventaire des postes |
