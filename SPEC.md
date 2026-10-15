@@ -322,8 +322,10 @@ déploiements possibles en même temps sur un poste.
   une boucle de paquets imbriqués dans le fichier est refusée. Chaque paquet est vérifié comme à l'enregistrement.
 - Fichier XML de paquets :
   - Étapes reprises : Installer, Commande, PowerShell, Copie de fichiers, Pause, Redémarrer, Paquet imbriqué.
-    Pas encore reprises (signalées) : Message, Déconnexion, désinstallation / réparation MSI,
-    ligne de commande personnalisée d'une installation ; jamais : scan d'inventaire.
+    Pas encore reprises (signalées) : Message, Déconnexion ; jamais : scan d'inventaire.
+  - Installer : options Windows Installer (installer / réparer / désinstaller, redémarrage, silencieux), ligne de
+    commande personnalisée et « garder le fichier sur le poste » sont repris. Une opération impossible pour le type
+    de fichier (réparer un .msu, opération sur un .msp) est remplacée par l'installation (signalé).
   - Paquet imbriqué : relié au paquet du même fichier, sinon à un paquet du même nom déjà dans DeployCraft
     (signalé), sinon l'étape n'est pas reprise.
   - Étapes « avant » et « après » : mises à la suite, dans l'ordre d'exécution (signalé).
@@ -332,7 +334,7 @@ déploiements possibles en même temps sur un poste.
     registre comparée, Windows Server version par version, collection d'un logiciel d'inventaire…) est signalée et l'étape est
     **importée désactivée** (toutes les étapes si c'est une condition du paquet) : elle ne s'exécute jamais sur plus
     de postes que prévu. On la vérifie, puis on la réactive.
-  - Fichiers additionnels d'une étape : pas encore copiés par DeployCraft, l'étape est importée désactivée.
+  - Fichiers additionnels d'une étape (Installer, Commande, PowerShell) : repris, `$(Repository)` compris.
   - `$(Repository)` est remplacé par le dossier du dépôt saisi dans la fenêtre d'import ; les autres variables
     restent telles quelles (signalées). Dossiers de paquets : DeployCraft n'en a pas, les paquets vont à la racine.
     Planifications et listes de postes du fichier : signalées, non reprises.
