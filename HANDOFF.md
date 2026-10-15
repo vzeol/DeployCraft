@@ -34,6 +34,27 @@ Gestion du dépôt (15/10) : `main` protégée (PR + CI obligatoires), un sujet 
 **Sujet en cours ailleurs : authentification de l'API du service (PARITE 8.10, issue #5).** Aujourd'hui l'API
 (`localhost:5080`) n'a pas d'authentification : un utilisateur ouvert sur le serveur pourrait lancer un déploiement.
 
+## Point de reprise (Cloud, 15/10) : retours du mainteneur sur la 0.12.0
+
+Glisser-déposer et remarque partielle : validés. Dans l'ordre :
+
+1. **Fait — branche `refactor/retirer-variables`, PR « refactor: » à relire par Prod** (décision du mainteneur :
+   retirer complètement les variables de la PR #30, il ne s'en sert pas). Supprimés : `VariableText.cs`,
+   `Store.Variables.cs` (Store n'est plus `partial`), la classe `Variable`, le remplacement dans `Resolve` et
+   avant la copie (`TargetSession`), les routes `/api/variables`, l'onglet Préférences › Variables et ses tests.
+   Gardé : le message de boucle avec chemin (« A › B › A »). La table `variables` reste en base (rien supprimé,
+   plus lue). Un `$(…)` reste toujours tel quel. PARITE 8.2 ❌, SPEC et README à jour. 108 tests.
+   À vérifier par Prod : Préférences sans onglet Variables, fermeture qui enregistre toujours Déploiement.
+2. Puis rebaser `feat/executer-en-tant-que-etape` (2.8) dessus (conflit attendu dans `TargetSession.Prepare`).
+   Toujours pas de PR ; décision (c) « compte de déploiement sur le bureau » : écartée par le mainteneur (déploiements
+   toujours silencieux, sans mot de passe sur le poste) ; à reporter dans PARITE 2.8 sur cette branche, ✅ si les
+   4 autres valeurs sont faites. Pas de PR avant le feu vert de Prod.
+3. Puis PR « style: » : rendre visible ce qui est cliquable. Boutons de barre d'outils (fenêtre principale et
+   fenêtre paquet) : fond `ControlBackground` ou bordure fine au repos, survol nettement plus clair, état pressé
+   visible, inactifs atténués comme aujourd'hui. Liens (« Redéployer », « 2 sur 2 étapes »…) : soulignés, couleur
+   Accent, curseur main, survol plus clair. Arbre et grilles : fond de survol visible. Ni tailles ni disposition
+   changées, contrastes WCAG comme la #36. Capture-test par Prod en sombre.
+
 ## En cours : options et étapes manquantes (DeployCraft Cloud, relu par DeployCraft Prod)
 
 Fonctionnement (validé par le mainteneur) : la session Cloud code et ouvre les PR ; la session Windows
@@ -108,7 +129,7 @@ listes de cibles.
   coller d'étapes (0.10.0)
 - Hors ligne (0.10.0, désactivé par défaut) : Wake-on-LAN, nouveaux essais (perdus si le service redémarre)
 - Étapes Pause et paquet imbriqué, étapes désactivables, arrêter en échec ou en succès (0.11.0)
-- Variables $(Nom), glisser-déposer des étapes (0.12.0)
+- Glisser-déposer des étapes (0.12.0 ; les variables $(Nom) de la 0.12.0 sont retirées ensuite)
 - Pas encore testé : abandon des postes en attente après N minutes (il faut plus de 8 postes en même temps)
 
 Construire : `.\build.ps1 -Version x.y.z` → `dist\DeployCraft-Setup-x.y.z.exe` (prérequis : SDK .NET 10, Inno Setup 6).
