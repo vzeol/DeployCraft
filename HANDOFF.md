@@ -59,14 +59,15 @@ version ni de release côté Cloud) :
 - **D — 2.28 paquet imbriqué (PR #26)** : fusionné. `Package.Flatten` remplace les étapes « paquet imbriqué »
   au lancement (dans `Resolve`) ; conditions héritées dans `ExtraConditions` / `extraConditions`. « Arrêter le
   déploiement » renommé « Arrêter en échec ».
-- **Retours du mainteneur sur la 0.10.0 (PR #27, branche `fix/console-remarque-colonnes`)** : en relecture par
-  Prod, dernier commit = colonne Détail élargie (MinWidth 220, en-tête « Détail » + infobulle). « REMARQUE » au
+- **Retours du mainteneur sur la 0.10.0 (PR #27)** : fusionnée (feu vert de Prod). Prod publie ensuite la 0.11.0
+  (#16, #18, #19, #21, #26, #27). « REMARQUE » au
   lieu de « ERREUR » pour un poste réussi, « Raison : » pour une étape ignorée, boîte `MessageDialog` aux couleurs
-  du thème (plus aucun `MessageBox.Show`). À fusionner (squash) dès le feu vert de Prod.
+  du thème (plus aucun `MessageBox.Show`).
 - **E — 8.2 variables (branche `feat/variables`, poussée, PAS encore de PR ni d'issue)** : serveur, runner, API
   `/variables`, `Store.Variables.cs` (Store en `partial`), `Data/VariableText.cs` (partagé avec la console),
   `VariablesPage` et 15 tests faits. **Reste** :
-  1. après fusion de #27 : `git rebase origin/main` (ou merge) de `feat/variables` ;
+  1. #27 est fusionnée : `git fetch origin main && git rebase origin/main` sur `feat/variables`, puis
+     `git push --force-with-lease` (branche à nous) ;
   2. brancher la page dans `SettingsWindow.xaml` (onglet « Variables » contenant `<local:VariablesPage x:Name="VariablesPage" />`)
      et, dans `OnClosing`, si `VariablesPage.HasChanges`, demander via `MessageDialog.Show` (Oui / Non / Annuler)
      puis `await VariablesPage.SaveAsync()` ; ne toucher qu'à ça dans SettingsWindow (fichier aussi visé par #23) ;
