@@ -35,14 +35,16 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         await CheckReachableAsync(ct);
 
         stage("Copie des fichiers");
-        var (job, modes) = credentials.RunAs(account, computer, () => Prepare(package, startStep, runAs, copyMode));
-        // Un redémarrage termine sa tranche : la suivante est lancée une fois le poste revenu.
-        var tranches = RunAsPlan.Split(modes, [.. job.Steps.Select(s => s.Type == RebootType)]);
         var done = new List<RunnerStepResult>();
         var restarted = false;
 
         try
         {
+            // Dans le try : une préparation ratée (fichier introuvable…) libère aussi le slot qu'elle a réservé.
+            var (job, modes) = credentials.RunAs(account, computer, () => Prepare(package, startStep, runAs, copyMode));
+            // Un redémarrage termine sa tranche : la suivante est lancée une fois le poste revenu.
+            var tranches = RunAsPlan.Split(modes, [.. job.Steps.Select(s => s.Type == RebootType)]);
+
             // Une tranche par identité ; la suivante ne démarre qu'une fois le service de la précédente supprimé.
             for (var t = 0; t < tranches.Count; t++)
             {
