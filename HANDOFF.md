@@ -17,22 +17,27 @@ suivant qu'une fois qu'il a tout validé**.
 Les informations propres à l'environnement du mainteneur (serveurs, postes de test, comptes) sont dans ses notes
 **hors du dépôt** : ne jamais les recopier ici.
 
-## Dernier sujet : identifiants multiples (0.9.0, 0.9.1) — validé par le mainteneur
+## Dernier sujet : fenêtre paquet, conditions, options par défaut, hors ligne (0.10.0, issue #8) — à valider
 
-Options › Identifiants (ajouter, modifier, par défaut, supprimer, tester), choix de l'identifiant dans Déployer une
-fois et les planifications, comptes locaux, dossier de données réservé aux administrateurs. Détail : `SPEC.md`
-§ « Identifiants (0.9.0) ». 0.9.1 : « .\ » reconnu comme compte local, Tester un compte local sur un poste choisi.
-Validé par le mainteneur avec ses vrais comptes ; 38 tests automatiques.
+Propriétés du paquet en onglets (Détails avec version, Conditions, Options, Hors ligne), étapes avec Conditions
+et Options, couper / copier / coller d'étapes (aussi entre paquets), Préférences › Déploiement et Hors ligne
+(réglages du serveur), Wake-on-LAN et nouveaux essais pour les postes hors ligne (désactivés par défaut).
+Détail : `SPEC.md` § « Conditions », « Fenêtre paquet », « Postes hors ligne ». 61 tests automatiques.
+
+Testé sur une instance isolée : conditions de chaque type sur un vrai poste (Windows, fichier, registre,
+PowerShell, architecture, utilisateur connecté, condition de paquet), adresse MAC apprise, nouveaux essais sur un
+nom inexistant. **Pas encore testé** : le réveil d'un vrai poste éteint (il faut un poste de test que le
+mainteneur accepte d'éteindre, avec le réveil réseau activé).
 
 Gestion du dépôt (15/10) : `main` protégée (PR + CI obligatoires), un sujet = une issue (qui le prend), voir `CLAUDE.md`.
 
-**Sujet en cours : authentification de l'API du service (PARITE 8.10, issue #5).** Aujourd'hui l'API
+**Sujet en cours ailleurs : authentification de l'API du service (PARITE 8.10, issue #5).** Aujourd'hui l'API
 (`localhost:5080`) n'a pas d'authentification : un utilisateur ouvert sur le serveur pourrait lancer un déploiement.
 
-Autres sujets possibles : fenêtre paquet à onglets (`SPEC.md` § « Fenêtre paquet »), LAPS, listes de cibles,
-onglet Hors ligne de Déployer une fois.
+Autres sujets possibles : réglages hors ligne dans Déployer une fois et les planifications, LAPS (en option),
+listes de cibles.
 
-## Version actuelle : 0.9.1
+## Version actuelle : 0.10.0
 
 - Paquets multi-étapes (Installer / Commande / PowerShell), codes de succès, délai, comportement en cas d'erreur,
   exécuter en tant que et mode de copie par paquet
@@ -43,7 +48,9 @@ onglet Hors ligne de Déployer une fois.
 - Identifiants multiples (0.9.0), comptes locaux « .\ » et test sur un poste (0.9.1)
 - Thème clair / sombre / selon Windows (Préférences › Interface)
 - Planifications : déclencheurs, historique des cibles, réessai en boucle jusqu'à réussite (0.8.0)
-- Pas encore de file de réessai automatique ; le réessai passe par une planification à intervalle
+- Conditions par paquet et par étape, version du paquet, options « par défaut » des Préférences, couper / copier /
+  coller d'étapes (0.10.0)
+- Hors ligne (0.10.0, désactivé par défaut) : Wake-on-LAN, nouveaux essais (perdus si le service redémarre)
 - Pas encore testé : abandon des postes en attente après N minutes (il faut plus de 8 postes en même temps)
 
 Construire : `.\build.ps1 -Version x.y.z` → `dist\DeployCraft-Setup-x.y.z.exe` (prérequis : SDK .NET 10, Inno Setup 6).
@@ -54,4 +61,5 @@ Chaque version est publiée dans les **Releases** GitHub avec son installeur (ta
 - Tester sans toucher aux vraies données : `dotnet run --project src\DeployCraft.Server -- --Urls http://localhost:5091 --DataDir <dossier>` et lancer la console avec `DEPLOYCRAFT_URL=http://localhost:5091`.
 - Ne fermer que ses propres fenêtres de test (par PID), jamais toutes les instances DeployCraft.
 - Windows PowerShell 5.1 : enregistrer les scripts `.ps1` en UTF-8 **avec BOM** (sinon les accents cassent).
-- Aucun poste AD n'apparaît « désactivé » : à vérifier (domaine sans compte désactivé, ou détection fausse).
+- Les conditions sont vérifiées par le runner (`src\DeployCraft.Runner\Conditions.cs`, testé via un lien dans le
+  projet de tests) ; la lecture du vrai poste est dans `LocalFacts.cs`.

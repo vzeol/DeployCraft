@@ -33,16 +33,16 @@ dans la même PR que le code qui la réalise.
 
 | # | Fonction | État | Notes |
 |---|---|---|---|
-| 2.1 | Nom, description (texte riche), version, dossier | 🟡 | Pas de version ni de texte riche |
-| 2.2 | Fenêtre paquet à onglets : Détails, Conditions, Options, Hors ligne | ⬜ | |
-| 2.3 | Options du paquet : délai personnalisé, mode de copie, exécuter en tant que, réessai | ⬜ | |
-| 2.4 | Conditions du paquet : version d'OS + architecture, version PowerShell, utilisateur connecté, fichier, registre | ⬜ | |
+| 2.1 | Nom, description (texte riche), version, dossier | 🟡 | Version en 0.10.0. Pas de texte riche ni de dossier |
+| 2.2 | Fenêtre paquet à onglets : Détails, Conditions, Options, Hors ligne | ✅ | 0.10.0 ; l'étape a aussi Détails, Conditions, Options |
+| 2.3 | Options du paquet : délai personnalisé, mode de copie, exécuter en tant que, réessai | ✅ | 0.10.0 : chaque option peut suivre les Préférences ; réessai dans l'onglet Hors ligne |
+| 2.4 | Conditions du paquet : version d'OS + architecture, version PowerShell, utilisateur connecté, fichier, registre | ✅ | 0.10.0 : vérifiées par le runner ; non remplies = poste réussi sans rien exécuter |
 | 2.5 | Sections d'étapes : avant / principales / après | ⬜ | |
 | 2.6 | Par étape : titre, activée / désactivée, codes de succès | 🟡 | Pas d'activation |
 | 2.7 | Par étape : erreur → arrêter en échec / arrêter en succès / continuer | 🟡 | Manque « arrêter en succès » |
 | 2.8 | Par étape : exécuter en tant que (compte de déploiement / compte de déploiement sur le bureau / système local / utilisateur connecté / hériter du paquet) | ⬜ | Aujourd'hui : toujours système local |
-| 2.9 | Par étape : mêmes conditions qu'au paquet | ⬜ | |
-| 2.10 | Copier / couper / coller / réordonner des étapes, y compris entre paquets | 🟡 | |
+| 2.9 | Par étape : mêmes conditions qu'au paquet | ✅ | 0.10.0 : non remplies = étape « Ignoré », le paquet continue |
+| 2.10 | Copier / couper / coller / réordonner des étapes, y compris entre paquets | ✅ | 0.10.0 : presse-papiers (Ctrl+X / C / V), barre d'outils et clic droit |
 | 2.11 | Avertissements : fichier introuvable, pas de paramètre silencieux, conflit avec le mode « pull » | 🟡 | |
 | 2.12 | Dupliquer, exporter un paquet | ⬜ | |
 | 2.13 | Dossiers de paquets publics / privés | ⬜ | |
@@ -73,7 +73,7 @@ dans la même PR que le code qui la réalise.
 | 3.5 | Démarrer à l'étape N, **par poste** | ✅ | 0.6.0 ; porte sur le premier paquet. « Reprendre à l'étape en échec » = un seul déploiement |
 | 3.6 | Options : compte, mode de copie, exécuter en tant que | ✅ | 0.6.0 ; identifiant au choix en 0.9.0 ; « Paramètre du paquet » par défaut. Compte de déploiement / Système local / Utilisateur connecté ; push / pull (UNC) |
 | 3.7 | Options : notifications, mémoriser les cibles, prioritaire | 🟡 | Mémoriser + prioritaire en 0.6.0 ; notifications avec §9 |
-| 3.8 | Onglet Hors ligne : ping avant, Wake-on-LAN, file de réessai | ⬜ | |
+| 3.8 | Onglet Hors ligne : ping avant, Wake-on-LAN, file de réessai | 🟡 | 0.10.0 : réglé dans le paquet (et les Préférences), pas encore dans Déployer une fois. Test DNS + partage de fichiers toujours fait avant la copie |
 | 3.9 | Bouton « Planifier » (crée une planification à partir de la fenêtre) | ✅ | 0.8.0 : reprend paquets, cibles, options |
 | 3.10 | Cibles depuis PDQ Inventory / Spiceworks | ⛔ | |
 
@@ -115,8 +115,8 @@ dans la même PR que le code qui la réalise.
 
 | # | Fonction | État | Notes |
 |---|---|---|---|
-| 7.1 | Ping avant déploiement, Wake-on-LAN | ⬜ | |
-| 7.2 | File de réessai : activée, nombre d'essais max, intervalle, expiration ; héritage préférences → paquet → déploiement | ⬜ | Construite en 0.4.0 puis retirée en 0.5.0 à la demande du mainteneur. Remise prévue (le tri se fera à la fin) |
+| 7.1 | Ping avant déploiement, Wake-on-LAN | ✅ | 0.10.0 : test DNS + partage toujours fait ; réveil avec l'adresse MAC apprise au dernier déploiement |
+| 7.2 | File de réessai : activée, nombre d'essais max, intervalle, expiration ; héritage préférences → paquet → déploiement | 🟡 | Retirée en 0.5.0, remise en 0.10.0 comme **option désactivée par défaut** : nombre d'essais et intervalle, préférences → paquet. Pas de page « File de réessai » ni d'expiration ; perdue au redémarrage du service |
 | 7.3 | Page de la file : poste × paquet, essais restants, prochain essai, « essayer maintenant », supprimer | ⬜ | |
 
 ## 8. Préférences
@@ -125,8 +125,8 @@ dans la même PR que le code qui la réalise.
 |---|---|---|---|
 | 8.1 | Comptes | 🟡 | 0.9.0 : Options › Identifiants, plusieurs comptes (domaine ou local `.\utilisateur`), description, compte par défaut, test auprès du domaine ; choisis dans Déployer une fois et les planifications. Reste : LAPS (mot de passe admin local de chaque poste lu dans l'AD, fonction Microsoft) |
 | 8.2 | Variables | ⬜ | Variables personnalisées + système (date, heure, nom du serveur…) utilisables dans les chemins et commandes |
-| 8.3 | Déploiement | ⬜ | Exécuter en tant que par défaut, délai par poste, nettoyage de l'historique, comportement hors ligne |
-| 8.4 | Performance | ⬜ | Mode de copie par défaut, limite de bande passante, postes en parallèle (aujourd'hui fixé à 8) |
+| 8.3 | Déploiement | 🟡 | 0.10.0 : exécuter en tant que, délai par étape, comportement hors ligne par défaut. Reste : nettoyage de l'historique |
+| 8.4 | Performance | 🟡 | 0.10.0 : mode de copie par défaut. Reste : limite de bande passante, postes en parallèle (aujourd'hui fixé à 8) |
 | 8.5 | Dépôt de fichiers (`$(Repository)`) | ⬜ | Chemin, fichiers inutilisés, exclusions |
 | 8.6 | Filtres de cibles | ⬜ | cf. 6.3 |
 | 8.7 | Serveur de messagerie + notifications | ⬜ | |

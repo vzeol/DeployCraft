@@ -15,10 +15,13 @@
 ## 2. Concepts
 
 ### Paquet
-- Nom, description
+- Nom, version, description
 - Liste ordonnée d'**étapes**
+- **Conditions** (voir plus bas)
 - Options : mode de copie des fichiers (push : le serveur copie ; pull : le poste lit un partage), exécuter en
-  tant que (compte de déploiement / Système local / utilisateur connecté)
+  tant que (compte de déploiement / Système local / utilisateur connecté), délai max des étapes ; chacune peut
+  rester « Par défaut » (valeur des Préférences)
+- Hors ligne : réveil Wake-on-LAN, nouveaux essais ; ou réglages des Préférences
 
 ### Types d'étapes
 | Étape | Description |
@@ -33,10 +36,18 @@
 | Déconnexion *(à venir)* | Déconnecter l'utilisateur |
 | Paquet imbriqué *(à venir)* | Exécuter un autre paquet (détection des boucles) |
 
-### Conditions (à venir, par paquet et par étape)
-- Système d'exploitation / architecture (x86 / x64), version de PowerShell
-- Utilisateur connecté ou non
-- Présence d'un fichier, d'une clé de registre
+### Conditions (0.10.0, par paquet et par étape)
+- Version de Windows (10, 11, Server, antérieures ; aucune cochée = toutes), architecture (32 / 64 bits),
+  version minimale de PowerShell (3, 4, 5, 7)
+- Utilisateur connecté ou personne de connecté
+- Fichier ou dossier (existe / n'existe pas, variables d'environnement acceptées), clé de registre, avec ou sans
+  nom de valeur (existe / n'existe pas)
+- Vérifiées par le runner sur le poste, juste avant l'exécution ; toutes doivent être remplies.
+- Étape : condition non remplie → étape « Ignoré » avec la raison, le paquet continue.
+- Paquet : conditions non remplies → aucune étape exécutée, toutes « Ignoré », poste compté **réussi** (rien à
+  faire), raison affichée dans la colonne Détail. Une planification « ne plus déployer une fois réussi » ne
+  le relance donc pas.
+- Condition impossible à vérifier (clé mal écrite…) → étape en échec avec le message.
 
 ### Gestion d'erreur (par étape)
 - Arrêter le déploiement en échec / continuer
@@ -154,16 +165,32 @@ déploiements possibles en même temps sur un poste.
 - Mise à jour depuis 0.8 : l'ancien compte unique devient le premier identifiant, par défaut.
 - À venir : LAPS (mot de passe administrateur local de chaque poste lu dans l'AD), bouton « afficher le mot de passe ».
 
-### Fenêtre paquet (prochain sujet possible)
-- Fenêtre à gauche : arbre **Propriétés** puis **Étapes** (une ligne par étape) ; à droite : la page du nœud choisi.
+### Fenêtre paquet (0.10.0)
+- À gauche : arbre **Propriétés** puis **Étapes** (une ligne par étape) ; à droite : la page du nœud choisi.
   Barre d'outils : enregistrer, nouvelle étape ▾, monter, descendre, couper, copier, coller, supprimer.
+  Couper / copier / coller (Ctrl+X / C / V) passent par le presse-papiers : on colle aussi dans un autre paquet.
 - Propriétés en 4 onglets :
-  - **Détails** : nom, version, description.
-  - **Conditions** : version et architecture de Windows, version de PowerShell, utilisateur connecté, fichier et
-    registre (aucune / existe / n'existe pas).
-  - **Options** : mode de copie, exécuter en tant que, délai personnalisé ; chaque ligne peut reprendre la valeur
-    par défaut des Préférences.
-  - **Hors ligne** : ping avant déploiement, Wake-on-LAN ; file de réessai (nombre d'essais, intervalle).
+  - **Détails** : nom, version (affichée à côté du nom dans la page du paquet), description.
+  - **Conditions** : voir § Conditions.
+  - **Options** : exécuter en tant que, mode de copie, délai max ; « Par défaut (valeur) » = Préférences.
+  - **Hors ligne** : « Utiliser les réglages des Préférences », sinon réglages propres au paquet.
+- Étape en 3 onglets : **Détails**, **Conditions**, **Options** (délai max, vide = celui du paquet ; en cas
+  d'erreur). La vue d'ensemble des étapes a une colonne Conditions.
+- Héritage des réglages : étape → paquet → Préférences. Au lancement, les valeurs réellement utilisées sont
+  figées dans l'historique du déploiement.
+
+### Préférences › Déploiement et Hors ligne (0.10.0)
+- Réglages du **serveur** (communs à toutes les consoles), enregistrés à la fermeture de la fenêtre : exécuter en
+  tant que, mode de copie, délai max par étape (60 min d'usine), réglages hors ligne.
+
+### Postes hors ligne (0.10.0)
+- Le poste est toujours testé avant la copie (nom DNS, partage de fichiers).
+- **Wake-on-LAN** : poste qui ne répond pas → paquet de réveil (diffusion générale et diffusion de son
+  sous-réseau, ports UDP 9 et 7), puis attente qu'il réponde (3 min d'usine). L'adresse MAC et la diffusion du
+  sous-réseau sont envoyées par le runner à chaque déploiement : un poste jamais déployé ne peut pas être réveillé.
+- **Nouveaux essais** : poste hors ligne → « En attente », étape « Hors ligne : nouvel essai à HH:mm (essai n sur
+  N) », créneau rendu pendant l'attente ; échec après le dernier essai. Annulable ; un redémarrage du service
+  abandonne les essais en attente. Seules les erreurs « hors ligne » sont réessayées.
 
 ## 4. Informations à afficher
 
