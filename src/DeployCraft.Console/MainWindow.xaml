@@ -77,6 +77,15 @@
             <MenuItem Header="_Affichage">
                 <MenuItem Header="_Actualiser" Click="Refresh_Click" InputGestureText="F5" />
             </MenuItem>
+            <MenuItem Header="_Affichage" x:Name="MenuView">
+                <MenuItem Header="Tous les _déploiements" Click="ViewDeployments_Click" InputGestureText="Ctrl+1" />
+                <MenuItem Header="Toutes les _planifications" Click="ViewSchedules_Click" InputGestureText="Ctrl+2" />
+                <MenuItem Header="_Bibliothèque de paquets" Click="ViewLibrary_Click" InputGestureText="Ctrl+3" />
+                <MenuItem Header="Pa_quets" Click="ViewPackages_Click" InputGestureText="Ctrl+4" />
+                <Separator />
+                <MenuItem Header="Rechercher un paquet" Click="ViewFilter_Click" InputGestureText="Ctrl+F" />
+                <MenuItem Header="_Actualiser" Click="Refresh_Click" InputGestureText="F5" />
+            </MenuItem>
             <MenuItem Header="_Options" x:Name="MenuOptions">
                 <MenuItem Header="_Identifiants…" Click="Credentials_Click" />
                 <MenuItem Header="_Utilisateurs de la console…" Click="ConsoleUsers_Click" />

@@ -179,6 +179,11 @@ public partial class MainWindow : Window
         Action? action = (key, ctrl, ctrlShift, alt) switch
         {
             (Key.F5, _, _, _) => () => Refresh_Click(this, e),
+            (Key.D1 or Key.NumPad1, true, _, _) => () => ViewDeployments_Click(this, e),
+            (Key.D2 or Key.NumPad2, true, _, _) => () => ViewSchedules_Click(this, e),
+            (Key.D3 or Key.NumPad3, true, _, _) => () => ViewLibrary_Click(this, e),
+            (Key.D4 or Key.NumPad4, true, _, _) => () => ViewPackages_Click(this, e),
+            (Key.F, true, _, _) => () => ViewFilter_Click(this, e),
             (Key.N, true, _, _) => () => NewPackage_Click(this, e),
             (Key.N, _, true, _) => () => NewSchedule_Click(this, e),
             (Key.F, _, true, _) => () => NewFolder_Click(this, e),
@@ -660,6 +665,34 @@ public partial class MainWindow : Window
     private void Filter_TextChanged(object sender, TextChangedEventArgs e) => RebuildPackageNodes(SelectedPackage?.Id);
 
     private async void Refresh_Click(object sender, RoutedEventArgs e) => await RefreshAsync(packages: true);
+
+    // ---------- Menu Affichage ----------
+
+    private void ShowNode(TreeViewItem node)
+    {
+        node.IsSelected = true;
+        node.BringIntoView();
+        Nav.Focus();
+    }
+
+    private void ViewDeployments_Click(object sender, RoutedEventArgs e) => ShowNode(_deploymentsNode);
+
+    private void ViewSchedules_Click(object sender, RoutedEventArgs e) => ShowNode(_schedulesNode);
+
+    private void ViewLibrary_Click(object sender, RoutedEventArgs e) => ShowNode(_libraryNode);
+
+    private void ViewPackages_Click(object sender, RoutedEventArgs e)
+    {
+        _packagesNode.IsExpanded = true;
+        ShowNode(_packagesNode);
+    }
+
+    /// <summary>Ctrl+F : place le curseur dans le filtre des paquets.</summary>
+    private void ViewFilter_Click(object sender, RoutedEventArgs e)
+    {
+        Filter.Focus();
+        Filter.SelectAll();
+    }
 
     // ---------- Paquets ----------
 
