@@ -125,6 +125,9 @@ public class InstallCommandTests
         Assert.Contains("ne concerne pas ce poste", InstallLog.ErrorMessage("maj.msu", 1));
         Assert.Null(InstallLog.ErrorMessage("setup.exe", 1618));
         Assert.Null(InstallLog.ErrorMessage("app.msi", 4242));
+        Assert.Contains("non reconnu", InstallLog.ErrorMessage("maj.msu", 1630));
+        // Code sans message prévu : le texte de Windows, s'il en a un.
+        Assert.False(string.IsNullOrWhiteSpace(InstallLog.ErrorMessage("app.msi", 1612)));
     }
 
     [Fact]

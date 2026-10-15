@@ -24,7 +24,8 @@ namespace DeployCraft.Runner
         public string User { get; private set; }
 
         /// <param name="sessionId">Session où lancer le processus (null = la première session ouverte).</param>
-        public static UserProcess Start(string fileName, string arguments, string workingDirectory, Encoding encoding, Action<string> onLine, uint? sessionId = null)
+        /// <param name="onOutput">Reçoit la sortie du programme par morceaux d'octets (décodés plus tard).</param>
+        public static UserProcess Start(string fileName, string arguments, string workingDirectory, Action<byte[], int> onOutput, uint? sessionId = null)
         {
             string user;
             uint session;
@@ -76,10 +77,11 @@ namespace DeployCraft.Runner
                 outRead = IntPtr.Zero;
                 result._reader = new Thread(() =>
                 {
-                    using (var reader = new StreamReader(new FileStream(readHandle, FileAccess.Read), encoding))
+                    using (var stream = new FileStream(readHandle, FileAccess.Read))
                     {
-                        string line;
-                        while ((line = reader.ReadLine()) != null) onLine(line);
+                        var buffer = new byte[4096];
+                        int read;
+                        while ((read = stream.Read(buffer, 0, buffer.Length)) > 0) onOutput(buffer, read);
                     }
                 })
                 { IsBackground = true, Name = "UserProcessOutput" };

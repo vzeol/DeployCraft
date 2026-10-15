@@ -48,6 +48,7 @@ namespace DeployCraft.Runner
                     case unchecked((int)0x80240017):
                         return "Cette mise à jour ne concerne pas ce poste (déjà intégrée ou version de Windows différente).";
                     case 5: return "Accès refusé pendant l'installation de la mise à jour.";
+                    case 1630: return "Fichier de mise à jour non reconnu (fichier endommagé, ou pas une mise à jour Windows).";
                 }
             }
             if (ext != ".msi" && ext != ".msp" && ext != ".msu") return null;
@@ -69,8 +70,18 @@ namespace DeployCraft.Runner
                 case 1639: return "Paramètre de ligne de commande invalide.";
                 case 1642: return "Le correctif ne s'applique pas : le produit à corriger n'est pas installé (ou pas dans cette version).";
                 case 1704: return "Une installation précédente de ce produit est restée inachevée.";
-                default: return null;
+                case 17031: return "Un prérequis de cette installation manque sur ce poste.";
+                default: return WindowsMessage(code);
             }
+        }
+
+        /// <summary>Texte que Windows associe à ce code (les codes de Windows Installer en font partie), ou null s'il n'en a pas.</summary>
+        public static string WindowsMessage(int code)
+        {
+            if (code <= 0 || code > 0xFFFF) return null;
+            var message = new System.ComponentModel.Win32Exception(code).Message.Trim();
+            // Code inconnu de Windows : son texte se termine par le code en hexadécimal.
+            return message.Length == 0 || message.EndsWith(")") && message.Contains("0x") ? null : message;
         }
     }
 }
