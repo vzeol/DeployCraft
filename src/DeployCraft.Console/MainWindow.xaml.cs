@@ -239,7 +239,7 @@ public partial class MainWindow : Window
         try
         {
             var s = await Api.Status();
-            StatusServer.Text = $"Service : {s.Machine} ({s.RunningAs})";
+            StatusServer.Text = $"Service : {s.Machine} ({s.RunningAs}) — vous : {s.ConnectedAs}";
             StatusAccount.Text = s.DefaultCredential is { } c ? $"Identifiant par défaut : {c.Account}" : "Aucun identifiant";
 
             var issues = new List<string>();
@@ -250,7 +250,7 @@ public partial class MainWindow : Window
         }
         catch (ApiException ex)
         {
-            StatusServer.Text = "Service injoignable";
+            StatusServer.Text = ex.AccessDenied ? "Accès refusé" : "Service injoignable";
             StatusAccount.Text = "";
             ShowBanner(ex.Message);
             throw;
@@ -643,6 +643,8 @@ public partial class MainWindow : Window
         }
         catch (ApiException ex) { Ui.Error(this, ex); }
     }
+
+    private void ConsoleUsers_Click(object sender, RoutedEventArgs e) => new ConsoleUsersWindow { Owner = this }.ShowDialog();
 
     private void AdminCmd_Click(object sender, RoutedEventArgs e) => StartElevated("cmd.exe");
     private void AdminPowerShell_Click(object sender, RoutedEventArgs e) => StartElevated("powershell.exe");

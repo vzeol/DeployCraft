@@ -54,6 +54,7 @@
             </MenuItem>
             <MenuItem Header="_Options">
                 <MenuItem Header="_Identifiants…" Click="Credentials_Click" />
+                <MenuItem Header="_Utilisateurs de la console…" Click="ConsoleUsers_Click" />
                 <Separator />
                 <MenuItem Header="_Préférences…" Click="Settings_Click" InputGestureText="Ctrl+," />
             </MenuItem>
