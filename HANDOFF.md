@@ -38,18 +38,17 @@ Gestion du dépôt (15/10) : `main` protégée (PR + CI obligatoires), un sujet 
 
 Glisser-déposer et remarque partielle : validés. Dans l'ordre :
 
-1. **En cours — branche `refactor/retirer-variables`** (décision du mainteneur : retirer complètement les
-   variables de la PR #30, il ne s'en sert pas ; bug vu : « Ajouter » crée une ligne non modifiable). Supprimer
-   `Data/VariableText.cs`, `Data/Store.Variables.cs` (Store redevient non `partial`, retirer `MigrateVariables`
-   dans `Store.cs`), la classe `Variable` (`Models.cs`), `ReplaceVariables` et le paramètre `variables` de
-   `Resolve`, `ForComputer` / `WithComputer` (`TargetSession.cs`, utiliser `package` directement), les routes
-   `/api/variables` (`Program.cs`), `VariableText.AtLaunch` (`DeploymentEngine.cs`), console : `VariablesPage`,
-   onglet et logique dans `SettingsWindow`, `Api.Variables` / `SaveVariables`, lien `VariableText.cs` du csproj ;
-   `VariableTests.cs`. Garder le message de boucle avec chemin (« A › B › A »). Table `variables` en base laissée
-   telle quelle (rien supprimé). Un `$(…)` reste toujours tel quel. Doc : PARITE 8.2 ❌ « écarté : choix du
-   mainteneur », SPEC, README, HANDOFF. PR « refactor: », relue par Prod.
+1. **Fait — branche `refactor/retirer-variables`, PR « refactor: » à relire par Prod** (décision du mainteneur :
+   retirer complètement les variables de la PR #30, il ne s'en sert pas). Supprimés : `VariableText.cs`,
+   `Store.Variables.cs` (Store n'est plus `partial`), la classe `Variable`, le remplacement dans `Resolve` et
+   avant la copie (`TargetSession`), les routes `/api/variables`, l'onglet Préférences › Variables et ses tests.
+   Gardé : le message de boucle avec chemin (« A › B › A »). La table `variables` reste en base (rien supprimé,
+   plus lue). Un `$(…)` reste toujours tel quel. PARITE 8.2 ❌, SPEC et README à jour. 108 tests.
+   À vérifier par Prod : Préférences sans onglet Variables, fermeture qui enregistre toujours Déploiement.
 2. Puis rebaser `feat/executer-en-tant-que-etape` (2.8) dessus (conflit attendu dans `TargetSession.Prepare`).
-   Toujours pas de PR ; décision (c) « compte de déploiement sur le bureau » en attente du mainteneur.
+   Toujours pas de PR ; décision (c) « compte de déploiement sur le bureau » : écartée par le mainteneur (déploiements
+   toujours silencieux, sans mot de passe sur le poste) ; à reporter dans PARITE 2.8 sur cette branche, ✅ si les
+   4 autres valeurs sont faites. Pas de PR avant le feu vert de Prod.
 3. Puis PR « style: » : rendre visible ce qui est cliquable. Boutons de barre d'outils (fenêtre principale et
    fenêtre paquet) : fond `ControlBackground` ou bordure fine au repos, survol nettement plus clair, état pressé
    visible, inactifs atténués comme aujourd'hui. Liens (« Redéployer », « 2 sur 2 étapes »…) : soulignés, couleur
@@ -130,7 +129,7 @@ listes de cibles.
   coller d'étapes (0.10.0)
 - Hors ligne (0.10.0, désactivé par défaut) : Wake-on-LAN, nouveaux essais (perdus si le service redémarre)
 - Étapes Pause et paquet imbriqué, étapes désactivables, arrêter en échec ou en succès (0.11.0)
-- Variables $(Nom), glisser-déposer des étapes (0.12.0)
+- Glisser-déposer des étapes (0.12.0 ; les variables $(Nom) de la 0.12.0 sont retirées ensuite)
 - Pas encore testé : abandon des postes en attente après N minutes (il faut plus de 8 postes en même temps)
 
 Construire : `.\build.ps1 -Version x.y.z` → `dist\DeployCraft-Setup-x.y.z.exe` (prérequis : SDK .NET 10, Inno Setup 6).
