@@ -135,7 +135,9 @@ public class NestedPackageTests
 
         Add(2, "B", Nested(3));
         Add(3, "C", Nested(2));
-        Assert.Contains("boucle", Assert.Throws<ArgumentException>(() => _library[2].Flatten(Find)).Message);
+        var message = Assert.Throws<ArgumentException>(() => _library[2].Flatten(Find)).Message;
+        Assert.Contains("boucle", message);
+        Assert.Contains("B › C › B", message); // le chemin de la boucle
     }
 
     [Fact]

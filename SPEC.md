@@ -229,6 +229,20 @@ déploiements possibles en même temps sur un poste.
 - Héritage des réglages : étape → paquet → Préférences. Au lancement, les valeurs réellement utilisées sont
   figées dans l'historique du déploiement.
 
+### Variables
+- Syntaxe `$(Nom)`, insensible à la casse, dans : fichier, paramètres et commande / script des étapes ; chemin de
+  fichier et clé de registre des conditions (paquet, étape, paquet imbriqué).
+- Variables système : `$(Date)` (aaaa-MM-jj) et `$(Heure)` (HH-mm), heure locale du serveur au lancement ;
+  `$(Serveur)` (nom du serveur DeployCraft) ; `$(Poste)` (nom du poste cible).
+- Variables personnalisées : Préférences › Variables (nom, valeur, description), réglage du serveur. Noms en
+  lettres sans accent, chiffres et « _ » seulement (pas de « - » ni d'espace, pour ne jamais ressembler à une
+  commande PowerShell), uniques, différents des noms système. **Valeurs stockées en clair : jamais de mot de passe.**
+- Remplacement par le serveur au lancement, après le remplacement des paquets imbriqués, et figé dans l'historique ;
+  `$(Poste)` est remplacé poste par poste juste avant la copie (le fichier d'un Installer est cherché au chemin
+  remplacé). Une seule passe : la valeur d'une variable n'est pas relue.
+- Seuls les noms connus sont remplacés : un `$(…)` inconnu reste tel quel (c'est aussi une sous-expression
+  PowerShell, `$(Get-Date)`). Les `%VAR%` restent ceux de Windows sur le poste.
+
 ### Préférences › Déploiement et Hors ligne (0.10.0)
 - Réglages du **serveur** (communs à toutes les consoles), enregistrés à la fermeture de la fenêtre : exécuter en
   tant que, mode de copie, délai max par étape (60 min d'usine), réglages hors ligne.

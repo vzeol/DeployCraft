@@ -124,7 +124,7 @@ dans la même PR que le code qui la réalise.
 | # | Section | État | Contenu |
 |---|---|---|---|
 | 8.1 | Comptes | 🟡 | 0.9.0 : Options › Identifiants, plusieurs comptes (domaine ou local `.\utilisateur`), description, compte par défaut, test auprès du domaine ; choisis dans Déployer une fois et les planifications. Reste : LAPS (mot de passe admin local de chaque poste lu dans l'AD, fonction Microsoft) |
-| 8.2 | Variables | ⬜ | Variables personnalisées + système (date, heure, nom du serveur…) utilisables dans les chemins et commandes |
+| 8.2 | Variables | ✅ | $(Nom) : personnalisées (Préférences › Variables) + système $(Date), $(Heure), $(Serveur), $(Poste) ; chemins, paramètres, commandes, conditions |
 | 8.3 | Déploiement | 🟡 | 0.10.0 : exécuter en tant que, délai par étape, comportement hors ligne par défaut. Reste : nettoyage de l'historique |
 | 8.4 | Performance | 🟡 | 0.10.0 : mode de copie par défaut. Reste : limite de bande passante, postes en parallèle (aujourd'hui fixé à 8) |
 | 8.5 | Dépôt de fichiers (`$(Repository)`) | ⬜ | Chemin, fichiers inutilisés, exclusions |

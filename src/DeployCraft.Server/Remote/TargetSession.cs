@@ -151,8 +151,9 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         var config = runnerExe + ".config";
         if (File.Exists(config)) File.Copy(config, Path.Combine(SlotDir, RunnerName + ".config"), overwrite: true);
 
-        var job = new RunnerJob { Conditions = RunnerConditions.From(package.Conditions) };
-        foreach (var step in StepsFrom(package, startStep))
+        var forComputer = ForComputer(package);
+        var job = new RunnerJob { Conditions = RunnerConditions.From(forComputer.Conditions) };
+        foreach (var step in StepsFrom(forComputer, startStep))
         {
             var jobStep = ToJobStep(step, package, runAs);
 
@@ -179,6 +180,16 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
 
         File.WriteAllText(Path.Combine(SlotDir, "job.json"), JsonSerializer.Serialize(job));
         return job;
+    }
+
+    /// <summary>Copie du paquet où $(Poste) est remplacé par le nom de ce poste (avant la copie des fichiers).</summary>
+    private Package ForComputer(Package package) => WithComputer(package, computer);
+
+    internal static Package WithComputer(Package package, string computer)
+    {
+        var copy = JsonSerializer.Deserialize<Package>(JsonSerializer.Serialize(package))!;
+        copy.ReplaceVariables(new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { [VariableText.Computer] = computer });
+        return copy;
     }
 
     /// <summary>

@@ -62,6 +62,23 @@ api.MapPut("/settings/defaults", (DeploymentDefaults defaults, Store store) =>
     return Results.Ok(defaults);
 });
 
+// ---------- Variables ----------
+
+api.MapGet("/variables", (Store store) => store.ListVariables());
+
+// La page enregistre toutes les variables d'un bloc.
+api.MapPut("/variables", (List<Variable> variables, Store store) =>
+{
+    foreach (var v in variables)
+    {
+        v.Name = (v.Name ?? "").Trim();
+        v.Value ??= "";
+    }
+    if (VariableText.Validate(variables) is { } error) return Results.BadRequest(new { error });
+    store.SaveVariables(variables);
+    return Results.Ok(store.ListVariables());
+});
+
 // ---------- Identifiants ----------
 
 api.MapGet("/credentials", (DeployCredentials cred) => cred.List());
