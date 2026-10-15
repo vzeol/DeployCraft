@@ -228,6 +228,8 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
                             <TextBlock Style="{StaticResource FieldLabel}" Text="Délai max (minutes)" />
                             <TextBox Grid.Column="1" x:Name="StepTimeoutBox" Style="{StaticResource CompactBox}" HorizontalAlignment="Left" Width="70"
@@ -241,6 +243,11 @@
                                 <ComboBoxItem Content="Arrêter en succès" />
                             </ComboBox>
                             <TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}" x:Name="ErrorModeHint" />
+                            <TextBlock Grid.Row="4" Style="{StaticResource FieldLabel}" Text="Exécuter en tant que" />
+                            <ComboBox Grid.Row="4" Grid.Column="1" x:Name="StepRunAsBox" SelectionChanged="StepRunAs_Changed"
+                                      AutomationProperties.Name="Exécuter l'étape en tant que" />
+                            <TextBlock Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}"
+                                       Text="« Paramètre du paquet » suit le paquet, ou le choix fait dans Déployer une fois ou la planification ; un autre choix reste celui de l'étape. Changer d'identité entre deux étapes relance le service sur le poste (quelques secondes)." />
                         </Grid>
                     </TabItem>
                 </TabControl>

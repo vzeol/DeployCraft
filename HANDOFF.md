@@ -73,10 +73,15 @@ version ni de release côté Cloud) :
   étapes est ignorée (« 1 étape ignorée : « X » (raison) ») ; glisser-déposer des étapes dans l'arbre de la fenêtre
   paquet (`PackageWindow.DragDrop.cs`, déplacement libre), Ctrl+Haut / Ctrl+Bas. **Glisser-déposer pas encore
   testé pour de vrai** (session Windows verrouillée pendant les tests de Prod) : à vérifier dans la 0.12.0.
-- **Thème sombre trop « plat » (PR #36)** : en relecture. Onglets soulignés d'accent, boutons bordés (principal à
-  l'accent), champs bordés au repos ; nouvelles clés `Control*` / `Primary*` dans les deux thèmes, contrastes WCAG.
+- **Thème sombre trop « plat » (PR #36)** : fusionnée. Onglets soulignés d'accent, boutons et champs bordés, clés
+  `Control*` / `Primary*` dans les deux thèmes (contrastes WCAG). **0.12.0 publiée** par Prod (variables, retrait des sections,
+  remarque partielle, glisser-déposer, thème) : en attente du test du mainteneur, aucun nouveau sujet avant.
+- **2.8 exécuter en tant que par étape (branche `feat/executer-en-tant-que-etape`)** : codé et poussé, **PR à ouvrir
+  seulement après le test de la 0.12.0**. Tranches par identité (`Remote/RunAsPlan.cs`), un service par tranche,
+  `halt` / `haltReason` dans status.json, `firstNumber` dans job.json. « Compte de déploiement sur le bureau » :
+  décision du mainteneur attendue (pas dans l'interface).
 - Contributeur externe (chromozone21, par fork) : issues #22, #23, #24, à ne pas prendre.
-- Ensuite : 2.8, 2.23, 2.24, 2.26, 2.27, 2.20–2.22 (à tester sur un vrai poste).
+- Ensuite : 2.23, 2.24, 2.26, 2.27, 2.20–2.22 (à tester sur un vrai poste).
 - Import des paquets PDQ Deploy (#14) : en attente, après ces sujets.
 
 Autres sujets possibles : réglages hors ligne dans Déployer une fois et les planifications, LAPS (en option),

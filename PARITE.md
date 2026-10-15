@@ -40,7 +40,7 @@ dans la même PR que le code qui la réalise.
 | 2.5 | Sections d'étapes : avant / principales / après | ❌ | Écarté : choix du mainteneur, un échec arrête le paquet. Faites en 0.11.0, retirées ensuite |
 | 2.6 | Par étape : titre, activée / désactivée, codes de succès | ✅ | Étape désactivée : « Ignoré », le paquet continue |
 | 2.7 | Par étape : erreur → arrêter en échec / arrêter en succès / continuer | ✅ | Arrêt en succès : poste compté réussi, étapes suivantes « Ignoré » |
-| 2.8 | Par étape : exécuter en tant que (compte de déploiement / compte de déploiement sur le bureau / système local / utilisateur connecté / hériter du paquet) | ⬜ | Aujourd'hui : toujours système local |
+| 2.8 | Par étape : exécuter en tant que (compte de déploiement / compte de déploiement sur le bureau / système local / utilisateur connecté / hériter du paquet) | 🟡 | Paramètre du paquet / compte de déploiement / Système local / utilisateur connecté, par « tranches » sur le poste. « Compte de déploiement sur le bureau » : en attente de la décision du mainteneur (demanderait le mot de passe sur le poste) |
 | 2.9 | Par étape : mêmes conditions qu'au paquet | ✅ | 0.10.0 : non remplies = étape « Ignoré », le paquet continue |
 | 2.10 | Copier / couper / coller / réordonner des étapes, y compris entre paquets | ✅ | 0.10.0 : presse-papiers (Ctrl+X / C / V), barre d'outils et clic droit |
 | 2.11 | Avertissements : fichier introuvable, pas de paramètre silencieux, conflit avec le mode « pull » | 🟡 | |

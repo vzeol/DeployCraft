@@ -236,6 +236,15 @@ public partial class PackageWindow : Window
             : $"Vide : délai du paquet ({PackageTimeout} min). Au-delà, le processus est arrêté et l'étape échoue.";
         StepTimeoutBox.IsEnabled = ErrorModeBox.IsEnabled = !nested;
         ErrorModeBox.SelectedIndex = (int)step.ErrorMode;
+        StepRunAsBox.Items.Clear();
+        StepRunAsBox.Items.Add(new ComboBoxItem
+        {
+            Content = $"Paramètre du paquet ({Ui.RunAsText(Package.RunAs ?? _defaults.RunAs)})",
+            Tag = null,
+            IsSelected = step.RunAs == null,
+        });
+        foreach (var mode in Enum.GetValues<RunAsMode>())
+            StepRunAsBox.Items.Add(new ComboBoxItem { Content = Ui.RunAsText(mode), Tag = mode, IsSelected = step.RunAs == mode });
         UpdateErrorModeHint(step);
         UpdateSilentHint();
         _loadingStep = false;
@@ -277,6 +286,12 @@ public partial class PackageWindow : Window
         if (_loadingStep || SelectedStep is not { } step || ErrorModeBox.SelectedIndex < 0) return;
         step.ErrorMode = (ErrorMode)ErrorModeBox.SelectedIndex;
         UpdateErrorModeHint(step);
+    }
+
+    private void StepRunAs_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_loadingStep && SelectedStep is { } step && StepRunAsBox.SelectedItem is ComboBoxItem item)
+            step.RunAs = item.Tag as RunAsMode?;
     }
 
     private void UpdateErrorModeHint(PackageStep step) => ErrorModeHint.Text = step.Type == StepType.Nested
