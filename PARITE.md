@@ -136,7 +136,7 @@ dans la même PR que le code qui la réalise.
 | 8.11 | Mode serveur central (local / serveur / client) | ❌ | Écarté : choix du mainteneur (console et service sur la même machine) |
 | 8.12 | Service sur la cible | ❌ | Écarté : choix du mainteneur |
 | 8.13 | Proxy, base de données, journalisation | ❌ | Écarté : choix du mainteneur |
-| 8.14 | Mises à jour automatiques | ⬜ | À brancher sur nos Releases GitHub |
+| 8.14 | Mises à jour automatiques | 🟡 | La console cherche une nouvelle version stable dans nos Releases au démarrage (et par Aide) et prévient ; l'installation reste manuelle, en administrateur sur le serveur |
 
 ## 9. Rapports et notifications
 

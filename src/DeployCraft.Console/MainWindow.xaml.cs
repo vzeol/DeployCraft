@@ -135,6 +135,7 @@ public partial class MainWindow : Window
             await RefreshAsync(packages: true);
             _timer.Start();
             if (await WelcomeWindow.NeededAsync()) Welcome_Click(this, new());
+            ShowUpdate(await UpdateCheck.FindAsync());
         };
     }
 
@@ -992,6 +993,35 @@ public partial class MainWindow : Window
     }
 
     private void About_Click(object sender, RoutedEventArgs e) => new AboutWindow { Owner = this }.ShowDialog();
+
+    // ---------- Nouvelle version ----------
+
+    private UpdateInfo? _update;
+
+    private void ShowUpdate(UpdateInfo? update)
+    {
+        _update = update;
+        if (update != null)
+            UpdateText.Text = $"DeployCraft {update.Version} est disponible (vous avez la {UpdateCheck.CurrentVersion}). " +
+                              "Installez-la sur le serveur, en administrateur : le service et la console sont mis à jour ensemble.";
+        UpdateBar.Visibility = update == null ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private async void CheckUpdate_Click(object sender, RoutedEventArgs e)
+    {
+        var update = await UpdateCheck.FindAsync();
+        ShowUpdate(update);
+        if (update == null)
+            MessageDialog.Show(this, $"Aucune nouvelle version trouvée (version {UpdateCheck.CurrentVersion}, ou pas d'accès à Internet).",
+                "Mise à jour", MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+
+    private void UpdateLink_Click(object sender, RoutedEventArgs e)
+    {
+        if (_update is { Url.Length: > 0 } u) Process.Start(new ProcessStartInfo(u.Url) { UseShellExecute = true });
+    }
+
+    private void UpdateHide_Click(object sender, RoutedEventArgs e) => UpdateBar.Visibility = Visibility.Collapsed;
 
     private void Exit_Click(object sender, RoutedEventArgs e) => Close();
 }
