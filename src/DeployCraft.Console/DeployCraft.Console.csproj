@@ -24,6 +24,12 @@
     <Compile Include="..\DeployCraft.Server\Data\DeploymentSummary.cs" Link="Shared\DeploymentSummary.cs" />
     <Compile Include="..\DeployCraft.Server\Data\StepWarnings.cs" Link="Shared\StepWarnings.cs" />
     <Compile Include="..\DeployCraft.Server\Data\HomeSummary.cs" Link="Shared\HomeSummary.cs" />
+    <Compile Include="..\DeployCraft.Server\Data\HelpContent.cs" Link="Shared\HelpContent.cs" />
+  </ItemGroup>
+
+  <!-- Aide intégrée (Aide › Aide de DeployCraft, F1). -->
+  <ItemGroup>
+    <Resource Include="Help\aide.txt" />
   </ItemGroup>
 
 </Project>

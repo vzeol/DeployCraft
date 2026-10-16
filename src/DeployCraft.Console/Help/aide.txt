@@ -1,0 +1,80 @@
+## Premiers pas {#accueil}
+DeployCraft installe et configure des logiciels sur les postes Windows du réseau, sans rien installer à l'avance sur ces postes.
+### Les trois morceaux
+- Le service DeployCraft tourne en permanence sur le serveur : il garde les paquets et l'historique, lance les déploiements et les planifications.
+- La console (cette fenêtre) sert à tout préparer et à suivre ce qui se passe. Elle peut être ouverte par plusieurs personnes en même temps.
+- Le runner est un petit programme copié sur chaque poste le temps d'un déploiement, puis supprimé.
+### Avant le premier déploiement
+- Options › Identifiants : ajoutez un compte administrateur des postes (souvent un compte du domaine).
+- Les postes doivent accepter le partage de fichiers (partage ADMIN$, port 445) et la gestion des services à distance.
+- Aide › Assistant de démarrage reprend ces étapes une par une.
+### Raccourcis utiles
+- Ctrl+N : nouveau paquet. Ctrl+Maj+F : nouveau dossier. Ctrl+D : déployer une fois.
+- Ctrl+Maj+N : nouvelle planification. F5 : actualiser. F1 : cette aide.
+
+## Paquets et étapes {#paquets}
+Un paquet est une suite d'étapes exécutées dans l'ordre sur chaque poste.
+### Types d'étapes
+- Installer : lance un .exe, .msi, .msp, .msu, .ps1, .bat, .cmd, .vbs ou .reg. La ligne de commande est préparée d'après le type de fichier ; la case Personnalisée permet de l'écrire soi-même.
+- Commande : une ligne de commande cmd. PowerShell : un script.
+- Copie de fichiers : copie un fichier ou un dossier vers un dossier du poste.
+- Pause, Message (fenêtre affichée aux utilisateurs connectés), Redémarrer (ou éteindre) le poste.
+- Paquet imbriqué : reprend les étapes d'un autre paquet.
+### Réglages d'une étape
+- Codes de succès : codes de sortie considérés comme une réussite (0, 1641, 3010 et 2359302 pour Installer).
+- En cas d'erreur : arrêter le paquet en échec, continuer, ou arrêter en succès.
+- Exécuter en tant que : compte de déploiement, Système local ou utilisateur connecté.
+- Conditions : version de Windows, architecture, PowerShell, utilisateur connecté, fichier ou clé de registre. Une étape dont les conditions ne sont pas remplies est « Ignoré » et le paquet continue.
+### Avertissements
+- Un message rouge en haut de l'étape signale un fichier introuvable depuis le serveur, un .exe sans paramètre silencieux, ou un chemin local alors que le paquet est en mode pull. Il est rappelé à l'enregistrement.
+### Dossiers
+- Rangez les paquets dans des dossiers et sous-dossiers (Ctrl+Maj+F) ; faites-les glisser d'un dossier à l'autre. Seul un dossier vide peut être supprimé.
+
+## Déployer {#deployer}
+### Déployer une fois
+- Choisissez un paquet puis Déployer (Ctrl+D) : saisissez des noms de postes, collez une liste, ou choisissez-les dans l'Active Directory.
+- Plusieurs paquets peuvent être enchaînés : sur un même poste, chacun attend la fin du précédent.
+- Prioritaire : les postes de ce déploiement passent devant ceux qui attendent un créneau (8 postes en parallèle).
+### Mode de copie
+- Push : le serveur copie lui-même les fichiers sur le poste.
+- Pull : le poste va chercher les fichiers sur un partage réseau. Un chemin local au serveur est toujours envoyé en push.
+### Postes éteints
+- Un poste qui ne répond pas peut être réveillé (Wake-on-LAN) s'il a déjà reçu un déploiement, puis réessayé plus tard selon les réglages Hors ligne.
+
+## Suivre les déploiements {#suivi}
+- Tous les déploiements : la liste en haut, les postes du déploiement choisi en bas, leurs détails à droite.
+- Compteurs : postes en attente, en cours, réussis, en échec et annulés. « Partiel » : une partie des postes a réussi. « Annulé » : arrêté à la main.
+- La colonne Détail montre l'étape en cours (copie, exécution, poste injoignable…) ou l'erreur.
+- Détail des étapes d'un poste : statut, code retour, durée et sortie de chaque étape. La sortie peut être copiée, ouverte dans le Bloc-notes ou enregistrée.
+- Clic droit : annuler, redéployer (tout, les postes en échec, ou depuis l'étape en échec), créer une planification à partir du déploiement.
+
+## Planifications {#planifications}
+- Une planification déploie un ou plusieurs paquets sur des postes, à des moments choisis : une fois, à intervalle (avec plage horaire), chaque jour, chaque semaine ou chaque mois.
+- Ne plus déployer une fois réussi : avec un déclencheur à intervalle, l'installation est retentée jusqu'à ce qu'elle passe sur chaque poste.
+- L'onglet Historique des cibles montre, poste par poste, ce qui a réussi et le nombre d'échecs. Effacer une ligne fait redéployer ce poste.
+- Démarrer maintenant lance la planification tout de suite, sans attendre son déclencheur.
+
+## Bibliothèque de paquets {#bibliotheque}
+- La bibliothèque recherche dans un catalogue public de logiciels (navigateurs, lecteurs PDF, outils bureautiques…).
+- Télécharger crée un paquet prêt à déployer, avec l'installeur rangé dans le dossier de la bibliothèque.
+- Quand une version plus récente sort, la ligne indique « Mise à jour disponible » : Mettre à jour remplace l'installeur du paquet.
+- Dossier… : où ranger les installeurs. Un partage réseau est conseillé pour le mode pull.
+
+## Identifiants et accès {#identifiants}
+- Options › Identifiants : comptes utilisés pour se connecter aux postes. L'identifiant par défaut sert quand aucun autre n'est choisi. Les mots de passe sont chiffrés sur le serveur.
+- Un compte local s'écrit .\utilisateur : il est alors présenté à chaque poste sous son propre nom.
+- Options › Utilisateurs de la console : comptes ou groupes Windows autorisés à ouvrir la console, en plus des administrateurs du serveur.
+
+## Préférences {#preferences}
+- Interface : thème clair, sombre, ou selon Windows (propre à chaque utilisateur).
+- Déploiement : exécuter en tant que, mode de copie et délai maximal par défaut ; suppression automatique des anciens déploiements après N jours.
+- Hors ligne : réveil Wake-on-LAN et nouveaux essais des postes éteints.
+- Ces réglages s'appliquent aux paquets laissés sur « Par défaut ».
+
+## En cas de problème {#depannage}
+- « Hors ligne » : le poste est éteint, son nom n'est pas dans le DNS, ou le pare-feu bloque le partage de fichiers (port 445).
+- Accès refusé à ADMIN$ : l'identifiant n'est pas administrateur du poste, ou son mot de passe a changé.
+- Code 1618 : une autre installation est déjà en cours sur le poste ; réessayez plus tard.
+- Code 1603 : erreur pendant l'installation ; le journal de Windows Installer est ajouté à la sortie de l'étape.
+- Une installation qui dure jusqu'au délai maximal attend souvent un clic : ajoutez les paramètres silencieux de l'installeur.
+- Sur le poste, C:\Windows\DeployCraft\last-runner.log garde le journal du dernier passage.

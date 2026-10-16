@@ -84,6 +84,8 @@
                 <MenuItem Header="_Préférences…" Click="Settings_Click" InputGestureText="Ctrl+," />
             </MenuItem>
             <MenuItem Header="Ai_de">
+                <MenuItem Header="_Aide de DeployCraft" Click="Help_Click" InputGestureText="F1" />
+                <Separator />
                 <MenuItem Header="Ouvrir une _invite de commandes (admin)" Click="AdminCmd_Click" />
                 <MenuItem Header="Ouvrir _PowerShell (admin)" Click="AdminPowerShell_Click" />
                 <Separator />
