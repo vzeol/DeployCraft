@@ -547,9 +547,7 @@ public partial class MainWindow : Window
         try
         {
             var info = await Api.Library();
-            if (InputDialog.Ask(this, "Dossier de la bibliothèque",
-                    @"Dossier où ranger les installeurs téléchargés. Un partage est conseillé (ex. \\SERVEUR\Deploiement\Bibliotheque) :",
-                    info.Folder) is not { } folder || folder == info.Folder) return;
+            if (Ui.PickLibraryFolder(this, info.Folder) is not { } folder) return;
             await Api.SetLibraryFolder(folder);
             await RefreshAsync(packages: false);
         }

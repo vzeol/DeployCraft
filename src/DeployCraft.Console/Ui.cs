@@ -119,6 +119,19 @@ public static class Ui
         return panel;
     }
 
+    /// <summary>
+    /// Choix du dossier de la bibliothèque dans la fenêtre Windows de choix de dossier (un partage s'écrit dans sa barre
+    /// d'adresse, ex. \\SERVEUR\Deploiement). Renvoie le dossier choisi, ou null si rien n'a changé.
+    /// </summary>
+    public static string? PickLibraryFolder(Window owner, string current)
+    {
+        var dialog = new Microsoft.Win32.OpenFolderDialog { Title = "Dossier de la bibliothèque (un partage réseau est conseillé)" };
+        if (System.IO.Directory.Exists(current)) dialog.InitialDirectory = current;
+        return dialog.ShowDialog(owner) == true && !dialog.FolderName.Equals(current, StringComparison.OrdinalIgnoreCase)
+            ? dialog.FolderName
+            : null;
+    }
+
     public static void Error(Window? owner, Exception ex) =>
         MessageDialog.Show(owner!, ex.Message, "DeployCraft", MessageBoxButton.OK, MessageBoxImage.Warning);
 
