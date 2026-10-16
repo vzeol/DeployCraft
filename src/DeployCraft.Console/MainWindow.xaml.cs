@@ -4,12 +4,13 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 using DeployCraft.Server.Data;
 
 namespace DeployCraft.Console;
 
-public record StepRow(int Number, string Name, string Type, string Details);
+public record StepRow(int Number, string Name, string Type, string Conditions, string Details);
 
 public record ScheduleRow(Schedule Schedule) : System.ComponentModel.INotifyPropertyChanged
 {
@@ -393,11 +394,19 @@ public partial class MainWindow : Window
         _packages = await Api.Packages();
         try
         {
+            _defaults = await Api.Defaults();
+        }
+        catch (ApiException) { /* les Détails afficheront les valeurs d'usine */ }
+        try
+        {
             _libraryUpdates = LibraryUpdates(await Api.LibraryStatus());
         }
         catch (ApiException) { /* le repère attendra la prochaine lecture */ }
         RebuildPackageNodes(selectedId, selectedFolderId);
     }
+
+    // Préférences du serveur : valeurs des réglages laissés « par défaut » dans l'onglet Détails.
+    private DeploymentDefaults? _defaults;
 
     // Paquets dont la bibliothèque a une nouvelle version : repérés dans l'arbre.
     private HashSet<long> _libraryUpdates = [];
@@ -674,11 +683,51 @@ public partial class MainWindow : Window
         PackageSubtitle.Text = string.IsNullOrWhiteSpace(p.Description)
             ? $"Paquet · {steps} · modifié le {Ui.LocalTime(p.ModifiedUtc)}"
             : $"{p.Description} · {steps} · modifié le {Ui.LocalTime(p.ModifiedUtc)}";
-        StepsGrid.ItemsSource = p.Steps.Select((s, i) => new StepRow(i + 1, StepName(s), StepTypeText(s.Type), StepDetails(s, FindPackage))).ToList();
+        StepsGrid.ItemsSource = p.Steps.Select((s, i) => new StepRow(i + 1, StepName(s), StepTypeText(s.Type),
+            s.Conditions.IsEmpty ? "" : "Oui", StepDetails(s, FindPackage))).ToList();
+        ShowPackageDetails(p);
         PackageDeployments.SetDeployments([]);
         PackageSchedulesGrid.ItemsSource = null;
         PackageSchedulesCount.Text = "";
         SwitchTo(View.Package);
+    }
+
+    /// <summary>Onglet Détails : ce que fait le paquet et d'où viennent ses réglages (paquet ou Préférences).</summary>
+    private void ShowPackageDetails(Package p)
+    {
+        var d = _defaults ?? new DeploymentDefaults();
+        string Setting<T>(T? own, T fallback, Func<T, string> text) where T : struct =>
+            own is { } v ? text(v) : $"Préférences ({text(fallback)})";
+        var enabled = p.Steps.Count(s => s.Enabled);
+        var rows = new (string Label, string Value)[]
+        {
+            ("Nom", p.Name),
+            ("Version", string.IsNullOrWhiteSpace(p.Version) ? "—" : p.Version),
+            ("Description", string.IsNullOrWhiteSpace(p.Description) ? "—" : p.Description),
+            ("Dossier", PackageDetails.FolderPath(p.FolderId, _folders)),
+            ("Étapes", enabled == p.Steps.Count ? $"{p.Steps.Count}" : $"{p.Steps.Count}, dont {p.Steps.Count - enabled} désactivée(s)"),
+            ("Modifié le", Ui.LocalTime(p.ModifiedUtc)),
+            ("Exécuter en tant que", Setting(p.RunAs, d.RunAs, Ui.RunAsText)),
+            ("Mode de copie", Setting(p.CopyMode, d.CopyMode, Ui.CopyModeText)),
+            ("Délai max par étape", Setting(p.TimeoutMinutes, d.TimeoutMinutes, m => $"{m} min")),
+            ("Conditions", PackageDetails.ConditionsText(p.Conditions)),
+            ("Postes hors ligne", PackageDetails.OfflineText(p.Offline ?? d.Offline, p.Offline == null)),
+            ("Utilisé dans", PackageDetails.UsedByText(p.Id, _packages)),
+        };
+        PackageDetailsGrid.Children.Clear();
+        PackageDetailsGrid.RowDefinitions.Clear();
+        foreach (var (label, value) in rows)
+        {
+            PackageDetailsGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            var row = PackageDetailsGrid.RowDefinitions.Count - 1;
+            var name = new TextBlock { Text = label, Margin = new Thickness(0, 4, 12, 4), Foreground = (Brush)FindResource("MutedBrush") };
+            var text = new TextBox { Text = value, IsReadOnly = true, BorderThickness = new Thickness(0), Background = Brushes.Transparent, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 4) };
+            Grid.SetRow(name, row);
+            Grid.SetRow(text, row);
+            Grid.SetColumn(text, 1);
+            PackageDetailsGrid.Children.Add(name);
+            PackageDetailsGrid.Children.Add(text);
+        }
     }
 
     /// <summary>Titre de l'étape, signalée si elle est désactivée.</summary>
@@ -1090,7 +1139,17 @@ public partial class MainWindow : Window
 
     // ---------- Options et aide ----------
 
-    private void Settings_Click(object sender, RoutedEventArgs e) => new SettingsWindow { Owner = this }.ShowDialog();
+    private async void Settings_Click(object sender, RoutedEventArgs e)
+    {
+        new SettingsWindow { Owner = this }.ShowDialog();
+        // Les Préférences changées se voient tout de suite dans les Détails du paquet affiché.
+        try
+        {
+            await RefreshPackagesAsync();
+            if (SelectedPackage is { } p && _view == View.Package) ShowPackage(p);
+        }
+        catch (ApiException) { /* déjà signalé dans le bandeau */ }
+    }
 
     private async void Credentials_Click(object sender, RoutedEventArgs e)
     {
