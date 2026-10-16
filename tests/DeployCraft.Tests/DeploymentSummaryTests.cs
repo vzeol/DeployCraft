@@ -49,4 +49,11 @@ public class DeploymentSummaryTests
 
         Assert.Equal(new DeploymentSummary.Counts(6, 2, 1, 1, 1, 1), DeploymentSummary.Count(d));
     }
+
+    [Fact]
+    public void OutputFileName_IsSafe()
+    {
+        Assert.Equal("PC-TEST-01-deploiement12-etape3.txt", DeploymentSummary.OutputFileName("PC-TEST-01", 12, 3));
+        Assert.Equal("a_b-deploiement1-etape1.txt", DeploymentSummary.OutputFileName("a:b", 1, 1));
+    }
 }

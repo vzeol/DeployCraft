@@ -89,7 +89,7 @@ dans la même PR que le code qui la réalise.
 | 4.6 | Prioriser un poste en attente | ❌ | Écarté : choix du mainteneur |
 | 4.7 | Créer une planification depuis un déploiement | ✅ | Clic droit sur un déploiement : paquet, postes et options repris, déclencheurs à choisir |
 | 4.8 | Nettoyage automatique de l'historique après N jours | ✅ | Préférences › Déploiement : désactivé d'usine, de 1 à 3650 jours ; au démarrage du service puis une fois par jour ; seuls les déploiements terminés sont supprimés (jamais en attente ou en cours, ni l'historique des planifications) |
-| 4.9 | Fichier de sortie complet téléchargeable par étape | ⬜ | Ouvrir depuis le détail d'une étape sa sortie complète ou son journal, pour comprendre un échec |
+| 4.9 | Fichier de sortie complet téléchargeable par étape | ✅ | Détail des étapes : copier, ouvrir dans le Bloc-notes ou enregistrer la sortie (avec le journal Windows Installer) |
 
 ## 5. Planifications
 

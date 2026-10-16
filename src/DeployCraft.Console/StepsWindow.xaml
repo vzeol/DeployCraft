@@ -46,7 +46,16 @@
             </DataGrid>
             <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" Background="Transparent" />
             <DockPanel Grid.Row="2">
-                <TextBlock DockPanel.Dock="Top" Text="Sortie de l'étape" FontWeight="SemiBold" Margin="0,0,0,4" />
+                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,4">
+                    <TextBlock DockPanel.Dock="Right" x:Name="OutputActions">
+                        <Hyperlink Click="CopyOutput_Click">Copier</Hyperlink>
+                        <Run Text="   " />
+                        <Hyperlink Click="OpenOutput_Click">Ouvrir dans le Bloc-notes</Hyperlink>
+                        <Run Text="   " />
+                        <Hyperlink Click="SaveOutput_Click">Enregistrer…</Hyperlink>
+                    </TextBlock>
+                    <TextBlock Text="Sortie de l'étape" FontWeight="SemiBold" />
+                </DockPanel>
                 <TextBox x:Name="Output" IsReadOnly="True" FontFamily="Consolas" FontSize="12" Background="{DynamicResource AltBackground}"
                          VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" VerticalContentAlignment="Top" />
             </DockPanel>

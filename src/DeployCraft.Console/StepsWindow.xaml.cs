@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,11 +13,15 @@ public record StepDetailRow(int Number, string Name, string Status, string Retur
 public partial class StepsWindow : Window
 {
     private readonly int _startStep;
+    private readonly string _computer;
+    private readonly long _deploymentId;
 
     public StepsWindow(Deployment deployment, DeploymentTarget target)
     {
         InitializeComponent();
         _startStep = target.StartStep;
+        _computer = target.Computer;
+        _deploymentId = deployment.Id;
         Title = $"{target.Computer} — Étapes";
         Heading.Text = $"{target.Computer} · {Ui.StatusText(target.Status.ToString())}";
         SubHeading.Text = $"{deployment.PackageName} · déploiement {deployment.Id} · {Ui.LocalTime(target.StartedUtc)}";
@@ -59,5 +65,38 @@ public partial class StepsWindow : Window
             sb.Append(string.IsNullOrWhiteSpace(row.Outcome.Output) ? "(aucune sortie)" : row.Outcome.Output.TrimEnd());
         }
         Output.Text = sb.ToString();
+    }
+
+    // ---------- Sortie complète : copier, ouvrir, enregistrer ----------
+
+    private string CurrentFileName => DeploymentSummary.OutputFileName(_computer, _deploymentId, (Grid.SelectedItem as StepDetailRow)?.Number ?? 0);
+
+    private void CopyOutput_Click(object sender, RoutedEventArgs e)
+    {
+        try { Clipboard.SetText(Output.Text); }
+        catch (System.Runtime.InteropServices.COMException) { /* presse-papiers occupé : l'utilisateur réessaiera */ }
+    }
+
+    private void OpenOutput_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var folder = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), "DeployCraft")).FullName;
+            var file = Path.Combine(folder, CurrentFileName);
+            File.WriteAllText(file, Output.Text, new UTF8Encoding(true));
+            Process.Start(new ProcessStartInfo("notepad.exe", $"\"{file}\"") { UseShellExecute = true });
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
+        {
+            Ui.Error(this, ex);
+        }
+    }
+
+    private void SaveOutput_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new Microsoft.Win32.SaveFileDialog { FileName = CurrentFileName, Filter = "Texte (*.txt)|*.txt|Tous les fichiers|*.*" };
+        if (dialog.ShowDialog(this) != true) return;
+        try { File.WriteAllText(dialog.FileName, Output.Text, new UTF8Encoding(true)); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { Ui.Error(this, ex); }
     }
 }

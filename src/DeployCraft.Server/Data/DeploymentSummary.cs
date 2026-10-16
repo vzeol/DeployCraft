@@ -32,5 +32,12 @@ public static class DeploymentSummary
         deployment.Targets.Count(t => t.Status == TargetStatus.Failed && !IsAborted(t)),
         deployment.Targets.Count(IsAborted));
 
+    /// <summary>Nom de fichier de la sortie d'une étape, sans caractère interdit (ex. « PC-TEST-01-deploiement12-etape3.txt »).</summary>
+    public static string OutputFileName(string computer, long deploymentId, int step)
+    {
+        var name = $"{computer}-deploiement{deploymentId}-etape{step}.txt";
+        return string.Concat(name.Select(c => System.IO.Path.GetInvalidFileNameChars().Contains(c) ? '_' : c));
+    }
+
     public record Counts(int Total, int Queued, int Running, int Successful, int Failed, int Aborted);
 }
