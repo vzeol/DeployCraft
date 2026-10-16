@@ -26,7 +26,14 @@ public partial class WelcomeWindow : Window
         _main = main;
         Owner = main;
         Loaded += async (_, _) => await LoadAsync();
+        // Non modale : on peut travailler dans la console (bibliothèque…) et revenir ; l'état est relu au retour.
+        Activated += async (_, _) =>
+        {
+            if (IsLoaded && !_loading) await LoadAsync();
+        };
     }
+
+    private bool _loading;
 
     /// <summary>Le serveur n'a encore rien de configuré : l'assistant s'ouvre au démarrage de la console.</summary>
     public static async Task<bool> NeededAsync()
@@ -43,6 +50,7 @@ public partial class WelcomeWindow : Window
 
     private async Task LoadAsync()
     {
+        _loading = true;
         try
         {
             var status = await Api.Status();
@@ -72,7 +80,7 @@ public partial class WelcomeWindow : Window
                         ? "Téléchargez un logiciel courant depuis la bibliothèque, ou créez un paquet vous-même."
                         : $"{packages.Count} paquet(s) prêt(s) à déployer.",
                     "Bibliothèque…", packages.Count > 0, false,
-                    () => { _main.OpenLibrary(); Close(); return Task.CompletedTask; }),
+                    () => { _main.OpenLibrary(); _main.Activate(); return Task.CompletedTask; }),
                 new("4. Préférences (facultatif)",
                     "Thème, délai par défaut, mode de copie, réessai des postes éteints, utilisateurs de la console.",
                     "Ouvrir…", false, true,
@@ -84,6 +92,7 @@ public partial class WelcomeWindow : Window
             Progress.Text = done == required ? "Tout est prêt : bon déploiement !" : $"{done} étape(s) sur {required} faite(s)";
         }
         catch (ApiException ex) { Ui.Error(this, ex); }
+        finally { _loading = false; }
     }
 
     private async Task ChooseLibraryFolderAsync()

@@ -940,10 +940,23 @@ public partial class MainWindow : Window
         catch (ApiException ex) { Ui.Error(this, ex); }
     }
 
-    private async void Welcome_Click(object sender, RoutedEventArgs e)
+    private WelcomeWindow? _welcome;
+
+    /// <summary>Assistant de démarrage, non modal : une seule fenêtre, ramenée devant si elle est déjà ouverte.</summary>
+    private void Welcome_Click(object sender, RoutedEventArgs e)
     {
-        new WelcomeWindow(this).ShowDialog();
-        await RefreshAsync(packages: true);
+        if (_welcome != null)
+        {
+            _welcome.Activate();
+            return;
+        }
+        _welcome = new WelcomeWindow(this);
+        _welcome.Closed += async (_, _) =>
+        {
+            _welcome = null;
+            await RefreshAsync(packages: true);
+        };
+        _welcome.Show();
     }
 
     /// <summary>Affiche la bibliothèque de paquets (depuis l'assistant de démarrage).</summary>
