@@ -179,7 +179,6 @@ public class OfflineSettings
     public int RetryIntervalMinutes { get; set; } = 30;
 }
 
-/// <summary>Nettoyage automatique de l'historique des déploiements (Préférences › Déploiement).</summary>
 /// <summary>Charge du serveur : postes traités en même temps et débit des copies de fichiers vers les postes.</summary>
 public class PerformanceSettings
 {
@@ -198,6 +197,7 @@ public class PerformanceSettings
         : null;
 }
 
+/// <summary>Nettoyage automatique de l'historique des déploiements (Préférences › Déploiement).</summary>
 public class HistorySettings
 {
     public const int MinDays = 1;
