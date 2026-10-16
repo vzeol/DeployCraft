@@ -1,4 +1,4 @@
-# Compilation
+# Build output
 bin/
 obj/
 publish/
@@ -12,7 +12,7 @@ TestResults/
 *.user
 *.suo
 
-# Secrets et environnement (ne jamais commiter)
+# Secrets and environment (never commit)
 .env
 .env.*
 !.env.example
@@ -20,21 +20,21 @@ TestResults/
 *.key
 *.pfx
 
-# Données locales (bases de test, journaux)
+# Local data (test databases, logs)
 *.db
 *.db-shm
 *.db-wal
 *.log
 
-# Dépendances d'autres outils
+# Other tools' dependencies
 node_modules/
 __pycache__/
 
-# Système
+# System
 .DS_Store
 Thumbs.db
 
-# Local (sauf le démarrage des sessions cloud, partagé)
+# Local (except the shared cloud session startup)
 .claude/*
 !.claude/settings.json
 !.claude/hooks/
