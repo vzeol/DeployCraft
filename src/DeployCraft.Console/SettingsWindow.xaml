@@ -78,6 +78,10 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <TextBlock Grid.ColumnSpan="2" Style="{StaticResource Hint}" Margin="0,0,0,12"
                                Text="Valeurs des paquets dont le réglage est laissé « Par défaut ». Réglage du serveur, commun à toutes les consoles, enregistré à la fermeture de cette fenêtre." />
@@ -88,14 +92,24 @@
                     <TextBlock Grid.Row="3" Style="{StaticResource FieldLabel}" Text="Délai max (minutes)" />
                     <TextBox Grid.Row="3" Grid.Column="1" x:Name="DefaultTimeoutBox" Style="{StaticResource CompactBox}" HorizontalAlignment="Left" Width="70" />
                     <TextBlock Grid.Row="4" Grid.Column="1" Style="{StaticResource Hint}" Text="Par étape : au-delà, le processus est arrêté et l'étape échoue." />
-                    <TextBlock Grid.Row="5" Style="{StaticResource FieldLabel}" Margin="0,16,12,0" Text="Historique" />
-                    <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" Margin="0,16,0,0">
+                    <TextBlock Grid.Row="5" Style="{StaticResource FieldLabel}" Margin="0,16,12,0" Text="Postes en parallèle" />
+                    <TextBox Grid.Row="5" Grid.Column="1" x:Name="ParallelBox" Style="{StaticResource CompactBox}" HorizontalAlignment="Left" Width="70"
+                             Margin="0,16,0,0" AutomationProperties.Name="Postes déployés en parallèle" />
+                    <TextBlock Grid.Row="6" Grid.Column="1" Style="{StaticResource Hint}"
+                               Text="De 1 à 100, tous déploiements confondus (8 par défaut). Les autres postes attendent un créneau ; les postes prioritaires passent d'abord." />
+                    <TextBlock Grid.Row="7" Style="{StaticResource FieldLabel}" Text="Limite de copie (Mbit/s)" />
+                    <TextBox Grid.Row="7" Grid.Column="1" x:Name="CopyLimitBox" Style="{StaticResource CompactBox}" HorizontalAlignment="Left" Width="70"
+                             AutomationProperties.Name="Limite de débit des copies, en mégabits par seconde" />
+                    <TextBlock Grid.Row="8" Grid.Column="1" Style="{StaticResource Hint}"
+                               Text="0 = sans limite. Débit total des copies du serveur vers les postes (mode push), partagé entre tous les postes en cours. En mode pull, chaque poste lit le partage lui-même : pas de limite." />
+                    <TextBlock Grid.Row="9" Style="{StaticResource FieldLabel}" Margin="0,16,12,0" Text="Historique" />
+                    <StackPanel Grid.Row="9" Grid.Column="1" Orientation="Horizontal" Margin="0,16,0,0">
                         <CheckBox x:Name="CleanupBox" Content="Supprimer les déploiements terminés après" />
                         <TextBox x:Name="CleanupDaysBox" Style="{StaticResource CompactBox}" Width="60" Margin="8,0,6,0"
                                  IsEnabled="{Binding IsChecked, ElementName=CleanupBox}" />
                         <TextBlock Style="{StaticResource FieldLabel}" Margin="0" Text="jours" />
                     </StackPanel>
-                    <TextBlock Grid.Row="6" Grid.Column="1" Style="{StaticResource Hint}"
+                    <TextBlock Grid.Row="10" Grid.Column="1" Style="{StaticResource Hint}"
                                Text="Désactivé par défaut. Un déploiement en attente ou en cours n'est jamais supprimé, ni l'historique des planifications. Le nettoyage a lieu au démarrage du service, puis une fois par jour." />
                 </Grid>
             </TabItem>

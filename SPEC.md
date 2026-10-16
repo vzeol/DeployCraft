@@ -363,6 +363,18 @@ déploiements possibles en même temps sur un poste.
 - Réglages du **serveur** (communs à toutes les consoles), enregistrés à la fermeture de la fenêtre : exécuter en
   tant que, mode de copie, délai max par étape (60 min d'usine), réglages hors ligne.
 
+### Performance (Préférences › Déploiement)
+- **Postes en parallèle** : de 1 à 100 (8 d'usine), tous déploiements et planifications confondus. Les autres postes
+  attendent un créneau, les postes prioritaires d'abord. Le réglage s'applique au démarrage du service, à chaque
+  enregistrement des Préférences et à chaque lancement : une hausse sert tout de suite les postes en attente ; une
+  baisse laisse finir les postes en cours et ne s'applique qu'à mesure qu'ils se terminent.
+- **Limite de copie** en Mbit/s (0 = sans limite, d'usine ; jusqu'à 10 000) : débit **total** des copies du serveur
+  vers les postes (runner, fichiers d'installation, fichiers des étapes « copie de fichiers »), partagé entre toutes
+  les copies en cours, quel que soit le nombre de postes. Seau à jetons d'une seconde de réserve ; avec une limite, la
+  copie se fait par morceaux de 256 Ko (la date du fichier est conservée). En mode pull, chaque poste lit le partage
+  lui-même : la limite ne s'applique pas.
+- Valeurs hors limites refusées à l'enregistrement (console et service).
+
 ### Nettoyage de l'historique
 - Préférences › Déploiement : « Supprimer les déploiements terminés après N jours ». Réglage du **serveur**,
   **désactivé d'usine**, N de 1 à 3650 (30 proposé), refusé par le service hors de ces limites.

@@ -180,6 +180,24 @@ public class OfflineSettings
 }
 
 /// <summary>Nettoyage automatique de l'historique des déploiements (Préférences › Déploiement).</summary>
+/// <summary>Charge du serveur : postes traités en même temps et débit des copies de fichiers vers les postes.</summary>
+public class PerformanceSettings
+{
+    public const int MaxParallel = 100;
+    public const int MaxCopyLimit = 10000;
+
+    /// <summary>Postes déployés en même temps, tous déploiements confondus.</summary>
+    public int ParallelTargets { get; set; } = 8;
+    /// <summary>Débit total des copies du serveur vers les postes, en Mbit/s (0 = sans limite).</summary>
+    public int CopyLimitMbps { get; set; }
+
+    /// <summary>Message d'erreur si un réglage est hors limites, sinon null.</summary>
+    public static string? Validate(PerformanceSettings p) =>
+        p.ParallelTargets is < 1 or > MaxParallel ? $"le nombre de postes en parallèle doit être compris entre 1 et {MaxParallel}."
+        : p.CopyLimitMbps is < 0 or > MaxCopyLimit ? $"la limite de copie doit être comprise entre 0 (sans limite) et {MaxCopyLimit} Mbit/s."
+        : null;
+}
+
 public class HistorySettings
 {
     public const int MinDays = 1;
@@ -205,6 +223,7 @@ public class DeploymentDefaults
     public int TimeoutMinutes { get; set; } = 60;
     public OfflineSettings Offline { get; set; } = new();
     public HistorySettings History { get; set; } = new();
+    public PerformanceSettings Performance { get; set; } = new();
 }
 
 public class Package
@@ -578,6 +597,4 @@ public static class Defaults
 {
     /// <summary>OK, OK + redémarrage lancé, OK + redémarrage requis, mise à jour MSU déjà installée.</summary>
     public const string SuccessCodes = "0,1641,3010,2359302";
-
-    public const int MaxParallelTargets = 8;
 }

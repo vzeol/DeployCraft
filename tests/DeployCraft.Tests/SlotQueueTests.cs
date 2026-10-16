@@ -36,4 +36,36 @@ public class SlotQueueTests
         // Le créneau rendu est de nouveau libre : un nouveau venu passe tout de suite.
         await slots.WaitAsync(prioritized: false, CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(5));
     }
+
+    [Fact]
+    public async Task Resize_Up_ServesWaitingTargetsAtOnce()
+    {
+        var slots = new SlotQueue(1);
+        await slots.WaitAsync(prioritized: false, CancellationToken.None);
+        var second = slots.WaitAsync(prioritized: false, CancellationToken.None);
+        var third = slots.WaitAsync(prioritized: false, CancellationToken.None);
+        Assert.False(second.IsCompleted);
+
+        slots.Resize(3);
+
+        await Task.WhenAll(second, third).WaitAsync(TimeSpan.FromSeconds(5));
+    }
+
+    [Fact]
+    public async Task Resize_Down_KeepsRunningTargets_AndServesOnlyUnderTheNewLimit()
+    {
+        var slots = new SlotQueue(2);
+        await slots.WaitAsync(prioritized: false, CancellationToken.None);
+        await slots.WaitAsync(prioritized: false, CancellationToken.None);
+        var waiting = slots.WaitAsync(prioritized: false, CancellationToken.None);
+
+        slots.Resize(1);
+        slots.Release();
+        // Encore un poste en cours pour un seul créneau : celui qui attend reste en attente.
+        await Task.Delay(100);
+        Assert.False(waiting.IsCompleted);
+
+        slots.Release();
+        await waiting.WaitAsync(TimeSpan.FromSeconds(5));
+    }
 }
