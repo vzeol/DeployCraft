@@ -20,7 +20,7 @@ dans la même PR que le code qui la réalise.
 | 1.3 | Page d'un paquet : détails, étapes, déploiements du paquet, planifications attachées | ✅ | Onglet Planifications en 0.8.0 ; onglet Détails (version, dossier, réglages avec leur origine, conditions, hors ligne, paquets qui l'utilisent) et colonne Conditions des étapes |
 | 1.4 | Page d'un dossier, page « plusieurs paquets sélectionnés » | ❌ | Écarté : choix du mainteneur |
 | 1.5 | Renommer (F2), dupliquer, couper / copier / coller, supprimer dans l'arbre | ✅ | Paquets : couper, copier, coller (Ctrl+X / C / V) vers un dossier ; dossiers : couper / coller |
-| 1.6 | Apparence d'un nœud de l'arbre (couleur / mise en forme) | ⬜ | Avec la reprise de l'apparence générale, après les fonctions (choix du mainteneur) |
+| 1.6 | Apparence d'un nœud de l'arbre (couleur / mise en forme) | ❌ | Écarté : choix du mainteneur (l'arbre actuel lui convient) |
 | 1.7 | Menus Fichier / Édition / Affichage / Options / Aide + clic droit partout | ✅ | Affichage : accueil, déploiements, planifications, bibliothèque, paquets (Ctrl+0 à 4), rechercher un paquet (Ctrl+F), actualiser |
 | 1.8 | Fenêtre des raccourcis clavier | ❌ | Écarté : choix du mainteneur (à revoir selon les retours d'usage) |
 | 1.9 | Thèmes clair / sombre | ✅ | 0.7.0 : Clair, Sombre ou Selon Windows ; Préférences › Interface, appliqué à chaud |
@@ -136,7 +136,7 @@ dans la même PR que le code qui la réalise.
 | 8.11 | Mode serveur central (local / serveur / client) | ❌ | Écarté : choix du mainteneur (console et service sur la même machine) |
 | 8.12 | Service sur la cible | ❌ | Écarté : choix du mainteneur |
 | 8.13 | Proxy, base de données, journalisation | ❌ | Écarté : choix du mainteneur |
-| 8.14 | Mises à jour automatiques | 🟡 | La console cherche une nouvelle version stable dans nos Releases au démarrage (et par Aide) et prévient ; l'installation reste manuelle, en administrateur sur le serveur |
+| 8.14 | Mises à jour automatiques | ✅ | Au démarrage (et par Aide), la console cherche une nouvelle version stable dans nos Releases et propose de l'installer (Oui / Non) : installeur téléchargé, empreinte vérifiée, installation en administrateur, console rouverte. Depuis la console du serveur seulement |
 
 ## 9. Rapports et notifications
 
