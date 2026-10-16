@@ -11,7 +11,11 @@ public class UpdateInfoTests
     [InlineData("v1.0.0", "0.15.0", true)]
     [InlineData("v0.15.0", "0.15.0", false)]
     [InlineData("v0.14.0", "0.15.0", false)]
-    [InlineData("v0.15.0", "0.15.0-beta.1", false)]
+    [InlineData("v0.15.0", "0.15.0-beta.1", true)]
+    [InlineData("v1.0.0", "1.0.0-rc.1", true)]
+    [InlineData("v1.0.0", "1.0.0", false)]
+    [InlineData("v1.0.0", "1.0.0+abc-def", false)]
+    [InlineData("v1.0.0-rc.2", "1.0.0-rc.1", false)]
     [InlineData("pas-une-version", "0.15.0", false)]
     [InlineData("v0.16.0", null, false)]
     public void IsNewer(string? tag, string? current, bool expected) => Assert.Equal(expected, UpdateInfo.IsNewer(tag, current));
