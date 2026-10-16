@@ -43,6 +43,13 @@ grisé, donc le thème ne peut pas changer sans service.
 
 **Fenêtre À propos (PARITE 1.13, branche `feat/a-propos`)** : versions de la console et du service, compte connecté, licence GPL v3, liens vers le projet et la licence, bouton « Copier les informations ». Vue par le mainteneur sur une instance de test ; ne dépend pas du domaine.
 
+## Point de reprise (White Room, 16/10 midi)
+
+Les 9 PR de la bêta (#82 à #98) sont fusionnées après validation du mainteneur, avec ses 4 corrections (menu
+Affichage unique, assistant non modal, Entrée ne ferme plus l'assistant, dossier de bibliothèque choisi dans une
+fenêtre Windows). Ouvertes : #100 (Accueil dans le menu Affichage) et #101 (vérification DNS des postes, 3.4),
+à montrer au mainteneur. Suite : sujets qui dépendent du domaine, avec Claude Prod. Pas de 0.15.0 sans son accord.
+
 ## Point de reprise (White Room, nuit du 16/10)
 
 Fusionnées sur `main` depuis la 0.14.0 : bibliothèque de paquets (#66), À propos (#67), correctifs #60 (#68), #69 (#71)
