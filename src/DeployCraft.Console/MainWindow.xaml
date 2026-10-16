@@ -133,13 +133,12 @@
         </Border>
 
         <Border x:Name="UpdateBar" DockPanel.Dock="Top" Background="{DynamicResource BannerBackground}" Padding="12,7" Visibility="Collapsed">
-            <TextBlock TextWrapping="Wrap">
-                <Run x:Name="UpdateText" />
-                <Run Text="   " />
-                <Hyperlink Click="UpdateLink_Click">Voir la nouvelle version</Hyperlink>
-                <Run Text="   " />
-                <Hyperlink Click="UpdateHide_Click">Masquer</Hyperlink>
-            </TextBlock>
+            <WrapPanel>
+                <TextBlock x:Name="UpdateText" TextWrapping="Wrap" Margin="0,0,18,0" />
+                <TextBlock x:Name="UpdateInstall" Margin="0,0,18,0"><Hyperlink Click="UpdateInstall_Click">Installer maintenant</Hyperlink></TextBlock>
+                <TextBlock Margin="0,0,18,0"><Hyperlink Click="UpdateLink_Click">Voir la nouvelle version</Hyperlink></TextBlock>
+                <TextBlock><Hyperlink Click="UpdateHide_Click">Masquer</Hyperlink></TextBlock>
+            </WrapPanel>
         </Border>
 
         <Grid x:Name="MainArea">

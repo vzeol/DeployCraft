@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
+using System.Net.Http;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
@@ -136,7 +138,9 @@ public partial class MainWindow : Window
             await RefreshAsync(packages: true);
             _timer.Start();
             if (await WelcomeWindow.NeededAsync()) Welcome_Click(this, new());
-            ShowUpdate(await UpdateCheck.FindAsync());
+            var update = await UpdateCheck.FindAsync();
+            ShowUpdate(update);
+            if (update != null) await ProposeUpdateAsync(update);
         };
     }
 
@@ -361,6 +365,7 @@ public partial class MainWindow : Window
         {
             var s = await Api.Status();
             _connected = true;
+            _serverMachine = s.Machine;
             StatusServer.Text = $"Service : {s.Machine} ({s.RunningAs}) — vous : {s.ConnectedAs}";
             StatusAccount.Text = s.DefaultCredential is { } c ? $"Identifiant par défaut : {c.Account}" : "Aucun identifiant";
 
@@ -1211,14 +1216,81 @@ public partial class MainWindow : Window
     // ---------- Nouvelle version ----------
 
     private UpdateInfo? _update;
+    private string? _serverMachine;
+    private bool _installing;
+
+    /// <summary>
+    /// L'installeur met à jour le service et la console ensemble : il ne se lance que depuis la console du serveur,
+    /// et seulement si la release fournit son empreinte.
+    /// </summary>
+    private bool CanInstallHere(UpdateInfo update) =>
+        update.SetupUrl != null && string.Equals(_serverMachine, Environment.MachineName, StringComparison.OrdinalIgnoreCase);
 
     private void ShowUpdate(UpdateInfo? update)
     {
         _update = update;
         if (update != null)
-            UpdateText.Text = $"DeployCraft {update.Version} est disponible (vous avez la {UpdateCheck.CurrentVersion}). " +
-                              "Installez-la sur le serveur, en administrateur : le service et la console sont mis à jour ensemble.";
+        {
+            var here = CanInstallHere(update);
+            UpdateText.Text = $"DeployCraft {update.Version} est disponible (vous avez la {UpdateCheck.CurrentVersion})." +
+                              (here ? "" : " Installez-la sur le serveur, en administrateur : le service et la console sont mis à jour ensemble.");
+            UpdateInstall.Visibility = here && !_installing ? Visibility.Visible : Visibility.Collapsed;
+        }
         UpdateBar.Visibility = update == null ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    /// <summary>Au démarrage (et par Aide) : propose d'installer la nouvelle version tout de suite. Non = rappel au prochain démarrage.</summary>
+    private async Task ProposeUpdateAsync(UpdateInfo update)
+    {
+        if (!CanInstallHere(update) || _installing) return;
+        var running = 0;
+        try
+        {
+            running = (await Api.Deployments()).Count(d => d.Status is DeploymentStatus.Running or DeploymentStatus.Queued);
+        }
+        catch (ApiException) { /* rien de plus à signaler */ }
+        var text = $"Une nouvelle version de DeployCraft est disponible : {update.Version} (vous avez la {UpdateCheck.CurrentVersion}).\n\n" +
+                   "Voulez-vous l'installer maintenant ? La console se ferme, le service redémarre, puis la console se rouvre (une minute environ)." +
+                   (running > 0 ? $"\n\nAttention : {running} déploiement(s) en cours ou en attente seront interrompus." : "");
+        if (MessageDialog.Show(this, text, "Nouvelle version", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            await InstallUpdateAsync(update);
+    }
+
+    private async Task InstallUpdateAsync(UpdateInfo update)
+    {
+        _installing = true;
+        ShowUpdate(update);
+        string file;
+        try
+        {
+            file = await UpdateCheck.DownloadSetupAsync(update, new Progress<int>(p => UpdateText.Text = $"Téléchargement de DeployCraft {update.Version}… {p} %"));
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or IOException or InvalidDataException or UnauthorizedAccessException)
+        {
+            _installing = false;
+            ShowUpdate(update);
+            MessageDialog.Show(this, $"Téléchargement de la nouvelle version impossible : {ex.Message}", "Nouvelle version", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        try
+        {
+            // Installation sans questions, avec sa barre de progression ; RELAUNCH rouvre la console à la fin.
+            Process.Start(new ProcessStartInfo(file, "/SILENT /SUPPRESSMSGBOXES /NORESTART /RELAUNCH=1") { UseShellExecute = true, Verb = "runas" });
+        }
+        catch (System.ComponentModel.Win32Exception)
+        {
+            _installing = false;
+            ShowUpdate(update);
+            MessageDialog.Show(this, "Installation annulée : l'autorisation administrateur est nécessaire pour mettre à jour le service.",
+                "Nouvelle version", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+        Application.Current.Shutdown();
+    }
+
+    private async void UpdateInstall_Click(object sender, RoutedEventArgs e)
+    {
+        if (_update != null && CanInstallHere(_update) && !_installing) await ProposeUpdateAsync(_update);
     }
 
     private async void CheckUpdate_Click(object sender, RoutedEventArgs e)
@@ -1228,6 +1300,7 @@ public partial class MainWindow : Window
         if (update == null)
             MessageDialog.Show(this, $"Aucune nouvelle version trouvée (version {UpdateCheck.CurrentVersion}, ou pas d'accès à Internet).",
                 "Mise à jour", MessageBoxButton.OK, MessageBoxImage.Information);
+        else await ProposeUpdateAsync(update);
     }
 
     private void UpdateLink_Click(object sender, RoutedEventArgs e)

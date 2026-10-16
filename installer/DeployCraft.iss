@@ -63,6 +63,8 @@ Filename: "{sys}\sc.exe"; Parameters: "description {#ServiceName} ""Serveur de d
 Filename: "{sys}\sc.exe"; Parameters: "failure {#ServiceName} reset= 86400 actions= restart/5000/restart/5000/restart/30000"; Flags: runhidden
 Filename: "{sys}\sc.exe"; Parameters: "start {#ServiceName}"; Flags: runhidden
 Filename: "{app}\DeployCraft.exe"; Description: "Ouvrir DeployCraft"; Flags: postinstall nowait skipifsilent runasoriginaluser
+; Mise à jour lancée depuis la console (/RELAUNCH=1) : la console, fermée par l'installeur, est rouverte.
+Filename: "{app}\DeployCraft.exe"; Flags: nowait runasoriginaluser; Check: RelaunchAsked
 
 [UninstallRun]
 Filename: "{sys}\sc.exe"; Parameters: "stop {#ServiceName}"; Flags: runhidden; RunOnceId: "StopService"
@@ -97,6 +99,11 @@ begin
     Sleep(3000);
   end;
   if CurStep = ssPostInstall then InstallDone := True;
+end;
+
+function RelaunchAsked(): Boolean;
+begin
+  Result := ExpandConstant('{param:RELAUNCH|0}') = '1';
 end;
 
 procedure DeinitializeSetup();
