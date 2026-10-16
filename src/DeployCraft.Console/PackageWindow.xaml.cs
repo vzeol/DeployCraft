@@ -32,6 +32,7 @@ public partial class PackageWindow : Window
     public PackageWindow(Package package)
     {
         InitializeComponent();
+        _warningCheck.Tick += WarningCheck_Tick;
         Package = Clone(package);
         _savedSnapshot = Snapshot();
 
@@ -260,6 +261,9 @@ public partial class PackageWindow : Window
             StepRunAsBox.Items.Add(new ComboBoxItem { Content = Ui.RunAsText(mode), Tag = mode, IsSelected = step.RunAs == mode });
         UpdateErrorModeHint(step);
         UpdateSilentHint();
+        UpdateStepWarnings();
+        _warningCheck.Stop();
+        _warningCheck.Start();
         _loadingStep = false;
     }
 
@@ -273,6 +277,64 @@ public partial class PackageWindow : Window
     {
         UpdateSilentHint();
         UpdateCommandLine();
+        WarningFields_Changed(sender, e);
+    }
+
+    // ---------- Avertissements (fichier introuvable, pas de paramètre silencieux, mode pull) ----------
+
+    /// <summary>Chemins que le service ne trouve pas, et chemins déjà vérifiés (pour ne pas redemander à chaque frappe).</summary>
+    private readonly HashSet<string> _missing = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _checkedPaths = new(StringComparer.OrdinalIgnoreCase);
+    private readonly System.Windows.Threading.DispatcherTimer _warningCheck = new() { Interval = TimeSpan.FromMilliseconds(700) };
+
+    private CopyMode EffectiveCopyMode => Package.CopyMode ?? _defaults.CopyMode;
+
+    private void WarningFields_Changed(object sender, TextChangedEventArgs e)
+    {
+        if (_loadingStep) return;
+        UpdateStepWarnings();
+        _warningCheck.Stop();
+        _warningCheck.Start();
+    }
+
+    private void UpdateStepWarnings()
+    {
+        var warnings = SelectedStep is { } step ? StepWarnings.For(step, EffectiveCopyMode, _missing) : [];
+        StepWarningsText.Text = string.Join(Environment.NewLine, warnings.Select(w => "⚠ " + w));
+        StepWarningsText.Visibility = warnings.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    /// <summary>Demande au service quels chemins il ne trouve pas ; sans réponse, rien n'est signalé.</summary>
+    private async Task CheckPathsAsync(IEnumerable<string> paths, bool again = false)
+    {
+        var toCheck = paths.Where(p => again || !_checkedPaths.Contains(p)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        if (toCheck.Count == 0) return;
+        try
+        {
+            var missing = await Api.MissingFiles(toCheck);
+            foreach (var path in toCheck)
+            {
+                _checkedPaths.Add(path);
+                if (missing.Contains(path, StringComparer.OrdinalIgnoreCase)) _missing.Add(path);
+                else _missing.Remove(path);
+            }
+        }
+        catch (ApiException) { }
+    }
+
+    private async void WarningCheck_Tick(object? sender, EventArgs e)
+    {
+        _warningCheck.Stop();
+        if (SelectedStep is not { } step) return;
+        await CheckPathsAsync(StepWarnings.Paths(step));
+        UpdateStepWarnings();
+    }
+
+    /// <summary>Avertissements de toutes les étapes, vérifiés à nouveau juste avant l'enregistrement.</summary>
+    private async Task<List<string>> AllWarningsAsync()
+    {
+        await CheckPathsAsync(Package.Steps.SelectMany(StepWarnings.Paths), again: true);
+        return [.. Package.Steps.SelectMany((s, i) => StepWarnings.For(s, EffectiveCopyMode, _missing).Select(w => $"Étape {i + 1} « {s.Name} » : {w}"))];
     }
 
     // ---------- Installer : options Windows Installer et ligne de commande ----------
@@ -360,21 +422,13 @@ public partial class PackageWindow : Window
     {
         if (SelectedStep is not { Type: StepType.Install } step) return;
         var ext = Path.GetExtension(step.File ?? "").ToLowerInvariant();
-        if (ext == ".exe" && string.IsNullOrWhiteSpace(step.Arguments))
+        // L'absence de paramètre silencieux est signalée en haut de l'étape ; ici, les paramètres courants pour aider.
+        SilentHint.Text = ext switch
         {
-            SilentHint.Foreground = (System.Windows.Media.Brush)FindResource("KoBrush");
-            SilentHint.Text = "⚠ Aucun paramètre silencieux : l'installation risque de bloquer jusqu'au délai max. " +
-                              "Courants : /S (NSIS), /VERYSILENT /NORESTART (Inno Setup), /quiet /norestart, /s /v\"/qn\" (InstallShield).";
-        }
-        else
-        {
-            SilentHint.Foreground = (System.Windows.Media.Brush)FindResource("MutedBrush");
-            SilentHint.Text = ext switch
-            {
-                ".msi" or ".msp" or ".msu" => "Options de Windows Installer ci-dessous (silencieux et sans redémarrage par défaut).",
-                _ => "",
-            };
-        }
+            ".exe" => "Paramètres silencieux courants : /S (NSIS), /VERYSILENT /NORESTART (Inno Setup), /quiet /norestart, /s /v\"/qn\" (InstallShield).",
+            ".msi" or ".msp" or ".msu" => "Options de Windows Installer ci-dessous (silencieux et sans redémarrage par défaut).",
+            _ => "",
+        };
     }
 
     private void ErrorMode_Changed(object sender, SelectionChangedEventArgs e)
@@ -403,6 +457,7 @@ public partial class PackageWindow : Window
     private void StepEnabled_Click(object sender, RoutedEventArgs e)
     {
         if (SelectedStep != null) StepName_TextChanged(this, null!);
+        UpdateStepWarnings();
     }
 
     private void SetEnabled(PackageStep step, bool enabled)
@@ -514,6 +569,7 @@ public partial class PackageWindow : Window
     private void CopyModeBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!_loadingOptions && CopyModeBox.SelectedItem is ComboBoxItem item) Package.CopyMode = item.Tag as CopyMode?;
+        UpdateStepWarnings();
     }
 
     private void TimeoutBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -662,6 +718,10 @@ public partial class PackageWindow : Window
     private async Task<bool> SaveAsync()
     {
         ReadTextFields();
+        if (await AllWarningsAsync() is { Count: > 0 } warnings
+            && MessageDialog.Show(this, "Ce paquet a des avertissements :\n\n" + string.Join("\n", warnings.Select(w => "• " + w)) +
+                    "\n\nEnregistrer quand même ?", "Paquet", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            return false;
         try
         {
             var selected = SelectedStep == null ? -1 : Package.Steps.IndexOf(SelectedStep);

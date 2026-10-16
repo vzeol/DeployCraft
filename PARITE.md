@@ -43,7 +43,7 @@ dans la même PR que le code qui la réalise.
 | 2.8 | Par étape : exécuter en tant que (compte de déploiement / compte de déploiement sur le bureau / système local / utilisateur connecté / hériter du paquet) | ✅ | Paramètre du paquet / compte de déploiement / Système local / utilisateur connecté, par « tranches » sur le poste. « Compte de déploiement sur le bureau » : écarté par le mainteneur (déploiements toujours silencieux, sans mot de passe sur le poste) |
 | 2.9 | Par étape : mêmes conditions qu'au paquet | ✅ | 0.10.0 : non remplies = étape « Ignoré », le paquet continue |
 | 2.10 | Copier / couper / coller / réordonner des étapes, y compris entre paquets | ✅ | 0.10.0 : presse-papiers (Ctrl+X / C / V), barre d'outils et clic droit |
-| 2.11 | Avertissements : fichier introuvable, pas de paramètre silencieux, conflit avec le mode « pull » | 🟡 | |
+| 2.11 | Avertissements : fichier introuvable, pas de paramètre silencieux, conflit avec le mode « pull » | ✅ | En haut de l'étape et rappelés à l'enregistrement ; fichiers vérifiés par le service avec l'identifiant par défaut |
 | 2.12 | Dupliquer, exporter un paquet | ✅ | Export avec ses paquets imbriqués |
 | 2.13 | Dossiers de paquets publics / privés | ❌ | Écarté : choix du mainteneur (une seule console) |
 

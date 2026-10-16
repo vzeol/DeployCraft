@@ -150,6 +150,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <TextBlock Style="{StaticResource FieldLabel}" Text="Titre de l'étape" />
                     <TextBox Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" TextChanged="StepName_TextChanged" />
@@ -157,6 +158,8 @@
                               AutomationProperties.Name="Étape activée"
                               ToolTip="Décochée : l'étape reste dans le paquet mais n'est pas exécutée (« Ignoré » dans le suivi)."
                               IsChecked="{Binding Enabled}" Click="StepEnabled_Click" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" x:Name="StepWarningsText" Margin="0,8,0,0" TextWrapping="Wrap"
+                               Foreground="{DynamicResource KoBrush}" Visibility="Collapsed" />
                 </Grid>
 
                 <TabControl x:Name="StepTabs">
@@ -205,7 +208,7 @@
                                 <TextBox x:Name="AdditionalFilesBox" Grid.Column="1" MinHeight="26" MaxHeight="90" AcceptsReturn="True"
                                          VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto"
                                          AutomationProperties.Name="Fichiers additionnels, un par ligne"
-                                         Text="{Binding AdditionalFiles, UpdateSourceTrigger=PropertyChanged}" />
+                                         Text="{Binding AdditionalFiles, UpdateSourceTrigger=PropertyChanged}" TextChanged="WarningFields_Changed" />
                                 <Button Grid.Column="2" Content="…" Width="32" Margin="6,0,0,0" VerticalAlignment="Top"
                                         Height="{Binding ActualHeight, ElementName=FileBox}"
                                         ToolTip="Ajouter des fichiers" Click="BrowseAdditional_Click" />
@@ -291,7 +294,7 @@
                                 </Grid.RowDefinitions>
                                 <TextBlock Style="{StaticResource FieldLabel}" Text="Source" />
                                 <TextBox x:Name="CopySourceBox" Grid.Column="1" AutomationProperties.Name="Fichier ou dossier à copier"
-                                         Text="{Binding CopySource, UpdateSourceTrigger=PropertyChanged}" />
+                                         Text="{Binding CopySource, UpdateSourceTrigger=PropertyChanged}" TextChanged="WarningFields_Changed" />
                                 <StackPanel Grid.Column="2" Orientation="Horizontal">
                                     <Button Content="Fichier…" Margin="6,0,0,0" Padding="8,0" Click="BrowseCopyFile_Click"
                                             Height="{Binding ActualHeight, ElementName=CopySourceBox}" />
