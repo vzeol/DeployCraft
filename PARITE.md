@@ -101,7 +101,7 @@ dans la même PR que le code qui la réalise.
 | 5.4 | Paquets ordonnés, cibles, options (compte, copie, exécuter en tant que, délai, notifications, hors ligne, réessai) | ✅ | 0.8.0 : paquets, cibles, copie, exécuter en tant que, délai d'attente ; identifiant en 0.9.0. Notifications et hors ligne écartés (choix du mainteneur) |
 | 5.5 | Arrêter après N échecs, arrêter après un succès (par poste) | ✅ | 0.8.0 : historique des cibles par poste × paquet, effaçable |
 | 5.6 | Activer / désactiver, prochaine et dernière exécution, dernière erreur | ✅ | 0.8.0 : « Dernier résultat » |
-| 5.7 | Attacher / détacher à un paquet, dupliquer, déployer maintenant | 🟡 | 0.8.0 : dupliquer, démarrer maintenant, nouvelle planification depuis un paquet ; pas d'« attacher » depuis l'arbre |
+| 5.7 | Attacher / détacher à un paquet, dupliquer, déployer maintenant | ✅ | Dupliquer, démarrer maintenant ; clic droit sur un paquet › Ajouter à une planification…, et Retirer depuis l'onglet Planifications du paquet |
 
 ## 6. Listes de cibles et filtres
 

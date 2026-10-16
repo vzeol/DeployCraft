@@ -237,6 +237,7 @@ public partial class MainWindow : Window
                 [
                     new("Déployer une fois…", () => DeployOnce_Click(this, new()), Gesture: "Ctrl+D"),
                     new("Modifier…", () => EditPackage_Click(this, new()), Gesture: "Ctrl+O"),
+                    new("Ajouter à une planification…", () => _ = AttachToScheduleAsync()),
                     Ui.Separator,
                     new("Couper", () => CutOrCopyNode(cut: true), Gesture: "Ctrl+X"),
                     new("Copier", () => CutOrCopyNode(cut: false), Gesture: "Ctrl+C"),
@@ -308,9 +309,20 @@ public partial class MainWindow : Window
         });
 
         Ui.SelectOnRightClick(PackageSchedulesGrid);
-        Ui.ContextMenu(PackageSchedulesGrid, () => PackageSchedulesGrid.SelectedItem is ScheduleRow
-            ? [new("Modifier…", () => EditPackageSchedule_Click(this, new())), new("Nouvelle planification…", () => NewScheduleForPackage_Click(this, new()))]
-            : [new("Nouvelle planification…", () => NewScheduleForPackage_Click(this, new()))]);
+        Ui.ContextMenu(PackageSchedulesGrid, () => PackageSchedulesGrid.SelectedItem is ScheduleRow row
+            ?
+            [
+                new("Modifier…", () => EditPackageSchedule_Click(this, new())),
+                new("Retirer ce paquet de la planification", () => _ = DetachFromScheduleAsync(row.Id)),
+                Ui.Separator,
+                new("Ajouter à une autre planification…", () => _ = AttachToScheduleAsync()),
+                new("Nouvelle planification…", () => NewScheduleForPackage_Click(this, new())),
+            ]
+            :
+            [
+                new("Ajouter à une planification…", () => _ = AttachToScheduleAsync()),
+                new("Nouvelle planification…", () => NewScheduleForPackage_Click(this, new())),
+            ]);
     }
 
     // ---------- Rafraîchissement ----------
@@ -866,6 +878,48 @@ public partial class MainWindow : Window
     private void NewScheduleForPackage_Click(object sender, RoutedEventArgs e)
     {
         if (SelectedPackage is { } p) OpenSchedule(new Schedule { PackageIds = [p.Id], Name = p.Name });
+    }
+
+    /// <summary>Ajoute le paquet sélectionné à une planification existante, choisie dans une liste.</summary>
+    private async Task AttachToScheduleAsync()
+    {
+        if (SelectedPackage is not { } p) return;
+        try
+        {
+            var candidates = (await Api.Schedules()).Where(s => !s.PackageIds.Contains(p.Id)).ToList();
+            if (candidates.Count == 0)
+            {
+                MessageDialog.Show(this, "Aucune planification où ajouter ce paquet (il fait déjà partie de toutes, ou il n'y en a aucune).",
+                    "Planifications", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            var picker = new SchedulePickerWindow(p.Name, candidates) { Owner = this };
+            if (picker.ShowDialog() != true || picker.Selected is not { } chosen) return;
+            var schedule = await Api.Schedule(chosen.Id);
+            if (schedule.Attach(p.Id)) await Api.SaveSchedule(schedule);
+            await RefreshAsync(packages: false);
+        }
+        catch (ApiException ex) { Ui.Error(this, ex); }
+    }
+
+    private async Task DetachFromScheduleAsync(long scheduleId)
+    {
+        if (SelectedPackage is not { } p) return;
+        try
+        {
+            var schedule = await Api.Schedule(scheduleId);
+            if (schedule.PackageIds.Count == 1 && schedule.PackageIds[0] == p.Id)
+            {
+                MessageDialog.Show(this, $"« {p.Name} » est le seul paquet de « {schedule.Name} » : désactivez ou supprimez plutôt la planification.",
+                    "Planifications", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            if (MessageDialog.Show(this, $"Retirer « {p.Name} » de la planification « {schedule.Name} » ?", "Planifications",
+                    MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+            if (schedule.Detach(p.Id)) await Api.SaveSchedule(schedule);
+            await RefreshAsync(packages: false);
+        }
+        catch (ApiException ex) { Ui.Error(this, ex); }
     }
 
     private async void EditSchedule_Click(object sender, RoutedEventArgs e)

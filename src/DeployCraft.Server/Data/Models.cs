@@ -507,6 +507,17 @@ public class Schedule
     public DateTime? NextRunUtc { get; set; }
     public DateTime ModifiedUtc { get; set; }
 
+    /// <summary>Ajoute le paquet à la fin de la liste ; faux s'il y était déjà.</summary>
+    public bool Attach(long packageId)
+    {
+        if (PackageIds.Contains(packageId)) return false;
+        PackageIds.Add(packageId);
+        return true;
+    }
+
+    /// <summary>Retire le paquet ; faux s'il n'y était pas ou si c'était le seul (une planification garde au moins un paquet).</summary>
+    public bool Detach(long packageId) => PackageIds.Count > 1 && PackageIds.Remove(packageId);
+
     /// <summary>Planification qui refait ce déploiement (même paquet, mêmes postes, mêmes options), sans déclencheur.</summary>
     public static Schedule From(Deployment deployment) => new()
     {
