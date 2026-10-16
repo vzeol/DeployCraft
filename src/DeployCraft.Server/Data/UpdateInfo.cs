@@ -11,10 +11,17 @@ public record UpdateInfo(string Version, string Url, string? SetupUrl = null, st
 
     /// <summary>
     /// Vrai si l'étiquette de la release (« v0.16.0 ») désigne une version plus récente que <paramref name="current"/>
-    /// (« 0.15.0 »). Une étiquette illisible n'est jamais une mise à jour.
+    /// (« 0.15.0 »). À numéros égaux, la version finale passe devant une pré-version (« 1.0.0-rc.1 » → « v1.0.0 »).
+    /// Une étiquette illisible n'est jamais une mise à jour.
     /// </summary>
-    public static bool IsNewer(string? tag, string? current) =>
-        Parse(tag) is { } latest && Parse(current) is { } installed && latest > installed;
+    public static bool IsNewer(string? tag, string? current)
+    {
+        if (Parse(tag) is not { } latest || Parse(current) is not { } installed) return false;
+        return latest > installed || latest == installed && IsPrerelease(current) && !IsPrerelease(tag);
+    }
+
+    /// <summary>« 1.0.0-rc.1 » (suffixe après un tiret) ; ce qui suit un « + » (n° de compilation) ne compte pas.</summary>
+    private static bool IsPrerelease(string? text) => (text ?? "").Split('+')[0].Contains('-');
 
     /// <summary>Fichier joint à la release : nom, adresse de téléchargement, empreinte (« sha256:… »).</summary>
     public record Asset(string Name, string Url, string? Digest);
