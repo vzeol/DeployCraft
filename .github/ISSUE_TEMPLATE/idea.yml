@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Before suggesting, have a look at [PARITE.md](../blob/main/PARITE.md): the feature may already be planned, or set aside with its reason.
+        Before suggesting, have a look at [docs/FEATURES.md](../blob/main/docs/FEATURES.md): the feature may already be planned, or set aside with its reason.
         Issues can be written in English or French.
   - type: textarea
     id: need

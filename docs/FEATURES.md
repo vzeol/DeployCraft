@@ -6,7 +6,7 @@
 
 Legend: ✅ done · 🟡 partial · ⬜ to do · ❌ dropped (maintainer's decision) · ⛔ out of scope for now (to be replaced or dropped, maintainer's decision)
 
-To take a task: see `CONTRIBUTING.md` (§ "Choose a task"). A row moves to ✅
+To take a task: see [`CONTRIBUTING.md`](../CONTRIBUTING.md) (§ "Choose a task"). A row moves to ✅
 in the same PR as the code that implements it.
 
 ---

@@ -14,7 +14,7 @@
 
 [Télécharger](https://github.com/vzeol/DeployCraft/releases) ·
 [Signaler un problème](https://github.com/vzeol/DeployCraft/issues/new/choose) ·
-[Fonctions](PARITE.md) ·
+[Fonctions](docs/FEATURES.md) ·
 [Contribuer](CONTRIBUTING.md)
 
 ![Console DeployCraft : suivi des déploiements](docs/console.png)
@@ -25,7 +25,7 @@ DeployCraft est un outil **libre et gratuit** (GPL v3) pour les administrateurs 
 du domaine, une console Windows, et un petit programme copié le temps d'un déploiement sur chaque poste, puis retiré.
 Rien à installer à l'avance sur les postes.
 
-Son organisation s'inspire des outils de déploiement du marché comme PDQ Deploy ; c'est une réalisation
+Son organisation reprend les habitudes des outils de déploiement du marché ; c'est une réalisation
 indépendante, écrite de zéro.
 
 ## Fonctions
@@ -52,7 +52,7 @@ indépendante, écrite de zéro.
 - Nouvelle version de DeployCraft proposée au démarrage, installée en un clic
 - Thème clair ou sombre
 
-Liste complète et état de chaque fonction : [`PARITE.md`](PARITE.md).
+Liste complète et état de chaque fonction : [`docs/FEATURES.md`](docs/FEATURES.md).
 
 ## Prérequis
 
@@ -122,9 +122,9 @@ dotnet format DeployCraft.slnx                   # mise en forme
 | `src/DeployCraft.Runner` | Runner .NET Framework 4.8 exécuté en service temporaire sur les postes |
 | `tests/DeployCraft.Tests` | Tests automatiques |
 | `installer/` | Script Inno Setup |
-| `SPEC.md` | Spécification fonctionnelle |
-| `PARITE.md` | Liste des fonctions et leur état : la liste des tâches |
-| `HANDOFF.md` | État du projet et point de reprise |
+| [`docs/SPEC.md`](docs/SPEC.md) | Spécification fonctionnelle (en anglais) |
+| [`docs/FEATURES.md`](docs/FEATURES.md) | Liste des fonctions et leur état : la liste des tâches (en anglais) |
+| [`docs/STATUS.md`](docs/STATUS.md) | État du projet et point de reprise (en anglais) |
 
 ## Licence
 
@@ -133,6 +133,3 @@ Copyright (C) 2026 vzeol.
 DeployCraft est un logiciel libre : vous pouvez le redistribuer et le modifier selon les termes de la
 **GNU General Public License version 3** (voir [`LICENSE`](LICENSE)). Il est fourni **sans aucune garantie** :
 testez-le d'abord sur des postes de test.
-
-PDQ Deploy est une marque de PDQ.com Corporation. DeployCraft n'a aucun lien avec PDQ.com et n'est ni
-approuvé ni soutenu par cette société.

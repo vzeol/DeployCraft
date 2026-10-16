@@ -1,5 +1,9 @@
 # DeployCraft — instructions for Claude Code
 
+> This file is read automatically by Claude Code, the AI coding assistant used on this project. It holds the same
+> rules as [`CONTRIBUTING.md`](CONTRIBUTING.md), written for an assistant: anyone contributing with an AI
+> assistant gets them too.
+
 The project maintainer (GitHub account `vzeol`) does not code: be autonomous (design, code, test), explain simply
 what you do, and ask before any risky action on a real fleet. These rules apply to **everyone**: maintainer,
 contributors, and every Claude session.
@@ -13,8 +17,8 @@ contributors, and every Claude session.
 - The console UI is French today; English UI is tracked in issue #120.
 
 At the start of each session, check who you are (`gh api user --jq .login`) and read:
-1. `HANDOFF.md`: current state and where to resume
-2. `PARITE.md`: list of features to cover (= task list)
+1. `docs/STATUS.md`: current state and where to resume
+2. `docs/FEATURES.md`: list of features to cover (= task list)
 3. `CONTRIBUTING.md`: independent work, isolated testing, branches / PRs, conventions, releases
 
 ## Authority over the repository
@@ -52,8 +56,8 @@ DeployCraft is written from scratch. Never any code, icon, image, text or file c
 labels are written in our own words.
 
 We may **observe** other deployment tools at work (what they let you do, how the UI is organized) and **name
-their features** to build the task list (`PARITE.md`). We never describe their internals and never reproduce
-their texts or visuals: `SPEC.md` only describes what DeployCraft does, in our own words.
+their features** to build the task list (`docs/FEATURES.md`). We never describe their internals and never reproduce
+their texts or visuals: `docs/SPEC.md` only describes what DeployCraft does, in our own words.
 
 ## Taking a topic
 
@@ -115,4 +119,4 @@ there (no service, no console, no deployment).
 
 ## End of session
 
-Update `HANDOFF.md` (on the current topic's branch, never directly on `main`).
+Update `docs/STATUS.md` (on the current topic's branch, never directly on `main`).
