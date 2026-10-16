@@ -179,6 +179,7 @@ public partial class MainWindow : Window
         Action? action = (key, ctrl, ctrlShift, alt) switch
         {
             (Key.F5, _, _, _) => () => Refresh_Click(this, e),
+            (Key.D0 or Key.NumPad0, true, _, _) => () => ViewHome_Click(this, e),
             (Key.D1 or Key.NumPad1, true, _, _) => () => ViewDeployments_Click(this, e),
             (Key.D2 or Key.NumPad2, true, _, _) => () => ViewSchedules_Click(this, e),
             (Key.D3 or Key.NumPad3, true, _, _) => () => ViewLibrary_Click(this, e),
@@ -686,6 +687,8 @@ public partial class MainWindow : Window
         node.BringIntoView();
         Nav.Focus();
     }
+
+    private void ViewHome_Click(object sender, RoutedEventArgs e) => ShowNode(_homeNode);
 
     private void ViewDeployments_Click(object sender, RoutedEventArgs e) => ShowNode(_deploymentsNode);
 

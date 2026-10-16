@@ -11,6 +11,7 @@ DeployCraft installe et configure des logiciels sur les postes Windows du résea
 ### Raccourcis utiles
 - Ctrl+N : nouveau paquet. Ctrl+Maj+F : nouveau dossier. Ctrl+D : déployer une fois.
 - Ctrl+Maj+N : nouvelle planification. F5 : actualiser. F1 : cette aide.
+- Ctrl+0 à Ctrl+4 : accueil, déploiements, planifications, bibliothèque, paquets. Ctrl+F : rechercher un paquet.
 
 ## Paquets et étapes {#paquets}
 Un paquet est une suite d'étapes exécutées dans l'ordre sur chaque poste.

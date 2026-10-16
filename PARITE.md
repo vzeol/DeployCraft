@@ -21,7 +21,7 @@ dans la même PR que le code qui la réalise.
 | 1.4 | Page d'un dossier, page « plusieurs paquets sélectionnés » | ❌ | Écarté : choix du mainteneur |
 | 1.5 | Renommer (F2), dupliquer, couper / copier / coller, supprimer dans l'arbre | ✅ | Paquets : couper, copier, coller (Ctrl+X / C / V) vers un dossier ; dossiers : couper / coller |
 | 1.6 | Apparence d'un nœud de l'arbre (couleur / mise en forme) | ⬜ | Avec la reprise de l'apparence générale, après les fonctions (choix du mainteneur) |
-| 1.7 | Menus Fichier / Édition / Affichage / Options / Aide + clic droit partout | ✅ | Affichage : déploiements, planifications, bibliothèque, paquets (Ctrl+1 à 4), rechercher un paquet (Ctrl+F), actualiser |
+| 1.7 | Menus Fichier / Édition / Affichage / Options / Aide + clic droit partout | ✅ | Affichage : accueil, déploiements, planifications, bibliothèque, paquets (Ctrl+0 à 4), rechercher un paquet (Ctrl+F), actualiser |
 | 1.8 | Fenêtre des raccourcis clavier | ❌ | Écarté : choix du mainteneur (à revoir selon les retours d'usage) |
 | 1.9 | Thèmes clair / sombre | ✅ | 0.7.0 : Clair, Sombre ou Selon Windows ; Préférences › Interface, appliqué à chaud |
 | 1.10 | Page d'accueil | ✅ | Ouverte au démarrage : en ce moment, dernières 24 heures (échecs cliquables), prochaines planifications, bibliothèque, raccourcis |
