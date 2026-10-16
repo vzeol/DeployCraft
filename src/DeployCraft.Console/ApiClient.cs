@@ -44,6 +44,10 @@ public static class Api
     public static Task DeletePackage(long id) => Send<object>(HttpMethod.Delete, $"packages/{id}");
     public static Task MovePackage(long id, long? folderId) => Send<object>(HttpMethod.Put, $"packages/{id}/folder", new { folderId });
 
+    /// <summary>Recherche de ces noms de postes dans le DNS du serveur.</summary>
+    public static Task<List<NameCheckResult>> CheckNames(IEnumerable<string> names) =>
+        Send<List<NameCheckResult>>(HttpMethod.Post, "names/check", names.ToList());
+
     /// <summary>Parmi ces chemins, ceux que le serveur ne trouve pas (avec l'identifiant par défaut).</summary>
     public static Task<List<string>> MissingFiles(IEnumerable<string> paths) => Send<List<string>>(HttpMethod.Post, "files/missing", paths.ToList());
 

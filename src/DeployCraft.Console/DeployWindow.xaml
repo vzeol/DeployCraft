@@ -73,6 +73,14 @@
                 <DataGrid Grid.Row="5" x:Name="TargetsGrid" SelectionMode="Extended" IsReadOnly="False" CanUserAddRows="False"
                           CanUserDeleteRows="False" KeyDown="Targets_KeyDown">
                     <DataGrid.Columns>
+                        <DataGridTemplateColumn Width="34" IsReadOnly="True">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding CheckIcon}" FontFamily="{StaticResource IconFont}" Foreground="{Binding CheckBrush}"
+                                               ToolTip="{Binding CheckTip}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <DataGridTextColumn Header="Poste" Binding="{Binding Computer}" IsReadOnly="True" Width="*" />
                         <DataGridTemplateColumn Header="Démarrer à l'étape" Width="150">
                             <DataGridTemplateColumn.CellTemplate>

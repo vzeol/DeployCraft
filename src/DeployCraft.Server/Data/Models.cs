@@ -581,3 +581,6 @@ public static class Defaults
 
     public const int MaxParallelTargets = 8;
 }
+
+/// <summary>Résultat de la vérification d'un nom de poste dans le DNS (fenêtre Déployer une fois).</summary>
+public record NameCheckResult(string Name, bool Found, string? DnsName, string? Error);

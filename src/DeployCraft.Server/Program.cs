@@ -27,6 +27,7 @@ builder.Services.AddSingleton(new Store(Path.Combine(dataDir, "deploycraft.db"))
 builder.Services.AddSingleton<DeployCredentials>();
 builder.Services.AddSingleton<ConsoleAccess>();
 builder.Services.AddSingleton<ActiveDirectory>();
+builder.Services.AddSingleton(new NameCheck());
 builder.Services.AddSingleton<DeploymentEngine>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<DeploymentEngine>());
 builder.Services.AddSingleton<Scheduler>();
@@ -226,6 +227,9 @@ api.MapPost("/files/missing", (List<string> paths, DeployCredentials cred) =>
         }
     }).ToList();
 });
+
+// « Déployer une fois » : chaque poste ajouté est cherché dans le DNS du serveur (coche ou croix dans la liste).
+api.MapPost("/names/check", (List<string> names, NameCheck check, CancellationToken ct) => check.CheckAsync(names.Take(1000), ct));
 
 // ---------- Dossiers de paquets ----------
 
