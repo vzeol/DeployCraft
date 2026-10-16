@@ -1,138 +1,142 @@
 <div align="center">
 
-**Français** · [English](README.en.md)
+**English** · [Français](README.fr.md)
 
 # DeployCraft
 
-**Déployez vos logiciels sur tout un parc Windows, sans agent, depuis une seule console.**
+**Deploy software to a whole Windows fleet, agentless, from a single console.**
 
 [![CI](https://github.com/vzeol/DeployCraft/actions/workflows/ci.yml/badge.svg)](https://github.com/vzeol/DeployCraft/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/github/v/release/vzeol/DeployCraft?include_prereleases&label=version)](https://github.com/vzeol/DeployCraft/releases)
-[![Licence : GPL v3](https://img.shields.io/badge/licence-GPL%20v3-blue)](LICENSE)
-![Windows](https://img.shields.io/badge/plateforme-Windows-0078D6)
+[![License: GPL v3](https://img.shields.io/badge/license-GPL%20v3-blue)](LICENSE)
+![Windows](https://img.shields.io/badge/platform-Windows-0078D6)
 ![.NET 10](https://img.shields.io/badge/.NET-10-512BD4)
 
-[Télécharger](https://github.com/vzeol/DeployCraft/releases) ·
-[Signaler un problème](https://github.com/vzeol/DeployCraft/issues/new/choose) ·
-[Fonctions](PARITE.md) ·
-[Contribuer](CONTRIBUTING.md)
+[Download](https://github.com/vzeol/DeployCraft/releases) ·
+[Report an issue](https://github.com/vzeol/DeployCraft/issues/new/choose) ·
+[Features](PARITE.md) ·
+[Contribute](CONTRIBUTING.md)
 
-![Console DeployCraft : suivi des déploiements](docs/console.png)
+![DeployCraft console: following deployments](docs/console.png)
 
 </div>
 
-DeployCraft est un outil **libre et gratuit** (GPL v3) pour les administrateurs systèmes : un service sur un serveur
-du domaine, une console Windows, et un petit programme copié le temps d'un déploiement sur chaque poste, puis retiré.
-Rien à installer à l'avance sur les postes.
+DeployCraft is a **free and open-source** tool (GPL v3) for system administrators: a service on a domain server, a
+Windows console, and a small program copied to each computer only for the time of a deployment, then removed.
+Nothing has to be installed on the computers beforehand.
 
-Son organisation s'inspire des outils de déploiement du marché comme PDQ Deploy ; c'est une réalisation
-indépendante, écrite de zéro.
+Its layout is inspired by deployment tools on the market such as PDQ Deploy; it is an independent work, written
+from scratch.
 
-## Fonctions
+> The console is in **French** for now. An English version of the console is planned after 1.0.0. Menu names below
+> are given in French, with their meaning in English.
 
-**Paquets**
-- Étapes : installeur (`.msi`, `.exe`, `.msu`, `.msp` avec options), commande, PowerShell, copie de fichiers, pause,
-  redémarrage ou arrêt, message à l'utilisateur, paquet imbriqué
-- Conditions par paquet et par étape : version et architecture de Windows, fichier, registre, utilisateur connecté…
-- Compte d'exécution par étape (compte de déploiement, Système, utilisateur connecté), codes de succès, délai,
-  comportement en cas d'erreur
-- Bibliothèque de paquets prêts à l'emploi, téléchargement vérifié et **mise à jour automatique**
-- Dossiers, glisser-déposer, couper / copier / coller, export et import
+## Features
 
-**Déploiement**
-- Postes saisis, collés ou choisis dans l'**Active Directory**, noms vérifiés dans le DNS
-- Suivi en direct poste par poste : étape en cours, progression des copies, sortie de chaque étape
-- **Planifications** (réessai en boucle jusqu'à réussite), redéploiement des postes en échec, reprise à une étape
-- Postes hors ligne : réveil **Wake-on-LAN** et nouveaux essais
-- Nombre de postes en parallèle et débit des copies réglables
+**Packages**
+- Steps: installer (`.msi`, `.exe`, `.msu`, `.msp` with options), command, PowerShell, file copy, pause, restart or
+  shutdown, message to the user, nested package
+- Conditions per package and per step: Windows version and architecture, file, registry, logged-on user…
+- Run-as account per step (deployment account, System, logged-on user), success codes, timeout, behaviour on error
+- Library of ready-to-use packages, verified download and **automatic updates**
+- Folders, drag and drop, cut / copy / paste, export and import
+
+**Deployment**
+- Computers typed, pasted or picked from **Active Directory**, names checked in DNS
+- Live follow-up computer by computer: current step, copy progress, output of each step
+- **Schedules** (retry until success), redeploy failed computers, start again from a given step
+- Offline computers: **Wake-on-LAN** and new attempts
+- Adjustable number of computers in parallel and copy bandwidth
 
 **Administration**
-- Identifiants multiples, chiffrés sur le serveur ; accès à la console réservé aux comptes autorisés
-- Nettoyage automatique de l'historique, assistant de premier démarrage, aide intégrée (F1)
-- Nouvelle version de DeployCraft proposée au démarrage, installée en un clic
-- Thème clair ou sombre
+- Multiple credentials, encrypted on the server; console access limited to allowed accounts
+- Automatic history cleanup, first-run wizard, built-in help (F1)
+- New DeployCraft versions offered at startup, installed in one click
+- Light or dark theme
 
-Liste complète et état de chaque fonction : [`PARITE.md`](PARITE.md).
+Full list and status of each feature (in French): [`PARITE.md`](PARITE.md).
 
-## Prérequis
+## Requirements
 
 | | |
 |---|---|
-| **Serveur** | Windows 64 bits membre du domaine (un serveur ou une VM dédiée de préférence), compte administrateur |
-| **Postes** | Windows 10 ou 11, partage `ADMIN$` et gestionnaire de services accessibles depuis le serveur (partage de fichiers, port 445) |
-| **Compte de déploiement** | Administrateur des postes (par exemple un compte du domaine membre du groupe Administrateurs local) |
+| **Server** | 64-bit Windows, member of the domain (preferably a dedicated server or VM), administrator account |
+| **Computers** | Windows 10 or 11, `ADMIN$` share and service manager reachable from the server (file sharing, port 445) |
+| **Deployment account** | Administrator of the computers (for example a domain account member of the local Administrators group) |
 
 ## Installation
 
-1. Télécharger `DeployCraft-Setup-x.y.z.exe` dans les [**Releases**](https://github.com/vzeol/DeployCraft/releases).
-2. Le lancer en administrateur sur le serveur. Il installe le service Windows **DeployCraft** (démarrage automatique,
-   compte Système local) et la console. Rien d'autre à installer : .NET est embarqué.
-3. Ouvrir la console **DeployCraft** : l'assistant de premier démarrage guide les premiers réglages (Aide ›
-   Assistant de démarrage pour y revenir).
+1. Download `DeployCraft-Setup-x.y.z.exe` from the [**Releases**](https://github.com/vzeol/DeployCraft/releases).
+2. Run it as administrator on the server. It installs the **DeployCraft** Windows service (automatic start, Local
+   System account) and the console. Nothing else to install: .NET is included.
+3. Open the **DeployCraft** console: the first-run wizard walks you through the first settings (Aide › Assistant de
+   démarrage — *Help › Setup wizard* — to come back to it).
 
-Seuls les administrateurs du serveur ouvrent la console par défaut. Pour donner l'accès à d'autres comptes ou
-groupes : Options › **Utilisateurs de la console…**
+By default, only the server's administrators can open the console. To give access to other accounts or groups:
+Options › **Utilisateurs de la console…** (*Console users*).
 
-## Premier déploiement
+## First deployment
 
-1. **Options › Identifiants…** : ajouter le compte de déploiement. Le mot de passe est saisi dans la console et
-   chiffré sur le serveur.
-2. **Nouveau paquet**, ou un paquet de la **Bibliothèque** : par exemple une étape Installer avec un `.msi`.
-3. **Déployer une fois** : choisir un **poste de test**, puis suivre le déploiement en direct.
-4. Une fois validé sur un poste de test, déployer sur les autres ou créer une **planification**.
+1. **Options › Identifiants…** (*Credentials*): add the deployment account. The password is typed in the console and
+   encrypted on the server.
+2. **Nouveau paquet** (*New package*), or a package from the **Bibliothèque** (*Library*): for example an Install
+   step with a `.msi`.
+3. **Déployer une fois** (*Deploy once*): pick a **test computer**, then follow the deployment live.
+4. Once it works on a test computer, deploy to the others or create a **planification** (*schedule*).
 
-## Tester la version candidate
+## Try the release candidate
 
-La **1.0.0** est en préparation : la version candidate (`1.0.0-rc.1`) est disponible dans les
-[Releases](https://github.com/vzeol/DeployCraft/releases). Merci de l'essayer !
+**1.0.0** is on its way: the release candidate (`1.0.0-rc.1`) is available in the
+[Releases](https://github.com/vzeol/DeployCraft/releases). Thank you for trying it!
 
-- Installez-la sur un serveur ou une VM de test, et commencez par des **postes de test**.
-- Un problème, une remarque ? [Ouvrez une issue](https://github.com/vzeol/DeployCraft/issues/new/choose) : le
-  formulaire demande juste ce qu'il faut. Pensez à retirer les noms de vos serveurs, postes et domaine.
-- Une faille de sécurité : en privé, voir [`SECURITY.md`](SECURITY.md).
+- Install it on a test server or VM, and start with **test computers**.
+- A problem, a remark? [Open an issue](https://github.com/vzeol/DeployCraft/issues/new/choose): the form only asks
+  for what is needed, in French or English. Remember to remove the names of your servers, computers and domain.
+- A security vulnerability: privately, see [`SECURITY.md`](SECURITY.md).
 
 ## Configuration
 
-Pas de fichier `.env` : le service se règle par options de ligne de commande (ou `appsettings.json`).
+No `.env` file: the service is set with command-line options (or `appsettings.json`).
 
-| Réglage | Par défaut | Rôle |
+| Setting | Default | Purpose |
 |---|---|---|
-| `--Urls` | `http://localhost:5080` | Adresse de l'API locale du service |
-| `--DataDir` | `C:\ProgramData\DeployCraft` | Base SQLite et données (réservé à Système + Administrateurs) |
-| `DEPLOYCRAFT_URL` (variable de la console) | `http://localhost:5080` | Service auquel la console se connecte |
+| `--Urls` | `http://localhost:5080` | Address of the service's local API |
+| `--DataDir` | `C:\ProgramData\DeployCraft` | SQLite database and data (restricted to System + Administrators) |
+| `DEPLOYCRAFT_URL` (console variable) | `http://localhost:5080` | Service the console connects to |
 
-## Contribuer
+## Contributing
 
-Les contributions sont les bienvenues : signalements, idées, code. Avant le premier commit, lire
-[`CONTRIBUTING.md`](CONTRIBUTING.md) (instance de test isolée, branches, PR, règles) et [`CLAUDE.md`](CLAUDE.md).
+Contributions are welcome: reports, ideas, code. Before your first commit, read
+[`CONTRIBUTING.md`](CONTRIBUTING.md) (isolated test instance, branches, PRs, rules) and [`CLAUDE.md`](CLAUDE.md)
+(both in French; issues and pull requests in English are welcome).
 
-Prérequis : SDK .NET 10 et Inno Setup 6.
+Requirements: .NET 10 SDK and Inno Setup 6.
 
 ```powershell
-dotnet build DeployCraft.slnx                    # compiler
-dotnet test DeployCraft.slnx                     # tests automatiques
-dotnet format DeployCraft.slnx                   # mise en forme
-.\build.ps1 -Version 1.0.0                       # installeur → dist\
+dotnet build DeployCraft.slnx                    # build
+dotnet test DeployCraft.slnx                     # automated tests
+dotnet format DeployCraft.slnx                   # formatting
+.\build.ps1 -Version 1.0.0                       # installer → dist\
 ```
 
-| Dossier / fichier | Rôle |
+| Folder / file | Purpose |
 |---|---|
-| `src/DeployCraft.Server` | Service Windows : API locale, base SQLite, moteur de déploiement, lecture AD |
-| `src/DeployCraft.Console` | Console WPF (l'application fenêtrée) |
-| `src/DeployCraft.Runner` | Runner .NET Framework 4.8 exécuté en service temporaire sur les postes |
-| `tests/DeployCraft.Tests` | Tests automatiques |
-| `installer/` | Script Inno Setup |
-| `SPEC.md` | Spécification fonctionnelle |
-| `PARITE.md` | Liste des fonctions et leur état : la liste des tâches |
-| `HANDOFF.md` | État du projet et point de reprise |
+| `src/DeployCraft.Server` | Windows service: local API, SQLite database, deployment engine, AD lookup |
+| `src/DeployCraft.Console` | WPF console (the desktop application) |
+| `src/DeployCraft.Runner` | .NET Framework 4.8 runner, run as a temporary service on the computers |
+| `tests/DeployCraft.Tests` | Automated tests |
+| `installer/` | Inno Setup script |
+| `SPEC.md` | Functional specification |
+| `PARITE.md` | Feature list and status: the task list |
+| `HANDOFF.md` | Project status and where to pick up |
 
-## Licence
+## License
 
 Copyright (C) 2026 vzeol.
 
-DeployCraft est un logiciel libre : vous pouvez le redistribuer et le modifier selon les termes de la
-**GNU General Public License version 3** (voir [`LICENSE`](LICENSE)). Il est fourni **sans aucune garantie** :
-testez-le d'abord sur des postes de test.
+DeployCraft is free software: you can redistribute it and/or modify it under the terms of the
+**GNU General Public License version 3** (see [`LICENSE`](LICENSE)). It comes **without any warranty**: try it on
+test computers first.
 
-PDQ Deploy est une marque de PDQ.com Corporation. DeployCraft n'a aucun lien avec PDQ.com et n'est ni
-approuvé ni soutenu par cette société.
+PDQ Deploy is a trademark of PDQ.com Corporation. DeployCraft is not affiliated with PDQ.com and is neither endorsed
+nor supported by it.
