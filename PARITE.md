@@ -1,157 +1,157 @@
-# Fonctions — liste de travail
+# Features — work list
 
-> **Objectif** : couvrir les fonctions qu'on attend d'un outil de déploiement
-> (fonctionnement + organisation de l'interface), puis seulement à la fin retirer ce qui ne sert pas et
-> ajouter nos propres fonctions. Les libellés et le code de DeployCraft sont entièrement les nôtres.
+> **Goal**: cover the features expected from a deployment tool
+> (behavior + interface layout), and only at the end remove what is not useful and
+> add our own features. DeployCraft's labels and code are entirely our own.
 
-Légende : ✅ fait · 🟡 partiel · ⬜ à faire · ❌ écarté (décision du mainteneur) · ⛔ hors périmètre pour l'instant (à remplacer ou à écarter, décision du mainteneur)
+Legend: ✅ done · 🟡 partial · ⬜ to do · ❌ dropped (maintainer's decision) · ⛔ out of scope for now (to be replaced or dropped, maintainer's decision)
 
-Pour prendre une tâche : voir `CONTRIBUTING.md` (§ « Choisir une tâche »). Une ligne passe à ✅
-dans la même PR que le code qui la réalise.
+To take a task: see `CONTRIBUTING.md` (§ "Choose a task"). A row moves to ✅
+in the same PR as the code that implements it.
 
 ---
 
-## 1. Fenêtre principale
+## 1. Main window
 
-| # | Fonction | État | Notes |
+| # | Feature | Status | Notes |
 |---|---|---|---|
-| 1.1 | Arbre de navigation à gauche : Paquets, Listes de cibles, Planifications, Tous les déploiements, File de réessai | ✅ | Paquets, déploiements, planifications (0.8.0). Listes de cibles et file de réessai écartées (choix du mainteneur) |
-| 1.2 | Dossiers dans l'arbre (paquets et listes de cibles), sous-dossiers, glisser-déposer | ✅ | Dossiers et sous-dossiers de paquets (Ctrl+Maj+F), renommer, supprimer un dossier vide, glisser-déposer des paquets et des dossiers. Listes de cibles écartées (1.1) |
-| 1.3 | Page d'un paquet : détails, étapes, déploiements du paquet, planifications attachées | ✅ | Onglet Planifications en 0.8.0 ; onglet Détails (version, dossier, réglages avec leur origine, conditions, hors ligne, paquets qui l'utilisent) et colonne Conditions des étapes |
-| 1.4 | Page d'un dossier, page « plusieurs paquets sélectionnés » | ❌ | Écarté : choix du mainteneur |
-| 1.5 | Renommer (F2), dupliquer, couper / copier / coller, supprimer dans l'arbre | ✅ | Paquets : couper, copier, coller (Ctrl+X / C / V) vers un dossier ; dossiers : couper / coller |
-| 1.6 | Apparence d'un nœud de l'arbre (couleur / mise en forme) | ❌ | Écarté : choix du mainteneur (l'arbre actuel lui convient) |
-| 1.7 | Menus Fichier / Édition / Affichage / Options / Aide + clic droit partout | ✅ | Affichage : accueil, déploiements, planifications, bibliothèque, paquets (Ctrl+0 à 4), rechercher un paquet (Ctrl+F), actualiser |
-| 1.8 | Fenêtre des raccourcis clavier | ❌ | Écarté : choix du mainteneur (à revoir selon les retours d'usage) |
-| 1.9 | Thèmes clair / sombre | ✅ | 0.7.0 : Clair, Sombre ou Selon Windows ; Préférences › Interface, appliqué à chaud |
-| 1.10 | Page d'accueil | ✅ | Ouverte au démarrage : en ce moment, dernières 24 heures (échecs cliquables), prochaines planifications, bibliothèque, raccourcis |
-| 1.11 | Import / export (paquets, dossiers, listes de cibles, planifications, réglages) | ✅ | Paquets : export / import JSON à nous, import de fichiers XML de paquets avec aperçu. Le reste écarté (choix du mainteneur) |
-| 1.12 | Imprimer, aperçu avant impression, mise en page, enregistrer une grille en CSV | ❌ | Écarté : choix du mainteneur (le résultat dans la console suffit) |
-| 1.13 | À propos | ✅ | Aide › À propos : versions console et service, compte connecté, licence, liens, copie des informations |
+| 1.1 | Navigation tree on the left: Packages, Target lists, Schedules, All deployments, Retry queue | ✅ | Packages, deployments, schedules (0.8.0). Target lists and retry queue dropped (maintainer's choice) |
+| 1.2 | Folders in the tree (packages and target lists), subfolders, drag and drop | ✅ | Package folders and subfolders (Ctrl+Shift+F), rename, delete an empty folder, drag and drop of packages and folders. Target lists dropped (1.1) |
+| 1.3 | Package page: details, steps, the package's deployments, attached schedules | ✅ | Schedules tab in 0.8.0; Details tab (version, folder, settings with their origin, conditions, offline, packages that use it) and Conditions column in the steps |
+| 1.4 | Folder page, "several packages selected" page | ❌ | Dropped: maintainer's choice |
+| 1.5 | Rename (F2), duplicate, cut / copy / paste, delete in the tree | ✅ | Packages: cut, copy, paste (Ctrl+X / C / V) into a folder; folders: cut / paste |
+| 1.6 | Tree node appearance (color / formatting) | ❌ | Dropped: maintainer's choice (the current tree suits them) |
+| 1.7 | File / Edit / View / Options / Help menus + right-click everywhere | ✅ | View: home, deployments, schedules, library, packages (Ctrl+0 to 4), find a package (Ctrl+F), refresh |
+| 1.8 | Keyboard shortcuts window | ❌ | Dropped: maintainer's choice (to be reconsidered based on usage feedback) |
+| 1.9 | Light / dark themes | ✅ | 0.7.0: Light, Dark or Follow Windows; Preferences › Interface, applied live |
+| 1.10 | Home page | ✅ | Opens at startup: right now, last 24 hours (clickable failures), upcoming schedules, library, shortcuts |
+| 1.11 | Import / export (packages, folders, target lists, schedules, settings) | ✅ | Packages: export / import of our own JSON, import of package XML files with preview. The rest dropped (maintainer's choice) |
+| 1.12 | Print, print preview, page setup, save a grid as CSV | ❌ | Dropped: maintainer's choice (the result in the console is enough) |
+| 1.13 | About | ✅ | Help › About: console and service versions, signed-in account, license, links, copy of the information |
 
-## 2. Paquets
+## 2. Packages
 
-| # | Fonction | État | Notes |
+| # | Feature | Status | Notes |
 |---|---|---|---|
-| 2.1 | Nom, description (texte riche), version, dossier | ✅ | Nom, version, description. Texte riche écarté (choix du mainteneur) ; dossiers : voir 1.2 |
-| 2.2 | Fenêtre paquet à onglets : Détails, Conditions, Options, Hors ligne | ✅ | 0.10.0 ; l'étape a aussi Détails, Conditions, Options |
-| 2.3 | Options du paquet : délai personnalisé, mode de copie, exécuter en tant que, réessai | ✅ | 0.10.0 : chaque option peut suivre les Préférences ; réessai dans l'onglet Hors ligne |
-| 2.4 | Conditions du paquet : version d'OS + architecture, version PowerShell, utilisateur connecté, fichier, registre | ✅ | 0.10.0 : vérifiées par le runner ; non remplies = poste réussi sans rien exécuter |
-| 2.5 | Sections d'étapes : avant / principales / après | ❌ | Écarté : choix du mainteneur, un échec arrête le paquet. Faites en 0.11.0, retirées ensuite |
-| 2.6 | Par étape : titre, activée / désactivée, codes de succès | ✅ | Étape désactivée : « Ignoré », le paquet continue |
-| 2.7 | Par étape : erreur → arrêter en échec / arrêter en succès / continuer | ✅ | Arrêt en succès : poste compté réussi, étapes suivantes « Ignoré » |
-| 2.8 | Par étape : exécuter en tant que (compte de déploiement / compte de déploiement sur le bureau / système local / utilisateur connecté / hériter du paquet) | ✅ | Paramètre du paquet / compte de déploiement / Système local / utilisateur connecté, par « tranches » sur le poste. « Compte de déploiement sur le bureau » : écarté par le mainteneur (déploiements toujours silencieux, sans mot de passe sur le poste) |
-| 2.9 | Par étape : mêmes conditions qu'au paquet | ✅ | 0.10.0 : non remplies = étape « Ignoré », le paquet continue |
-| 2.10 | Copier / couper / coller / réordonner des étapes, y compris entre paquets | ✅ | 0.10.0 : presse-papiers (Ctrl+X / C / V), barre d'outils et clic droit |
-| 2.11 | Avertissements : fichier introuvable, pas de paramètre silencieux, conflit avec le mode « pull » | ✅ | En haut de l'étape et rappelés à l'enregistrement ; fichiers vérifiés par le service avec l'identifiant par défaut |
-| 2.12 | Dupliquer, exporter un paquet | ✅ | Export avec ses paquets imbriqués |
-| 2.13 | Dossiers de paquets publics / privés | ❌ | Écarté : choix du mainteneur (une seule console) |
+| 2.1 | Name, description (rich text), version, folder | ✅ | Name, version, description. Rich text dropped (maintainer's choice); folders: see 1.2 |
+| 2.2 | Tabbed package window: Details, Conditions, Options, Offline | ✅ | 0.10.0; the step also has Details, Conditions, Options |
+| 2.3 | Package options: custom timeout, copy mode, run as, retry | ✅ | 0.10.0: each option can follow the Preferences; retry in the Offline tab |
+| 2.4 | Package conditions: OS version + architecture, PowerShell version, logged-on user, file, registry | ✅ | 0.10.0: checked by the runner; unmet = computer succeeded without running anything |
+| 2.5 | Step sections: before / main / after | ❌ | Dropped: maintainer's choice, a failure stops the package. Done in 0.11.0, removed afterwards |
+| 2.6 | Per step: title, enabled / disabled, success codes | ✅ | Disabled step: "Skipped", the package continues |
+| 2.7 | Per step: error → stop with failure / stop with success / continue | ✅ | Stop with success: computer counted as succeeded, following steps "Skipped" |
+| 2.8 | Per step: run as (deployment account / deployment account on the desktop / local system / logged-on user / inherit from package) | ✅ | Package setting / deployment account / Local System / logged-on user, in "slices" on the computer. "Deployment account on the desktop": dropped by the maintainer (deployments are always silent, no password on the computer) |
+| 2.9 | Per step: same conditions as the package | ✅ | 0.10.0: unmet = step "Skipped", the package continues |
+| 2.10 | Copy / cut / paste / reorder steps, including between packages | ✅ | 0.10.0: clipboard (Ctrl+X / C / V), toolbar and right-click |
+| 2.11 | Warnings: file not found, no silent switch, conflict with "pull" mode | ✅ | At the top of the step and repeated on save; files checked by the service with the default credential |
+| 2.12 | Duplicate, export a package | ✅ | Export with its nested packages |
+| 2.13 | Public / private package folders | ❌ | Dropped: maintainer's choice (a single console) |
 
-### Types d'étapes
+### Step types
 
-| # | Étape | État | Détails à couvrir |
+| # | Step | Status | Details to cover |
 |---|---|---|---|
-| 2.20 | Installer | ✅ | exe, bat/cmd, msi, msp, msu, ps1, vbs, reg ; MSI installer / réparer / désinstaller, redémarrage, silencieux ; ligne de commande générée ou personnalisée ; journal MSI ; fichiers additionnels ; garder le fichier |
-| 2.21 | Commande | ✅ | Fichiers additionnels |
-| 2.22 | PowerShell | ✅ | Fichiers additionnels. Écartés : ligne de commande personnalisée (choix du mainteneur) ; alerte `Write-Host` inutile (sa sortie est bien reprise dans le résultat) |
-| 2.23 | Copie de fichiers | ✅ | Fichier ou dossier (push ou pull), motifs, sous-dossiers, écraser ou garder, réussir malgré les fichiers impossibles à remplacer ; copie sur le poste par robocopy |
-| 2.24 | Redémarrer | ✅ | Message, délai (30 s à 1 h), arrêt au lieu du redémarrage ; attend le retour du poste (délai max de l'étape) avant l'étape suivante |
-| 2.25 | Pause | ✅ | N secondes (1 s à 24 h), interrompue par l'annulation |
-| 2.26 | Message | ✅ | Titre, texte, durée d'affichage (0 = jusqu'au clic), attendre le clic sur OK avant l'étape suivante ; affiché dans chaque session ouverte |
-| 2.27 | Déconnexion de l'utilisateur | ❌ | Écarté : choix du mainteneur (outil de déploiement silencieux) |
-| 2.28 | Paquet imbriqué | ✅ | Remplacé par ses étapes au lancement ; conditions combinées, boucles et plus de 5 niveaux refusés |
-| 2.29 | Scan d'inventaire | ⛔ | Nécessite un inventaire des postes |
+| 2.20 | Install | ✅ | exe, bat/cmd, msi, msp, msu, ps1, vbs, reg; MSI install / repair / uninstall, restart, silent; generated or custom command line; MSI log; additional files; keep the file |
+| 2.21 | Command | ✅ | Additional files |
+| 2.22 | PowerShell | ✅ | Additional files. Dropped: custom command line (maintainer's choice); useless `Write-Host` alert (its output is included in the result anyway) |
+| 2.23 | File copy | ✅ | File or folder (push or pull), patterns, subfolders, overwrite or keep, succeed despite files that cannot be replaced; copy on the computer with robocopy |
+| 2.24 | Restart | ✅ | Message, delay (30 s to 1 h), shut down instead of restarting; waits for the computer to come back (the step's max timeout) before the next step |
+| 2.25 | Pause | ✅ | N seconds (1 s to 24 h), interrupted by cancellation |
+| 2.26 | Message | ✅ | Title, text, display duration (0 = until clicked), wait for the OK click before the next step; shown in every open session |
+| 2.27 | User logoff | ❌ | Dropped: maintainer's choice (silent deployment tool) |
+| 2.28 | Nested package | ✅ | Replaced by its steps at launch; combined conditions, loops and more than 5 levels refused |
+| 2.29 | Inventory scan | ⛔ | Requires a computer inventory |
 
-## 3. Déployer une fois
+## 3. Deploy once
 
-| # | Fonction | État | Notes |
+| # | Feature | Status | Notes |
 |---|---|---|---|
-| 3.1 | Plusieurs paquets, ordonnés | ✅ | 0.6.0 : un déploiement par paquet ; sur un poste, le suivant attend la fin du précédent (même en échec) |
-| 3.2 | Cibles : saisie, collage, Active Directory | ✅ | Arbre AD dépliable (0.5.1) |
-| 3.3 | Cibles : liste de cibles, fichier texte | ✅ | Fichier texte en 0.6.0. Listes de cibles écartées (choix du mainteneur) : les postes se choisissent dans l'AD |
-| 3.4 | Résolution DNS des noms saisis (vérification en direct) | ✅ | Déployer une fois : chaque poste ajouté est cherché dans le DNS du serveur (sablier, coche ou croix ; nom complet en info-bulle) ; n'empêche pas de déployer |
-| 3.5 | Démarrer à l'étape N, **par poste** | ✅ | 0.6.0 ; porte sur le premier paquet. « Reprendre à l'étape en échec » = un seul déploiement |
-| 3.6 | Options : compte, mode de copie, exécuter en tant que | ✅ | 0.6.0 ; identifiant au choix en 0.9.0 ; « Paramètre du paquet » par défaut. Compte de déploiement / Système local / Utilisateur connecté ; push / pull (UNC) |
-| 3.7 | Options : notifications, mémoriser les cibles, prioritaire | ✅ | Mémoriser + prioritaire en 0.6.0. Notifications écartées (choix du mainteneur) |
-| 3.8 | Onglet Hors ligne : ping avant, Wake-on-LAN, file de réessai | ✅ | 0.10.0 : réglé dans le paquet (et les Préférences). Dans Déployer une fois : écarté (choix du mainteneur, les postes sont allumés avant ; le réveil existe) |
-| 3.9 | Bouton « Planifier » (crée une planification à partir de la fenêtre) | ✅ | 0.8.0 : reprend paquets, cibles, options |
-| 3.10 | Cibles depuis un inventaire des postes | ⛔ | |
+| 3.1 | Several packages, ordered | ✅ | 0.6.0: one deployment per package; on a computer, the next one waits for the previous one to finish (even on failure) |
+| 3.2 | Targets: typing, pasting, Active Directory | ✅ | Expandable AD tree (0.5.1) |
+| 3.3 | Targets: target list, text file | ✅ | Text file in 0.6.0. Target lists dropped (maintainer's choice): computers are chosen from the AD |
+| 3.4 | DNS resolution of typed names (live check) | ✅ | Deploy once: each added computer is looked up in the server's DNS (hourglass, check or cross; full name in the tooltip); does not prevent deploying |
+| 3.5 | Start at step N, **per computer** | ✅ | 0.6.0; applies to the first package. "Resume at the failed step" = a single deployment |
+| 3.6 | Options: account, copy mode, run as | ✅ | 0.6.0; credential of choice in 0.9.0; "Package setting" by default. Deployment account / Local System / Logged-on user; push / pull (UNC) |
+| 3.7 | Options: notifications, remember targets, high priority | ✅ | Remember + high priority in 0.6.0. Notifications dropped (maintainer's choice) |
+| 3.8 | Offline tab: ping first, Wake-on-LAN, retry queue | ✅ | 0.10.0: set in the package (and the Preferences). In Deploy once: dropped (maintainer's choice, computers are powered on beforehand; wake-up exists) |
+| 3.9 | "Schedule" button (creates a schedule from the window) | ✅ | 0.8.0: reuses packages, targets, options |
+| 3.10 | Targets from a computer inventory | ⛔ | |
 
-## 4. Suivi des déploiements
+## 4. Deployment tracking
 
-| # | Fonction | État | Notes |
+| # | Feature | Status | Notes |
 |---|---|---|---|
-| 4.1 | Liste maître / détail : déploiements, postes, étapes, sortie | ✅ | |
-| 4.2 | Statuts de poste détaillés : en attente, ping, réveil (WoL), connexion, copie, exécution, reconnexion, annulation, finalisation… | ✅ | Étape en cours affichée (attente de créneau, réveil, résolution du nom, copie, exécution, poste injoignable, redémarrage, nettoyage) ; statut « Annulé » |
-| 4.3 | Compteurs par déploiement (en attente / en cours / réussis / échecs) + « partiellement échoué », « annulé » | ✅ | Colonnes En attente, En cours, Réussis, Échecs, Annulés ; statuts « Partiel » et « Annulé » |
-| 4.4 | Progression de copie (% et débit), note par étape, compte d'exécution par étape | ✅ | Pendant la copie vers un poste : « Copie des fichiers : 45 % (12,3 Mo/s) » (mode push). Détail du poste : colonnes Exécutions (par déploiement, nouveaux essais compris) et Note |
-| 4.5 | Annuler, redéployer, redéployer les échecs, reprendre à l'étape en échec | ✅ | |
-| 4.6 | Prioriser un poste en attente | ❌ | Écarté : choix du mainteneur |
-| 4.7 | Créer une planification depuis un déploiement | ✅ | Clic droit sur un déploiement : paquet, postes et options repris, déclencheurs à choisir |
-| 4.8 | Nettoyage automatique de l'historique après N jours | ✅ | Préférences › Déploiement : désactivé d'usine, de 1 à 3650 jours ; au démarrage du service puis une fois par jour ; seuls les déploiements terminés sont supprimés (jamais en attente ou en cours, ni l'historique des planifications) |
-| 4.9 | Fichier de sortie complet téléchargeable par étape | ✅ | Détail des étapes : copier, ouvrir dans le Bloc-notes ou enregistrer la sortie (avec le journal Windows Installer) |
+| 4.1 | Master / detail list: deployments, computers, steps, output | ✅ | |
+| 4.2 | Detailed computer statuses: pending, ping, wake-up (WoL), connecting, copying, running, reconnecting, canceling, finalizing… | ✅ | Current step shown (waiting for a slot, wake-up, name resolution, copy, execution, computer unreachable, restart, cleanup); "Canceled" status |
+| 4.3 | Counters per deployment (pending / running / succeeded / failed) + "partially failed", "canceled" | ✅ | Pending, Running, Succeeded, Failed, Canceled columns; "Partial" and "Canceled" statuses |
+| 4.4 | Copy progress (% and throughput), note per step, execution account per step | ✅ | During the copy to a computer: "Copying files: 45% (12.3 MB/s)" (push mode). Computer detail: Runs columns (per deployment, retries included) and Note |
+| 4.5 | Cancel, redeploy, redeploy failures, resume at the failed step | ✅ | |
+| 4.6 | Prioritize a pending computer | ❌ | Dropped: maintainer's choice |
+| 4.7 | Create a schedule from a deployment | ✅ | Right-click a deployment: package, computers and options reused, triggers to choose |
+| 4.8 | Automatic history cleanup after N days | ✅ | Preferences › Deployment: disabled by default, from 1 to 3650 days; at service startup then once a day; only finished deployments are deleted (never pending or running ones, nor the schedules' history) |
+| 4.9 | Full output file downloadable per step | ✅ | Step details: copy, open in Notepad or save the output (with the Windows Installer log) |
 
-## 5. Planifications
+## 5. Schedules
 
-| # | Fonction | État | Notes |
+| # | Feature | Status | Notes |
 |---|---|---|---|
-| 5.1 | Page « Toutes les planifications », fenêtre planification | ✅ | 0.8.0 : grille + déploiements de la planification ; fenêtre à onglets Déclencheurs / Cibles / Paquets / Options / Historique des cibles |
-| 5.2 | Déclencheurs : une fois, quotidien, hebdomadaire, mensuel (jour N ou « le 1er lundi »), intervalle | ✅ | 0.8.0 : plusieurs par planification, plage horaire pour l'intervalle, fin facultative, « dernier jour / dernier lundi » |
-| 5.3 | Déclencheur « heartbeat » (poste qui revient en ligne) | ⛔ | Nécessite un inventaire des postes ; un équivalent maison reste possible |
-| 5.4 | Paquets ordonnés, cibles, options (compte, copie, exécuter en tant que, délai, notifications, hors ligne, réessai) | ✅ | 0.8.0 : paquets, cibles, copie, exécuter en tant que, délai d'attente ; identifiant en 0.9.0. Notifications et hors ligne écartés (choix du mainteneur) |
-| 5.5 | Arrêter après N échecs, arrêter après un succès (par poste) | ✅ | 0.8.0 : historique des cibles par poste × paquet, effaçable |
-| 5.6 | Activer / désactiver, prochaine et dernière exécution, dernière erreur | ✅ | 0.8.0 : « Dernier résultat » |
-| 5.7 | Attacher / détacher à un paquet, dupliquer, déployer maintenant | ✅ | Dupliquer, démarrer maintenant ; clic droit sur un paquet › Ajouter à une planification…, et Retirer depuis l'onglet Planifications du paquet |
+| 5.1 | "All schedules" page, schedule window | ✅ | 0.8.0: grid + the schedule's deployments; tabbed window Triggers / Targets / Packages / Options / Target history |
+| 5.2 | Triggers: once, daily, weekly, monthly (day N or "the 1st Monday"), interval | ✅ | 0.8.0: several per schedule, time window for the interval, optional end, "last day / last Monday" |
+| 5.3 | "Heartbeat" trigger (computer coming back online) | ⛔ | Requires a computer inventory; a home-grown equivalent remains possible |
+| 5.4 | Ordered packages, targets, options (account, copy, run as, timeout, notifications, offline, retry) | ✅ | 0.8.0: packages, targets, copy, run as, timeout; credential in 0.9.0. Notifications and offline dropped (maintainer's choice) |
+| 5.5 | Stop after N failures, stop after one success (per computer) | ✅ | 0.8.0: target history per computer × package, can be cleared |
+| 5.6 | Enable / disable, next and last run, last error | ✅ | 0.8.0: "Last result" |
+| 5.7 | Attach / detach to a package, duplicate, deploy now | ✅ | Duplicate, start now; right-click a package › Add to a schedule…, and Remove from the package's Schedules tab |
 
-## 6. Listes de cibles et filtres
+## 6. Target lists and filters
 
-| # | Fonction | État | Notes |
+| # | Feature | Status | Notes |
 |---|---|---|---|
-| 6.1 | Listes de cibles réutilisables (Ctrl+Maj+T), dans des dossiers | ❌ | Écarté : choix du mainteneur (les postes se choisissent dans l'AD) |
-| 6.2 | Sources : postes, Active Directory (OU, groupe, conteneur), autre liste de cibles | ❌ | Écarté : choix du mainteneur |
-| 6.3 | Filtres globaux d'inclusion / exclusion (nom, IPv4, IPv6) | ❌ | Écarté : choix du mainteneur (à reconsidérer bien plus tard, selon les retours) |
+| 6.1 | Reusable target lists (Ctrl+Shift+T), in folders | ❌ | Dropped: maintainer's choice (computers are chosen from the AD) |
+| 6.2 | Sources: computers, Active Directory (OU, group, container), another target list | ❌ | Dropped: maintainer's choice |
+| 6.3 | Global include / exclude filters (name, IPv4, IPv6) | ❌ | Dropped: maintainer's choice (to be reconsidered much later, based on feedback) |
 
-## 7. File de réessai (hors ligne)
+## 7. Retry queue (offline)
 
-| # | Fonction | État | Notes |
+| # | Feature | Status | Notes |
 |---|---|---|---|
-| 7.1 | Ping avant déploiement, Wake-on-LAN | ✅ | 0.10.0 : test DNS + partage toujours fait ; réveil avec l'adresse MAC apprise au dernier déploiement |
-| 7.2 | File de réessai : activée, nombre d'essais max, intervalle, expiration ; héritage préférences → paquet → déploiement | ✅ | Retirée en 0.5.0, remise en 0.10.0 comme **option désactivée par défaut** : nombre d'essais et intervalle, préférences → paquet ; perdue au redémarrage du service. Expiration écartée (choix du mainteneur) |
-| 7.3 | Page de la file : poste × paquet, essais restants, prochain essai, « essayer maintenant », supprimer | ❌ | Écarté : choix du mainteneur (hors ligne non utilisé ; « Redéployer sur les postes en échec » existe) |
+| 7.1 | Ping before deployment, Wake-on-LAN | ✅ | 0.10.0: DNS + share test always done; wake-up with the MAC address learned at the last deployment |
+| 7.2 | Retry queue: enabled, max attempts, interval, expiry; inheritance preferences → package → deployment | ✅ | Removed in 0.5.0, brought back in 0.10.0 as an **option disabled by default**: number of attempts and interval, preferences → package; lost when the service restarts. Expiry dropped (maintainer's choice) |
+| 7.3 | Queue page: computer × package, remaining attempts, next attempt, "try now", delete | ❌ | Dropped: maintainer's choice (offline not used; "Redeploy to failed computers" exists) |
 
-## 8. Préférences
+## 8. Preferences
 
-| # | Section | État | Contenu |
+| # | Section | Status | Content |
 |---|---|---|---|
-| 8.1 | Comptes | 🟡 | 0.9.0 : Options › Identifiants, plusieurs comptes (domaine ou local `.\utilisateur`), description, compte par défaut, test auprès du domaine ; choisis dans Déployer une fois et les planifications. Reste : LAPS (mot de passe admin local de chaque poste lu dans l'AD, fonction Microsoft), après la v1 (#106) |
-| 8.2 | Variables | ❌ | Écarté : choix du mainteneur (ajoutées en 0.12.0, retirées ensuite ; un `$(…)` reste tel quel) |
-| 8.3 | Déploiement | ✅ | 0.10.0 : exécuter en tant que, délai par étape, comportement hors ligne par défaut ; nettoyage de l'historique (4.8) |
-| 8.4 | Performance | ✅ | 0.10.0 : mode de copie par défaut. Postes en parallèle réglables (1 à 100, 8 par défaut) et limite de débit des copies vers les postes (Mbit/s, partagée par toutes les copies en cours) dans Préférences › Déploiement |
-| 8.5 | Dépôt de fichiers (`$(Repository)`) | ❌ | Écarté : choix du mainteneur (les fichiers sont sur un partage du serveur) |
-| 8.6 | Filtres de cibles | ❌ | Écarté : choix du mainteneur (cf. 6.3) |
-| 8.7 | Serveur de messagerie + notifications | ❌ | Écarté : choix du mainteneur |
-| 8.8 | Interface, impression | ✅ | 0.7.0 : page Interface (thème) ; fenêtre des Préférences en liste de pages. Impression écartée (choix du mainteneur) |
-| 8.9 | Service en arrière-plan | ⛔ | Compte du service : en attente, décision du mainteneur (16/10) ; repris seulement si le besoin se présente. Aujourd'hui le service tourne en Système local et utilise le compte de déploiement pour les postes et les partages |
-| 8.10 | Utilisateurs de la console, sessions actives | ✅ | Authentification Windows ; administrateurs du serveur + liste de comptes et groupes |
-| 8.11 | Mode serveur central (local / serveur / client) | ❌ | Écarté : choix du mainteneur (console et service sur la même machine) |
-| 8.12 | Service sur la cible | ❌ | Écarté : choix du mainteneur |
-| 8.13 | Proxy, base de données, journalisation | ❌ | Écarté : choix du mainteneur |
-| 8.14 | Mises à jour automatiques | ✅ | Au démarrage (et par Aide), la console cherche une nouvelle version stable dans nos Releases et propose de l'installer (Oui / Non) : installeur téléchargé, empreinte vérifiée, installation en administrateur, console rouverte. Depuis la console du serveur seulement |
+| 8.1 | Accounts | 🟡 | 0.9.0: Options › Credentials, several accounts (domain or local `.\user`), description, default account, test against the domain; chosen in Deploy once and the schedules. Remaining: LAPS (each computer's local admin password read from the AD, a Microsoft feature), after v1 (#106) |
+| 8.2 | Variables | ❌ | Dropped: maintainer's choice (added in 0.12.0, removed afterwards; a `$(…)` is left as is) |
+| 8.3 | Deployment | ✅ | 0.10.0: run as, timeout per step, default offline behavior; history cleanup (4.8) |
+| 8.4 | Performance | ✅ | 0.10.0: default copy mode. Adjustable parallel computers (1 to 100, 8 by default) and throughput limit for copies to computers (Mbit/s, shared by all running copies) in Preferences › Deployment |
+| 8.5 | File repository (`$(Repository)`) | ❌ | Dropped: maintainer's choice (files are on a server share) |
+| 8.6 | Target filters | ❌ | Dropped: maintainer's choice (see 6.3) |
+| 8.7 | Mail server + notifications | ❌ | Dropped: maintainer's choice |
+| 8.8 | Interface, printing | ✅ | 0.7.0: Interface page (theme); Preferences window as a list of pages. Printing dropped (maintainer's choice) |
+| 8.9 | Background service | ⛔ | Service account: on hold, maintainer's decision (16/10); resumed only if the need arises. Today the service runs as Local System and uses the deployment account for computers and shares |
+| 8.10 | Console users, active sessions | ✅ | Windows authentication; server administrators + list of accounts and groups |
+| 8.11 | Central server mode (local / server / client) | ❌ | Dropped: maintainer's choice (console and service on the same machine) |
+| 8.12 | Service on the target | ❌ | Dropped: maintainer's choice |
+| 8.13 | Proxy, database, logging | ❌ | Dropped: maintainer's choice |
+| 8.14 | Automatic updates | ✅ | At startup (and via Help), the console looks for a new stable version in our Releases and offers to install it (Yes / No): installer downloaded, checksum verified, installed as administrator, console reopened. From the server's console only |
 
-## 9. Rapports et notifications
+## 9. Reports and notifications
 
-| # | Fonction | État | Notes |
+| # | Feature | Status | Notes |
 |---|---|---|---|
-| 9.1 | Rapports : déploiements, paquets, planifications, listes de cibles | ❌ | Écarté : choix du mainteneur |
-| 9.2 | Notification e-mail après déploiement ou planification : destinataires (à / cc / cci), objet, corps, pièce jointe, détails, seulement si changement, pas pour les réessais | ❌ | Écarté : choix du mainteneur |
+| 9.1 | Reports: deployments, packages, schedules, target lists | ❌ | Dropped: maintainer's choice |
+| 9.2 | Email notification after deployment or schedule: recipients (to / cc / bcc), subject, body, attachment, details, only if changed, not for retries | ❌ | Dropped: maintainer's choice |
 
-## 10. Divers
+## 10. Miscellaneous
 
-| # | Fonction | État | Notes |
+| # | Feature | Status | Notes |
 |---|---|---|---|
-| 10.1 | Ligne de commande (déployer un paquet sur des cibles, lister…) | ❌ | Écarté : choix du mainteneur |
-| 10.2 | Assistant de premier démarrage | ✅ | Ouvert tant que le serveur n'a ni identifiant ni paquet, et par Aide › Assistant de démarrage : identifiant, dossier de la bibliothèque, premier paquet, préférences |
-| 10.3 | Aide intégrée | ✅ | Aide › Aide de DeployCraft (F1, ouverte sur le sujet de la vue affichée) : 9 sujets, recherche |
-| 10.4 | Bibliothèque de paquets en ligne, mise à jour automatique des paquets | ✅ | À partir du catalogue public winget : tout le catalogue avec recherche, téléchargement vérifié, paquet créé, mise à jour en un clic. Catalogue relu chaque jour par le service ; nouvelle version signalée (bibliothèque, accueil, repère dans l'arbre) ; mise à jour manuelle, automatique tout de suite ou après N jours |
-| 10.5 | Intégration d'un inventaire des postes | ⛔ | |
-| 10.6 | Licence, essai, statistiques d'usage | ⛔ | Sans objet |
+| 10.1 | Command line (deploy a package to targets, list…) | ❌ | Dropped: maintainer's choice |
+| 10.2 | First-run wizard | ✅ | Opens as long as the server has no credential or package, and via Help › Getting started wizard: credential, library folder, first package, preferences |
+| 10.3 | Built-in help | ✅ | Help › DeployCraft Help (F1, opens on the topic of the current view): 9 topics, search |
+| 10.4 | Online package library, automatic package updates | ✅ | Based on the public winget catalog: the whole catalog with search, verified download, package created, one-click update. Catalog re-read daily by the service; new version flagged (library, home, marker in the tree); manual update, automatic right away or after N days |
+| 10.5 | Computer inventory integration | ⛔ | |
+| 10.6 | License, trial, usage statistics | ⛔ | Not applicable |

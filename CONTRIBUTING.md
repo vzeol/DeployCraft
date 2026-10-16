@@ -1,152 +1,154 @@
-# Contribuer à DeployCraft
+# Contributing to DeployCraft
 
-Marche à suivre pour toute personne qui participe au développement, humaine ou IA (Claude Code).
-À lire en entier avant le premier commit. Les règles complètes sont aussi dans `CLAUDE.md`.
+Procedure for anyone taking part in development, human or AI (Claude Code).
+Read it in full before the first commit. The complete rules are also in `CLAUDE.md`.
 
-## 1. Ce qu'on construit
+## 1. What we are building
 
-DeployCraft est un outil libre (GPL v3) de déploiement de logiciels sur un parc Windows, sans agent :
-un service Windows sur un serveur du domaine, une console WPF, et un petit runner copié
-temporairement sur chaque poste. Livrable : **un seul installeur**.
+DeployCraft is a free (GPL v3) tool for deploying software across a Windows fleet, with no agent:
+a Windows service on a domain server, a WPF console, and a small runner temporarily copied
+to each computer. Deliverable: **a single installer**.
 
-Objectif actuel : couvrir les fonctions attendues d'un outil de déploiement de ce type (`PARITE.md`),
-puis trier à la fin.
+Current goal: cover the features expected from a deployment tool of this kind (`PARITE.md`),
+then sort things out at the end.
 
-Documents du dépôt :
+Repository documents:
 
-| Fichier | Contenu |
+| File | Content |
 |---|---|
-| `HANDOFF.md` | État du projet, ce qui reste à tester, point de reprise |
-| `PARITE.md` | Liste des fonctions, avec leur état : **c'est la liste des tâches** |
-| `SPEC.md` | Spécification : ce que fait DeployCraft et comment |
-| `CONTRIBUTING.md` | Ce guide |
-| `CLAUDE.md` | Consignes chargées automatiquement par Claude Code (valables pour tous) |
+| `HANDOFF.md` | Project state, what remains to be tested, resume point |
+| `PARITE.md` | List of features, with their status: **this is the task list** |
+| `SPEC.md` | Specification: what DeployCraft does and how |
+| `CONTRIBUTING.md` | This guide |
+| `CLAUDE.md` | Instructions loaded automatically by Claude Code (apply to everyone) |
 
-## 2. Réalisation indépendante (non négociable)
+## 2. Independent implementation (non-negotiable)
 
-DeployCraft est écrit de zéro. On ne reprend **jamais** le code, les icônes, le logo, les images, les
-textes ou les fichiers d'un autre logiciel. Les libellés sont écrits en français, avec nos propres mots.
-Démarche : décrire le comportement voulu dans `SPEC.md` → coder **depuis la spec**.
-Observer d'autres outils en fonctionnement et citer leurs fonctions (`PARITE.md`) est permis ; décrire leur
-fonctionnement interne ou reprendre leurs textes et visuels ne l'est pas.
-Notre identité visuelle : accent orange, icônes Windows (Segoe Fluent / MDL2).
+DeployCraft is written from scratch. We **never** reuse the code, icons, logo, images,
+texts or files of another piece of software. Labels are written in our own words.
+Approach: describe the desired behavior in `SPEC.md` → code **from the spec**.
+Observing other tools in operation and citing their features (`PARITE.md`) is allowed; describing their
+internal workings or reusing their texts and visuals is not.
+Our visual identity: orange accent, Windows icons (Segoe Fluent / MDL2).
 
-**Aucune information interne** dans le dépôt public : noms de serveurs, de postes, de domaines, de comptes,
-adresses IP, noms d'organisation, e-mails personnels — y compris dans les captures d'écran et les messages
-de commit. Utiliser des exemples (`SERVEUR-01`, `PC-TEST-01`, `DOMAINE.LOCAL`).
+**No internal information** in the public repository: names of servers, computers, domains, accounts,
+IP addresses, organization names, personal emails — including in screenshots and commit
+messages. Use examples (`SERVEUR-01`, `PC-TEST-01`, `DOMAINE.LOCAL`).
 
-## 3. Accès et outils
+## 3. Access and tools
 
-1. Installer : Git, **SDK .NET 10**, **Inno Setup 6** (`winget install JRSoftware.InnoSetup`),
-   GitHub CLI (`gh auth login`, puis `gh auth setup-git`).
-2. Contributeur extérieur : **forker** le dépôt, travailler sur une branche de son fork, ouvrir une PR.
-   Collaborateur invité par le mainteneur : `gh repo clone vzeol/DeployCraft`, branche + PR.
-3. Régler Git pour signer avec son adresse GitHub masquée (`git config user.email "…@users.noreply.github.com"`).
+1. Install: Git, **.NET 10 SDK**, **Inno Setup 6** (`winget install JRSoftware.InnoSetup`),
+   GitHub CLI (`gh auth login`, then `gh auth setup-git`).
+2. External contributor: **fork** the repository, work on a branch of your fork, open a PR.
+   Collaborator invited by the maintainer: `gh repo clone vzeol/DeployCraft`, branch + PR.
+3. Set up Git to sign with your hidden GitHub address (`git config user.email "…@users.noreply.github.com"`).
 
-Structure :
+Structure:
 
-| Dossier | Rôle |
+| Folder | Role |
 |---|---|
-| `src/DeployCraft.Server` | Service Windows : API HTTP locale (port 5080), base SQLite, moteur de déploiement, lecture AD |
-| `src/DeployCraft.Console` | Console WPF ; réutilise les modèles de `Server/Data` |
-| `src/DeployCraft.Runner` | Runner **.NET Framework 4.8** (présent sur tous les Windows), lancé en service temporaire sur les postes |
-| `installer/` | Script Inno Setup |
+| `src/DeployCraft.Server` | Windows service: local HTTP API (port 5080), SQLite database, deployment engine, AD reading |
+| `src/DeployCraft.Console` | WPF console; reuses the models from `Server/Data` |
+| `src/DeployCraft.Runner` | **.NET Framework 4.8** runner (present on every Windows), launched as a temporary service on the computers |
+| `installer/` | Inno Setup script |
 
-## 4. Compiler et tester sans risque
+## 4. Build and test safely
 
 ```powershell
 dotnet build DeployCraft.slnx
 ```
 
-**Ne jamais tester sur les vraies données.** Lancer une instance isolée :
+**Never test on real data.** Run an isolated instance:
 
 ```powershell
-# Serveur de test (base dans un dossier jetable, port 5091)
+# Test server (database in a throwaway folder, port 5091)
 dotnet run --project src\DeployCraft.Server -- --Urls http://localhost:5091 --DataDir C:\Temp\dc-test
 
-# Console branchée sur ce serveur (autre terminal)
+# Console connected to that server (another terminal)
 $env:DEPLOYCRAFT_URL = "http://localhost:5091"
 .\src\DeployCraft.Console\bin\Debug\net10.0-windows\DeployCraft.exe
 ```
 
-- Le serveur doit tourner **en administrateur** pour déployer sur la machine locale.
-- Les identifiants (comptes de déploiement) se saisissent dans la console (Options › Identifiants).
-  Ne jamais écrire un mot de passe dans le code, un commit, une issue ou une conversation avec une IA.
-- Fermer seulement **ses propres** fenêtres de test (par PID), jamais toutes les instances DeployCraft.
-- Tests en réel sur un domaine : seulement sur des postes de test convenus avec le mainteneur
-  (poste de test, machine hors production). Commencer par une étape sans effet (`hostname`).
+- The server must run **as administrator** to deploy to the local machine.
+- Credentials (deployment accounts) are entered in the console (Options › Credentials).
+  Never write a password in code, a commit, an issue or a conversation with an AI.
+- Close only **your own** test windows (by PID), never all DeployCraft instances.
+- Real tests on a domain: only on test computers agreed with the maintainer
+  (test computer, non-production machine). Start with a step that has no effect (`hostname`).
 
-Tests automatiques : `dotnet test DeployCraft.slnx` (projet `tests\DeployCraft.Tests`). Tout changement de
-comportement ajoute ou met à jour un test, même basique. Ce qui touche un vrai poste (réseau, service
-temporaire) se teste à la main sur l'instance isolée : la PR dit comment.
+Automated tests: `dotnet test DeployCraft.slnx` (project `tests\DeployCraft.Tests`). Every change in
+behavior adds or updates a test, even a basic one. Anything that touches a real computer (network, temporary
+service) is tested by hand on the isolated instance: the PR says how.
 
-## 5. Choisir une tâche
+## 5. Choose a task
 
-1. Prendre une ou plusieurs lignes ⬜ / 🟡 de `PARITE.md`, de préférence dans le même bloc
-   (ex. « 5. Planifications »).
-2. Ouvrir une **issue GitHub** intitulée avec les numéros (`[5.1–5.3] Planifications : page + déclencheurs`)
-   et se l'assigner : c'est ce qui évite de travailler à deux sur la même chose.
-3. Si le comportement voulu n'est pas encore dans `SPEC.md` : le décrire d'abord
-   (dans la même PR).
+1. Take one or more ⬜ / 🟡 rows from `PARITE.md`, preferably in the same block
+   (e.g. "5. Schedules").
+2. Open a **GitHub issue** titled with the numbers (`[5.1–5.3] Schedules: page + triggers`)
+   and assign it to yourself: this is what prevents two people working on the same thing.
+3. If the desired behavior is not yet in `SPEC.md`: describe it first
+   (in the same PR).
 
-## 6. Branches, commits, PR
+## 6. Branches, commits, PRs
 
-En résumé : chacun travaille sur **sa branche** (sa copie du projet) et propose ses changements
-par une **pull request** (PR). Rien n'entre dans `main` sans relecture : personne ne casse le
-travail des autres, et deux personnes (ou une personne et Claude) peuvent avancer en même temps.
+In short: everyone works on **their own branch** (their copy of the project) and proposes their changes
+through a **pull request** (PR). Nothing enters `main` without review: nobody breaks
+the work of others, and two people (or a person and Claude) can move forward at the same time.
 
 ```powershell
-git switch main ; git pull                 # partir de la dernière version
-git switch -c feat/planifications          # créer sa branche
-# … coder, tester …
-git status ; git diff                      # relire avant d'ajouter
-git add src\DeployCraft.Server\Data\Models.cs …   # fichiers nommés un par un, jamais `git add -A`
-git commit -m "feat: planifications, page et déclencheurs"
-git push -u origin feat/planifications
-gh pr create --fill                        # ouvre la PR (le modèle se remplit)
+git switch main ; git pull                 # start from the latest version
+git switch -c feat/schedules               # create your branch
+# … code, test …
+git status ; git diff                      # review before adding
+git add src\DeployCraft.Server\Data\Models.cs …   # files named one by one, never `git add -A`
+git commit -m "feat: schedules, page and triggers"
+git push -u origin feat/schedules
+gh pr create --fill                        # opens the PR (the template is filled in)
 ```
 
-Si `main` a avancé pendant ce temps : `git switch main ; git pull ; git switch feat/… ; git merge main`,
-régler les conflits éventuels, re-tester, pousser.
+If `main` has moved on in the meantime: `git switch main ; git pull ; git switch feat/… ; git merge main`,
+resolve any conflicts, re-test, push.
 
-- `main` doit **toujours compiler** et produire un installeur qui marche.
-- Une branche par tâche : `feat/planifications`, `fix/ad-arbre`, `docs/spec-reboot`…
-- Commits au format Conventional Commits, suite en français, au présent (`feat: déclencheur hebdomadaire`,
-  `fix: …`, `docs: …`, `test: …`, `chore: …`). Un commit = un changement logique. Jamais de message vague.
-- PR vers `main` avec : lignes de `PARITE.md` concernées, ce qui a été testé, captures d'écran pour l'interface.
-  Mettre à jour `PARITE.md` (et `SPEC.md` si besoin) **dans la PR**.
-- **Qui décide** : les sessions Claude du mainteneur (compte GitHub `vzeol`) gèrent le dépôt de A à Z.
-  Elles relisent les PR, demandent des corrections, fusionnent et publient elles-mêmes, toujours par PR
-  (jamais de commit direct sur `main`) et avec la CI au vert. Tout autre contributeur, humain ou IA,
-  propose par PR. Fusion en « squash ».
-- `main` est protégée sur GitHub : PR obligatoire, CI (`build`) au vert et branche à jour pour fusionner,
-  y compris pour les administrateurs ; pas de force-push ni de suppression.
-- Jamais de `git push --force` sur `main` ; sur sa propre branche, `--force-with-lease` seulement.
-- Avant chaque commit : aucun secret dans `git diff --staged`, `.gitignore` intact, build + tests + format OK.
+- `main` must **always build** and produce a working installer.
+- One branch per task: `feat/schedules`, `fix/ad-tree`, `docs/spec-reboot`…
+- Commits in Conventional Commits format, with the description in English, in the present tense (`feat: weekly trigger`,
+  `fix: …`, `docs: …`, `test: …`, `chore: …`). One commit = one logical change. Never a vague message.
+  Commit messages, PRs and issues are written in English.
+- PR to `main` with: the `PARITE.md` rows concerned, what was tested, screenshots for the interface.
+  Update `PARITE.md` (and `SPEC.md` if needed) **in the PR**.
+- **Who decides**: the maintainer's Claude sessions (GitHub account `vzeol`) manage the repository from A to Z.
+  They review PRs, request fixes, merge and publish themselves, always through a PR
+  (never a direct commit to `main`) and with CI green. Every other contributor, human or AI,
+  proposes through a PR. Merge as "squash".
+- `main` is protected on GitHub: PR required, CI (`build`) green and branch up to date to merge,
+  including for administrators; no force-push or deletion.
+- Never `git push --force` on `main`; on your own branch, `--force-with-lease` only.
+- Before each commit: no secret in `git diff --staged`, `.gitignore` intact, build + tests + format OK.
 
-## 7. Conventions de code
+## 7. Code conventions
 
-- Suivre le style du code autour : C# moderne, noms de code en anglais, **interface, messages et
-  commentaires en français**. Peu de commentaires, et seulement pour expliquer *pourquoi*.
-- Messages d'erreur : lisibles par un technicien, avec la cause probable
-  (« Accès refusé au partage ADMIN$ de PC01 : le compte de déploiement est-il admin de ce poste ? »).
-- Base SQLite : nouvelles colonnes via `AddColumnIfMissing` dans `Store.Migrate()`. Une base
-  existante ne doit jamais perdre de données. Structures imbriquées rangées en JSON.
-- API : routes dans `src/DeployCraft.Server/Program.cs`, client dans `src/DeployCraft.Console/ApiClient.cs`.
-- Runner : .NET Framework 4.8 **sans dépendance externe**. L'échange avec le serveur passe par
-  `job.json` / `status.json` : modifier en même temps `Runner/Job.cs` et `Server/Remote/RunnerContract.cs`.
-- Console : jamais de couleur en dur. Ajouter la clé dans `Themes/Clair.xaml` **et** `Themes/Sombre.xaml`,
-  l'utiliser en `{DynamicResource …}` (sinon elle ne suit pas le changement de thème), et vérifier la
-  fenêtre dans les deux thèmes. Un style implicite d'un contrôle standard s'appuie sur celui de Fluent
-  (`BasedOn="{StaticResource {x:Type TextBox}}"`, voir `Themes/Styles.xaml`).
-- Pas de nouvelle dépendance NuGet sans raison valable (expliquée dans la PR). Versions figées par
-  `packages.lock.json` (commité ; régénéré par `dotnet restore` quand une dépendance change).
-- Format : `dotnet format DeployCraft.slnx` avant de commiter (règles dans `.editorconfig`, vérifié par la CI).
-- Scripts `.ps1` enregistrés en **UTF-8 avec BOM** (sinon Windows PowerShell 5.1 casse les accents).
+- Follow the style of the surrounding code: modern C#, code names in English, **comments and test
+  messages in English**; UI texts are French for now (English UI: issue #120).
+  Few comments, and only to explain *why*.
+- Error messages: readable by a technician, with the probable cause
+  ("Access denied to the ADMIN$ share of PC01: is the deployment account an admin of this computer?").
+- SQLite database: new columns via `AddColumnIfMissing` in `Store.Migrate()`. An existing
+  database must never lose data. Nested structures stored as JSON.
+- API: routes in `src/DeployCraft.Server/Program.cs`, client in `src/DeployCraft.Console/ApiClient.cs`.
+- Runner: .NET Framework 4.8 **with no external dependency**. Exchange with the server goes through
+  `job.json` / `status.json`: change `Runner/Job.cs` and `Server/Remote/RunnerContract.cs` together.
+- Console: never a hard-coded color. Add the key in `Themes/Clair.xaml` **and** `Themes/Sombre.xaml`,
+  use it as `{DynamicResource …}` (otherwise it does not follow the theme change), and check the
+  window in both themes. An implicit style for a standard control builds on the Fluent one
+  (`BasedOn="{StaticResource {x:Type TextBox}}"`, see `Themes/Styles.xaml`).
+- No new NuGet dependency without a good reason (explained in the PR). Versions pinned by
+  `packages.lock.json` (committed; regenerated by `dotnet restore` when a dependency changes).
+- Format: `dotnet format DeployCraft.slnx` before committing (rules in `.editorconfig`, checked by CI).
+- `.ps1` scripts saved as **UTF-8 with BOM** (otherwise Windows PowerShell 5.1 breaks accents).
 
-## 8. Version et publication
+## 8. Version and release
 
-Numéro `MAJEUR.MINEUR.CORRECTIF` : nouvelle fonction → mineur, correction → correctif.
+Number `MAJOR.MINOR.PATCH`: new feature → minor, fix → patch.
 
 ```powershell
 .\build.ps1 -Version 0.7.0                  # → dist\DeployCraft-Setup-0.7.0.exe
@@ -154,16 +156,16 @@ git tag v0.7.0 ; git push origin v0.7.0
 gh release create v0.7.0 dist\DeployCraft-Setup-0.7.0.exe --title "DeployCraft 0.7.0" --notes "…"
 ```
 
-La release est faite après la fusion dans `main`, par les sessions du mainteneur.
-Puis mettre à jour `HANDOFF.md` (version actuelle, à tester, suite).
+The release is made after the merge into `main`, by the maintainer's sessions.
+Then update `HANDOFF.md` (current version, to test, next steps).
 
-## 9. Travailler avec Claude Code
+## 9. Working with Claude Code
 
-Claude Code lit `CLAUDE.md` tout seul en ouvrant le dépôt. En début de session, lui demander
-de lire `HANDOFF.md`, `PARITE.md` et ce guide. Les mêmes règles s'appliquent à lui :
-réalisation indépendante, aucune information interne, une branche par tâche, ne jamais manipuler
-de mot de passe. Le Claude d'un contributeur a les mêmes droits que lui : il propose par PR,
-il ne fusionne pas. Les règles complètes sont dans `CLAUDE.md`.
+Claude Code reads `CLAUDE.md` on its own when opening the repository. At the start of a session, ask it
+to read `HANDOFF.md`, `PARITE.md` and this guide. The same rules apply to it:
+independent implementation, no internal information, one branch per task, never handle
+a password. A contributor's Claude has the same rights as they do: it proposes through a PR,
+it does not merge. The complete rules are in `CLAUDE.md`.
 
-En fin de session : mettre à jour `HANDOFF.md` (où on en est, ce qui reste) pour que la
-personne suivante, humaine ou IA, reprenne sans rien deviner.
+At the end of a session: update `HANDOFF.md` (where we stand, what remains) so that the
+next person, human or AI, can pick up without guessing.

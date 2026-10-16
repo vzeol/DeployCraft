@@ -54,7 +54,7 @@ from scratch.
 - New DeployCraft versions offered at startup, installed in one click
 - Light or dark theme
 
-Full list and status of each feature (in French): [`PARITE.md`](PARITE.md).
+Full list and status of each feature: [`PARITE.md`](PARITE.md).
 
 ## Requirements
 
@@ -107,8 +107,8 @@ No `.env` file: the service is set with command-line options (or `appsettings.js
 ## Contributing
 
 Contributions are welcome: reports, ideas, code. Before your first commit, read
-[`CONTRIBUTING.md`](CONTRIBUTING.md) (isolated test instance, branches, PRs, rules) and [`CLAUDE.md`](CLAUDE.md)
-(both in French; issues and pull requests in English are welcome).
+[`CONTRIBUTING.md`](CONTRIBUTING.md) (isolated test instance, branches, PRs, rules) and [`CLAUDE.md`](CLAUDE.md).
+Issues can be written in English or French.
 
 Requirements: .NET 10 SDK and Inno Setup 6.
 
