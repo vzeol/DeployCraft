@@ -26,6 +26,7 @@
     <Compile Include="..\DeployCraft.Server\Data\StepWarnings.cs" Link="Shared\StepWarnings.cs" />
     <Compile Include="..\DeployCraft.Server\Data\HomeSummary.cs" Link="Shared\HomeSummary.cs" />
     <Compile Include="..\DeployCraft.Server\Data\HelpContent.cs" Link="Shared\HelpContent.cs" />
+    <Compile Include="..\DeployCraft.Server\Data\PackageDetails.cs" Link="Shared\PackageDetails.cs" />
   </ItemGroup>
 
   <!-- Aide intégrée (Aide › Aide de DeployCraft, F1). -->

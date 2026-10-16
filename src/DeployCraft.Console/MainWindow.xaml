@@ -373,6 +373,25 @@
                         <TabItem>
                             <TabItem.Header>
                                 <StackPanel Orientation="Horizontal" Margin="4,2">
+                                    <TextBlock Text="&#xE946;" FontFamily="{StaticResource IconFont}" Foreground="{DynamicResource Accent}" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                    <TextBlock Text="Détails" />
+                                </StackPanel>
+                            </TabItem.Header>
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel>
+                                    <Grid x:Name="PackageDetailsGrid">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="180" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                    </Grid>
+                                    <TextBlock Margin="0,12,0,0"><Hyperlink Click="EditPackage_Click">Modifier ces réglages…</Hyperlink></TextBlock>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+                        <TabItem>
+                            <TabItem.Header>
+                                <StackPanel Orientation="Horizontal" Margin="4,2">
                                     <TextBlock Text="&#xE81C;" FontFamily="{StaticResource IconFont}" Foreground="{DynamicResource Accent}" Margin="0,0,6,0" VerticalAlignment="Center" />
                                     <TextBlock Text="Déploiements" />
                                 </StackPanel>
@@ -391,6 +410,7 @@
                                     <DataGridTextColumn Header="N°" Binding="{Binding Number}" Width="40" />
                                     <DataGridTextColumn Header="Étape" Binding="{Binding Name}" Width="220" />
                                     <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="100" />
+                                    <DataGridTextColumn Header="Conditions" Binding="{Binding Conditions}" Width="90" />
                                     <DataGridTextColumn Header="Détails" Binding="{Binding Details}" Width="*" />
                                 </DataGrid.Columns>
                             </DataGrid>

@@ -17,7 +17,7 @@ dans la même PR que le code qui la réalise.
 |---|---|---|---|
 | 1.1 | Arbre de navigation à gauche : Paquets, Listes de cibles, Planifications, Tous les déploiements, File de réessai | ✅ | Paquets, déploiements, planifications (0.8.0). Listes de cibles et file de réessai écartées (choix du mainteneur) |
 | 1.2 | Dossiers dans l'arbre (paquets et listes de cibles), sous-dossiers, glisser-déposer | ✅ | Dossiers et sous-dossiers de paquets (Ctrl+Maj+F), renommer, supprimer un dossier vide, glisser-déposer des paquets et des dossiers. Listes de cibles écartées (1.1) |
-| 1.3 | Page d'un paquet : détails, étapes, déploiements du paquet, planifications attachées | 🟡 | Onglet Planifications en 0.8.0 |
+| 1.3 | Page d'un paquet : détails, étapes, déploiements du paquet, planifications attachées | ✅ | Onglet Planifications en 0.8.0 ; onglet Détails (version, dossier, réglages avec leur origine, conditions, hors ligne, paquets qui l'utilisent) et colonne Conditions des étapes |
 | 1.4 | Page d'un dossier, page « plusieurs paquets sélectionnés » | ❌ | Écarté : choix du mainteneur |
 | 1.5 | Renommer (F2), dupliquer, couper / copier / coller, supprimer dans l'arbre | ✅ | Paquets : couper, copier, coller (Ctrl+X / C / V) vers un dossier ; dossiers : couper / coller |
 | 1.6 | Apparence d'un nœud de l'arbre (couleur / mise en forme) | ⬜ | Avec la reprise de l'apparence générale, après les fonctions (choix du mainteneur) |
