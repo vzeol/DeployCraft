@@ -1,0 +1,63 @@
+name: Signaler un problème
+description: Quelque chose ne marche pas comme prévu (déploiement, console, service, installeur).
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci de prendre le temps de signaler ce problème. Plus la description est précise, plus vite il sera corrigé.
+        **N'écrivez ici aucune information sensible** : mot de passe, nom de votre domaine, de vos serveurs ou de vos postes
+        (remplacez-les par `DOMAINE.LOCAL`, `SERVEUR-01`, `PC-TEST-01`).
+        Une faille de sécurité ? Ne la signalez pas ici : voir [SECURITY.md](../blob/main/SECURITY.md).
+  - type: input
+    id: version
+    attributes:
+      label: Version de DeployCraft
+      description: Menu Aide › À propos (bouton « Copier les informations »).
+      placeholder: 1.0.0-rc.1
+    validations:
+      required: true
+  - type: input
+    id: server
+    attributes:
+      label: Windows du serveur
+      placeholder: Windows Server 2022, Windows 11 23H2…
+    validations:
+      required: true
+  - type: input
+    id: targets
+    attributes:
+      label: Windows des postes concernés
+      description: Si le problème touche un déploiement.
+      placeholder: Windows 11 24H2, Windows 10 22H2…
+  - type: textarea
+    id: steps
+    attributes:
+      label: Ce que vous avez fait
+      description: Les étapes pour reproduire le problème.
+      placeholder: |
+        1. Paquet avec une étape Installer (fichier .msi)
+        2. Déployer une fois sur un poste
+        3. …
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Ce qui s'est passé
+      description: Message d'erreur exact, statut du poste, sortie de l'étape (Détail des étapes › copier la sortie). Une capture d'écran aide beaucoup.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Ce que vous attendiez
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Journal du service (facultatif)
+      description: Observateur d'événements › Journaux Windows › Application, entrées liées à DeployCraft. Relisez-les pour retirer les noms internes.
+      render: text
