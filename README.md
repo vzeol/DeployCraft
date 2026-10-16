@@ -50,7 +50,7 @@ Prérequis : SDK .NET 10 et Inno Setup 6.
 dotnet build DeployCraft.slnx                    # compiler
 dotnet test DeployCraft.slnx                     # tests automatiques
 dotnet format DeployCraft.slnx                   # mise en forme
-.\build.ps1 -Version 0.9.0                       # installeur → dist\
+.\build.ps1 -Version 1.0.0                       # installeur → dist\
 ```
 
 Instance de test isolée, branches, PR et règles : **`CONTRIBUTING.md`** (à lire avant le premier commit)
