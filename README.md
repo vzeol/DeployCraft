@@ -11,9 +11,10 @@ indépendante, écrite de zéro.
 
 Paquets multi-étapes (installeur, commande, PowerShell, copie de fichiers, pause, redémarrage, message, paquet imbriqué) avec conditions (version de
 Windows, fichier, registre…), étapes désactivables, compte d'exécution par étape, « Déployer une fois » sur des postes saisis ou choisis dans
-l'Active Directory, suivi en direct poste par poste, planifications (réessai en boucle jusqu'à réussite), réveil
-Wake-on-LAN et nouveaux essais des postes hors ligne, identifiants multiples, accès à la console réservé aux comptes autorisés, nettoyage automatique de l'historique,
-export et import de paquets, thème clair / sombre. Liste complète et état : `PARITE.md`.
+l'Active Directory (noms vérifiés dans le DNS), suivi en direct poste par poste avec la progression des copies, planifications (réessai en boucle jusqu'à réussite), réveil
+Wake-on-LAN et nouveaux essais des postes hors ligne, postes en parallèle et débit des copies réglables, identifiants multiples, accès à la console réservé aux comptes autorisés, nettoyage automatique de l'historique,
+export et import de paquets, bibliothèque de paquets prêts à l'emploi avec mise à jour automatique, assistant de premier démarrage, aide intégrée,
+mise à jour de DeployCraft proposée au démarrage, thème clair / sombre. Liste complète et état : `PARITE.md`.
 
 ## Installation (sur un serveur du domaine)
 
@@ -49,7 +50,7 @@ Prérequis : SDK .NET 10 et Inno Setup 6.
 dotnet build DeployCraft.slnx                    # compiler
 dotnet test DeployCraft.slnx                     # tests automatiques
 dotnet format DeployCraft.slnx                   # mise en forme
-.\build.ps1 -Version 0.9.0                       # installeur → dist\
+.\build.ps1 -Version 1.0.0                       # installeur → dist\
 ```
 
 Instance de test isolée, branches, PR et règles : **`CONTRIBUTING.md`** (à lire avant le premier commit)
