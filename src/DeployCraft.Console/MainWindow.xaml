@@ -75,6 +75,7 @@
                 <MenuItem Header="Re_nommer le paquet" Click="Rename_Click" InputGestureText="F2" x:Name="MenuRename" />
             </MenuItem>
             <MenuItem Header="_Affichage" x:Name="MenuView">
+                <MenuItem Header="A_ccueil" Click="ViewHome_Click" InputGestureText="Ctrl+0" />
                 <MenuItem Header="Tous les _déploiements" Click="ViewDeployments_Click" InputGestureText="Ctrl+1" />
                 <MenuItem Header="Toutes les _planifications" Click="ViewSchedules_Click" InputGestureText="Ctrl+2" />
                 <MenuItem Header="_Bibliothèque de paquets" Click="ViewLibrary_Click" InputGestureText="Ctrl+3" />

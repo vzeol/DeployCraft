@@ -52,6 +52,13 @@ en Mbit/s, 0 = sans limite), page Préférences › Déploiement. `SlotQueue.Res
 copies du serveur vers les postes passent par `BandwidthLimiter.Copies.CopyFile`. Tests : `PerformanceTests`,
 `SlotQueueTests`. Ensuite : #103 (4.4, progression de copie), PR séparée.
 
+## Point de reprise (White Room, 16/10 midi)
+
+Les 9 PR de la bêta (#82 à #98) sont fusionnées après validation du mainteneur, avec ses 4 corrections (menu
+Affichage unique, assistant non modal, Entrée ne ferme plus l'assistant, dossier de bibliothèque choisi dans une
+fenêtre Windows). Ouvertes : #100 (Accueil dans le menu Affichage) et #101 (vérification DNS des postes, 3.4),
+à montrer au mainteneur. Suite : sujets qui dépendent du domaine, avec Claude Prod. Pas de 0.15.0 sans son accord.
+
 ## Point de reprise (White Room, nuit du 16/10)
 
 Fusionnées sur `main` depuis la 0.14.0 : bibliothèque de paquets (#66), À propos (#67), correctifs #60 (#68), #69 (#71)

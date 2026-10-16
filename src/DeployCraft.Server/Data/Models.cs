@@ -598,3 +598,6 @@ public static class Defaults
     /// <summary>OK, OK + redémarrage lancé, OK + redémarrage requis, mise à jour MSU déjà installée.</summary>
     public const string SuccessCodes = "0,1641,3010,2359302";
 }
+
+/// <summary>Résultat de la vérification d'un nom de poste dans le DNS (fenêtre Déployer une fois).</summary>
+public record NameCheckResult(string Name, bool Found, string? DnsName, string? Error);
