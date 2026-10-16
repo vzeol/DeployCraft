@@ -68,6 +68,7 @@ public static class Api
     public static Task<LibraryInfo> LibraryStatus() => Get<LibraryInfo>("library/status");
     public static Task RefreshLibrary() => Send<object>(HttpMethod.Post, "library/refresh");
     public static Task SetLibraryFolder(string folder) => Send<object>(HttpMethod.Put, "library/folder", new { folder });
+    public static Task SetLibraryAutoUpdate(LibraryAutoUpdate mode, int days) => Send<object>(HttpMethod.Put, "library/auto-update", new { mode, days });
     /// <summary>Lance le téléchargement en arrière-plan ; la progression se lit dans <see cref="Library"/>.</summary>
     public static Task DownloadFromLibrary(string id) => Send<object>(HttpMethod.Post, "library/download", new { id });
 

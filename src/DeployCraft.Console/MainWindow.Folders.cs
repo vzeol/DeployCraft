@@ -60,7 +60,18 @@ public partial class MainWindow
             // Un paquet dont le dossier n'existe plus est affiché à la racine.
             foreach (var p in shown.Where(p => p.FolderId == folderId || folderId == null && p.FolderId is { } f && !known.Contains(f)))
             {
-                var node = new TreeViewItem { Header = Ui.Header(Ui.IconPackage, p.Name), Tag = p };
+                var header = Ui.Header(Ui.IconPackage, p.Name);
+                if (_libraryUpdates.Contains(p.Id))
+                    header.Children.Add(new TextBlock
+                    {
+                        Text = Ui.IconUpdate,
+                        FontFamily = Ui.IconFont,
+                        Margin = new Thickness(6, 0, 0, 0),
+                        VerticalAlignment = VerticalAlignment.Center,
+                        Foreground = (Brush)FindResource("Accent"),
+                        ToolTip = "Nouvelle version disponible dans la bibliothèque de paquets",
+                    });
+                var node = new TreeViewItem { Header = header, Tag = p };
                 parent.Items.Add(node);
                 if (p.Id == selectId) node.IsSelected = true;
                 any = true;

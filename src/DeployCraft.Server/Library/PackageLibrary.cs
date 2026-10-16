@@ -18,7 +18,7 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
     private const string CatalogRaw = "https://raw.githubusercontent.com/microsoft/winget-pkgs/master/";
     /// <summary>Résultats affichés au plus pour une recherche.</summary>
     private const int SearchLimit = 1000;
-    /// <summary>L'index est relu de lui-même quand la console l'affiche et qu'il a plus d'un jour.</summary>
+    /// <summary>L'index est relu de lui-même quand il a plus d'un jour (vérifié chaque heure, et quand la console l'affiche).</summary>
     private static readonly TimeSpan MaxAge = TimeSpan.FromDays(1);
 
     private static readonly HttpClient Http = CreateClient();
@@ -89,6 +89,8 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
                 LastRefreshUtc = state.LastRefreshUtc,
                 Refreshing = _refreshing,
                 RefreshError = state.RefreshError,
+                AutoUpdate = state.AutoUpdate,
+                AutoUpdateDays = state.AutoUpdateDays,
                 CatalogCount = count,
                 Items = entries.Select(e => Item(e, state)).ToList(),
             };
@@ -141,17 +143,52 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
         return null;
     }
 
+    public const int MinAutoUpdateDays = 1;
+    public const int MaxAutoUpdateDays = 90;
+
+    /// <summary>Mise à jour des paquets de la bibliothèque : manuelle, dès la nouvelle version, ou après quelques jours.</summary>
+    public string? SetAutoUpdate(LibraryAutoUpdate mode, int days)
+    {
+        if (!Enum.IsDefined(mode)) return "Mode de mise à jour inconnu.";
+        if (days is < MinAutoUpdateDays or > MaxAutoUpdateDays)
+            return $"Le délai doit être compris entre {MinAutoUpdateDays} et {MaxAutoUpdateDays} jours.";
+        lock (_lock)
+        {
+            var state = Load();
+            state.AutoUpdate = mode;
+            state.AutoUpdateDays = days;
+            Save(state);
+        }
+        return null;
+    }
+
     // ---------- Lecture du catalogue ----------
 
     /// <summary>Relit l'index en arrière-plan (sans effet si une lecture est déjà en cours).</summary>
     public void StartRefresh()
     {
+        if (TryStartRefresh()) _ = Task.Run(RefreshAsync);
+    }
+
+    /// <summary>
+    /// Passage du service (chaque heure) : relit l'index s'il a plus d'un jour, même si personne n'ouvre la console.
+    /// Les mises à jour automatiques suivent chaque lecture réussie.
+    /// </summary>
+    public async Task RefreshIfStaleAsync()
+    {
+        var state = Load();
+        if (_index.Exists && state.LastRefreshUtc is { } last && DateTime.UtcNow - last <= MaxAge) return;
+        if (TryStartRefresh()) await RefreshAsync();
+    }
+
+    private bool TryStartRefresh()
+    {
         lock (_lock)
         {
-            if (_refreshing) return;
+            if (_refreshing) return false;
             _refreshing = true;
+            return true;
         }
-        _ = Task.Run(RefreshAsync);
     }
 
     /// <summary>
@@ -194,6 +231,39 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
             Save(state);
             _refreshing = false;
         }
+        if (error == null) await StartAutoUpdatesAsync(DateTime.UtcNow);
+    }
+
+    /// <summary>Lance la mise à jour des paquets dont la nouvelle version est due, selon le réglage.</summary>
+    private async Task StartAutoUpdatesAsync(DateTime nowUtc)
+    {
+        var state = Load();
+        if (state.AutoUpdate == LibraryAutoUpdate.Manual) return;
+        var latest = _index.Get(state.Links.Keys);
+        foreach (var (id, link) in state.Links)
+        {
+            if (store.GetPackage(link.PackageId) == null || latest.GetValueOrDefault(id) is not { } e) continue;
+            var seen = state.Entries.GetValueOrDefault(id) is { } entry && entry.Version == e.Version ? entry.SeenUtc : null;
+            if (!IsUpdateDue(state.AutoUpdate, state.AutoUpdateDays, link.Version, e.Version, seen, nowUtc)) continue;
+            log.LogInformation("Mise à jour automatique de {App} : {Old} → {New}", e.Name, link.Version, e.Version);
+            if (await StartDownloadAsync(id) is { } error)
+                lock (_lock)
+                {
+                    var current = Load();
+                    current.Errors[id] = error;
+                    Save(current);
+                }
+        }
+    }
+
+    /// <summary>
+    /// Une nouvelle version est à installer d'elle-même : tout de suite, ou une fois le délai passé depuis que le
+    /// catalogue l'a fait connaître (date inconnue : version lue avant ce réglage, donc déjà ancienne).
+    /// </summary>
+    internal static bool IsUpdateDue(LibraryAutoUpdate mode, int days, string current, string latest, DateTime? seenUtc, DateTime nowUtc)
+    {
+        if (mode == LibraryAutoUpdate.Manual || CatalogManifest.CompareVersions(latest, current) <= 0) return false;
+        return mode == LibraryAutoUpdate.Immediate || seenUtc == null || nowUtc - seenUtc.Value >= TimeSpan.FromDays(days);
     }
 
     /// <summary>Fiche d'installation de la dernière version : installeur retenu, ou raison de son absence.</summary>
@@ -202,10 +272,10 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
         var url = $"{CatalogRaw}{Escape(LibraryCatalog.ManifestFolder(e.Id))}/{Escape(e.Version)}/{Escape(e.Id)}.installer.yaml";
         using var response = await Http.GetAsync(url);
         if (response.StatusCode == HttpStatusCode.NotFound)
-            return new LibraryEntry { Version = e.Version, Problem = "fiche d'installation introuvable dans le catalogue." };
+            return new LibraryEntry { Version = e.Version, Problem = "fiche d'installation introuvable dans le catalogue.", SeenUtc = DateTime.UtcNow };
         response.EnsureSuccessStatusCode();
         var installer = CatalogManifest.Choose(await response.Content.ReadAsStringAsync(), out var problem);
-        return new LibraryEntry { Version = e.Version, Installer = installer, Problem = problem };
+        return new LibraryEntry { Version = e.Version, Installer = installer, Problem = problem, SeenUtc = DateTime.UtcNow };
     }
 
     private static string Escape(string path) => string.Join('/', path.Split('/').Select(Uri.EscapeDataString));
@@ -442,6 +512,8 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
         public string? Folder { get; set; }
         public DateTime? LastRefreshUtc { get; set; }
         public string? RefreshError { get; set; }
+        public LibraryAutoUpdate AutoUpdate { get; set; }
+        public int AutoUpdateDays { get; set; } = 3;
         public Dictionary<string, LibraryEntry> Entries { get; set; } = [];
         public Dictionary<string, LibraryLink> Links { get; set; } = [];
         public Dictionary<string, string> Errors { get; set; } = [];
@@ -452,6 +524,8 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
         public string? Version { get; set; }
         public LibraryInstaller? Installer { get; set; }
         public string? Problem { get; set; }
+        /// <summary>Première lecture de cette version (point de départ du délai des mises à jour automatiques).</summary>
+        public DateTime? SeenUtc { get; set; }
     }
 
     private sealed class LibraryLink

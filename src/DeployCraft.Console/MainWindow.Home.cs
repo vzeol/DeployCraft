@@ -38,6 +38,7 @@ public partial class MainWindow
         try
         {
             var library = await Api.LibraryStatus();
+            ShowLibraryUpdates(library);
             var updates = library.Items.Count(i => i.UpdateAvailable);
             var downloaded = library.Items.Count(i => i.PackageId != null);
             HomeLibraryText.Text = downloaded == 0 ? "Aucun paquet téléchargé depuis la bibliothèque pour l'instant."

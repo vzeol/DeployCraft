@@ -1,5 +1,8 @@
+using DeployCraft.Server.Data;
 using DeployCraft.Server.Library;
+using DeployCraft.Server.Remote;
 using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DeployCraft.Tests;
 
@@ -174,4 +177,47 @@ public class LibraryTests
     [Fact]
     public void SafeName_RemovesForbiddenCharacters() =>
         Assert.Equal("Notepad++ 8_9", PackageLibrary.SafeName("Notepad++ 8:9"));
+
+    private static readonly DateTime Now = new(2026, 10, 16, 12, 0, 0, DateTimeKind.Utc);
+
+    [Fact]
+    public void AutoUpdate_Manual_NeverUpdates() =>
+        Assert.False(PackageLibrary.IsUpdateDue(LibraryAutoUpdate.Manual, 3, "1.0", "2.0", Now.AddDays(-30), Now));
+
+    [Fact]
+    public void AutoUpdate_Immediate_UpdatesOnlyANewerVersion()
+    {
+        Assert.True(PackageLibrary.IsUpdateDue(LibraryAutoUpdate.Immediate, 3, "1.0", "1.1", Now, Now));
+        Assert.False(PackageLibrary.IsUpdateDue(LibraryAutoUpdate.Immediate, 3, "1.1", "1.1", Now, Now));
+        Assert.False(PackageLibrary.IsUpdateDue(LibraryAutoUpdate.Immediate, 3, "1.10", "1.9", Now, Now));
+    }
+
+    [Fact]
+    public void AutoUpdate_Delayed_WaitsForTheDelay()
+    {
+        Assert.False(PackageLibrary.IsUpdateDue(LibraryAutoUpdate.Delayed, 3, "1.0", "1.1", Now.AddDays(-2), Now));
+        Assert.True(PackageLibrary.IsUpdateDue(LibraryAutoUpdate.Delayed, 3, "1.0", "1.1", Now.AddDays(-3), Now));
+        // Version lue avant le réglage : sa date est inconnue, elle compte comme ancienne.
+        Assert.True(PackageLibrary.IsUpdateDue(LibraryAutoUpdate.Delayed, 3, "1.0", "1.1", null, Now));
+    }
+
+    [Fact]
+    public void AutoUpdate_Setting_IsChecked()
+    {
+        var dir = Directory.CreateTempSubdirectory("dc-tests-").FullName;
+        try
+        {
+            var store = new Store(Path.Combine(dir, "test.db"));
+            var library = new PackageLibrary(store, new DeployCredentials(store), dir, NullLogger<PackageLibrary>.Instance);
+            Assert.Null(library.SetAutoUpdate(LibraryAutoUpdate.Delayed, 7));
+            Assert.NotNull(library.SetAutoUpdate(LibraryAutoUpdate.Delayed, 0));
+            Assert.NotNull(library.SetAutoUpdate(LibraryAutoUpdate.Delayed, PackageLibrary.MaxAutoUpdateDays + 1));
+            Assert.NotNull(library.SetAutoUpdate((LibraryAutoUpdate)42, 3));
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            Directory.Delete(dir, recursive: true);
+        }
+    }
 }
