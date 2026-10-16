@@ -143,7 +143,7 @@
 
         <Grid x:Name="MainArea">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="250" MinWidth="180" />
+                <ColumnDefinition x:Name="NavColumn" Width="250" MinWidth="180" MaxWidth="800" />
                 <ColumnDefinition Width="5" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
@@ -156,7 +156,9 @@
                           MouseDoubleClick="Nav_MouseDoubleClick" Padding="2,4" />
             </DockPanel>
 
-            <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Background="Transparent" />
+            <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Style="{StaticResource NavSplitter}"
+                          DragCompleted="NavSplitter_DragCompleted" MouseDoubleClick="NavSplitter_DoubleClick"
+                          ToolTip="Faire glisser pour élargir ou réduire l'arbre (double-clic : largeur d'origine)" />
 
             <Grid Grid.Column="2" Margin="6,8,10,8">
 
