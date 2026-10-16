@@ -123,7 +123,7 @@ dans la même PR que le code qui la réalise.
 
 | # | Section | État | Contenu |
 |---|---|---|---|
-| 8.1 | Comptes | 🟡 | 0.9.0 : Options › Identifiants, plusieurs comptes (domaine ou local `.\utilisateur`), description, compte par défaut, test auprès du domaine ; choisis dans Déployer une fois et les planifications. Reste : LAPS (mot de passe admin local de chaque poste lu dans l'AD, fonction Microsoft) |
+| 8.1 | Comptes | 🟡 | 0.9.0 : Options › Identifiants, plusieurs comptes (domaine ou local `.\utilisateur`), description, compte par défaut, test auprès du domaine ; choisis dans Déployer une fois et les planifications. Reste : LAPS (mot de passe admin local de chaque poste lu dans l'AD, fonction Microsoft), après la v1 (#106) |
 | 8.2 | Variables | ❌ | Écarté : choix du mainteneur (ajoutées en 0.12.0, retirées ensuite ; un `$(…)` reste tel quel) |
 | 8.3 | Déploiement | ✅ | 0.10.0 : exécuter en tant que, délai par étape, comportement hors ligne par défaut ; nettoyage de l'historique (4.8) |
 | 8.4 | Performance | 🟡 | 0.10.0 : mode de copie par défaut. Reste : limite de bande passante, postes en parallèle (aujourd'hui fixé à 8) |
@@ -131,7 +131,7 @@ dans la même PR que le code qui la réalise.
 | 8.6 | Filtres de cibles | ❌ | Écarté : choix du mainteneur (cf. 6.3) |
 | 8.7 | Serveur de messagerie + notifications | ❌ | Écarté : choix du mainteneur |
 | 8.8 | Interface, impression | ✅ | 0.7.0 : page Interface (thème) ; fenêtre des Préférences en liste de pages. Impression écartée (choix du mainteneur) |
-| 8.9 | Service en arrière-plan | ⬜ | Compte du service |
+| 8.9 | Service en arrière-plan | ⛔ | Compte du service : en attente, décision du mainteneur (16/10) ; repris seulement si le besoin se présente. Aujourd'hui le service tourne en Système local et utilise le compte de déploiement pour les postes et les partages |
 | 8.10 | Utilisateurs de la console, sessions actives | ✅ | Authentification Windows ; administrateurs du serveur + liste de comptes et groupes |
 | 8.11 | Mode serveur central (local / serveur / client) | ❌ | Écarté : choix du mainteneur (console et service sur la même machine) |
 | 8.12 | Service sur la cible | ❌ | Écarté : choix du mainteneur |
