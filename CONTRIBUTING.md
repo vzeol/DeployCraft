@@ -9,16 +9,16 @@ DeployCraft is a free (GPL v3) tool for deploying software across a Windows flee
 a Windows service on a domain server, a WPF console, and a small runner temporarily copied
 to each computer. Deliverable: **a single installer**.
 
-Current goal: cover the features expected from a deployment tool of this kind (`PARITE.md`),
+Current goal: cover the features expected from a deployment tool of this kind (`docs/FEATURES.md`),
 then sort things out at the end.
 
 Repository documents:
 
 | File | Content |
 |---|---|
-| `HANDOFF.md` | Project state, what remains to be tested, resume point |
-| `PARITE.md` | List of features, with their status: **this is the task list** |
-| `SPEC.md` | Specification: what DeployCraft does and how |
+| `docs/STATUS.md` | Project status, what remains to be tested, resume point |
+| `docs/FEATURES.md` | List of features, with their status: **this is the task list** |
+| `docs/SPEC.md` | Specification: what DeployCraft does and how |
 | `CONTRIBUTING.md` | This guide |
 | `CLAUDE.md` | Instructions loaded automatically by Claude Code (apply to everyone) |
 
@@ -26,8 +26,8 @@ Repository documents:
 
 DeployCraft is written from scratch. We **never** reuse the code, icons, logo, images,
 texts or files of another piece of software. Labels are written in our own words.
-Approach: describe the desired behavior in `SPEC.md` → code **from the spec**.
-Observing other tools in operation and citing their features (`PARITE.md`) is allowed; describing their
+Approach: describe the desired behavior in `docs/SPEC.md` → code **from the spec**.
+Observing other tools in operation and citing their features (`docs/FEATURES.md`) is allowed; describing their
 internal workings or reusing their texts and visuals is not.
 Our visual identity: orange accent, Windows icons (Segoe Fluent / MDL2).
 
@@ -82,11 +82,11 @@ service) is tested by hand on the isolated instance: the PR says how.
 
 ## 5. Choose a task
 
-1. Take one or more ⬜ / 🟡 rows from `PARITE.md`, preferably in the same block
+1. Take one or more ⬜ / 🟡 rows from `docs/FEATURES.md`, preferably in the same block
    (e.g. "5. Schedules").
 2. Open a **GitHub issue** titled with the numbers (`[5.1–5.3] Schedules: page + triggers`)
    and assign it to yourself: this is what prevents two people working on the same thing.
-3. If the desired behavior is not yet in `SPEC.md`: describe it first
+3. If the desired behavior is not yet in `docs/SPEC.md`: describe it first
    (in the same PR).
 
 ## 6. Branches, commits, PRs
@@ -114,8 +114,8 @@ resolve any conflicts, re-test, push.
 - Commits in Conventional Commits format, with the description in English, in the present tense (`feat: weekly trigger`,
   `fix: …`, `docs: …`, `test: …`, `chore: …`). One commit = one logical change. Never a vague message.
   Commit messages, PRs and issues are written in English.
-- PR to `main` with: the `PARITE.md` rows concerned, what was tested, screenshots for the interface.
-  Update `PARITE.md` (and `SPEC.md` if needed) **in the PR**.
+- PR to `main` with: the `docs/FEATURES.md` rows concerned, what was tested, screenshots for the interface.
+  Update `docs/FEATURES.md` (and `docs/SPEC.md` if needed) **in the PR**.
 - **Who decides**: the maintainer's Claude sessions (GitHub account `vzeol`) manage the repository from A to Z.
   They review PRs, request fixes, merge and publish themselves, always through a PR
   (never a direct commit to `main`) and with CI green. Every other contributor, human or AI,
@@ -157,15 +157,15 @@ gh release create v0.7.0 dist\DeployCraft-Setup-0.7.0.exe --title "DeployCraft 0
 ```
 
 The release is made after the merge into `main`, by the maintainer's sessions.
-Then update `HANDOFF.md` (current version, to test, next steps).
+Then update `docs/STATUS.md` (current version, to test, next steps).
 
 ## 9. Working with Claude Code
 
 Claude Code reads `CLAUDE.md` on its own when opening the repository. At the start of a session, ask it
-to read `HANDOFF.md`, `PARITE.md` and this guide. The same rules apply to it:
+to read `docs/STATUS.md`, `docs/FEATURES.md` and this guide. The same rules apply to it:
 independent implementation, no internal information, one branch per task, never handle
 a password. A contributor's Claude has the same rights as they do: it proposes through a PR,
 it does not merge. The complete rules are in `CLAUDE.md`.
 
-At the end of a session: update `HANDOFF.md` (where we stand, what remains) so that the
+At the end of a session: update `docs/STATUS.md` (where we stand, what remains) so that the
 next person, human or AI, can pick up without guessing.

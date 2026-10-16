@@ -14,7 +14,7 @@
 
 [Download](https://github.com/vzeol/DeployCraft/releases) ·
 [Report an issue](https://github.com/vzeol/DeployCraft/issues/new/choose) ·
-[Features](PARITE.md) ·
+[Features](docs/FEATURES.md) ·
 [Contribute](CONTRIBUTING.md)
 
 ![DeployCraft console: following deployments](docs/console.png)
@@ -25,8 +25,8 @@ DeployCraft is a **free and open-source** tool (GPL v3) for system administrator
 Windows console, and a small program copied to each computer only for the time of a deployment, then removed.
 Nothing has to be installed on the computers beforehand.
 
-Its layout is inspired by deployment tools on the market such as PDQ Deploy; it is an independent work, written
-from scratch.
+Its layout follows the habits of the deployment tools on the market; it is an independent work, written from
+scratch.
 
 > The console is in **French** for now. An English version of the console is planned after 1.0.0. Menu names below
 > are given in French, with their meaning in English.
@@ -54,7 +54,7 @@ from scratch.
 - New DeployCraft versions offered at startup, installed in one click
 - Light or dark theme
 
-Full list and status of each feature: [`PARITE.md`](PARITE.md).
+Full list and status of each feature: [`docs/FEATURES.md`](docs/FEATURES.md).
 
 ## Requirements
 
@@ -126,9 +126,9 @@ dotnet format DeployCraft.slnx                   # formatting
 | `src/DeployCraft.Runner` | .NET Framework 4.8 runner, run as a temporary service on the computers |
 | `tests/DeployCraft.Tests` | Automated tests |
 | `installer/` | Inno Setup script |
-| `SPEC.md` | Functional specification |
-| `PARITE.md` | Feature list and status: the task list |
-| `HANDOFF.md` | Project status and where to pick up |
+| [`docs/SPEC.md`](docs/SPEC.md) | Functional specification |
+| [`docs/FEATURES.md`](docs/FEATURES.md) | Feature list and status: the task list |
+| [`docs/STATUS.md`](docs/STATUS.md) | Project status and where to pick up |
 
 ## License
 
@@ -137,6 +137,3 @@ Copyright (C) 2026 vzeol.
 DeployCraft is free software: you can redistribute it and/or modify it under the terms of the
 **GNU General Public License version 3** (see [`LICENSE`](LICENSE)). It comes **without any warranty**: try it on
 test computers first.
-
-PDQ Deploy is a trademark of PDQ.com Corporation. DeployCraft is not affiliated with PDQ.com and is neither endorsed
-nor supported by it.
