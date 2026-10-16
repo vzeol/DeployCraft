@@ -1,0 +1,26 @@
+name: Proposer une amélioration
+description: Une fonction qui manque, ou quelque chose qui pourrait être plus simple.
+title: "[Idée] "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Avant de proposer, jetez un œil à [PARITE.md](../blob/main/PARITE.md) : la fonction est peut-être déjà prévue, ou écartée avec sa raison.
+  - type: textarea
+    id: need
+    attributes:
+      label: Le besoin
+      description: Ce que vous voulez faire sur votre parc, et ce qui vous en empêche aujourd'hui.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Ce que vous imaginez
+      description: Comment vous verriez la chose dans la console (facultatif).
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Comment vous faites aujourd'hui
+      description: Contournement actuel, s'il y en a un (facultatif).
