@@ -131,8 +131,8 @@ dans la même PR que le code qui la réalise.
 | 8.6 | Filtres de cibles | ❌ | Écarté : choix du mainteneur (cf. 6.3) |
 | 8.7 | Serveur de messagerie + notifications | ❌ | Écarté : choix du mainteneur |
 | 8.8 | Interface, impression | ✅ | 0.7.0 : page Interface (thème) ; fenêtre des Préférences en liste de pages. Impression écartée (choix du mainteneur) |
-| 8.9 | Service en arrière-plan | ⛔ | Compte du service : en attente, décision du mainteneur (16/10) ; repris seulement si le besoin se présente. Aujourd'hui le service tourne en Système local et utilise le compte de déploiement pour les postes et les partages |
-| 8.10 | Utilisateurs de la console, sessions actives | ✅ | Authentification Windows ; administrateurs du serveur + liste de comptes et groupes |
+| 8.9 | Service en arrière-plan | ✅ | Options › Service en arrière-plan : état, redémarrage, ouverture des services Windows, compte du service (Système local ou compte administrateur du serveur, changé depuis la console du serveur) |
+| 8.10 | Utilisateurs de la console, sessions actives | ✅ | Authentification Windows ; administrateurs du serveur + liste de comptes et groupes ; onglet Sessions actives (compte, poste, dernière activité) |
 | 8.11 | Mode serveur central (local / serveur / client) | ❌ | Écarté : choix du mainteneur (console et service sur la même machine) |
 | 8.12 | Service sur la cible | ❌ | Écarté : choix du mainteneur |
 | 8.13 | Proxy, base de données, journalisation | ❌ | Écarté : choix du mainteneur |

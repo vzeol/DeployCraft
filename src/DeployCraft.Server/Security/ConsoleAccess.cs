@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Net;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Text.Json;
@@ -10,8 +11,8 @@ namespace DeployCraft.Server.Security;
 /// <summary>Compte ou groupe Windows autorisé à utiliser la console, retenu par son SID (insensible aux renommages).</summary>
 public record ConsoleUser(string Sid, string Name);
 
-/// <summary>Compte connecté au service et heure de sa dernière demande.</summary>
-public record ConsoleSession(string User, DateTime LastSeenUtc);
+/// <summary>Console connectée au service : compte, poste d'où elle se connecte, heure de sa dernière demande.</summary>
+public record ConsoleSession(string User, string Computer, DateTime LastSeenUtc);
 
 /// <summary>
 /// Qui a le droit d'utiliser le service : les administrateurs locaux du serveur (toujours, pour qu'on ne puisse pas
@@ -25,7 +26,10 @@ public class ConsoleAccess(Store store)
     public static readonly TimeSpan SessionTimeout = TimeSpan.FromMinutes(2);
 
     private const string SettingKey = "console.users";
+    // Clé : « compte|adresse » (une même personne peut ouvrir la console sur deux postes).
     private readonly ConcurrentDictionary<string, DateTime> _sessions = new(StringComparer.OrdinalIgnoreCase);
+    // Nom des postes d'après leur adresse, cherché une fois dans le DNS (l'adresse s'affiche en attendant).
+    private readonly ConcurrentDictionary<string, string> _computers = new();
 
     public List<ConsoleUser> ListUsers() =>
         store.GetSetting(SettingKey) is { } json ? JsonSerializer.Deserialize<List<ConsoleUser>>(json, Store.Json) ?? [] : [];
@@ -76,13 +80,35 @@ public class ConsoleAccess(Store store)
     public static bool IsAllowed(IReadOnlySet<string> sids, IEnumerable<ConsoleUser> users) =>
         IsServerAdmin(sids) || users.Any(u => sids.Contains(u.Sid));
 
-    public void Seen(string user) => _sessions[user] = DateTime.UtcNow;
+    /// <param name="address">Adresse de la console (null ou boucle locale : la console du serveur lui-même).</param>
+    public void Seen(string user, IPAddress? address = null)
+    {
+        var key = address == null || IPAddress.IsLoopback(address) ? "" : address.ToString();
+        _sessions[$"{user}|{key}"] = DateTime.UtcNow;
+        if (key.Length > 0 && _computers.TryAdd(key, key)) _ = ResolveAsync(address!, key);
+    }
+
+    private async Task ResolveAsync(IPAddress address, string key)
+    {
+        try
+        {
+            var name = (await Dns.GetHostEntryAsync(address)).HostName;
+            if (!string.IsNullOrWhiteSpace(name)) _computers[key] = name.Split('.')[0].ToUpperInvariant();
+        }
+        catch (System.Net.Sockets.SocketException) { /* l'adresse reste affichée */ }
+    }
 
     public List<ConsoleSession> ActiveSessions()
     {
         var limit = DateTime.UtcNow - SessionTimeout;
         foreach (var old in _sessions.Where(s => s.Value < limit).ToList()) _sessions.TryRemove(old);
-        return _sessions.Select(s => new ConsoleSession(s.Key, s.Value)).OrderBy(s => s.User, StringComparer.OrdinalIgnoreCase).ToList();
+        return _sessions.Select(s =>
+            {
+                var cut = s.Key.LastIndexOf('|');
+                var address = s.Key[(cut + 1)..];
+                return new ConsoleSession(s.Key[..cut], address.Length == 0 ? Environment.MachineName : _computers.GetValueOrDefault(address, address), s.Value);
+            })
+            .OrderBy(s => s.User, StringComparer.OrdinalIgnoreCase).ThenBy(s => s.Computer, StringComparer.OrdinalIgnoreCase).ToList();
     }
 
     /// <summary>
@@ -106,7 +132,7 @@ public class ConsoleAccess(Store store)
             });
             return;
         }
-        Seen(name);
+        Seen(name, context.Connection.RemoteIpAddress);
         await next();
     }
 }
