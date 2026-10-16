@@ -126,7 +126,7 @@ dans la même PR que le code qui la réalise.
 | 8.1 | Comptes | 🟡 | 0.9.0 : Options › Identifiants, plusieurs comptes (domaine ou local `.\utilisateur`), description, compte par défaut, test auprès du domaine ; choisis dans Déployer une fois et les planifications. Reste : LAPS (mot de passe admin local de chaque poste lu dans l'AD, fonction Microsoft), après la v1 (#106) |
 | 8.2 | Variables | ❌ | Écarté : choix du mainteneur (ajoutées en 0.12.0, retirées ensuite ; un `$(…)` reste tel quel) |
 | 8.3 | Déploiement | ✅ | 0.10.0 : exécuter en tant que, délai par étape, comportement hors ligne par défaut ; nettoyage de l'historique (4.8) |
-| 8.4 | Performance | 🟡 | 0.10.0 : mode de copie par défaut. Reste : limite de bande passante, postes en parallèle (aujourd'hui fixé à 8) |
+| 8.4 | Performance | ✅ | 0.10.0 : mode de copie par défaut. Postes en parallèle réglables (1 à 100, 8 par défaut) et limite de débit des copies vers les postes (Mbit/s, partagée par toutes les copies en cours) dans Préférences › Déploiement |
 | 8.5 | Dépôt de fichiers (`$(Repository)`) | ❌ | Écarté : choix du mainteneur (les fichiers sont sur un partage du serveur) |
 | 8.6 | Filtres de cibles | ❌ | Écarté : choix du mainteneur (cf. 6.3) |
 | 8.7 | Serveur de messagerie + notifications | ❌ | Écarté : choix du mainteneur |

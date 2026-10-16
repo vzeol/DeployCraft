@@ -48,6 +48,9 @@ public partial class SettingsWindow : Window
         foreach (var mode in Enum.GetValues<CopyMode>())
             DefaultCopyModeBox.Items.Add(new ComboBoxItem { Content = Ui.CopyModeText(mode), Tag = mode, IsSelected = _defaults.CopyMode == mode });
         DefaultTimeoutBox.Text = _defaults.TimeoutMinutes.ToString();
+        _defaults.Performance ??= new();
+        ParallelBox.Text = _defaults.Performance.ParallelTargets.ToString();
+        CopyLimitBox.Text = _defaults.Performance.CopyLimitMbps.ToString();
         CleanupBox.IsChecked = _defaults.History.Cleanup;
         CleanupDaysBox.Text = _defaults.History.KeepDays.ToString();
         DefaultOffline.Load(_defaults.Offline);
@@ -69,6 +72,20 @@ public partial class SettingsWindow : Window
             return;
         }
         _defaults.TimeoutMinutes = timeout;
+
+        var performance = new PerformanceSettings
+        {
+            ParallelTargets = int.TryParse(ParallelBox.Text.Trim(), out var parallel) ? parallel : 0,
+            CopyLimitMbps = int.TryParse(CopyLimitBox.Text.Trim(), out var limit) ? limit : -1,
+        };
+        if (PerformanceSettings.Validate(performance) is { } performanceError)
+        {
+            e.Cancel = true;
+            Tabs.SelectedIndex = 1;
+            MessageDialog.Show(this, char.ToUpper(performanceError[0]) + performanceError[1..], "Préférences", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        _defaults.Performance = performance;
 
         // Case décochée : un nombre de jours illisible n'empêche pas de fermer, on garde la dernière valeur valide.
         var cleanup = CleanupBox.IsChecked == true;

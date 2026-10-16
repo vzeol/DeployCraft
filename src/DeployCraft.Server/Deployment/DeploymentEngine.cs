@@ -7,12 +7,12 @@ namespace DeployCraft.Server.Deployment;
 
 /// <summary>
 /// File d'attente des déploiements. Chaque PC est traité indépendamment,
-/// avec au plus <see cref="Defaults.MaxParallelTargets"/> PCs en parallèle (prioritaires d'abord).
+/// avec au plus <see cref="PerformanceSettings.ParallelTargets"/> PCs en parallèle (prioritaires d'abord).
 /// </summary>
 public class DeploymentEngine(Store store, DeployCredentials credentials, ILogger<DeploymentEngine> log) : BackgroundService
 {
     private readonly Channel<long> _queue = Channel.CreateUnbounded<long>();
-    private readonly SlotQueue _slots = new(Defaults.MaxParallelTargets);
+    private readonly SlotQueue _slots = new(new PerformanceSettings().ParallelTargets);
     private readonly string _runnerExe = Path.Combine(AppContext.BaseDirectory, "runner", "DeployCraft.Runner.exe");
 
     /// <summary>Postes en attente ou en cours, par id de cible, pour pouvoir les annuler.</summary>
@@ -23,6 +23,17 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
 
     /// <summary>Cible du paquet précédent sur le même poste (plusieurs paquets lancés ensemble).</summary>
     private readonly ConcurrentDictionary<long, long> _after = new();
+
+    /// <summary>
+    /// Applique les réglages de performance des Préférences : à chaque lancement et à chaque enregistrement. Les postes
+    /// déjà en cours continuent ; une baisse ne prend effet qu'à mesure qu'ils se terminent.
+    /// </summary>
+    public void ApplyPerformance(PerformanceSettings? settings)
+    {
+        settings ??= new();
+        _slots.Resize(Math.Clamp(settings.ParallelTargets, 1, PerformanceSettings.MaxParallel));
+        BandwidthLimiter.Copies.BytesPerSecond = BandwidthLimiter.FromMbps(Math.Clamp(settings.CopyLimitMbps, 0, PerformanceSettings.MaxCopyLimit));
+    }
 
     /// <summary>
     /// Lance un déploiement par paquet, dans l'ordre donné. Sur un même poste, un paquet ne commence
@@ -62,6 +73,7 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
         var account = credential?.Account ?? "Compte du service";
 
         var defaults = store.GetDefaults();
+        ApplyPerformance(defaults.Performance);
         var deployments = new List<Data.Deployment>();
         var previous = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
         foreach (var (original, packageTargets) in plan.Where(p => p.Targets.Count > 0))
@@ -111,6 +123,7 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
         store.FailInterrupted();
+        ApplyPerformance(store.GetDefaults().Performance);
         if (!File.Exists(_runnerExe)) log.LogError("Runner introuvable : {Path}", _runnerExe);
 
         await foreach (var id in _queue.Reader.ReadAllAsync(ct))

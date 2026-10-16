@@ -334,9 +334,9 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
 
         AcquireSlot();
         var exec = Directory.CreateDirectory(Path.Combine(SlotDir, "exec")).FullName;
-        File.Copy(runnerExe, Path.Combine(SlotDir, RunnerName), overwrite: true);
+        BandwidthLimiter.Copies.CopyFile(runnerExe, Path.Combine(SlotDir, RunnerName));
         var config = runnerExe + ".config";
-        if (File.Exists(config)) File.Copy(config, Path.Combine(SlotDir, RunnerName + ".config"), overwrite: true);
+        if (File.Exists(config)) BandwidthLimiter.Copies.CopyFile(config, Path.Combine(SlotDir, RunnerName + ".config"));
 
         var job = new RunnerJob { Conditions = RunnerConditions.From(package.Conditions), FirstNumber = startStep };
         var modes = new List<RunAsMode>();
@@ -367,7 +367,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 // Push : le fichier est lu par le serveur (avec le compte de déploiement s'il est sur un partage).
                 if (!File.Exists(step.File)) throw new DeployException($"Fichier d'installation introuvable : {step.File}");
                 if (step.IncludeDirectory) CopyDirectory(Path.GetDirectoryName(step.File)!, exec);
-                else File.Copy(step.File, Path.Combine(exec, Path.GetFileName(step.File)), overwrite: true);
+                else BandwidthLimiter.Copies.CopyFile(step.File, Path.Combine(exec, Path.GetFileName(step.File)));
             }
             else if (step.Type == StepType.Reboot && step.Enabled && _isLocal)
                 throw new DeployException($"Étape « {jobStep.Name} » : DeployCraft ne redémarre pas le serveur sur lequel il tourne.");
@@ -400,7 +400,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         Directory.CreateDirectory(target);
         if (File.Exists(source))
         {
-            File.Copy(source, Path.Combine(target, Path.GetFileName(source)), overwrite: true);
+            BandwidthLimiter.Copies.CopyFile(source, Path.Combine(target, Path.GetFileName(source)));
             return;
         }
         if (!Directory.Exists(source)) throw new DeployException($"Fichier ou dossier à copier introuvable : {source}");
@@ -415,7 +415,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
             {
                 var destination = Path.Combine(target, Path.GetRelativePath(source, file));
                 Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
-                File.Copy(file, destination, overwrite: true);
+                BandwidthLimiter.Copies.CopyFile(file, destination);
             }
     }
 
@@ -436,7 +436,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 continue;
             }
             if (!File.Exists(file)) throw new DeployException($"Étape « {jobStep.Name} » : fichier additionnel introuvable : {file}");
-            File.Copy(file, Path.Combine(exec, Path.GetFileName(file)), overwrite: true);
+            BandwidthLimiter.Copies.CopyFile(file, Path.Combine(exec, Path.GetFileName(file)));
         }
     }
 
@@ -663,7 +663,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         foreach (var dir in Directory.EnumerateDirectories(source, "*", SearchOption.AllDirectories))
             Directory.CreateDirectory(Path.Combine(destination, Path.GetRelativePath(source, dir)));
         foreach (var file in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
-            File.Copy(file, Path.Combine(destination, Path.GetRelativePath(source, file)), overwrite: true);
+            BandwidthLimiter.Copies.CopyFile(file, Path.Combine(destination, Path.GetRelativePath(source, file)));
     }
 
     public static List<int> ParseCodes(string? codes)

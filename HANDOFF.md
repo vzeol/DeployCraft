@@ -43,6 +43,15 @@ grisé, donc le thème ne peut pas changer sans service.
 
 **Fenêtre À propos (PARITE 1.13, branche `feat/a-propos`)** : versions de la console et du service, compte connecté, licence GPL v3, liens vers le projet et la licence, bouton « Copier les informations ». Vue par le mainteneur sur une instance de test ; ne dépend pas du domaine.
 
+## En cours (Cloud, 16/10) : 8.4 performance (issue #102), relu par Prod
+
+Branche `feat/performance`. `PerformanceSettings` dans `DeploymentDefaults` (postes en parallèle 1–100, limite de copie
+en Mbit/s, 0 = sans limite), page Préférences › Déploiement. `SlotQueue.Resize` (capacité modifiable en route) et
+`BandwidthLimiter.Copies` (seau à jetons partagé, `Remote/BandwidthLimiter.cs`) appliqués par
+`DeploymentEngine.ApplyPerformance` au démarrage, à l'enregistrement des Préférences et à chaque lancement. Toutes les
+copies du serveur vers les postes passent par `BandwidthLimiter.Copies.CopyFile`. Tests : `PerformanceTests`,
+`SlotQueueTests`. Ensuite : #103 (4.4, progression de copie), PR séparée.
+
 ## Point de reprise (White Room, 16/10 midi)
 
 Les 9 PR de la bêta (#82 à #98) sont fusionnées après validation du mainteneur, avec ses 4 corrections (menu
