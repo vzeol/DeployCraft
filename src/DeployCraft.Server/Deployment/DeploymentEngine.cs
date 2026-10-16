@@ -200,6 +200,7 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
             // Hors ligne : nouvel essai plus tard si le paquet le prévoit (le créneau est rendu pendant l'attente).
             var offline = deployment.Snapshot.Offline ?? new OfflineSettings();
             var attempts = offline.Retry ? Math.Max(1, offline.RetryAttempts) : 1;
+            IReadOnlyList<int>? earlierRuns = null;
             for (var attempt = 1; ; attempt++)
             {
                 try
@@ -220,7 +221,7 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
                                 store.SaveComputerNetwork(target.Computer, cards.Select(c => new NetworkCard(c.Mac, c.Broadcast)).ToList());
                                 networkSaved = true;
                             }
-                            target.Steps = ToOutcomes(status);
+                            target.Steps = ToOutcomes(status, earlierRuns);
                             store.UpdateTarget(target);
                         },
                         cts.Token);
@@ -228,6 +229,8 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
                 }
                 catch (DeployException ex) when (ex.Offline && attempt < attempts)
                 {
+                    // Les étapes déjà passées pendant cet essai comptent dans les exécutions de l'essai suivant.
+                    earlierRuns = [.. target.Steps.Select(s => s.Runs)];
                     _slots.Release();
                     slotTaken = false;
                     var next = DateTime.Now.AddMinutes(Math.Max(1, offline.RetryIntervalMinutes));
@@ -340,7 +343,8 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
         }
     }
 
-    private static List<StepOutcome> ToOutcomes(RunnerStatus status) =>
+    /// <param name="earlierRuns">Exécutions des essais précédents sur ce poste, par position d'étape.</param>
+    internal static List<StepOutcome> ToOutcomes(RunnerStatus status, IReadOnlyList<int>? earlierRuns = null) =>
         status.Steps.Select(s => new StepOutcome
         {
             Name = s.Name,
@@ -351,5 +355,9 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
             Error = s.Error,
             StartedUtc = s.StartedUtc?.ToUniversalTime(),
             EndedUtc = s.EndedUtc?.ToUniversalTime(),
+        }).Select((o, i) =>
+        {
+            o.Runs = (earlierRuns != null && i < earlierRuns.Count ? earlierRuns[i] : 0) + (o.Ran ? 1 : 0);
+            return o;
         }).ToList();
 }

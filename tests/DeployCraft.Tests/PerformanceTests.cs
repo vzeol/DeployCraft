@@ -17,7 +17,7 @@ public sealed class PerformanceTests : IDisposable
 
     /// <summary>Limiteur sur une horloge simulée : chaque attente fait avancer l'horloge, sans attendre pour de vrai.</summary>
     private BandwidthLimiter Limiter(long bytesPerSecond) =>
-        new(() => _now, wait => _now += wait) { BytesPerSecond = bytesPerSecond };
+        new(() => _now, (wait, _) => _now += wait) { BytesPerSecond = bytesPerSecond };
 
     [Fact]
     public void Copy_TakesAsLongAsTheLimitRequires()
@@ -60,6 +60,25 @@ public sealed class PerformanceTests : IDisposable
         Assert.Equal(start, _now);
         limiter.Take(500_000);   // ensuite, le débit redevient la limite
         Assert.InRange((_now - start).TotalSeconds, 0.49, 0.51);
+    }
+
+    [Fact]
+    public void Cancel_StopsTheCopyBetweenTwoChunks()
+    {
+        using var cts = new CancellationTokenSource();
+        var waits = 0;
+        var limiter = new BandwidthLimiter(() => _now, (wait, _) =>
+        {
+            _now += wait;
+            if (++waits == 3) cts.Cancel(); // annulation pendant la 3e attente
+        })
+        { BytesPerSecond = 1_000_000 };
+        var output = new MemoryStream();
+
+        Assert.Throws<OperationCanceledException>(() => limiter.Copy(new MemoryStream(new byte[10_000_000]), output, ct: cts.Token));
+
+        // Arrêt juste après l'attente annulée : 2 morceaux écrits sur 39, au lieu de toute la copie.
+        Assert.Equal(2 * 256 * 1024, output.Length);
     }
 
     [Fact]

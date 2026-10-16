@@ -41,6 +41,8 @@
                     </DataGridTemplateColumn>
                     <DataGridTextColumn Header="Code retour" Binding="{Binding ReturnCode}" Width="Auto" MinWidth="100" />
                     <DataGridTextColumn Header="Durée" Binding="{Binding Duration}" Width="80" />
+                    <DataGridTextColumn Header="Exécutions" Binding="{Binding Runs}" Width="Auto" MinWidth="80" />
+                    <DataGridTextColumn Header="Note" Binding="{Binding Note}" Width="*" MinWidth="160" />
                     <DataGridTextColumn Header="Commande" Binding="{Binding CommandLine}" Width="*" />
                 </DataGrid.Columns>
             </DataGrid>

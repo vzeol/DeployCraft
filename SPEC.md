@@ -395,6 +395,22 @@ déploiements possibles en même temps sur un poste.
   N) », créneau rendu pendant l'attente ; échec après le dernier essai. Annulable ; un redémarrage du service
   abandonne les essais en attente. Seules les erreurs « hors ligne » sont réessayées.
 
+### Suivi d'un poste : copie, exécutions, note
+- **Progression de la copie** (mode push) : le serveur liste d'abord tous les fichiers à copier vers le poste
+  (runner, installeurs, fichiers additionnels, fichiers des étapes « copie de fichiers »), puis les copie d'un bloc.
+  L'étape en cours du poste affiche « Copie des fichiers : 45 % (12,3 Mo/s) » : octets copiés sur le total et débit
+  sur les 3 dernières secondes (1 Mo = 1 024 Ko), mis à jour une fois par seconde (rien n'est écrit en base à chaque
+  morceau). En mode pull, le poste lit le partage lui-même : seul « Copie des fichiers » s'affiche.
+- **Exécutions** (détail des étapes d'un poste) : nombre de fois où l'étape a tourné sur ce poste **dans ce
+  déploiement**, nouveaux essais compris (poste hors ligne réessayé plus tard). Une étape ignorée compte 0. Un
+  redéploiement est un nouveau déploiement, avec son propre compte.
+- **Note** : court message sur le résultat de l'étape (première ligne, 160 caractères au plus) : raison d'une étape
+  ignorée, erreur ou code hors des codes de succès, arrêt du paquet en succès, réussite qui demande un redémarrage
+  (3010, 1641) ou mise à jour déjà installée (2359302). Les autres codes de succès (par exemple 1 pour une copie de
+  fichiers) n'ont pas de note. Calculée à l'affichage, pas enregistrée.
+- **Annulation pendant la copie** : la copie s'arrête entre deux morceaux (ou pendant l'attente imposée par la limite
+  de débit), puis le slot est nettoyé avec le fichier à moitié copié.
+
 ## 4. Informations à afficher
 
 | Objet | Informations |

@@ -7,7 +7,8 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Console;
 
-public record StepDetailRow(int Number, string Name, string Status, string ReturnCode, string Duration, string CommandLine, StepOutcome? Outcome);
+public record StepDetailRow(int Number, string Name, string Status, string ReturnCode, string Duration, string Runs, string Note,
+    string CommandLine, StepOutcome? Outcome);
 
 /// <summary>Détail des étapes exécutées sur un poste : statut, code retour, durée, sortie.</summary>
 public partial class StepsWindow : Window
@@ -39,6 +40,9 @@ public partial class StepsWindow : Window
                 outcome?.State ?? (j < 0 || target.Status == TargetStatus.Failed ? "skipped" : "Queued"),
                 outcome?.ExitCode?.ToString() ?? "",
                 outcome?.State == "skipped" ? "" : Ui.Duration(outcome?.StartedUtc, outcome?.EndedUtc),
+                // Déploiements antérieurs au compteur : une étape passée compte pour une exécution.
+                outcome == null ? "" : Math.Max(outcome.Runs, outcome.Ran ? 1 : 0).ToString(),
+                outcome?.Note ?? "",
                 outcome?.CommandLine ?? outcome?.Error ?? "",
                 outcome);
         }).ToList();
