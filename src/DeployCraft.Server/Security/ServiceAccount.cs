@@ -84,6 +84,15 @@ public class ServiceAccount(ILogger<ServiceAccount> log)
             if (!Win32.LogonUser(user, domain, password, Win32.LOGON32_LOGON_NETWORK, Win32.LOGON32_PROVIDER_DEFAULT, out var check))
                 return $"Compte ou mot de passe refusé : {Win32.LastError("ouverture de session").Message}";
             check.Dispose();
+            // Contrôle avant tout changement : un compte refusé ne reçoit aucun droit sur le serveur. L'ouverture de
+            // session « tâche planifiée » donne le jeton complet (sans le filtrage du contrôle de compte d'utilisateur)
+            // et n'est permise d'usine qu'aux administrateurs.
+            if (!Win32.LogonUser(user, domain, password, Win32.LOGON32_LOGON_BATCH, Win32.LOGON32_PROVIDER_DEFAULT, out var token))
+                return $"{name} n'est pas administrateur de ce serveur : le service ne pourrait ni lire ses données ni déployer.";
+            using (token)
+            using (var identity = new WindowsIdentity(token.DangerousGetHandle()))
+                if (!new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator))
+                    return $"{name} n'est pas administrateur de ce serveur : le service ne pourrait ni lire ses données ni déployer.";
             try
             {
                 GrantServiceLogon(new NTAccount(domain ?? "", user));
@@ -92,12 +101,6 @@ public class ServiceAccount(ILogger<ServiceAccount> log)
             {
                 return $"Droit « ouvrir une session en tant que service » non accordé : {ex.Message}";
             }
-            if (!Win32.LogonUser(user, domain, password, Win32.LOGON32_LOGON_SERVICE, Win32.LOGON32_PROVIDER_DEFAULT, out var token))
-                return $"Le compte ne peut pas ouvrir de session en tant que service : {Win32.LastError("ouverture de session").Message}";
-            using (token)
-            using (var identity = new WindowsIdentity(token.DangerousGetHandle()))
-                if (!new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator))
-                    return $"{name} n'est pas administrateur de ce serveur : le service ne pourrait ni lire ses données ni déployer.";
             serviceName = name;
         }
 

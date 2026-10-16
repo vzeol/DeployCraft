@@ -9,7 +9,7 @@ internal static partial class Win32
     public const uint SERVICE_NO_CHANGE = 0xFFFFFFFF;
     public const uint SC_MANAGER_CONNECT = 0x0001;
 
-    public const int LOGON32_LOGON_SERVICE = 5;
+    public const int LOGON32_LOGON_BATCH = 4;
 
     public const uint POLICY_CREATE_ACCOUNT = 0x0010;
     public const uint POLICY_LOOKUP_NAMES = 0x0800;
