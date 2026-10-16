@@ -104,7 +104,7 @@ Pas de fichier `.env` : le service se règle par options de ligne de commande (o
 ## Contribuer
 
 Les contributions sont les bienvenues : signalements, idées, code. Avant le premier commit, lire
-[`CONTRIBUTING.md`](CONTRIBUTING.md) (instance de test isolée, branches, PR, règles) et [`CLAUDE.md`](CLAUDE.md).
+[`CONTRIBUTING.md`](CONTRIBUTING.md) (instance de test isolée, branches, PR, règles).
 
 Prérequis : SDK .NET 10 et Inno Setup 6.
 

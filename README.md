@@ -107,7 +107,7 @@ No `.env` file: the service is set with command-line options (or `appsettings.js
 ## Contributing
 
 Contributions are welcome: reports, ideas, code. Before your first commit, read
-[`CONTRIBUTING.md`](CONTRIBUTING.md) (isolated test instance, branches, PRs, rules) and [`CLAUDE.md`](CLAUDE.md).
+[`CONTRIBUTING.md`](CONTRIBUTING.md) (isolated test instance, branches, PRs, rules).
 Issues can be written in English or French.
 
 Requirements: .NET 10 SDK and Inno Setup 6.

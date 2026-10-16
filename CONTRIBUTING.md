@@ -1,7 +1,7 @@
 # Contributing to DeployCraft
 
-Procedure for anyone taking part in development, human or AI (Claude Code).
-Read it in full before the first commit. The complete rules are also in `CLAUDE.md`.
+Procedure for anyone taking part in development, whether or not they work with an AI coding assistant.
+Read it in full before the first commit.
 
 ## 1. What we are building
 
@@ -93,7 +93,7 @@ service) is tested by hand on the isolated instance: the PR says how.
 
 In short: everyone works on **their own branch** (their copy of the project) and proposes their changes
 through a **pull request** (PR). Nothing enters `main` without review: nobody breaks
-the work of others, and two people (or a person and Claude) can move forward at the same time.
+the work of others, and several people can move forward at the same time.
 
 ```powershell
 git switch main ; git pull                 # start from the latest version
@@ -116,10 +116,9 @@ resolve any conflicts, re-test, push.
   Commit messages, PRs and issues are written in English.
 - PR to `main` with: the `docs/FEATURES.md` rows concerned, what was tested, screenshots for the interface.
   Update `docs/FEATURES.md` (and `docs/SPEC.md` if needed) **in the PR**.
-- **Who decides**: the maintainer's Claude sessions (GitHub account `vzeol`) manage the repository from A to Z.
-  They review PRs, request fixes, merge and publish themselves, always through a PR
-  (never a direct commit to `main`) and with CI green. Every other contributor, human or AI,
-  proposes through a PR. Merge as "squash".
+- **Who decides**: the maintainer (GitHub account `vzeol`), helped by AI coding assistants. They review PRs,
+  request fixes, merge and publish, always through a PR (never a direct commit to `main`) and with CI
+  green. Every other contributor proposes through a PR. Merge as "squash".
 - `main` is protected on GitHub: PR required, CI (`build`) green and branch up to date to merge,
   including for administrators; no force-push or deletion.
 - Never `git push --force` on `main`; on your own branch, `--force-with-lease` only.
@@ -159,12 +158,11 @@ gh release create v0.7.0 dist\DeployCraft-Setup-0.7.0.exe --title "DeployCraft 0
 The release is made after the merge into `main`, by the maintainer's sessions.
 Then update `docs/STATUS.md` (current version, to test, next steps).
 
-## 9. Working with Claude Code
+## 9. Working with an AI coding assistant
 
-Claude Code reads `CLAUDE.md` on its own when opening the repository. At the start of a session, ask it
-to read `docs/STATUS.md`, `docs/FEATURES.md` and this guide. The same rules apply to it:
-independent implementation, no internal information, one branch per task, never handle
-a password. A contributor's Claude has the same rights as they do: it proposes through a PR,
+AI assistants are welcome. Claude Code reads `CLAUDE.md` on its own when opening the repository. At the start
+of a session, ask it to read `docs/STATUS.md`, `docs/FEATURES.md` and this guide. The same rules apply to it:
+independent implementation, no internal information, one branch per task, never handle a password. A contributor's assistant has the same rights as they do: it proposes through a PR,
 it does not merge. The complete rules are in `CLAUDE.md`.
 
 At the end of a session: update `docs/STATUS.md` (where we stand, what remains) so that the
