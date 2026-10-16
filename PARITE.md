@@ -69,7 +69,7 @@ dans la même PR que le code qui la réalise.
 | 3.1 | Plusieurs paquets, ordonnés | ✅ | 0.6.0 : un déploiement par paquet ; sur un poste, le suivant attend la fin du précédent (même en échec) |
 | 3.2 | Cibles : saisie, collage, Active Directory | ✅ | Arbre AD dépliable (0.5.1) |
 | 3.3 | Cibles : liste de cibles, fichier texte | ✅ | Fichier texte en 0.6.0. Listes de cibles écartées (choix du mainteneur) : les postes se choisissent dans l'AD |
-| 3.4 | Résolution DNS des noms saisis (vérification en direct) | ⬜ | |
+| 3.4 | Résolution DNS des noms saisis (vérification en direct) | ✅ | Déployer une fois : chaque poste ajouté est cherché dans le DNS du serveur (sablier, coche ou croix ; nom complet en info-bulle) ; n'empêche pas de déployer |
 | 3.5 | Démarrer à l'étape N, **par poste** | ✅ | 0.6.0 ; porte sur le premier paquet. « Reprendre à l'étape en échec » = un seul déploiement |
 | 3.6 | Options : compte, mode de copie, exécuter en tant que | ✅ | 0.6.0 ; identifiant au choix en 0.9.0 ; « Paramètre du paquet » par défaut. Compte de déploiement / Système local / Utilisateur connecté ; push / pull (UNC) |
 | 3.7 | Options : notifications, mémoriser les cibles, prioritaire | ✅ | Mémoriser + prioritaire en 0.6.0. Notifications écartées (choix du mainteneur) |
