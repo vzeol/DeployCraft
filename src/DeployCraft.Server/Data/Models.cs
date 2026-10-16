@@ -462,6 +462,18 @@ public class PackageFolder
         return null;
     }
 
+    /// <summary>Nom d'une copie collée dans un dossier : le même s'il est libre, sinon « Nom (copie) », « Nom (copie 2) »…</summary>
+    public static string CopyName(string name, IEnumerable<string> namesInFolder)
+    {
+        var taken = namesInFolder.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if (!taken.Contains(name)) return name;
+        for (var n = 1; ; n++)
+        {
+            var candidate = n == 1 ? $"{name} (copie)" : $"{name} (copie {n})";
+            if (!taken.Contains(candidate)) return candidate;
+        }
+    }
+
     /// <summary>Erreur à afficher si le dossier n'est pas vide (seul un dossier vide se supprime).</summary>
     public static string? CheckDelete(long id, IEnumerable<PackageFolder> all, IEnumerable<Package> packages) =>
         all.Any(f => f.ParentId == id) || packages.Any(p => p.FolderId == id)

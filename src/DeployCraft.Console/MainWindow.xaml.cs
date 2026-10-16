@@ -189,6 +189,9 @@ public partial class MainWindow : Window
             (Key.Insert, _, _, true) => () => Duplicate_Click(this, e),
             (Key.OemComma, true, _, _) => () => Settings_Click(this, e),
             (Key.F2, _, _, _) when Keyboard.Modifiers == ModifierKeys.None => () => Rename_Click(this, e),
+            (Key.X, true, _, _) when TreeHasFocus => () => CutOrCopyNode(cut: true),
+            (Key.C, true, _, _) when TreeHasFocus => () => CutOrCopyNode(cut: false),
+            (Key.V, true, _, _) when TreeHasFocus => () => _ = PasteNodeAsync(),
             (Key.Delete, _, _, _) when Keyboard.Modifiers == ModifierKeys.None => () => Delete_Click(this, e),
             _ => null,
         };
@@ -230,6 +233,9 @@ public partial class MainWindow : Window
                     new("Déployer une fois…", () => DeployOnce_Click(this, new()), Gesture: "Ctrl+D"),
                     new("Modifier…", () => EditPackage_Click(this, new()), Gesture: "Ctrl+O"),
                     Ui.Separator,
+                    new("Couper", () => CutOrCopyNode(cut: true), Gesture: "Ctrl+X"),
+                    new("Copier", () => CutOrCopyNode(cut: false), Gesture: "Ctrl+C"),
+                    new("Coller", () => _ = PasteNodeAsync(), CanPaste, "Ctrl+V"),
                     new("Dupliquer", () => Duplicate_Click(this, new()), Gesture: "Alt+Inser"),
                     new("Renommer", () => Rename_Click(this, new()), Gesture: "F2"),
                     new("Exporter…", () => ExportPackage_Click(this, new())),
@@ -242,6 +248,8 @@ public partial class MainWindow : Window
                     new("Nouveau paquet…", () => NewPackage_Click(this, new()), Gesture: "Ctrl+N"),
                     new("Nouveau dossier…", () => NewFolder_Click(this, new()), Gesture: "Ctrl+Maj+F"),
                     Ui.Separator,
+                    new("Couper", () => CutOrCopyNode(cut: true), Gesture: "Ctrl+X"),
+                    new("Coller", () => _ = PasteNodeAsync(), CanPaste, "Ctrl+V"),
                     new("Renommer", () => _ = RenameFolderAsync(folder), Gesture: "F2"),
                     new("Supprimer", () => _ = DeleteFolderAsync(folder), Gesture: "Suppr"),
                 ];
@@ -250,6 +258,7 @@ public partial class MainWindow : Window
                 [
                     new("Nouveau paquet…", () => NewPackage_Click(this, new()), Gesture: "Ctrl+N"),
                     new("Nouveau dossier…", () => NewFolder_Click(this, new()), Gesture: "Ctrl+Maj+F"),
+                    new("Coller", () => _ = PasteNodeAsync(), CanPaste, "Ctrl+V"),
                     Ui.Separator,
                     new("Importer des paquets…", () => Import_Click(this, new())),
                     new("Exporter tous les paquets…", () => ExportAll_Click(this, new()), _packages.Count > 0),

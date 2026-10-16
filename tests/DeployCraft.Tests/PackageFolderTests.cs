@@ -52,6 +52,14 @@ public sealed class PackageFolderTests : IDisposable
     }
 
     [Fact]
+    public void CopyName_KeepsTheName_WhenFree_ThenNumbersTheCopies()
+    {
+        Assert.Equal("Lecteur PDF", PackageFolder.CopyName("Lecteur PDF", ["Navigateur"]));
+        Assert.Equal("Lecteur PDF (copie)", PackageFolder.CopyName("Lecteur PDF", ["lecteur pdf"]));
+        Assert.Equal("Lecteur PDF (copie 2)", PackageFolder.CopyName("Lecteur PDF", ["Lecteur PDF", "Lecteur PDF (copie)"]));
+    }
+
+    [Fact]
     public void Folders_AreSavedRenamedAndDeleted()
     {
         var parent = _store.SaveFolder(new PackageFolder { Name = " Bureautique " });
