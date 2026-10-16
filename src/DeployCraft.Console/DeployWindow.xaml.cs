@@ -33,6 +33,28 @@ public class TargetItem(string computer, int startStep, DeployWindow window) : I
 
     public string StepText => window.StepChoices.FirstOrDefault(c => c.Number == StartStep)?.Text ?? StartStep.ToString();
 
+    // Vérification du nom dans le DNS du serveur : en cours (null), trouvé ou introuvable.
+    private NameCheckResult? _check;
+
+    public NameCheckResult? Check
+    {
+        get => _check;
+        set
+        {
+            _check = value;
+            foreach (var p in new[] { nameof(CheckIcon), nameof(CheckBrush), nameof(CheckTip) }) PropertyChanged?.Invoke(this, new(p));
+        }
+    }
+
+    public string CheckIcon => _check == null ? "" : Ui.StatusIcon(_check.Found ? "Successful" : "Failed"); // sablier / coche / croix
+
+    public System.Windows.Media.Brush CheckBrush =>
+        (System.Windows.Media.Brush)Application.Current.Resources[_check == null ? "MutedBrush" : _check.Found ? "OkBrush" : "KoBrush"];
+
+    public string CheckTip => _check == null ? "Recherche dans le DNS…"
+        : _check.Found ? $"Trouvé : {_check.DnsName}"
+        : (_check.Error ?? "Introuvable") + " Le déploiement reste possible.";
+
     public void Refresh() => PropertyChanged?.Invoke(this, new(nameof(StepText)));
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -60,6 +82,7 @@ public partial class DeployWindow : Window
     public DeployWindow(long? packageId, IEnumerable<TargetRequest> targets)
     {
         InitializeComponent();
+        _nameCheck.Tick += NameCheck_Tick;
         _initialPackageId = packageId;
         PackagesList.ItemsSource = _packages;
         TargetsGrid.ItemsSource = _targets;
@@ -272,6 +295,26 @@ public partial class DeployWindow : Window
         var clean = name.Trim().TrimStart('\\');
         if (clean.Length == 0 || _targets.Any(t => t.Computer.Equals(clean, StringComparison.OrdinalIgnoreCase))) return;
         _targets.Add(new TargetItem(clean, startStep, this));
+        _nameCheck.Stop();
+        _nameCheck.Start();
+    }
+
+    /// <summary>Les postes ajoutés sont vérifiés par lots, un instant après la dernière saisie.</summary>
+    private readonly System.Windows.Threading.DispatcherTimer _nameCheck = new() { Interval = TimeSpan.FromMilliseconds(300) };
+
+    private async void NameCheck_Tick(object? sender, EventArgs e)
+    {
+        _nameCheck.Stop();
+        var pending = _targets.Where(t => t.Check == null).ToList();
+        if (pending.Count == 0) return;
+        try
+        {
+            var results = await Api.CheckNames(pending.Select(t => t.Computer));
+            foreach (var target in pending)
+                if (results.FirstOrDefault(r => r.Name.Equals(target.Computer, StringComparison.OrdinalIgnoreCase)) is { } result)
+                    target.Check = result;
+        }
+        catch (ApiException) { } // service injoignable : les postes restent « en cours », sans bloquer le déploiement
     }
 
     private void AddNames(string text)
