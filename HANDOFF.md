@@ -43,9 +43,18 @@ grisé, donc le thème ne peut pas changer sans service.
 
 **Fenêtre À propos (PARITE 1.13, branche `feat/a-propos`)** : versions de la console et du service, compte connecté, licence GPL v3, liens vers le projet et la licence, bouton « Copier les informations ». Vue par le mainteneur sur une instance de test ; ne dépend pas du domaine.
 
-## En cours (Cloud, 16/10) : 8.4 performance (issue #102), relu par Prod
+## En cours (Cloud, 16/10) : 4.4 suivi de copie (issue #103), relu par Prod
 
-Branche `feat/performance`. `PerformanceSettings` dans `DeploymentDefaults` (postes en parallèle 1–100, limite de copie
+Branche `feat/progression-copie`. `Remote/CopyProgress.cs` : `CopyProgress` (pourcentage
+et débit sur 3 s) et `CopyBatch` (les copies d'un poste sont listées dans `Prepare` puis faites d'un bloc ;
+`StageCopy` / `StageAdditionalFiles` copient tout de suite sans liste, pour les tests). `TargetSession.RunAsync` lance
+`Prepare` dans une tâche et met l'étape en cours à jour chaque seconde. `StepOutcome.Runs` (compté par
+`DeploymentEngine.ToOutcomes`, cumulé sur les essais hors ligne) et `StepOutcome.Note` (calculée, non enregistrée) ;
+colonnes Exécutions et Note dans `StepsWindow`. Tests : `CopyProgressTests`.
+
+## 8.4 performance (issue #102, PR #105) : fusionnée, testée par Prod sur le domaine
+
+ `PerformanceSettings` dans `DeploymentDefaults` (postes en parallèle 1–100, limite de copie
 en Mbit/s, 0 = sans limite), page Préférences › Déploiement. `SlotQueue.Resize` (capacité modifiable en route) et
 `BandwidthLimiter.Copies` (seau à jetons partagé, `Remote/BandwidthLimiter.cs`) appliqués par
 `DeploymentEngine.ApplyPerformance` au démarrage, à l'enregistrement des Préférences et à chaque lancement. Toutes les

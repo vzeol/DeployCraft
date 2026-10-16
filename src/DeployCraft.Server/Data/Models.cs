@@ -394,6 +394,31 @@ public class StepOutcome
     public string? Error { get; set; }
     public DateTime? StartedUtc { get; set; }
     public DateTime? EndedUtc { get; set; }
+    /// <summary>Nombre de fois où l'étape a tourné sur ce poste dans ce déploiement (nouveaux essais compris).</summary>
+    public int Runs { get; set; }
+
+    /// <summary>L'étape a tourné (ou tourne) : ni ignorée, ni pas encore commencée.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool Ran => StartedUtc != null && State is "success" or "failed" or "stopped" or "running";
+
+    /// <summary>Court message sur le résultat : raison d'une étape ignorée, erreur, réussite avec un code particulier.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string Note => State switch
+    {
+        "skipped" => Short(Error) ?? "Ignorée.",
+        "failed" => Short(Error) ?? (ExitCode is { } code ? $"Code {code} hors des codes de succès." : "Échec."),
+        "stopped" => "Paquet arrêté en succès" + (Short(Error) is { } error ? " : " + error : "."),
+        "success" when ExitCode is { } code and not 0 => $"Réussie avec le code {code}.",
+        _ => "",
+    };
+
+    /// <summary>Première ligne d'un message, raccourcie pour une colonne.</summary>
+    private static string? Short(string? text)
+    {
+        var line = text?.Split('\n')[0].Trim();
+        if (string.IsNullOrEmpty(line)) return null;
+        return line.Length > 160 ? line[..159] + "…" : line;
+    }
 }
 
 /// <summary>Un poste cible et l'étape à laquelle commencer.</summary>

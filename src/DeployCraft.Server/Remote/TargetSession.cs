@@ -41,7 +41,14 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         try
         {
             // Dans le try : une préparation ratée (fichier introuvable…) libère aussi le slot qu'elle a réservé.
-            var (job, modes) = credentials.RunAs(account, computer, () => Prepare(package, startStep, runAs, copyMode));
+            // Pendant la copie, l'avancement est affiché une fois par seconde (rien n'est écrit à chaque morceau).
+            var copying = new CopyProgress();
+            // Une annulation attend la fin de la copie, comme avant : le nettoyage ne doit pas croiser une copie en cours.
+            var preparing = Task.Run(() => credentials.RunAs(account, computer, () => Prepare(package, startStep, runAs, copyMode, copying)), CancellationToken.None);
+            while (await Task.WhenAny(preparing, Task.Delay(1000, CancellationToken.None)) != preparing)
+                if (copying.Text() is { } text) stage(text);
+            var (job, modes) = await preparing;
+            ct.ThrowIfCancellationRequested();
             // Un redémarrage termine sa tranche : la suivante est lancée une fois le poste revenu.
             var tranches = RunAsPlan.Split(modes, [.. job.Steps.Select(s => s.Type == RebootType)]);
 
@@ -317,7 +324,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
     }
 
     /// <summary>Copie le runner et les fichiers, prépare les consignes de toutes les étapes et l'identité de chacune.</summary>
-    private (RunnerJob Job, List<RunAsMode> Modes) Prepare(Package package, int startStep, RunAsMode runAs, CopyMode copyMode)
+    private (RunnerJob Job, List<RunAsMode> Modes) Prepare(Package package, int startStep, RunAsMode runAs, CopyMode copyMode, CopyProgress progress)
     {
         try
         {
@@ -334,9 +341,11 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
 
         AcquireSlot();
         var exec = Directory.CreateDirectory(Path.Combine(SlotDir, "exec")).FullName;
-        BandwidthLimiter.Copies.CopyFile(runnerExe, Path.Combine(SlotDir, RunnerName));
+        // Les fichiers sont d'abord listés (et vérifiés), puis copiés d'un bloc : le total est connu pour l'avancement.
+        var copies = new CopyBatch();
+        copies.Add(runnerExe, Path.Combine(SlotDir, RunnerName));
         var config = runnerExe + ".config";
-        if (File.Exists(config)) BandwidthLimiter.Copies.CopyFile(config, Path.Combine(SlotDir, RunnerName + ".config"));
+        if (File.Exists(config)) copies.Add(config, Path.Combine(SlotDir, RunnerName + ".config"));
 
         var job = new RunnerJob { Conditions = RunnerConditions.From(package.Conditions), FirstNumber = startStep };
         var modes = new List<RunAsMode>();
@@ -348,7 +357,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
 
             // Étape désactivée : transmise pour apparaître « Ignoré », mais aucun fichier n'est copié ni vérifié.
             if (step.Enabled && step.Type is StepType.Install or StepType.Command or StepType.PowerShell)
-                StageAdditionalFiles(step, jobStep, copyMode, exec);
+                StageAdditionalFiles(step, jobStep, copyMode, exec, copies);
 
             if (step.Type == StepType.Install && step.Enabled)
             {
@@ -366,8 +375,8 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 }
                 // Push : le fichier est lu par le serveur (avec le compte de déploiement s'il est sur un partage).
                 if (!File.Exists(step.File)) throw new DeployException($"Fichier d'installation introuvable : {step.File}");
-                if (step.IncludeDirectory) CopyDirectory(Path.GetDirectoryName(step.File)!, exec);
-                else BandwidthLimiter.Copies.CopyFile(step.File, Path.Combine(exec, Path.GetFileName(step.File)));
+                if (step.IncludeDirectory) CopyDirectory(Path.GetDirectoryName(step.File)!, exec, copies);
+                else copies.Add(step.File, Path.Combine(exec, Path.GetFileName(step.File)));
             }
             else if (step.Type == StepType.Reboot && step.Enabled && _isLocal)
                 throw new DeployException($"Étape « {jobStep.Name} » : DeployCraft ne redémarre pas le serveur sur lequel il tourne.");
@@ -380,7 +389,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 {
                     // Push : le serveur dépose les fichiers retenus dans exec\copie-N, que le poste copie ensuite tels quels.
                     jobStep.Command = $"copie-{startStep + job.Steps.Count}";
-                    StageCopy(step.CopySource, step.CopyPatterns, step.CopySubfolders, Path.Combine(exec, jobStep.Command));
+                    StageCopy(step.CopySource, step.CopyPatterns, step.CopySubfolders, Path.Combine(exec, jobStep.Command), copies);
                     jobStep.CopyPatterns = ["*"];
                     jobStep.CopySubfolders = true;
                 }
@@ -388,6 +397,8 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
             job.Steps.Add(jobStep);
         }
 
+        progress.Total = copies.TotalBytes;
+        copies.Run(BandwidthLimiter.Copies, progress);
         return (job, modes);
     }
 
@@ -395,12 +406,15 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
     /// Copie de fichiers en push : dépose dans <paramref name="target"/> le fichier <paramref name="source"/>, ou les
     /// fichiers du dossier qui suivent les motifs (avec les sous-dossiers si demandé), en gardant leur arborescence.
     /// </summary>
-    internal static void StageCopy(string source, string? patterns, bool subfolders, string target)
+    /// <param name="batch">Liste où ajouter les copies (null = copier tout de suite).</param>
+    internal static void StageCopy(string source, string? patterns, bool subfolders, string target, CopyBatch? batch = null)
     {
+        var copies = batch ?? new CopyBatch();
         Directory.CreateDirectory(target);
         if (File.Exists(source))
         {
-            BandwidthLimiter.Copies.CopyFile(source, Path.Combine(target, Path.GetFileName(source)));
+            copies.Add(source, Path.Combine(target, Path.GetFileName(source)));
+            if (batch == null) copies.Run(BandwidthLimiter.Copies, null);
             return;
         }
         if (!Directory.Exists(source)) throw new DeployException($"Fichier ou dossier à copier introuvable : {source}");
@@ -412,19 +426,18 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 Directory.CreateDirectory(Path.Combine(target, Path.GetRelativePath(source, dir)));
         foreach (var pattern in PackageStep.SplitPatterns(patterns))
             foreach (var file in Directory.EnumerateFiles(source, pattern, option))
-            {
-                var destination = Path.Combine(target, Path.GetRelativePath(source, file));
-                Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
-                BandwidthLimiter.Copies.CopyFile(file, destination);
-            }
+                copies.Add(file, Path.Combine(target, Path.GetRelativePath(source, file)));
+        if (batch == null) copies.Run(BandwidthLimiter.Copies, null);
     }
 
     /// <summary>
     /// Fichiers additionnels : déposés par le serveur à côté de la commande (exec\), ou, en mode pull, lus par le poste
     /// lui-même sur le partage. Un fichier introuvable arrête la préparation du poste.
     /// </summary>
-    internal static void StageAdditionalFiles(PackageStep step, RunnerJobStep jobStep, CopyMode copyMode, string exec)
+    /// <param name="batch">Liste où ajouter les copies (null = copier tout de suite).</param>
+    internal static void StageAdditionalFiles(PackageStep step, RunnerJobStep jobStep, CopyMode copyMode, string exec, CopyBatch? batch = null)
     {
+        var copies = batch ?? new CopyBatch();
         var files = PackageStep.SplitLines(step.AdditionalFiles).Select(Environment.ExpandEnvironmentVariables).ToList();
         if (files.Count == 0) return;
         jobStep.AdditionalFiles = [.. files.Select(Path.GetFileName).OfType<string>()];
@@ -436,8 +449,9 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 continue;
             }
             if (!File.Exists(file)) throw new DeployException($"Étape « {jobStep.Name} » : fichier additionnel introuvable : {file}");
-            BandwidthLimiter.Copies.CopyFile(file, Path.Combine(exec, Path.GetFileName(file)));
+            copies.Add(file, Path.Combine(exec, Path.GetFileName(file)));
         }
+        if (batch == null) copies.Run(BandwidthLimiter.Copies, null);
     }
 
     /// <summary>Dossier du poste où sont gardés les fichiers d'installation d'un paquet (option de l'étape « Installer »).</summary>
@@ -658,12 +672,12 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         }
     }
 
-    private static void CopyDirectory(string source, string destination)
+    private static void CopyDirectory(string source, string destination, CopyBatch copies)
     {
         foreach (var dir in Directory.EnumerateDirectories(source, "*", SearchOption.AllDirectories))
             Directory.CreateDirectory(Path.Combine(destination, Path.GetRelativePath(source, dir)));
         foreach (var file in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
-            BandwidthLimiter.Copies.CopyFile(file, Path.Combine(destination, Path.GetRelativePath(source, file)));
+            copies.Add(file, Path.Combine(destination, Path.GetRelativePath(source, file)));
     }
 
     public static List<int> ParseCodes(string? codes)

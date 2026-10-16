@@ -45,7 +45,8 @@ public sealed class BandwidthLimiter(Func<DateTime>? clock = null, Action<TimeSp
         if (wait > 0) _sleep(TimeSpan.FromSeconds(wait));
     }
 
-    public void Copy(Stream source, Stream destination)
+    /// <param name="copied">Appelé après chaque morceau écrit, avec sa taille (suivi de l'avancement).</param>
+    public void Copy(Stream source, Stream destination, Action<int>? copied = null)
     {
         var buffer = new byte[BufferSize];
         int read;
@@ -53,20 +54,24 @@ public sealed class BandwidthLimiter(Func<DateTime>? clock = null, Action<TimeSp
         {
             Take(read);
             destination.Write(buffer, 0, read);
+            copied?.Invoke(read);
         }
     }
 
-    /// <summary>Copie un fichier (écrase la destination) ; sans limite, par la copie du système, plus rapide.</summary>
-    public void CopyFile(string source, string destination)
+    /// <summary>
+    /// Copie un fichier (écrase la destination). Sans limite ni suivi de l'avancement, par la copie du système, plus
+    /// rapide ; sinon par morceaux.
+    /// </summary>
+    public void CopyFile(string source, string destination, Action<int>? copied = null)
     {
-        if (BytesPerSecond <= 0)
+        if (BytesPerSecond <= 0 && copied == null)
         {
             File.Copy(source, destination, overwrite: true);
             return;
         }
         using (var input = new FileStream(source, FileMode.Open, FileAccess.Read, FileShare.Read, BufferSize, FileOptions.SequentialScan))
         using (var output = new FileStream(destination, FileMode.Create, FileAccess.Write, FileShare.None, BufferSize))
-            Copy(input, output);
+            Copy(input, output, copied);
         // Même date que la source, comme la copie du système (la copie de fichiers sur le poste s'en sert).
         File.SetLastWriteTimeUtc(destination, File.GetLastWriteTimeUtc(source));
     }
