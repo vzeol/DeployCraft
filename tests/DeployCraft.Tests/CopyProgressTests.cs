@@ -99,7 +99,8 @@ public sealed class CopyProgressTests : IDisposable
     [InlineData("failed", 1603, null, "Code 1603 hors des codes de succès.")]
     [InlineData("failed", null, "Délai dépassé (60 min).\nDétails", "Délai dépassé (60 min).")]
     [InlineData("stopped", 1, null, "Paquet arrêté en succès.")]
-    [InlineData("success", 3010, null, "Réussie avec le code 3010.")]
+    [InlineData("success", 3010, null, "Réussie : redémarrage nécessaire (code 3010).")]
+    [InlineData("success", 1, null, "")] // code de succès d'une copie de fichiers : pas de note
     [InlineData("success", 0, null, "")]
     [InlineData("running", null, null, "")]
     public void Note_SummarizesTheResult(string state, int? exitCode, string? error, string expected) =>

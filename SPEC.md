@@ -405,8 +405,11 @@ déploiements possibles en même temps sur un poste.
   déploiement**, nouveaux essais compris (poste hors ligne réessayé plus tard). Une étape ignorée compte 0. Un
   redéploiement est un nouveau déploiement, avec son propre compte.
 - **Note** : court message sur le résultat de l'étape (première ligne, 160 caractères au plus) : raison d'une étape
-  ignorée, erreur ou code hors des codes de succès, arrêt du paquet en succès, réussite avec un code autre que 0
-  (par exemple 3010). Calculée à l'affichage, pas enregistrée.
+  ignorée, erreur ou code hors des codes de succès, arrêt du paquet en succès, réussite qui demande un redémarrage
+  (3010, 1641) ou mise à jour déjà installée (2359302). Les autres codes de succès (par exemple 1 pour une copie de
+  fichiers) n'ont pas de note. Calculée à l'affichage, pas enregistrée.
+- **Annulation pendant la copie** : la copie s'arrête entre deux morceaux (ou pendant l'attente imposée par la limite
+  de débit), puis le slot est nettoyé avec le fichier à moitié copié.
 
 ## 4. Informations à afficher
 

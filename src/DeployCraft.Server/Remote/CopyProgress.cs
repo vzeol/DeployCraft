@@ -60,12 +60,13 @@ internal sealed class CopyBatch
 
     public long TotalBytes => _files.Sum(f => new FileInfo(f.Source).Length);
 
-    public void Run(BandwidthLimiter limiter, CopyProgress? progress)
+    /// <param name="ct">Annulation : la copie s'arrête en route ; le fichier à moitié copié part avec le slot.</param>
+    public void Run(BandwidthLimiter limiter, CopyProgress? progress, CancellationToken ct = default)
     {
         foreach (var (source, destination) in _files)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
-            limiter.CopyFile(source, destination, progress == null ? null : progress.Add);
+            limiter.CopyFile(source, destination, progress == null ? null : progress.Add, ct);
         }
     }
 }

@@ -401,14 +401,23 @@ public class StepOutcome
     [System.Text.Json.Serialization.JsonIgnore]
     public bool Ran => StartedUtc != null && State is "success" or "failed" or "stopped" or "running";
 
-    /// <summary>Court message sur le résultat : raison d'une étape ignorée, erreur, réussite avec un code particulier.</summary>
+    /// <summary>
+    /// Court message sur le résultat : raison d'une étape ignorée, erreur, réussite qui demande un redémarrage. Les autres
+    /// codes de succès (par exemple ceux d'une copie de fichiers) n'ont pas de note, pour ne pas inquiéter.
+    /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public string Note => State switch
     {
         "skipped" => Short(Error) ?? "Ignorée.",
         "failed" => Short(Error) ?? (ExitCode is { } code ? $"Code {code} hors des codes de succès." : "Échec."),
         "stopped" => "Paquet arrêté en succès" + (Short(Error) is { } error ? " : " + error : "."),
-        "success" when ExitCode is { } code and not 0 => $"Réussie avec le code {code}.",
+        "success" => ExitCode switch
+        {
+            3010 => "Réussie : redémarrage nécessaire (code 3010).",
+            1641 => "Réussie : redémarrage lancé (code 1641).",
+            2359302 => "Déjà installée (code 2359302).",
+            _ => "",
+        },
         _ => "",
     };
 

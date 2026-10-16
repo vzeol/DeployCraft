@@ -43,8 +43,8 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
             // Dans le try : une préparation ratée (fichier introuvable…) libère aussi le slot qu'elle a réservé.
             // Pendant la copie, l'avancement est affiché une fois par seconde (rien n'est écrit à chaque morceau).
             var copying = new CopyProgress();
-            // Une annulation attend la fin de la copie, comme avant : le nettoyage ne doit pas croiser une copie en cours.
-            var preparing = Task.Run(() => credentials.RunAs(account, computer, () => Prepare(package, startStep, runAs, copyMode, copying)), CancellationToken.None);
+            // Une annulation coupe la copie entre deux morceaux ; on attend qu'elle soit arrêtée avant le nettoyage du slot.
+            var preparing = Task.Run(() => credentials.RunAs(account, computer, () => Prepare(package, startStep, runAs, copyMode, copying, ct)), CancellationToken.None);
             while (await Task.WhenAny(preparing, Task.Delay(1000, CancellationToken.None)) != preparing)
                 if (copying.Text() is { } text) stage(text);
             var (job, modes) = await preparing;
@@ -324,7 +324,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
     }
 
     /// <summary>Copie le runner et les fichiers, prépare les consignes de toutes les étapes et l'identité de chacune.</summary>
-    private (RunnerJob Job, List<RunAsMode> Modes) Prepare(Package package, int startStep, RunAsMode runAs, CopyMode copyMode, CopyProgress progress)
+    private (RunnerJob Job, List<RunAsMode> Modes) Prepare(Package package, int startStep, RunAsMode runAs, CopyMode copyMode, CopyProgress progress, CancellationToken ct)
     {
         try
         {
@@ -398,7 +398,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         }
 
         progress.Total = copies.TotalBytes;
-        copies.Run(BandwidthLimiter.Copies, progress);
+        copies.Run(BandwidthLimiter.Copies, progress, ct);
         return (job, modes);
     }
 
