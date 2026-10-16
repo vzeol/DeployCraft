@@ -1,5 +1,5 @@
-name: Signaler un problème
-description: Quelque chose ne marche pas comme prévu (déploiement, console, service, installeur).
+name: Signaler un problème / Report a bug
+description: Quelque chose ne marche pas comme prévu (déploiement, console, service, installeur). Something does not work as expected.
 title: "[Bug] "
 labels: [bug]
 body:
@@ -10,32 +10,36 @@ body:
         **N'écrivez ici aucune information sensible** : mot de passe, nom de votre domaine, de vos serveurs ou de vos postes
         (remplacez-les par `DOMAINE.LOCAL`, `SERVEUR-01`, `PC-TEST-01`).
         Une faille de sécurité ? Ne la signalez pas ici : voir [SECURITY.md](../blob/main/SECURITY.md).
+
+        *English is welcome.* Thank you for reporting this problem. **Do not write any sensitive information here**:
+        password, names of your domain, servers or computers (replace them with `DOMAINE.LOCAL`, `SERVEUR-01`, `PC-TEST-01`).
+        A security vulnerability? Do not report it here: see [SECURITY.md](../blob/main/SECURITY.md).
   - type: input
     id: version
     attributes:
-      label: Version de DeployCraft
-      description: Menu Aide › À propos (bouton « Copier les informations »).
+      label: Version de DeployCraft / DeployCraft version
+      description: Menu Aide › À propos (bouton « Copier les informations ») — Help › About, « copy » button.
       placeholder: 1.0.0-rc.1
     validations:
       required: true
   - type: input
     id: server
     attributes:
-      label: Windows du serveur
+      label: Windows du serveur / Server Windows version
       placeholder: Windows Server 2022, Windows 11 23H2…
     validations:
       required: true
   - type: input
     id: targets
     attributes:
-      label: Windows des postes concernés
-      description: Si le problème touche un déploiement.
+      label: Windows des postes concernés / Computers Windows version
+      description: Si le problème touche un déploiement. If the problem concerns a deployment.
       placeholder: Windows 11 24H2, Windows 10 22H2…
   - type: textarea
     id: steps
     attributes:
-      label: Ce que vous avez fait
-      description: Les étapes pour reproduire le problème.
+      label: Ce que vous avez fait / What you did
+      description: Les étapes pour reproduire le problème. Steps to reproduce the problem.
       placeholder: |
         1. Paquet avec une étape Installer (fichier .msi)
         2. Déployer une fois sur un poste
@@ -45,19 +49,19 @@ body:
   - type: textarea
     id: actual
     attributes:
-      label: Ce qui s'est passé
-      description: Message d'erreur exact, statut du poste, sortie de l'étape (Détail des étapes › copier la sortie). Une capture d'écran aide beaucoup.
+      label: Ce qui s'est passé / What happened
+      description: Message d'erreur exact, statut du poste, sortie de l'étape (Détail des étapes › copier la sortie). Une capture d'écran aide beaucoup. Exact error message, computer status, step output; a screenshot helps a lot.
     validations:
       required: true
   - type: textarea
     id: expected
     attributes:
-      label: Ce que vous attendiez
+      label: Ce que vous attendiez / What you expected
     validations:
       required: true
   - type: textarea
     id: logs
     attributes:
-      label: Journal du service (facultatif)
-      description: Observateur d'événements › Journaux Windows › Application, entrées liées à DeployCraft. Relisez-les pour retirer les noms internes.
+      label: Journal du service (facultatif) / Service log (optional)
+      description: Observateur d'événements › Journaux Windows › Application, entrées liées à DeployCraft. Relisez-les pour retirer les noms internes. Event Viewer › Windows Logs › Application; remove internal names.
       render: text

@@ -1,5 +1,5 @@
-name: Proposer une amélioration
-description: Une fonction qui manque, ou quelque chose qui pourrait être plus simple.
+name: Proposer une amélioration / Suggest an improvement
+description: Une fonction qui manque, ou quelque chose qui pourrait être plus simple. A missing feature, or something that could be simpler.
 title: "[Idée] "
 labels: [enhancement]
 body:
@@ -7,20 +7,22 @@ body:
     attributes:
       value: |
         Avant de proposer, jetez un œil à [PARITE.md](../blob/main/PARITE.md) : la fonction est peut-être déjà prévue, ou écartée avec sa raison.
+
+        *English is welcome.* Before suggesting, have a look at [PARITE.md](../blob/main/PARITE.md) (in French): the feature may already be planned, or set aside with its reason.
   - type: textarea
     id: need
     attributes:
-      label: Le besoin
-      description: Ce que vous voulez faire sur votre parc, et ce qui vous en empêche aujourd'hui.
+      label: Le besoin / The need
+      description: Ce que vous voulez faire sur votre parc, et ce qui vous en empêche aujourd'hui. What you want to do on your fleet, and what stops you today.
     validations:
       required: true
   - type: textarea
     id: idea
     attributes:
-      label: Ce que vous imaginez
-      description: Comment vous verriez la chose dans la console (facultatif).
+      label: Ce que vous imaginez / Your idea
+      description: Comment vous verriez la chose dans la console (facultatif). How you would see it in the console (optional).
   - type: textarea
     id: workaround
     attributes:
-      label: Comment vous faites aujourd'hui
-      description: Contournement actuel, s'il y en a un (facultatif).
+      label: Comment vous faites aujourd'hui / Current workaround
+      description: Contournement actuel, s'il y en a un (facultatif). Current workaround, if any (optional).

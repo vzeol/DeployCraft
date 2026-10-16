@@ -1,5 +1,7 @@
 <div align="center">
 
+**Français** · [English](README.en.md)
+
 # DeployCraft
 
 **Déployez vos logiciels sur tout un parc Windows, sans agent, depuis une seule console.**
