@@ -30,35 +30,24 @@ public sealed class NameCheck(Func<string, CancellationToken, Task<string>>? loo
         return result;
     }
 
-    /// <summary>Noms à essayer : le nom saisi, puis, s'il a un domaine (« poste.domaine.local »), le nom court.</summary>
-    internal static List<string> Candidates(string name)
-    {
-        var host = name == "." ? "localhost" : name;
-        var list = new List<string> { host };
-        var dot = host.IndexOf('.');
-        if (dot > 0) list.Add(host[..dot]);
-        return list;
-    }
-
+    /// <summary>
+    /// Résout le nom tel qu'il est saisi, comme le fera le déploiement : un nom complet dans un mauvais domaine est
+    /// signalé, même si le nom court existe.
+    /// </summary>
     private async Task<NameCheckResult> ResolveAsync(string name, CancellationToken ct)
     {
-        string? error = null;
-        foreach (var candidate in Candidates(name))
+        try
         {
-            try
-            {
-                return new(name, true, await _lookup(candidate, ct), null);
-            }
-            catch (SocketException ex) when (ex.SocketErrorCode is SocketError.HostNotFound or SocketError.NoData or SocketError.TryAgain)
-            {
-                error = "Introuvable dans le DNS (nom mal écrit, ou poste éteint depuis longtemps).";
-            }
-            catch (Exception ex) when (ex is SocketException or ArgumentException)
-            {
-                error = $"Vérification impossible : {ex.Message}";
-            }
+            return new(name, true, await _lookup(name == "." ? "localhost" : name, ct), null);
         }
-        return new(name, false, null, error);
+        catch (SocketException ex) when (ex.SocketErrorCode is SocketError.HostNotFound or SocketError.NoData or SocketError.TryAgain)
+        {
+            return new(name, false, null, "Introuvable dans le DNS (nom mal écrit, ou poste éteint depuis longtemps).");
+        }
+        catch (Exception ex) when (ex is SocketException or ArgumentException)
+        {
+            return new(name, false, null, $"Vérification impossible : {ex.Message}");
+        }
     }
 
     /// <summary>Nom DNS complet du poste (ou le nom tel quel si le DNS n'en donne pas d'autre).</summary>

@@ -28,12 +28,12 @@ public class NameCheckTests
     }
 
     [Fact]
-    public async Task FullNameUnknown_TriesTheShortName()
+    public async Task FullNameInWrongDomain_IsFlagged_LikeTheDeployment()
     {
         var asked = new List<string>();
         var result = await Checker(asked).CheckAsync("PC-TEST-01.AUTRE.LOCAL", default);
-        Assert.True(result.Found);
-        Assert.Equal(["PC-TEST-01.AUTRE.LOCAL", "PC-TEST-01"], asked);
+        Assert.False(result.Found);
+        Assert.Equal(["PC-TEST-01.AUTRE.LOCAL"], asked);
     }
 
     [Fact]
