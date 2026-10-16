@@ -26,6 +26,7 @@ public static class Ui
     public const string IconComputer = "";
     public const string IconProperties = "";
     public const string IconSteps = "";
+    public const string IconUpdate = ""; // flèche vers le haut
     public const string IconLibrary = ""; // livres
     public const string IconSchedule = ""; // calendrier
 

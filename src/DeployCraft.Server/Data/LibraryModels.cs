@@ -25,6 +25,17 @@ public class LibraryItem
     public bool UpdateAvailable { get; set; }
 }
 
+/// <summary>Mise à jour des paquets créés depuis la bibliothèque quand le catalogue publie une nouvelle version.</summary>
+public enum LibraryAutoUpdate
+{
+    /// <summary>Signalée seulement : l'utilisateur clique sur « Mettre à jour ».</summary>
+    Manual,
+    /// <summary>Faite par le service dès que la nouvelle version est vue.</summary>
+    Immediate,
+    /// <summary>Faite par le service quelques jours après que la version est apparue dans le catalogue.</summary>
+    Delayed,
+}
+
 /// <summary>État de la bibliothèque renvoyé à la console.</summary>
 public class LibraryInfo
 {
@@ -36,6 +47,9 @@ public class LibraryInfo
     public bool Refreshing { get; set; }
     /// <summary>Erreur de la dernière lecture du catalogue.</summary>
     public string? RefreshError { get; set; }
+    public LibraryAutoUpdate AutoUpdate { get; set; }
+    /// <summary>Délai avant une mise à jour automatique (mode <see cref="LibraryAutoUpdate.Delayed"/>).</summary>
+    public int AutoUpdateDays { get; set; }
     /// <summary>Nombre de logiciels dans le catalogue.</summary>
     public int CatalogCount { get; set; }
     public List<LibraryItem> Items { get; set; } = [];

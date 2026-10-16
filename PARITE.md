@@ -152,6 +152,6 @@ dans la même PR que le code qui la réalise.
 | 10.1 | Ligne de commande (déployer un paquet sur des cibles, lister…) | ❌ | Écarté : choix du mainteneur |
 | 10.2 | Assistant de premier démarrage | ✅ | Ouvert tant que le serveur n'a ni identifiant ni paquet, et par Aide › Assistant de démarrage : identifiant, dossier de la bibliothèque, premier paquet, préférences |
 | 10.3 | Aide intégrée | ✅ | Aide › Aide de DeployCraft (F1, ouverte sur le sujet de la vue affichée) : 9 sujets, recherche |
-| 10.4 | Bibliothèque de paquets en ligne, mise à jour automatique des paquets | 🟡 | À partir du catalogue public winget : tout le catalogue avec recherche, téléchargement vérifié, paquet créé, mise à jour en un clic. Reste : mise à jour automatique (immédiate ou différée) |
+| 10.4 | Bibliothèque de paquets en ligne, mise à jour automatique des paquets | ✅ | À partir du catalogue public winget : tout le catalogue avec recherche, téléchargement vérifié, paquet créé, mise à jour en un clic. Catalogue relu chaque jour par le service ; nouvelle version signalée (bibliothèque, accueil, repère dans l'arbre) ; mise à jour manuelle, automatique tout de suite ou après N jours |
 | 10.5 | Intégration d'un inventaire des postes | ⛔ | |
 | 10.6 | Licence, essai, statistiques d'usage | ⛔ | Sans objet |

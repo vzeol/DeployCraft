@@ -35,6 +35,7 @@ builder.Services.AddHostedService(sp => sp.GetRequiredService<Scheduler>());
 builder.Services.AddHostedService<HistoryCleaner>();
 builder.Services.AddSingleton(sp => new PackageLibrary(sp.GetRequiredService<Store>(), sp.GetRequiredService<DeployCredentials>(),
     dataDir, sp.GetRequiredService<ILogger<PackageLibrary>>()));
+builder.Services.AddHostedService<LibraryUpdater>();
 // La console s'identifie avec la session Windows de la personne (aucun mot de passe à saisir).
 builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme).AddNegotiate();
 
@@ -324,6 +325,9 @@ api.MapPost("/library/refresh", (PackageLibrary library) =>
 api.MapPut("/library/folder", (LibraryFolderInput input, PackageLibrary library) =>
     library.SetFolder(input.Folder) is { } error ? Results.BadRequest(new { error }) : Results.NoContent());
 
+api.MapPut("/library/auto-update", (LibraryAutoUpdateInput input, PackageLibrary library) =>
+    library.SetAutoUpdate(input.Mode, input.Days) is { } error ? Results.BadRequest(new { error }) : Results.NoContent());
+
 // La fiche du logiciel est lue tout de suite (refus expliqué) ; le téléchargement continue en arrière-plan.
 api.MapPost("/library/download", async (LibraryDownloadInput input, PackageLibrary library) =>
     await library.StartDownloadAsync(input.Id ?? "") is { } error ? Results.BadRequest(new { error }) : Results.NoContent());
@@ -531,5 +535,6 @@ record AbortInput(List<long>? TargetIds);
 record ConsoleUserInput(string? Name);
 record ImportInput(string? Content, string? Repository, bool Apply);
 record LibraryFolderInput(string? Folder);
+record LibraryAutoUpdateInput(LibraryAutoUpdate Mode, int Days);
 record LibraryDownloadInput(string? Id);
 record PackageMove(long? FolderId);

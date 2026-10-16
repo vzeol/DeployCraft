@@ -319,6 +319,18 @@
                                  ToolTip="Cherche dans tout le catalogue : nom, éditeur ou mot-clé (ex. vlc, adobe, java)" />
                     </DockPanel>
                     <TextBlock x:Name="LibraryFolderText" DockPanel.Dock="Bottom" Margin="0,8,0,0" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" />
+                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,8,0,0">
+                        <TextBlock Text="Nouvelle version d'un paquet téléchargé :" VerticalAlignment="Center" Margin="0,0,8,0" />
+                        <ComboBox x:Name="LibraryAutoUpdateBox" MinWidth="300" SelectionChanged="LibraryAutoUpdate_Changed"
+                                  ToolTip="Le catalogue est relu chaque jour par le service, même console fermée. Une mise à jour change le paquet, elle ne le déploie pas : les planifications qui l'utilisent installeront la nouvelle version.">
+                            <ComboBoxItem Tag="Manual" Content="Signaler seulement (vous cliquez sur Mettre à jour)" />
+                            <ComboBoxItem Tag="Immediate" Content="Mettre à jour automatiquement, tout de suite" />
+                            <ComboBoxItem Tag="Delayed" Content="Mettre à jour automatiquement, après un délai" />
+                        </ComboBox>
+                        <TextBox x:Name="LibraryAutoUpdateDays" Style="{StaticResource CompactBox}" Width="50" Margin="8,0,6,0" LostFocus="LibraryAutoUpdate_Changed"
+                                 ToolTip="Laisse le temps à l'éditeur de corriger une version défectueuse avant qu'elle arrive sur vos postes." />
+                        <TextBlock x:Name="LibraryAutoUpdateDaysText" Text="jours après sa sortie" VerticalAlignment="Center" />
+                    </StackPanel>
                     <DataGrid x:Name="LibraryGrid" SelectionMode="Extended" MouseDoubleClick="LibraryDownload_Click" SelectionChanged="LibraryGrid_SelectionChanged">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Logiciel" Binding="{Binding Name}" Width="220" />

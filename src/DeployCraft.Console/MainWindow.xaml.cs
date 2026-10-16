@@ -391,7 +391,27 @@ public partial class MainWindow : Window
         var selectedFolderId = SelectedFolder?.Id;
         _folders = await Api.Folders();
         _packages = await Api.Packages();
+        try
+        {
+            _libraryUpdates = LibraryUpdates(await Api.LibraryStatus());
+        }
+        catch (ApiException) { /* le repère attendra la prochaine lecture */ }
         RebuildPackageNodes(selectedId, selectedFolderId);
+    }
+
+    // Paquets dont la bibliothèque a une nouvelle version : repérés dans l'arbre.
+    private HashSet<long> _libraryUpdates = [];
+
+    private static HashSet<long> LibraryUpdates(LibraryInfo status) =>
+        status.Items.Where(i => i.UpdateAvailable && i.PackageId != null).Select(i => i.PackageId!.Value).ToHashSet();
+
+    /// <summary>Met à jour les repères de l'arbre si la liste des mises à jour disponibles a changé.</summary>
+    private void ShowLibraryUpdates(LibraryInfo status)
+    {
+        var updates = LibraryUpdates(status);
+        if (updates.SetEquals(_libraryUpdates)) return;
+        _libraryUpdates = updates;
+        RebuildPackageNodes(SelectedPackage?.Id, SelectedFolder?.Id);
     }
 
     private async Task RefreshViewAsync()
@@ -494,6 +514,8 @@ public partial class MainWindow : Window
             " Chaque téléchargement crée ou met à jour un paquet du même nom, prêt à déployer.";
         LibraryRefreshButton.IsEnabled = !status.Refreshing;
         UpdateLibraryButton();
+        ShowLibraryUpdates(status);
+        ShowAutoUpdate(status);
 
         // Un téléchargement terminé crée ou met à jour un paquet : l'arbre suit.
         var packages = string.Join(";", status.Items.Select(i => $"{i.PackageId}:{i.PackageVersion}"));
@@ -574,6 +596,40 @@ public partial class MainWindow : Window
             await RefreshAsync(packages: false);
         }
         catch (ApiException ex) { Ui.Error(this, ex); }
+    }
+
+    private bool _showingAutoUpdate;
+
+    /// <summary>Réglage des mises à jour automatiques, sans écraser une saisie en cours.</summary>
+    private void ShowAutoUpdate(LibraryInfo status)
+    {
+        if (LibraryAutoUpdateBox.IsDropDownOpen || LibraryAutoUpdateDays.IsKeyboardFocusWithin) return;
+        _showingAutoUpdate = true;
+        LibraryAutoUpdateBox.SelectedItem = LibraryAutoUpdateBox.Items.OfType<ComboBoxItem>().FirstOrDefault(i => (string)i.Tag == status.AutoUpdate.ToString());
+        LibraryAutoUpdateDays.Text = status.AutoUpdateDays.ToString();
+        _showingAutoUpdate = false;
+        ShowAutoUpdateDays();
+    }
+
+    private void ShowAutoUpdateDays()
+    {
+        var delayed = (LibraryAutoUpdateBox.SelectedItem as ComboBoxItem)?.Tag as string == nameof(LibraryAutoUpdate.Delayed);
+        LibraryAutoUpdateDays.Visibility = LibraryAutoUpdateDaysText.Visibility = delayed ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private async void LibraryAutoUpdate_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_showingAutoUpdate || LibraryAutoUpdateBox.SelectedItem is not ComboBoxItem { Tag: string tag }) return;
+        ShowAutoUpdateDays();
+        var mode = Enum.Parse<LibraryAutoUpdate>(tag);
+        // Le délai n'est vérifié que s'il sert ; sinon une saisie illisible garde la valeur d'usine.
+        if (!int.TryParse(LibraryAutoUpdateDays.Text.Trim(), out var days)) days = mode == LibraryAutoUpdate.Delayed ? -1 : 3;
+        try
+        {
+            await Api.SetLibraryAutoUpdate(mode, days);
+        }
+        catch (ApiException ex) { Ui.Error(this, ex); }
+        await RefreshAsync(packages: false);
     }
 
     private async void LibraryFolder_Click(object sender, RoutedEventArgs e)
