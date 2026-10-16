@@ -74,9 +74,6 @@
                 <MenuItem Header="_Supprimer" Click="Delete_Click" InputGestureText="Suppr" x:Name="MenuDelete" />
                 <MenuItem Header="Re_nommer le paquet" Click="Rename_Click" InputGestureText="F2" x:Name="MenuRename" />
             </MenuItem>
-            <MenuItem Header="_Affichage">
-                <MenuItem Header="_Actualiser" Click="Refresh_Click" InputGestureText="F5" />
-            </MenuItem>
             <MenuItem Header="_Affichage" x:Name="MenuView">
                 <MenuItem Header="Tous les _déploiements" Click="ViewDeployments_Click" InputGestureText="Ctrl+1" />
                 <MenuItem Header="Toutes les _planifications" Click="ViewSchedules_Click" InputGestureText="Ctrl+2" />
