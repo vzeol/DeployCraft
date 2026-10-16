@@ -1,0 +1,27 @@
+name: Suggest an improvement
+description: A missing feature, or something that could be simpler.
+title: "[Idea] "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before suggesting, have a look at [PARITE.md](../blob/main/PARITE.md): the feature may already be planned, or set aside with its reason.
+        Issues can be written in English or French.
+  - type: textarea
+    id: need
+    attributes:
+      label: The need
+      description: What you want to do on your fleet, and what stops you today.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+      description: How you would see it in the console (optional).
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Current workaround
+      description: How you do it today, if there is a way (optional).

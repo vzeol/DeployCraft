@@ -1,424 +1,418 @@
-# DeployCraft — Spécification fonctionnelle
+# DeployCraft — Functional specification
 
-> Ce que fait DeployCraft et comment il le fait. Le code est écrit à partir de ce document.
-> DeployCraft est une réalisation indépendante : aucun code, icône, image ni texte d'un autre logiciel.
+> What DeployCraft does and how it does it. The code is written from this document.
+> DeployCraft is an independent implementation: no code, icon, image or text from any other software.
 
-## 1. Architecture générale
+## 1. Overall architecture
 
-| Brique | Rôle |
+| Component | Role |
 |---|---|
-| **Console** (WPF) | Créer les paquets, choisir les cibles, lancer et suivre les déploiements |
-| **Service** (Windows) | Tourne en fond, expose une API HTTP locale, exécute les déploiements et les planifications |
-| **Runner** | Petit programme copié temporairement sur chaque poste cible : il exécute les étapes localement puis est supprimé |
-| **Base de données** | SQLite locale : paquets, déploiements, planifications, identifiants, historique |
+| **Console** (WPF) | Create packages, choose targets, launch and follow deployments |
+| **Service** (Windows) | Runs in the background, exposes a local HTTP API, runs deployments and schedules |
+| **Runner** | Small program temporarily copied to each target computer: it runs the steps locally, then is deleted |
+| **Database** | Local SQLite: packages, deployments, schedules, credentials, history |
 
 ## 2. Concepts
 
-### Paquet
-- Nom, version, description
-- Liste ordonnée d'**étapes**
-- **Conditions** (voir plus bas)
-- Options : mode de copie des fichiers (push : le serveur copie ; pull : le poste lit un partage), exécuter en
-  tant que (compte de déploiement / Système local / utilisateur connecté), délai max des étapes ; chacune peut
-  rester « Par défaut » (valeur des Préférences)
-- Hors ligne : réveil Wake-on-LAN, nouveaux essais ; ou réglages des Préférences
+### Package
+- Name, version, description
+- Ordered list of **steps**
+- **Conditions** (see below)
+- Options: file copy mode (push: the server copies; pull: the computer reads a share), run as (deployment
+  account / Local System / logged-on user), maximum step timeout; each can stay "Default" (value from the
+  Preferences)
+- Offline: Wake-on-LAN, retries; or the Preferences settings
 
-### Types d'étapes
-| Étape | Description |
+### Step types
+| Step | Description |
 |---|---|
-| Installer | Lancer un MSI / EXE / MSU avec paramètres silencieux, codes de succès configurables |
-| Commande | Ligne de commande cmd |
-| PowerShell | Script PowerShell |
-| Copie de fichiers | Copier un fichier ou un dossier vers un dossier du poste (voir § Étape « Copie de fichiers ») |
-| Redémarrer | Redémarrer (ou éteindre) le poste et attendre son retour (voir § Étape « Redémarrer ») |
-| Pause | Attendre N secondes (1 s à 24 h) sur le poste avant l'étape suivante ; rien n'est lancé, pas de code de succès ; l'attente s'arrête si le déploiement est annulé |
-| Message | Afficher un message aux utilisateurs connectés (voir § Étape « Message ») |
-| Déconnexion *(à venir)* | Déconnecter l'utilisateur |
-| Paquet imbriqué | Exécuter les étapes d'un autre paquet (voir § Paquet imbriqué) |
+| Install | Run an MSI / EXE / MSU with silent parameters, configurable success codes |
+| Command | cmd command line |
+| PowerShell | PowerShell script |
+| File copy | Copy a file or folder to a folder on the computer (see § "File copy" step) |
+| Restart | Restart (or shut down) the computer and wait for it to come back (see § "Restart" step) |
+| Pause | Wait N seconds (1 s to 24 h) on the computer before the next step; nothing is run, no success code; the wait stops if the deployment is cancelled |
+| Message | Show a message to logged-on users (see § "Message" step) |
+| Log off *(coming)* | Log the user off |
+| Nested package | Run the steps of another package (see § Nested package) |
 
-### Conditions (0.10.0, par paquet et par étape)
-- Version de Windows (10, 11, Server, antérieures ; aucune cochée = toutes), architecture (32 / 64 bits),
-  version minimale de PowerShell (3, 4, 5, 7)
-- Utilisateur connecté ou personne de connecté
-- Fichier ou dossier (existe / n'existe pas, variables d'environnement acceptées), clé de registre, avec ou sans
-  nom de valeur (existe / n'existe pas)
-- Vérifiées par le runner sur le poste, juste avant l'exécution ; toutes doivent être remplies.
-- Étape : condition non remplie → étape « Ignoré » avec la raison, le paquet continue.
-- Paquet : conditions non remplies → aucune étape exécutée, toutes « Ignoré », poste compté **réussi** (rien à
-  faire), raison affichée dans la colonne Détail. Une planification « ne plus déployer une fois réussi » ne
-  le relance donc pas.
-- Condition impossible à vérifier (clé mal écrite…) → étape en échec avec le message.
+### Conditions (0.10.0, per package and per step)
+- Windows version (10, 11, Server, earlier; none ticked = all), architecture (32 / 64-bit), minimum PowerShell
+  version (3, 4, 5, 7)
+- User logged on or nobody logged on
+- File or folder (exists / does not exist, environment variables accepted), registry key, with or without a value
+  name (exists / does not exist)
+- Checked by the runner on the computer, just before execution; all must be met.
+- Step: condition not met → step "Skipped" with the reason, the package continues.
+- Package: conditions not met → no step is run, all "Skipped", computer counted as **succeeded** (nothing to do),
+  reason shown in the Detail column. A schedule set to "stop deploying once succeeded" therefore does not launch
+  it again.
+- Condition that cannot be checked (misspelled key…) → step fails with the message.
 
-### Exécuter en tant que (par étape)
-- Onglet Options de l'étape : **Paramètre du paquet** (par défaut), compte de déploiement, Système local ou
-  utilisateur connecté. « Paramètre du paquet » suit le paquet, ou le choix fait dans Déployer une fois / la
-  planification ; une étape avec son propre réglage le garde. Sans identifiant enregistré, « compte de
-  déploiement » devient Système local. Dans un paquet imbriqué, les sous-étapes sans réglage prennent celui de
-  l'étape « paquet imbriqué ».
-- Sur le poste, un service runner n'a qu'une identité : les étapes consécutives de même service (compte de
-  déploiement, ou Système, qui sert aussi pour l'utilisateur connecté) forment une **tranche**. Le serveur lance les
-  tranches l'une après l'autre dans le même dossier (les fichiers copiés restent), chacune avec son propre service
-  (`DeployCraftRunner-N-1`, `-2`…), la suivante seulement après la suppression du précédent. Le mot de passe du
-  compte ne sert qu'à créer le service : il n'est jamais écrit sur le poste.
-- Une tranche qui arrête le paquet (échec en « Arrêter en échec », arrêt en succès, conditions du paquet non
-  remplies) : les tranches suivantes ne sont pas lancées, leurs étapes sont « Ignoré » avec la même raison.
-  Runner interrompu par une erreur : pas de tranche suivante non plus, raison « Tranche précédente interrompue : … ».
-  Annulation (pendant une tranche ou entre deux) : la tranche en cours est arrêtée, aucune autre n'est lancée.
-  Pendant l'exécution, le détail du poste indique l'identité de la tranche (« Exécution (Système) »). Le journal `runner.log` cumule les
-  tranches ; les numéros d'étape y sont ceux du paquet.
-- Mode pull : le partage est lu avec l'identité de la tranche (Système : le compte ordinateur `POSTE$`).
-- Changer d'identité coûte quelques secondes (création et arrêt d'un service) ; un paquet sans réglage par étape
-  garde un seul service, comme avant.
+### Run as (per step)
+- Step Options tab: **Package setting** (default), deployment account, Local System or logged-on user. "Package
+  setting" follows the package, or the choice made in Deploy once / the schedule; a step with its own setting keeps
+  it. With no saved credential, "deployment account" becomes Local System. In a nested package, sub-steps with no
+  setting take that of the "nested package" step.
+- On the computer, a runner service has only one identity: consecutive steps with the same service (deployment
+  account, or System, which also serves for the logged-on user) form a **slice**. The server runs the slices one
+  after the other in the same folder (copied files stay), each with its own service (`DeployCraftRunner-N-1`, `-2`…),
+  the next one only after the previous one has been removed. The account password is only used to create the
+  service: it is never written on the computer.
+- A slice that stops the package (failure with "Stop on failure", stop on success, package conditions not met):
+  the following slices are not launched, their steps are "Skipped" with the same reason. Runner interrupted by an
+  error: no next slice either, reason "Previous slice interrupted: …". Cancellation (during a slice or between two):
+  the current slice is stopped, no other is launched. While running, the computer's detail shows the slice identity
+  ("Running (System)"). The `runner.log` journal accumulates the slices; step numbers there are those of the package.
+- Pull mode: the share is read with the identity of the slice (System: the computer account `POSTE$`).
+- Changing identity costs a few seconds (creating and stopping a service); a package with no per-step setting keeps
+  a single service, as before.
 
-### Gestion d'erreur (par étape)
-- **Arrêter en échec** (par défaut) : les étapes suivantes ne s'exécutent pas, le poste est en échec. Un paquet
-  s'arrête donc net à la première étape en échec (choix du mainteneur : plus prudent, et des paquets plus propres).
-- **Continuer** : l'étape est notée en échec (le poste aussi), les étapes suivantes s'exécutent.
-- **Arrêter en succès** : les étapes suivantes ne s'exécutent pas et le poste est compté **réussi**. Utile quand
-  l'échec veut dire « rien à faire ici » (ex. un test qui sort en erreur si le logiciel est déjà à jour). L'étape
-  s'affiche « Arrêt en succès » avec son code retour ; les suivantes « Ignoré », avec le numéro de l'étape qui a
-  arrêté le paquet ; la colonne Détail du poste en donne la raison.
+### Error handling (per step)
+- **Stop on failure** (default): the following steps are not run, the computer is failed. A package therefore
+  stops dead at the first failed step (maintainer's choice: safer, and cleaner packages).
+- **Continue**: the step is marked failed (and so is the computer), the following steps run.
+- **Stop on success**: the following steps are not run and the computer is counted as **succeeded**. Useful when
+  failure means "nothing to do here" (e.g. a test that exits with an error if the software is already up to date).
+  The step is shown as "Stopped on success" with its return code; the following ones "Skipped", with the number of
+  the step that stopped the package; the computer's Detail column gives the reason.
 
-### Paquet imbriqué
-- Une étape « Paquet imbriqué » désigne un autre paquet (choisi dans une liste). **Au lancement**, elle est
-  remplacée par les étapes de ce paquet, figées dans l'historique : modifier le paquet imbriqué ensuite ne change
-  pas un déploiement en cours. Le suivi, le compteur et l'étape de départ comptent ces étapes une à une.
-- Étapes remplacées nommées « Étape › Sous-étape » (titre de l'étape, sinon nom du paquet imbriqué).
-- Les étapes du paquet imbriqué prennent la place de l'étape, dans leur ordre.
-- Conditions : chaque étape remplacée garde les siennes et reçoit en plus celles de l'étape « paquet imbriqué »
-  et celles du paquet imbriqué. Non remplies : « Ignoré », raison « Conditions du paquet imbriqué « X » non
-  remplies. … ».
-- Délai et codes de succès : ceux de chaque sous-étape (délai vide : celui du paquet imbriqué, sinon celui des
-  Préférences). Exécuter en tant que et mode de copie : ceux du déploiement. Comportement en cas d'erreur : celui
-  de chaque sous-étape ; ceux de l'étape « paquet imbriqué » sont sans effet (grisés).
-- Étape « paquet imbriqué » désactivée : toutes ses étapes sont désactivées. Une sous-étape désactivée le reste.
-- Refusé à l'enregistrement : aucun paquet choisi, paquet introuvable, boucle (« A contient B qui contient A »),
-  plus de 5 niveaux. Un paquet utilisé comme paquet imbriqué ne peut pas être supprimé (le message cite les
-  paquets qui l'utilisent).
-- « Redéployer » relit les paquets actuels (comme pour tout paquet) : un paquet imbriqué modifié depuis est pris
-  dans sa nouvelle version.
+### Nested package
+- A "Nested package" step designates another package (chosen from a list). **At launch**, it is replaced by the
+  steps of that package, frozen in the history: modifying the nested package afterwards does not change a
+  running deployment. Tracking, the counter and the start step count these steps one by one.
+- Replaced steps are named "Step › Sub-step" (step title, otherwise the nested package name).
+- The steps of the nested package take the place of the step, in their order.
+- Conditions: each replaced step keeps its own and also receives those of the "nested package" step and those of
+  the nested package. Not met: "Skipped", reason "Conditions of nested package "X" not met. …".
+- Timeout and success codes: those of each sub-step (empty timeout: that of the nested package, otherwise that of
+  the Preferences). Run as and copy mode: those of the deployment. Error behavior: that of each sub-step; those of
+  the "nested package" step have no effect (greyed out).
+- "Nested package" step disabled: all its steps are disabled. A disabled sub-step stays disabled.
+- Refused on save: no package chosen, package not found, loop ("A contains B which contains A"), more than 5
+  levels. A package used as a nested package cannot be deleted (the message names the packages that use it).
+- "Redeploy" re-reads the current packages (as for any package): a nested package modified since then is picked up
+  in its new version.
 
-### Étape activée / désactivée
-- Une étape décochée « Étape activée » reste dans le paquet mais n'est jamais exécutée : « Ignoré », raison
-  « Étape désactivée. », et le paquet continue. Aucun fichier n'est copié ni vérifié pour elle.
-- Signalée « (désactivée) » et grisée dans la fenêtre paquet et la page du paquet. Clic droit › Activer /
-  Désactiver.
+### Step enabled / disabled
+- A step with "Step enabled" unticked stays in the package but is never run: "Skipped", reason "Step disabled.",
+  and the package continues. No file is copied or checked for it.
+- Shown as "(disabled)" and greyed out in the package window and the package page. Right-click › Enable / Disable.
 
-### Cibles
-- Saisie manuelle de noms de postes, collage, fichier texte
-- Active Directory (arbre des OU)
-- *(à venir)* Listes de cibles réutilisables, filtres d'inclusion / exclusion
+### Targets
+- Manual entry of computer names, pasting, text file
+- Active Directory (OU tree)
+- *(coming)* Reusable target lists, include / exclude filters
 
-### Déploiement
-- Un déploiement = 1 paquet × N postes
-- Statut global + statut **par poste** + statut **par étape**
-- Erreurs lisibles : nom introuvable dans le DNS, accès refusé, poste injoignable, délai dépassé, code de sortie
-  hors des codes de succès, etc.
+### Deployment
+- A deployment = 1 package × N computers
+- Overall status + **per-computer** status + **per-step** status
+- Readable errors: name not found in DNS, access denied, computer unreachable, timeout, exit code outside the
+  success codes, etc.
 
-### Étape « Installer »
-- Fichier (chemin local ou UNC), paramètres, dossier entier si l'installeur a plusieurs fichiers
-- Types : .exe, .msi, .msp, .msu, .ps1, .bat / .cmd, .vbs, .reg. **Ligne de commande** affichée, générée d'après le
-  fichier, les paramètres et les options (msi : `msiexec /i|/f|/x "fichier" ALLUSERS=1 /qn /norestart /log output.log …` ;
-  msp : `/p` ; msu : `wusa` ; ps1 : PowerShell `-File` ; vbs : `cscript //B` ; reg : `reg import`). Case **Personnalisée** :
-  la ligne, pré-remplie, devient modifiable et est lancée telle quelle (par cmd, dans le dossier de travail du poste).
-- Options Windows Installer (.msi, .msp, .msu) : opération installer / réparer / désinstaller (pas de réparation pour
-  un .msu, pas d'opération pour un .msp), redémarrage jamais / toujours / demander / non défini, silencieux.
-- Le journal de Windows Installer (`output.log`) est ajouté au résultat de l'étape (sa fin s'il est trop long) ; les
-  codes d'erreur courants (1603, 1618, 1638…) sont expliqués.
-- **Fichiers additionnels** (aussi pour Commande et PowerShell) : un chemin par ligne, copiés à côté de la commande
-  avant l'étape (par le serveur, ou par le poste en mode pull pour un chemin UNC). Fichier introuvable : erreur.
-- **Garder le fichier sur le poste** : après l'étape, le fichier (et ses fichiers additionnels, ou tout le dossier)
-  est copié dans `%ProgramData%\DeployCraft\Installeurs\<paquet>`.
-- **Codes de succès par défaut : `0, 1641, 3010, 2359302`** (OK, OK + redémarrage lancé, OK + redémarrage
-  requis, mise à jour MSU déjà installée)
+### "Install" step
+- File (local or UNC path), parameters, whole folder if the installer has several files
+- Types: .exe, .msi, .msp, .msu, .ps1, .bat / .cmd, .vbs, .reg. **Command line** shown, generated from the file,
+  the parameters and the options (msi: `msiexec /i|/f|/x "file" ALLUSERS=1 /qn /norestart /log output.log …`;
+  msp: `/p`; msu: `wusa`; ps1: PowerShell `-File`; vbs: `cscript //B`; reg: `reg import`). **Custom** box: the
+  pre-filled line becomes editable and is run as is (through cmd, in the computer's working folder).
+- Windows Installer options (.msi, .msp, .msu): operation install / repair / uninstall (no repair for an .msu, no
+  operation for an .msp), restart never / always / ask / not set, silent.
+- The Windows Installer log (`output.log`) is appended to the step result (its end if too long); common error
+  codes (1603, 1618, 1638…) are explained.
+- **Additional files** (also for Command and PowerShell): one path per line, copied next to the command before the
+  step (by the server, or by the computer in pull mode for a UNC path). File not found: error.
+- **Keep the file on the computer**: after the step, the file (and its additional files, or the whole folder) is
+  copied to `%ProgramData%\DeployCraft\Installeurs\<package>`.
+- **Default success codes: `0, 1641, 3010, 2359302`** (OK, OK + restart started, OK + restart required, MSU update
+  already installed)
 
-### Étape « Copie de fichiers »
-- **Source** : fichier ou dossier vu depuis le serveur (chemin local ou UNC). **Destination** : dossier du poste,
-  créé s'il manque ; les variables d'environnement (`%ProgramData%`, `%PUBLIC%`…) prennent les valeurs de
-  l'identité de l'étape (celles de l'utilisateur connecté si l'étape s'exécute en son nom).
-- Pour une source dossier : **motifs** séparés par « ; » (`*` par défaut), **sous-dossiers** (cochés par défaut,
-  recréés même vides). Une source fichier copie ce seul fichier.
-- **Remplacer les fichiers déjà présents** (coché par défaut) ; décoché, un fichier présent sur le poste est gardé.
-- **Réussir même si des fichiers ne peuvent pas être remplacés** (fichier en cours d'utilisation…) : décoché, un
-  seul fichier non copié fait échouer l'étape. Une source introuvable reste toujours une erreur.
-- Push : le serveur dépose les fichiers retenus dans `exec\copie-N` (avec le compte de déploiement si la source
-  est sur un partage). Pull (source `\\serveur\…`) : le poste lit lui-même le partage. Dans les deux cas, la copie
-  vers la destination est faite sur le poste par `robocopy` (fourni avec Windows), sous l'identité de l'étape ; sa
-  sortie apparaît dans le détail de l'étape. Un fichier bloqué est réessayé une fois.
-- Pas de codes de succès à saisir : ceux de robocopy sont utilisés (0 à 7 = réussite ; 8 à 15 = des fichiers non
-  copiés, acceptés seulement avec « réussir même si… » ; 16 = erreur grave).
-- Refusé à l'enregistrement : source ou destination vide.
+### "File copy" step
+- **Source**: file or folder as seen from the server (local or UNC path). **Destination**: folder on the computer,
+  created if missing; environment variables (`%ProgramData%`, `%PUBLIC%`…) take the values of the step's identity
+  (those of the logged-on user if the step runs on their behalf).
+- For a folder source: **patterns** separated by ";" (`*` by default), **subfolders** (ticked by default,
+  recreated even if empty). A file source copies that single file.
+- **Replace existing files** (ticked by default); unticked, a file already on the computer is kept.
+- **Succeed even if some files cannot be replaced** (file in use…): unticked, a single file not copied makes the
+  step fail. A source not found is always an error.
+- Push: the server drops the selected files into `exec\copie-N` (with the deployment account if the source is on a
+  share). Pull (source `\\serveur\…`): the computer reads the share itself. In both cases, the copy to the
+  destination is done on the computer by `robocopy` (shipped with Windows), under the step's identity; its output
+  appears in the step detail. A locked file is retried once.
+- No success codes to enter: those of robocopy are used (0 to 7 = success; 8 to 15 = some files not copied,
+  accepted only with "succeed even if…"; 16 = serious error).
+- Refused on save: empty source or destination.
 
-### Étape « Redémarrer »
-- **Délai** de 30 secondes à 1 heure (60 s par défaut) et **message** facultatif (500 caractères au plus) : l'utilisateur
-  connecté voit le compte à rebours et le message. Le délai laisse aussi au runner le temps de rendre son résultat.
-- Le redémarrage est programmé sur le poste par `shutdown.exe`, toujours par le service (jamais au nom de
-  l'utilisateur connecté). L'étape réussit dès qu'il est programmé.
-- Une étape « Redémarrer » termine sa tranche (voir « Exécuter en tant que »). Le serveur attend que le poste
-  s'arrête (au plus délai + 5 min ; sinon erreur « redémarrage annulé sur le poste ? »), puis qu'il réponde de
-  nouveau, au plus le **délai max de l'étape** (sinon erreur). Il relance ensuite un service pour les étapes
-  suivantes, en réessayant pendant 2 minutes le temps que Windows finisse de démarrer. Le slot reste sur le disque du
-  poste pendant le redémarrage. Suivi : « Redémarrage du poste », puis « Attente du retour du poste ».
-- **Éteindre au lieu de redémarrer** : les étapes suivantes sont « Ignoré », raison « Poste éteint par l'étape N
-  « X » », et le poste compte comme réussi.
-- Étape ignorée (conditions, désactivée) ou en échec : aucun redémarrage, aucune attente.
-- Refusé au lancement sur le serveur DeployCraft lui-même. Refusé à l'enregistrement : délai hors de 30 s à 1 h,
-  message de plus de 500 caractères.
+### "Restart" step
+- **Delay** from 30 seconds to 1 hour (60 s by default) and optional **message** (500 characters at most): the
+  logged-on user sees the countdown and the message. The delay also gives the runner time to return its result.
+- The restart is scheduled on the computer by `shutdown.exe`, always by the service (never on behalf of the
+  logged-on user). The step succeeds as soon as it is scheduled.
+- A "Restart" step ends its slice (see "Run as"). The server waits for the computer to shut down (at most delay +
+  5 min; otherwise error "restart cancelled on the computer?"), then for it to respond again, at most the **step's
+  maximum timeout** (otherwise error). It then launches a service again for the following steps, retrying for 2
+  minutes while Windows finishes starting. The slot stays on the computer's disk during the restart. Tracking:
+  "Restarting computer", then "Waiting for computer to come back".
+- **Shut down instead of restarting**: the following steps are "Skipped", reason "Computer shut down by step N
+  "X"", and the computer counts as succeeded.
+- Step skipped (conditions, disabled) or failed: no restart, no wait.
+- Refused at launch on the DeployCraft server itself. Refused on save: delay outside 30 s to 1 h, message longer
+  than 500 characters.
 
-### Étape « Message »
-- **Titre** (100 caractères, « Information » par défaut) et **texte** (2 000 caractères, obligatoire), affichés dans
-  une fenêtre avec un bouton OK, dans **chaque session ouverte** du poste. Le service (toujours en Système pour cette
-  étape) lance dans chaque session une petite fenêtre par Windows PowerShell : chaque message a sa propre fenêtre,
-  jamais mise en attente derrière une autre, et rend « OK cliqué » ou « fermé à la fin de l'affichage ».
-- **Durée d'affichage** en secondes (0 à 24 h) : la fenêtre se ferme seule à la fin ; 0 = elle reste jusqu'au clic.
-- **Attendre que l'utilisateur clique sur OK** (décoché par défaut) :
-  - décoché : l'étape réussit dès l'affichage, la suite enchaîne ;
-  - coché avec une durée : l'étape attend le clic ou la fin de l'affichage, et réussit dans les deux cas ;
-  - coché sans durée : l'étape attend le clic, au plus le délai max de l'étape ; personne n'a cliqué → échec.
-  Plusieurs sessions : l'étape attend la réponse de chacune.
-- Personne de connecté : l'étape réussit sans rien afficher (« Aucun utilisateur connecté » dans le détail).
-- Le détail de l'étape indique pour qui le message a été affiché et le résultat (clic, fermeture automatique).
-- Annulation pendant l'attente : l'étape échoue « Annulé. » (la fenêtre peut rester affichée).
-- Refusé à l'enregistrement : texte vide ou trop long, titre trop long, durée hors de 0 à 24 h.
+### "Message" step
+- **Title** (100 characters, "Information" by default) and **text** (2,000 characters, required), shown in a
+  window with an OK button, in **every open session** on the computer. The service (always as System for this
+  step) launches a small window in each session through Windows PowerShell: each message has its own window, never
+  queued behind another, and returns "OK clicked" or "closed at the end of display".
+- **Display duration** in seconds (0 to 24 h): the window closes by itself at the end; 0 = it stays until clicked.
+- **Wait for the user to click OK** (unticked by default):
+  - unticked: the step succeeds as soon as the message is shown, the next step follows;
+  - ticked with a duration: the step waits for the click or the end of display, and succeeds in both cases;
+  - ticked without a duration: the step waits for the click, at most the step's maximum timeout; nobody clicked →
+    failure.
+  Several sessions: the step waits for the answer from each.
+- Nobody logged on: the step succeeds without showing anything ("No user logged on" in the detail).
+- The step detail says for whom the message was shown and the result (click, automatic close).
+- Cancellation while waiting: the step fails "Cancelled." (the window may stay displayed).
+- Refused on save: empty or too long text, title too long, duration outside 0 to 24 h.
 
-## 3. Déroulé d'un déploiement sur un poste
+## 3. How a deployment runs on a computer
 
-1. Le serveur vérifie que le poste répond (DNS, port 445).
-2. Il se connecte au partage `ADMIN$` du poste avec l'identifiant choisi et réserve un **slot** :
+1. The server checks that the computer responds (DNS, port 445).
+2. It connects to the computer's `ADMIN$` share with the chosen credential and reserves a **slot**:
    ```
    C:\Windows\DeployCraft\
-     slot-N.lock               ← verrou du slot (plusieurs déploiements possibles en parallèle sur un poste)
+     slot-N.lock               ← slot lock (several deployments can run in parallel on a computer)
      slot-N\
-       DeployCraftRunner-N.exe ← runner (.NET Framework 4.8, présent d'origine sur Windows 10 / 11)
-       job.json                ← consignes (étapes, codes de succès, délais)
-       status.json             ← avancement et résultats, écrits par le runner
-       runner.log              ← journal du runner
-       exec\                   ← fichiers du paquet = répertoire courant des étapes
-     last-runner.log           ← journal du dernier passage (conservé après nettoyage)
+       DeployCraftRunner-N.exe ← runner (.NET Framework 4.8, built into Windows 10 / 11)
+       job.json                ← instructions (steps, success codes, timeouts)
+       status.json             ← progress and results, written by the runner
+       runner.log              ← runner log
+       exec\                   ← package files = current directory of the steps
+     last-runner.log           ← log of the last run (kept after cleanup)
    ```
-3. Il crée un **service Windows temporaire** `DeployCraftRunner-N` et le démarre (sous l'identifiant choisi ou en
-   Système local).
-4. Le runner exécute les étapes dans l'ordre, écrit `status.json` après chaque changement ; le serveur le relit
-   chaque seconde pour l'affichage en direct (lecture partagée, sans bloquer le runner). Un enregistrement raté
-   (fichier en cours de lecture) est réessayé puis rattrapé au suivant : il n'interrompt jamais les étapes.
-5. Fin : le serveur compare chaque code de sortie aux codes de succès, puis arrête et supprime le service et le
-   slot. Seul `last-runner.log` reste.
+3. It creates a **temporary Windows service** `DeployCraftRunner-N` and starts it (under the chosen credential or
+   as Local System).
+4. The runner runs the steps in order and writes `status.json` after each change; the server re-reads it every
+   second for the live display (shared read, without blocking the runner). A failed save (file being read) is
+   retried, then caught up at the next one: it never interrupts the steps.
+5. End: the server compares each exit code to the success codes, then stops and deletes the service and the slot.
+   Only `last-runner.log` remains.
 
-Pourquoi ce fonctionnement : pas d'agent permanent ni de WinRM, rien à installer sur les postes, plusieurs
-déploiements possibles en même temps sur un poste.
+Why it works this way: no permanent agent or WinRM, nothing to install on the computers, several deployments
+possible at the same time on one computer.
 
-### Déployer une fois (0.6.0)
-- Plusieurs paquets dans l'ordre choisi : un déploiement par paquet. Sur un même poste, le paquet N+1
-  attend la fin du paquet N, même s'il a échoué ou a été annulé.
-- Étape de départ **par poste** (sur le premier paquet). « Reprendre à l'étape en échec » ouvre un seul
-  déploiement où chaque poste reprend à sa propre étape.
-- Exécuter en tant que (option du paquet, modifiable au lancement) :
-  - **Compte de déploiement** : le service temporaire tourne sous l'identifiant choisi. Le serveur accorde d'abord
-    le droit « Ouvrir une session en tant que service » sur le poste (LSA distante). Échec de connexion
-    (erreur 1069) → message clair. Sans identifiant enregistré → Système local.
-  - **Système local**.
-  - **Utilisateur connecté** : service en Système, chaque étape est lancée dans la session active
-    (jeton de l'utilisateur, bureau `winsta0\default`, sortie récupérée par tube). Personne de connecté → étape en échec.
-- Mode de copie : **push** (le serveur copie) ou **pull** (le runner copie lui-même depuis un chemin UNC,
-  avec son identité : identifiant choisi, ou compte ordinateur `POSTE$` en Système). Chemin local → push.
-- Prioritaire : les postes du déploiement passent devant ceux qui attendent un créneau (8 en parallèle).
-- Mémoriser les cibles : réglage `package.{id}.targets`, proposé à la prochaine ouverture de la fenêtre.
+### Deploy once (0.6.0)
+- Several packages in the chosen order: one deployment per package. On a given computer, package N+1 waits for
+  package N to finish, even if it failed or was cancelled.
+- Start step **per computer** (on the first package). "Resume at failed step" opens a single deployment where
+  each computer resumes at its own step.
+- Run as (package option, changeable at launch):
+  - **Deployment account**: the temporary service runs under the chosen credential. The server first grants the
+    "Log on as a service" right on the computer (remote LSA). Logon failure (error 1069) → clear message. With no
+    saved credential → Local System.
+  - **Local System**.
+  - **Logged-on user**: service as System, each step is launched in the active session (user's token,
+    `winsta0\default` desktop, output collected through a pipe). Nobody logged on → step fails.
+- Copy mode: **push** (the server copies) or **pull** (the runner copies itself from a UNC path, with its
+  identity: chosen credential, or the computer account `POSTE$` as System). Local path → push.
+- Priority: the deployment's computers go ahead of those waiting for a slot (8 in parallel).
+- Remember targets: setting `package.{id}.targets`, offered the next time the window is opened.
 
-### Thème clair / sombre (0.7.0)
-- Préférences › Interface › Thème = **Clair** (par défaut), **Sombre** ou **Selon Windows**
-  (suit le mode des applications de Windows, même s'il change pendant que la console est ouverte).
-  Appliqué à chaud à toutes les fenêtres, barre de titre comprise.
-- Réglage propre à l'utilisateur Windows de la console (`%APPDATA%\DeployCraft\console.json`), pas au serveur.
-- Technique : thème Fluent de WPF (.NET 10) pour les contrôles standard, accent remplacé par notre orange ;
-  nos couleurs dans `Themes\Clair.xaml` / `Themes\Sombre.xaml` (mêmes clés, toujours en `DynamicResource`).
+### Light / dark theme (0.7.0)
+- Preferences › Interface › Theme = **Light** (default), **Dark** or **Follow Windows** (follows the Windows app
+  mode, even if it changes while the console is open). Applied live to all windows, title bar included.
+- Setting specific to the console's Windows user (`%APPDATA%\DeployCraft\console.json`), not to the server.
+- Technical: WPF Fluent theme (.NET 10) for standard controls, accent replaced by our orange; our colors in
+  `Themes\Clair.xaml` / `Themes\Sombre.xaml` (same keys, always as `DynamicResource`).
 
-### Planifications (0.8.0)
-- Page **Toutes les planifications** : grille (prochaine / dernière exécution, dernier résultat) et, en dessous,
-  les déploiements de la planification choisie. Démarrer maintenant, modifier, activer / désactiver, dupliquer,
-  supprimer.
-- Fenêtre à onglets : **Déclencheurs**, **Cibles**, **Paquets** (ordonnés), **Options**, **Historique des cibles**.
-- Déclencheurs : une fois, intervalle (avec plage horaire facultative), quotidien, hebdomadaire, mensuel (jour N,
-  dernier jour, « le N-ième / dernier [lundi…] ») ; plusieurs par planification ; début et fin facultative.
-- Options : identifiant, exécuter en tant que, mode de copie, **ne plus déployer sur un poste une fois qu'il a
-  réussi**, ne plus déployer après N échecs, abandonner les postes encore en attente après N minutes.
-- Usage type : un déclencheur à intervalle + « ne plus déployer une fois réussi » réessaie une installation en
-  boucle pendant quelques jours jusqu'à ce qu'elle passe partout.
-- Service : planificateur qui examine les déclencheurs **toutes les 15 s** (heure locale du serveur). Plusieurs
-  déclenchements passés d'un coup → un seul lancement. Déclenchement manqué (service arrêté) : rattrapé seulement
-  s'il date de moins de 5 min. Enregistrer une planification ne rattrape pas les déclenchements passés.
-- Intervalle : grille début + k × intervalle ; avec une plage horaire, on saute au début de la plage suivante
-  (une plage dont la fin précède le début passe minuit). Mensuel : jour 31 → dernier jour des mois plus courts.
-- À chaque lancement, pour chaque paquet, on ne garde que les postes qui en ont besoin : pas déjà réussi
-  (option, cochée par défaut), pas au maximum d'échecs, et **pas encore servi par un lancement précédent de
-  la même planification** (en attente ou en cours : il sera repris au suivant).
-  Les paquets restent enchaînés par poste. Rien à faire → pas de déploiement, « Dernier résultat » l'explique.
-- Historique par planification × poste × paquet : réussi (définitif) et nombre d'échecs. Les annulations et
-  les postes abandonnés faute de créneau ne comptent pas comme échecs. Effacer une ligne → le poste sera redéployé.
-- Les déploiements gardent la planification d'origine ; « Lancé par » = « Planification « nom » »
-  (ou l'utilisateur qui a cliqué « Démarrer maintenant »).
-- À venir : déclencheur « poste revenu en ligne », onglet Hors ligne, notifications.
+### Schedules (0.8.0)
+- **All schedules** page: grid (next / last run, last result) and, below it, the deployments of the selected
+  schedule. Start now, edit, enable / disable, duplicate, delete.
+- Tabbed window: **Triggers**, **Targets**, **Packages** (ordered), **Options**, **Target history**.
+- Triggers: once, interval (with optional time range), daily, weekly, monthly (day N, last day, "the Nth / last
+  [Monday…]"); several per schedule; start and optional end.
+- Options: credential, run as, copy mode, **stop deploying to a computer once it has succeeded**, stop deploying
+  after N failures, abandon computers still waiting after N minutes.
+- Typical use: an interval trigger + "stop deploying once succeeded" retries an installation in a loop for a few
+  days until it goes through everywhere.
+- Service: scheduler that examines the triggers **every 15 s** (server local time). Several past triggers at once
+  → a single launch. Missed trigger (service stopped): caught up only if it is less than 5 min old. Saving a
+  schedule does not catch up past triggers.
+- Interval: grid start + k × interval; with a time range, it jumps to the start of the next range (a range whose
+  end precedes its start crosses midnight). Monthly: day 31 → last day of shorter months.
+- At each launch, for each package, only the computers that need it are kept: not already succeeded (option,
+  ticked by default), not at the maximum number of failures, and **not yet served by a previous launch of the
+  same schedule** (waiting or running: it will be picked up at the next one). Packages remain chained per
+  computer. Nothing to do → no deployment, "Last result" explains why.
+- History per schedule × computer × package: succeeded (final) and number of failures. Cancellations and
+  computers abandoned for lack of a slot do not count as failures. Deleting a row → the computer will be
+  redeployed.
+- Deployments keep their original schedule; "Launched by" = "Schedule "name"" (or the user who clicked
+  "Start now").
+- Coming: "computer back online" trigger, Offline tab, notifications.
 
-### Identifiants (0.9.0)
-- Options › **Identifiants…** : liste « compte — description (par défaut) » ; Ajouter, Modifier,
-  Définir par défaut, Supprimer. Le premier identifiant devient celui par défaut ; supprimer celui par défaut
-  en désigne un autre. Suppression refusée si une planification l'utilise.
-- Ajout / modification : Domaine (pré-rempli avec le domaine du poste), Utilisateur, Mot de passe (vide =
-  inchangé), Description ; **Tester** vérifie un compte du domaine auprès de l'annuaire. Un compte local ne se
-  teste pas : chaque poste le vérifie au déploiement.
-- **Compte local** (domaine vide ou « . » → `.\utilisateur`) : présenté à chaque poste sous `POSTE\utilisateur`
-  (accès ADMIN$ et gestionnaire de services), et le service temporaire tourne sous `.\utilisateur`. À savoir :
-  un compte local autre que l'Administrateur intégré est filtré par l'UAC à distance, sauf réglage
-  LocalAccountTokenFilterPolicy.
-- Déployer une fois et planification : liste **Identifiant** (celui par défaut présélectionné) + **Gérer…**.
-  Le déploiement garde l'identifiant utilisé (fiche « Compte », avec « accès : … » quand le paquet tourne en
-  Système local ou utilisateur connecté). Planification sans identifiant (créée avant 0.9.0) = celui par défaut.
-- Active Directory : lu avec l'identifiant par défaut s'il est du domaine, sinon le premier du domaine.
-- Sécurité : mots de passe chiffrés DPAPI (portée machine), jamais renvoyés à la console ; au démarrage, le
-  service réserve son dossier de données à Système et Administrateurs. Mot de passe illisible (base venue d'un
-  autre serveur) → signalé dans la liste et le bandeau, à ressaisir.
-- Mise à jour depuis 0.8 : l'ancien compte unique devient le premier identifiant, par défaut.
-- À venir : LAPS (mot de passe administrateur local de chaque poste lu dans l'AD), bouton « afficher le mot de passe ».
+### Credentials (0.9.0)
+- Options › **Credentials…**: list "account — description (default)"; Add, Edit, Set as default, Delete. The first
+  credential becomes the default; deleting the default designates another. Deletion refused if a schedule uses it.
+- Add / edit: Domain (pre-filled with the computer's domain), User, Password (empty = unchanged), Description;
+  **Test** checks a domain account against the directory. A local account cannot be tested: each computer checks
+  it at deployment.
+- **Local account** (empty domain or "." → `.\user`): presented to each computer as `POSTE\user` (ADMIN$ access and
+  service manager), and the temporary service runs under `.\user`. Note: a local account other than the built-in
+  Administrator is filtered by remote UAC, unless the LocalAccountTokenFilterPolicy setting is applied.
+- Deploy once and schedule: **Credential** list (default preselected) + **Manage…**. The deployment keeps the
+  credential used ("Account" sheet, with "access: …" when the package runs as Local System or logged-on user).
+  Schedule with no credential (created before 0.9.0) = the default one.
+- Active Directory: read with the default credential if it belongs to the domain, otherwise the first one of the
+  domain.
+- Security: passwords encrypted with DPAPI (machine scope), never sent back to the console; at startup, the
+  service reserves its data folder to System and Administrators. Unreadable password (database from another
+  server) → flagged in the list and the banner, to be re-entered.
+- Update from 0.8: the old single account becomes the first credential, as default.
+- Coming: LAPS (local administrator password of each computer read from AD), "show password" button.
 
-### Utilisateurs de la console (accès à l'API du service)
-- La console s'identifie auprès du service avec la session Windows de la personne (authentification Windows,
-  aucun mot de passe à saisir). Une demande sans identité est refusée.
-- Ont accès : les **administrateurs locaux du serveur**, toujours (même console ouverte sans élévation), et les
-  comptes ou groupes de la liste Options › **Utilisateurs de la console…** (Ajouter : `DOMAINE\nom`, vérifié
-  et retenu par son SID ; Supprimer). Seuls les administrateurs du serveur modifient la liste.
-- Compte refusé : message « Votre compte … n'est pas autorisé à utiliser DeployCraft sur SERVEUR-01 » dans le
-  bandeau, barre d'état « Accès refusé ».
-- **Sessions actives** dans la même fenêtre : comptes ayant interrogé le service depuis moins de 2 minutes.
-- « Lancé par » et « Annulé par » viennent du compte authentifié par le service, plus de la console.
-- Barre d'état : « vous : DOMAINE\compte ».
+### Console users (access to the service API)
+- The console identifies itself to the service with the person's Windows session (Windows authentication, no
+  password to enter). A request without an identity is refused.
+- Access: the **local administrators of the server**, always (even if the console is opened without elevation),
+  and the accounts or groups in the Options › **Console users…** list (Add: `DOMAINE\name`, verified and kept by
+  its SID; Delete). Only the server's administrators edit the list.
+- Refused account: message "Your account … is not allowed to use DeployCraft on SERVEUR-01" in the banner, status
+  bar "Access denied".
+- **Active sessions** in the same window: accounts that queried the service less than 2 minutes ago.
+- "Launched by" and "Cancelled by" come from the account authenticated by the service, no longer from the console.
+- Status bar: "you: DOMAINE\account".
 
-### Fenêtre paquet (0.10.0)
-- À gauche : arbre **Propriétés** puis **Étapes** (une ligne par étape) ; à droite : la page du nœud choisi.
-  Barre d'outils : enregistrer, nouvelle étape ▾, monter, descendre (Ctrl+Haut / Ctrl+Bas), couper, copier, coller,
-  supprimer. Une étape **glissée-déposée** dans l'arbre se place avant ou après l'étape visée, selon la moitié
-  survolée (trait d'insertion ; Échap annule).
-  Couper / copier / coller (Ctrl+X / C / V) passent par le presse-papiers : on colle aussi dans un autre paquet.
-- Propriétés en 4 onglets :
-  - **Détails** : nom, version (affichée à côté du nom dans la page du paquet), description.
-  - **Conditions** : voir § Conditions.
-  - **Options** : exécuter en tant que, mode de copie, délai max ; « Par défaut (valeur) » = Préférences.
-  - **Hors ligne** : « Utiliser les réglages des Préférences », sinon réglages propres au paquet.
-- Étape : titre, case **Étape activée**, puis 3 onglets : **Détails**, **Conditions**, **Options** (délai max,
-  vide = celui du paquet ; en cas d'erreur). La vue d'ensemble des étapes a une colonne Conditions.
-- Héritage des réglages : étape → paquet → Préférences. Au lancement, les valeurs réellement utilisées sont
-  figées dans l'historique du déploiement.
-- Le texte des étapes et des conditions est envoyé tel quel : pas de variables `$(…)` (une sous-expression
-  PowerShell comme `$(Get-Date)` reste intacte) ; les `%VAR%` sont celles de Windows sur le poste.
+### Package window (0.10.0)
+- On the left: **Properties** tree then **Steps** (one line per step); on the right: the page of the selected
+  node. Toolbar: save, new step ▾, move up, move down (Ctrl+Up / Ctrl+Down), cut, copy, paste, delete. A step
+  **dragged and dropped** in the tree is placed before or after the target step, depending on the half hovered
+  (insertion line; Esc cancels). Cut / copy / paste (Ctrl+X / C / V) go through the clipboard: you can also paste
+  into another package.
+- Properties in 4 tabs:
+  - **Details**: name, version (shown next to the name in the package page), description.
+  - **Conditions**: see § Conditions.
+  - **Options**: run as, copy mode, maximum timeout; "Default (value)" = Preferences.
+  - **Offline**: "Use the Preferences settings", otherwise the package's own settings.
+- Step: title, **Step enabled** box, then 3 tabs: **Details**, **Conditions**, **Options** (maximum timeout, empty
+  = that of the package; on error). The steps overview has a Conditions column.
+- Settings inheritance: step → package → Preferences. At launch, the values actually used are frozen in the
+  deployment history.
+- The text of steps and conditions is sent as is: no `$(…)` variables (a PowerShell subexpression such as
+  `$(Get-Date)` stays intact); `%VAR%` are those of Windows on the computer.
 
-### Export et import de paquets
-- **Fichier › Exporter le paquet…** (aussi au clic droit) ou **Exporter tous les paquets…** : un fichier `.json`
-  qui contient les paquets choisis **et les paquets imbriqués qu'ils utilisent**, pour qu'il se suffise à lui-même.
-  Les identifiants (mots de passe) ne sont jamais exportés.
-- **Fichier › Importer des paquets…** : un export DeployCraft (`.json`) ou un **fichier XML de paquets**.
-  Une fenêtre montre d'abord un **aperçu** (rien n'est créé) : pour chaque paquet et chaque étape, repris tel quel
-  (vert), repris avec des réserves (orange, avec l'explication) ou non repris (rouge, avec la raison).
-  « Importer » crée les paquets ; rien n'est perdu sans être signalé.
-- Toujours de **nouveaux** paquets : un nom déjà pris devient « Nom (2) », « Nom (3) »… Les étapes « paquet
-  imbriqué » sont reliées aux paquets importés en même temps. Un paquet imbriqué est créé avant celui qui l'utilise ;
-  une boucle de paquets imbriqués dans le fichier est refusée. Chaque paquet est vérifié comme à l'enregistrement.
-- Fichier XML de paquets :
-  - Étapes reprises : Installer, Commande, PowerShell, Copie de fichiers, Pause, Redémarrer, Paquet imbriqué.
-    Pas encore reprises (signalées) : Message, Déconnexion ; jamais : scan d'inventaire.
-  - Installer : options Windows Installer (installer / réparer / désinstaller, redémarrage, silencieux), ligne de
-    commande personnalisée et « garder le fichier sur le poste » sont repris. Une opération impossible pour le type
-    de fichier (réparer un .msu, opération sur un .msp) est remplacée par l'installation (signalé).
-  - Paquet imbriqué : relié au paquet du même fichier, sinon à un paquet du même nom déjà dans DeployCraft
-    (signalé), sinon l'étape n'est pas reprise.
-  - Étapes « avant » et « après » : mises à la suite, dans l'ordre d'exécution (signalé).
-  - Conditions : versions de Windows, architecture, version de PowerShell, utilisateur connecté, présence d'un
-    fichier ou d'une clé / valeur de registre. Une condition sans équivalent exact (version de fichier, valeur de
-    registre comparée, Windows Server version par version, collection d'un logiciel d'inventaire…) est signalée et l'étape est
-    **importée désactivée** (toutes les étapes si c'est une condition du paquet) : elle ne s'exécute jamais sur plus
-    de postes que prévu. On la vérifie, puis on la réactive.
-  - Fichiers additionnels d'une étape (Installer, Commande, PowerShell) : repris, `$(Repository)` compris.
-  - `$(Repository)` est remplacé par le dossier du dépôt saisi dans la fenêtre d'import ; les autres variables
-    restent telles quelles (signalées). Dossiers de paquets : DeployCraft n'en a pas, les paquets vont à la racine.
-    Planifications et listes de postes du fichier : signalées, non reprises.
+### Package export and import
+- **File › Export package…** (also on right-click) or **Export all packages…**: a `.json` file containing the
+  chosen packages **and the nested packages they use**, so that it is self-sufficient. Credentials (passwords) are
+  never exported.
+- **File › Import packages…**: a DeployCraft export (`.json`) or a **package XML file**. A window first shows a
+  **preview** (nothing is created): for each package and each step, taken as is (green), taken with caveats
+  (orange, with the explanation) or not taken (red, with the reason). "Import" creates the packages; nothing is
+  lost without being flagged.
+- Always **new** packages: a name already taken becomes "Name (2)", "Name (3)"… "Nested package" steps are linked
+  to the packages imported at the same time. A nested package is created before the one that uses it; a loop of
+  nested packages in the file is refused. Each package is checked as on save.
+- Package XML file:
+  - Steps taken: Install, Command, PowerShell, File copy, Pause, Restart, Nested package. Not yet taken
+    (flagged): Message, Log off; never: inventory scan.
+  - Install: Windows Installer options (install / repair / uninstall, restart, silent), custom command line and
+    "keep the file on the computer" are taken. An operation impossible for the file type (repairing an .msu,
+    operation on an .msp) is replaced by installation (flagged).
+  - Nested package: linked to the package of the same file, otherwise to a package of the same name already in
+    DeployCraft (flagged), otherwise the step is not taken.
+  - "Before" and "after" steps: put one after the other, in execution order (flagged).
+  - Conditions: Windows versions, architecture, PowerShell version, logged-on user, presence of a file or of a
+    registry key / value. A condition with no exact equivalent (file version, compared registry value, Windows
+    Server version by version, collection of an inventory software…) is flagged and the step is **imported
+    disabled** (all steps if it is a package condition): it never runs on more computers than intended. You check
+    it, then re-enable it.
+  - Additional files of a step (Install, Command, PowerShell): taken, `$(Repository)` included.
+  - `$(Repository)` is replaced by the repository folder entered in the import window; other variables stay as
+    they are (flagged). Package folders: DeployCraft has none, packages go at the root. Schedules and computer
+    lists in the file: flagged, not taken.
 
-### Bibliothèque de paquets
-- Entrée **Bibliothèque de paquets** de l'arbre : tout le catalogue public winget (environ 15 000
-  logiciels), avec en tête les paquets déjà téléchargés puis une sélection de logiciels courants. Colonnes :
-  logiciel, identifiant, version disponible, version dans DeployCraft, installeur, état.
-- **Recherche** dans tout le catalogue : nom, identifiant, éditeur ou mot-clé ; chaque mot doit correspondre.
-- Le service télécharge l'index du catalogue (un seul petit fichier) et le relit de lui-même une fois par jour,
-  ou sur **Actualiser le catalogue**. La console charge la liste une fois, puis ne suit que les lignes qui changent.
-- **Télécharger** (ou double-clic, plusieurs lignes possibles) : DeployCraft lit la fiche du logiciel et choisit un
-  installeur **pour tout le poste et sans fenêtre** (64 bits de préférence, en français si l'éditeur en propose un,
-  .msi de préférence). Sans installeur de ce genre, le téléchargement est refusé avec la raison. Sinon l'état suit
-  chaque étape en pourcentage : téléchargement, vérification du fichier (empreinte du catalogue : un fichier
-  différent est rejeté), copie dans le dossier de la bibliothèque, création du paquet.
-- Le paquet créé porte le nom du logiciel et sa version, avec une étape « Installer » et les paramètres
-  silencieux du type d'installeur (.msi : `ALLUSERS=1` ; autres : paramètres de la fiche, ou ceux d'usine du type).
-- **Mise à jour disponible** quand le catalogue a une version plus récente que le paquet : **Mettre à jour**
-  remplace le fichier, les paramètres et la version du paquet, garde le reste (conditions, étapes ajoutées) et
-  supprime l'ancienne version du dossier. Un paquet supprimé n'est plus relié à la bibliothèque.
-- **Dossier…** : où ranger les installeurs (`<dossier>\<logiciel>\<version>\`). Par défaut un dossier du serveur
-  (mode push seulement) ; un partage est conseillé. Il est écrit avec l'identifiant par défaut.
+### Package library
+- **Package library** entry in the tree: the whole public winget catalog (about 15,000 programs), with the
+  already-downloaded packages first, then a selection of common programs. Columns: program, identifier, available
+  version, version in DeployCraft, installer, status.
+- **Search** across the whole catalog: name, identifier, publisher or keyword; every word must match.
+- The service downloads the catalog index (a single small file) and re-reads it by itself once a day, or on
+  **Refresh catalog**. The console loads the list once, then only follows the rows that change.
+- **Download** (or double-click, several rows possible): DeployCraft reads the program's manifest and picks an
+  installer **for the whole computer and without a window** (64-bit preferred, in French if the publisher offers
+  one, .msi preferred). With no installer of this kind, the download is refused with the reason. Otherwise the
+  status follows each stage as a percentage: download, file verification (catalog hash: a different file is
+  rejected), copy into the library folder, package creation.
+- The created package carries the program's name and version, with an "Install" step and the silent parameters of
+  the installer type (.msi: `ALLUSERS=1`; others: parameters from the manifest, or the type's factory defaults).
+- **Update available** when the catalog has a newer version than the package: **Update** replaces the file, the
+  parameters and the version of the package, keeps the rest (conditions, added steps) and deletes the old version
+  from the folder. A deleted package is no longer linked to the library.
+- **Folder…**: where to store the installers (`<folder>\<program>\<version>\`). By default a folder on the server
+  (push mode only); a share is recommended. It is written with the default credential.
 
-### Préférences › Déploiement et Hors ligne (0.10.0)
-- Réglages du **serveur** (communs à toutes les consoles), enregistrés à la fermeture de la fenêtre : exécuter en
-  tant que, mode de copie, délai max par étape (60 min d'usine), réglages hors ligne.
+### Preferences › Deployment and Offline (0.10.0)
+- **Server** settings (common to all consoles), saved when the window is closed: run as, copy mode, maximum timeout
+  per step (60 min by default), offline settings.
 
-### Performance (Préférences › Déploiement)
-- **Postes en parallèle** : de 1 à 100 (8 d'usine), tous déploiements et planifications confondus. Les autres postes
-  attendent un créneau, les postes prioritaires d'abord. Le réglage s'applique au démarrage du service, à chaque
-  enregistrement des Préférences et à chaque lancement : une hausse sert tout de suite les postes en attente ; une
-  baisse laisse finir les postes en cours et ne s'applique qu'à mesure qu'ils se terminent.
-- **Limite de copie** en Mbit/s (0 = sans limite, d'usine ; jusqu'à 10 000) : débit **total** des copies du serveur
-  vers les postes (runner, fichiers d'installation, fichiers des étapes « copie de fichiers »), partagé entre toutes
-  les copies en cours, quel que soit le nombre de postes. Seau à jetons d'une seconde de réserve ; avec une limite, la
-  copie se fait par morceaux de 256 Ko (la date du fichier est conservée). En mode pull, chaque poste lit le partage
-  lui-même : la limite ne s'applique pas.
-- Valeurs hors limites refusées à l'enregistrement (console et service).
+### Performance (Preferences › Deployment)
+- **Computers in parallel**: from 1 to 100 (8 by default), all deployments and schedules combined. The other
+  computers wait for a slot, priority computers first. The setting is applied at service startup, at each save of
+  the Preferences and at each launch: an increase serves waiting computers immediately; a decrease lets running
+  computers finish and only applies as they complete.
+- **Copy limit** in Mbit/s (0 = unlimited, the default; up to 10,000): **total** throughput of copies from the
+  server to the computers (runner, installation files, files of "file copy" steps), shared among all running
+  copies, whatever the number of computers. Token bucket with one second of reserve; with a limit, the copy is done
+  in 256 KB chunks (the file date is preserved). In pull mode, each computer reads the share itself: the limit
+  does not apply.
+- Out-of-range values are refused on save (console and service).
 
-### Nettoyage de l'historique
-- Préférences › Déploiement : « Supprimer les déploiements terminés après N jours ». Réglage du **serveur**,
-  **désactivé d'usine**, N de 1 à 3650 (30 proposé), refusé par le service hors de ces limites.
-- Le service fait le ménage au démarrage, puis une fois par jour ; le réglage est relu à chaque passage.
-- Seuls les déploiements **terminés** (réussis ou en échec) dont la fin remonte à plus de N jours sont supprimés,
-  avec leurs postes. Un déploiement en attente ou en cours n'est jamais supprimé, ni l'historique des planifications
-  (celui qui sert à « ne plus déployer une fois réussi »).
-- Le nombre de déploiements supprimés est écrit dans le journal du service. Une valeur hors limites trouvée en base
-  (modifiée à la main) est ramenée dans les limites : au plus un jour d'historique conservé en moins que prévu.
-- Le fichier de base ne rétrécit pas (SQLite réutilise la place libérée) mais cesse de grossir.
+### History cleanup
+- Preferences › Deployment: "Delete finished deployments after N days". **Server** setting, **disabled by
+  default**, N from 1 to 3650 (30 suggested), refused by the service outside these limits.
+- The service cleans up at startup, then once a day; the setting is re-read on each pass.
+- Only **finished** deployments (succeeded or failed) whose end is more than N days ago are deleted, with their
+  computers. A waiting or running deployment is never deleted, nor is the schedule history (the one used for "stop
+  deploying once succeeded").
+- The number of deployments deleted is written to the service log. An out-of-range value found in the database
+  (edited by hand) is brought back within the limits: at most one day less history kept than expected.
+- The database file does not shrink (SQLite reuses the freed space) but stops growing.
 
-### Postes hors ligne (0.10.0)
-- Le poste est toujours testé avant la copie (nom DNS, partage de fichiers).
-- **Wake-on-LAN** : poste qui ne répond pas → paquet de réveil (diffusion générale et diffusion de son
-  sous-réseau, ports UDP 9 et 7), puis attente qu'il réponde (3 min d'usine). L'adresse MAC et la diffusion du
-  sous-réseau sont envoyées par le runner à chaque déploiement : un poste jamais déployé ne peut pas être réveillé.
-- **Nouveaux essais** : poste hors ligne → « En attente », étape « Hors ligne : nouvel essai à HH:mm (essai n sur
-  N) », créneau rendu pendant l'attente ; échec après le dernier essai. Annulable ; un redémarrage du service
-  abandonne les essais en attente. Seules les erreurs « hors ligne » sont réessayées.
+### Offline computers (0.10.0)
+- The computer is always tested before the copy (DNS name, file share).
+- **Wake-on-LAN**: computer that does not respond → wake packet (general broadcast and broadcast of its subnet,
+  UDP ports 9 and 7), then wait for it to respond (3 min by default). The MAC address and the subnet broadcast are
+  sent by the runner at each deployment: a computer never deployed to cannot be woken.
+- **Retries**: offline computer → "Waiting", step "Offline: retry at HH:mm (attempt n of N)", slot released during
+  the wait; failure after the last attempt. Cancellable; a service restart abandons pending retries. Only
+  "offline" errors are retried.
 
-### Suivi d'un poste : copie, exécutions, note
-- **Progression de la copie** (mode push) : le serveur liste d'abord tous les fichiers à copier vers le poste
-  (runner, installeurs, fichiers additionnels, fichiers des étapes « copie de fichiers »), puis les copie d'un bloc.
-  L'étape en cours du poste affiche « Copie des fichiers : 45 % (12,3 Mo/s) » : octets copiés sur le total et débit
-  sur les 3 dernières secondes (1 Mo = 1 024 Ko), mis à jour une fois par seconde (rien n'est écrit en base à chaque
-  morceau). En mode pull, le poste lit le partage lui-même : seul « Copie des fichiers » s'affiche.
-- **Exécutions** (détail des étapes d'un poste) : nombre de fois où l'étape a tourné sur ce poste **dans ce
-  déploiement**, nouveaux essais compris (poste hors ligne réessayé plus tard). Une étape ignorée compte 0. Un
-  redéploiement est un nouveau déploiement, avec son propre compte.
-- **Note** : court message sur le résultat de l'étape (première ligne, 160 caractères au plus) : raison d'une étape
-  ignorée, erreur ou code hors des codes de succès, arrêt du paquet en succès, réussite qui demande un redémarrage
-  (3010, 1641) ou mise à jour déjà installée (2359302). Les autres codes de succès (par exemple 1 pour une copie de
-  fichiers) n'ont pas de note. Calculée à l'affichage, pas enregistrée.
-- **Annulation pendant la copie** : la copie s'arrête entre deux morceaux (ou pendant l'attente imposée par la limite
-  de débit), puis le slot est nettoyé avec le fichier à moitié copié.
+### Tracking a computer: copy, runs, note
+- **Copy progress** (push mode): the server first lists all the files to copy to the computer (runner,
+  installers, additional files, files of "file copy" steps), then copies them in one go. The computer's current
+  step shows "Copying files: 45% (12.3 MB/s)": bytes copied out of the total and throughput over the last 3
+  seconds (1 MB = 1,024 KB), updated once per second (nothing is written to the database for each chunk). In pull
+  mode, the computer reads the share itself: only "Copying files" is shown.
+- **Runs** (detail of a computer's steps): number of times the step ran on this computer **in this deployment**,
+  retries included (offline computer retried later). A skipped step counts 0. A redeployment is a new deployment,
+  with its own count.
+- **Note**: short message about the step result (first line, 160 characters at most): reason for a skipped step,
+  error or code outside the success codes, package stopped on success, success that requires a restart (3010,
+  1641) or update already installed (2359302). Other success codes (for example 1 for a file copy) have no note.
+  Computed at display time, not stored.
+- **Cancellation during the copy**: the copy stops between two chunks (or during the wait imposed by the
+  throughput limit), then the slot is cleaned up along with the half-copied file.
 
-## 4. Informations à afficher
+## 4. Information to display
 
-| Objet | Informations |
+| Object | Information |
 |---|---|
-| Déploiement | n°, statut (dont partiellement échoué, annulé), créé / démarré / terminé, durée, paquet + version, utilisateur de la console qui l'a lancé, compte d'exécution, planification d'origine, compteurs (en attente, en cours, réussis, échecs) |
-| Poste d'un déploiement | nom, statut, début / fin, durée, étape en cours, « n sur m étapes », erreur + étape en échec, reprise à l'étape en échec, priorisation, fichier de sortie |
-| Étape d'un poste | n°, titre, statut, code retour, durée, erreur, compte d'exécution, progression de copie (%, débit), note, sortie |
-| File de réessai | poste, paquets, essais effectués / max / restants, prochain essai, dernier essai, expiration |
-| Planification | nom, cibles, paquets ordonnés, déclencheurs, activée, prochaine / dernière exécution, arrêt après N échecs, arrêt après succès, délai max, notification |
-| Réglages de déploiement | compte d'exécution, délai par poste, nettoyage de l'historique après N jours, comportement hors ligne |
-| Rapports / notifications | e-mail après déploiement (destinataires, objet, corps, pièce jointe, seulement si changement) |
+| Deployment | no., status (including partially failed, cancelled), created / started / finished, duration, package + version, console user who launched it, run-as account, originating schedule, counters (waiting, running, succeeded, failed) |
+| Computer of a deployment | name, status, start / end, duration, current step, "n of m steps", error + failed step, resume at failed step, prioritization, output file |
+| Step of a computer | no., title, status, return code, duration, error, run-as account, copy progress (%, throughput), note, output |
+| Retry queue | computer, packages, attempts made / max / remaining, next attempt, last attempt, expiry |
+| Schedule | name, targets, ordered packages, triggers, enabled, next / last run, stop after N failures, stop after success, max timeout, notification |
+| Deployment settings | run-as account, per-computer timeout, history cleanup after N days, offline behavior |
+| Reports / notifications | e-mail after deployment (recipients, subject, body, attachment, only if changed) |

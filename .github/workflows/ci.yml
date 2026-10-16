@@ -1,5 +1,5 @@
-# Vérifie chaque PR et chaque fusion dans main : restauration verrouillée (packages.lock.json),
-# compilation, tests, mise en forme. Windows obligatoire (WPF, service Windows, runner .NET Framework).
+# Checks every PR and every merge into main: locked restore (packages.lock.json),
+# build, tests, formatting. Windows required (WPF, Windows service, .NET Framework runner).
 name: CI
 
 on:
@@ -26,14 +26,14 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Restauration (mode verrouillé)
+      - name: Restore (locked mode)
         run: dotnet restore DeployCraft.slnx
 
-      - name: Compilation
+      - name: Build
         run: dotnet build DeployCraft.slnx --no-restore -c Release -warnaserror
 
       - name: Tests
         run: dotnet test DeployCraft.slnx --no-build -c Release
 
-      - name: Mise en forme
+      - name: Formatting
         run: dotnet format DeployCraft.slnx --verify-no-changes --no-restore

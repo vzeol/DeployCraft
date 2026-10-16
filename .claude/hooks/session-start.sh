@@ -1,7 +1,7 @@
 #!/bin/bash
-# Démarrage des sessions Claude Code dans le cloud (Linux) : installe le SDK .NET 10 et restaure
-# les dépendances, pour compiler, tester et vérifier la mise en forme avant de pousser.
-# Sur un poste Windows, ce script ne fait rien.
+# Startup of Claude Code sessions in the cloud (Linux): installs the .NET 10 SDK and restores
+# the dependencies, to build, test and check formatting before pushing.
+# On a Windows computer, this script does nothing.
 set -euo pipefail
 
 if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then
@@ -11,7 +11,7 @@ fi
 DOTNET_DIR="$HOME/.dotnet"
 export PATH="$DOTNET_DIR:$PATH"
 export DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_NOLOGO=1
-# Compiler sous Linux les projets net10.0-windows (service, console, tests).
+# Build the net10.0-windows projects on Linux (service, console, tests).
 export EnableWindowsTargeting=true
 
 if ! dotnet --list-sdks 2>/dev/null | grep -q '^10\.'; then

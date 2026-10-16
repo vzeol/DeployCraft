@@ -1,67 +1,64 @@
-name: Signaler un problème / Report a bug
-description: Quelque chose ne marche pas comme prévu (déploiement, console, service, installeur). Something does not work as expected.
+name: Report a bug
+description: Something does not work as expected (deployment, console, service, installer).
 title: "[Bug] "
 labels: [bug]
 body:
   - type: markdown
     attributes:
       value: |
-        Merci de prendre le temps de signaler ce problème. Plus la description est précise, plus vite il sera corrigé.
-        **N'écrivez ici aucune information sensible** : mot de passe, nom de votre domaine, de vos serveurs ou de vos postes
-        (remplacez-les par `DOMAINE.LOCAL`, `SERVEUR-01`, `PC-TEST-01`).
-        Une faille de sécurité ? Ne la signalez pas ici : voir [SECURITY.md](../blob/main/SECURITY.md).
-
-        *English is welcome.* Thank you for reporting this problem. **Do not write any sensitive information here**:
-        password, names of your domain, servers or computers (replace them with `DOMAINE.LOCAL`, `SERVEUR-01`, `PC-TEST-01`).
+        Thank you for reporting this problem. The more precise the description, the faster it gets fixed.
+        **Do not write any sensitive information here**: password, names of your domain, servers or computers
+        (replace them with `DOMAINE.LOCAL`, `SERVEUR-01`, `PC-TEST-01`).
         A security vulnerability? Do not report it here: see [SECURITY.md](../blob/main/SECURITY.md).
+        Issues can be written in English or French.
   - type: input
     id: version
     attributes:
-      label: Version de DeployCraft / DeployCraft version
-      description: Menu Aide › À propos (bouton « Copier les informations ») — Help › About, « copy » button.
+      label: DeployCraft version
+      description: Help › About menu ("copy information" button).
       placeholder: 1.0.0-rc.1
     validations:
       required: true
   - type: input
     id: server
     attributes:
-      label: Windows du serveur / Server Windows version
+      label: Server Windows version
       placeholder: Windows Server 2022, Windows 11 23H2…
     validations:
       required: true
   - type: input
     id: targets
     attributes:
-      label: Windows des postes concernés / Computers Windows version
-      description: Si le problème touche un déploiement. If the problem concerns a deployment.
+      label: Windows version of the computers involved
+      description: If the problem concerns a deployment.
       placeholder: Windows 11 24H2, Windows 10 22H2…
   - type: textarea
     id: steps
     attributes:
-      label: Ce que vous avez fait / What you did
-      description: Les étapes pour reproduire le problème. Steps to reproduce the problem.
+      label: What you did
+      description: Steps to reproduce the problem.
       placeholder: |
-        1. Paquet avec une étape Installer (fichier .msi)
-        2. Déployer une fois sur un poste
+        1. Package with an Install step (.msi file)
+        2. Deploy once to a computer
         3. …
     validations:
       required: true
   - type: textarea
     id: actual
     attributes:
-      label: Ce qui s'est passé / What happened
-      description: Message d'erreur exact, statut du poste, sortie de l'étape (Détail des étapes › copier la sortie). Une capture d'écran aide beaucoup. Exact error message, computer status, step output; a screenshot helps a lot.
+      label: What happened
+      description: Exact error message, computer status, step output (step details › copy the output). A screenshot helps a lot.
     validations:
       required: true
   - type: textarea
     id: expected
     attributes:
-      label: Ce que vous attendiez / What you expected
+      label: What you expected
     validations:
       required: true
   - type: textarea
     id: logs
     attributes:
-      label: Journal du service (facultatif) / Service log (optional)
-      description: Observateur d'événements › Journaux Windows › Application, entrées liées à DeployCraft. Relisez-les pour retirer les noms internes. Event Viewer › Windows Logs › Application; remove internal names.
+      label: Service log (optional)
+      description: Event Viewer › Windows Logs › Application, entries related to DeployCraft. Re-read them to remove internal names.
       render: text
