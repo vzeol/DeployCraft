@@ -134,6 +134,7 @@ public partial class MainWindow : Window
             _homeNode.IsSelected = true;
             await RefreshAsync(packages: true);
             _timer.Start();
+            if (await WelcomeWindow.NeededAsync()) Welcome_Click(this, new());
         };
     }
 
@@ -546,9 +547,7 @@ public partial class MainWindow : Window
         try
         {
             var info = await Api.Library();
-            if (InputDialog.Ask(this, "Dossier de la bibliothèque",
-                    @"Dossier où ranger les installeurs téléchargés. Un partage est conseillé (ex. \\SERVEUR\Deploiement\Bibliotheque) :",
-                    info.Folder) is not { } folder || folder == info.Folder) return;
+            if (Ui.PickLibraryFolder(this, info.Folder) is not { } folder) return;
             await Api.SetLibraryFolder(folder);
             await RefreshAsync(packages: false);
         }
@@ -940,6 +939,28 @@ public partial class MainWindow : Window
         }
         catch (ApiException ex) { Ui.Error(this, ex); }
     }
+
+    private WelcomeWindow? _welcome;
+
+    /// <summary>Assistant de démarrage, non modal : une seule fenêtre, ramenée devant si elle est déjà ouverte.</summary>
+    private void Welcome_Click(object sender, RoutedEventArgs e)
+    {
+        if (_welcome != null)
+        {
+            _welcome.Activate();
+            return;
+        }
+        _welcome = new WelcomeWindow(this);
+        _welcome.Closed += async (_, _) =>
+        {
+            _welcome = null;
+            await RefreshAsync(packages: true);
+        };
+        _welcome.Show();
+    }
+
+    /// <summary>Affiche la bibliothèque de paquets (depuis l'assistant de démarrage).</summary>
+    public void OpenLibrary() => _libraryNode.IsSelected = true;
 
     private void ConsoleUsers_Click(object sender, RoutedEventArgs e) => new ConsoleUsersWindow { Owner = this }.ShowDialog();
 
