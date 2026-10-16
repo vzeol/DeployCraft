@@ -9,9 +9,11 @@ namespace DeployCraft.Console;
 public record ServerStatus(string Machine, string RunningAs, bool Elevated, Credential? DefaultCredential, int UnreadableCredentials, string? Version,
     string? ConnectedAs);
 public record ConsoleUser(string Sid, string Name);
-public record ConsoleSession(string User, DateTime LastSeenUtc);
+public record ConsoleSession(string User, string Computer, DateTime LastSeenUtc);
 public record ConsoleAccessInfo(List<ConsoleUser> Users, List<ConsoleSession> Sessions, bool CanEdit);
 public record AdComputer(string Name, string? DnsName, string? OperatingSystem, string Ou, DateTime? LastLogon, bool Enabled);
+public record ServiceInfo(bool IsService, string Account, bool LocalSystem, bool Elevated, DateTime StartedUtc);
+public record ServiceState(ServiceInfo Info, bool CanEdit, bool Local);
 public record ScheduleRunResult(List<Deployment> Deployments, string? Result);
 
 /// <summary>Accès au service DeployCraft (API HTTP locale).</summary>
@@ -112,6 +114,11 @@ public static class Api
     public static Task<ConsoleAccessInfo> Access() => Get<ConsoleAccessInfo>("access");
     public static Task<ConsoleUser> AddConsoleUser(string name) => Send<ConsoleUser>(HttpMethod.Post, "access/users", new { name });
     public static Task RemoveConsoleUser(string sid) => Send<object>(HttpMethod.Delete, $"access/users/{Uri.EscapeDataString(sid)}");
+
+    public static Task<ServiceState> Service() => Get<ServiceState>("service");
+    public static Task RestartService() => Send<object>(HttpMethod.Post, "service/restart");
+    /// <summary>Compte « LocalSystem » (sans mot de passe) ou DOMAINE\nom : le service redémarre aussitôt.</summary>
+    public static Task SetServiceAccount(string account, string password) => Send<object>(HttpMethod.Put, "service/account", new { account, password });
 
     public static Task<List<AdComputer>> AdComputers(string? search) =>
         Get<List<AdComputer>>("ad/computers?search=" + Uri.EscapeDataString(search ?? ""));
