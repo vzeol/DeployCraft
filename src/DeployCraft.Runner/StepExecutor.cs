@@ -6,11 +6,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using DeployCraft.Runner.Steps;
 
 namespace DeployCraft.Runner
 {
     /// <summary>Exécute les étapes d'un job dans le dossier exec\ et tient status.json à jour.</summary>
-    internal class StepExecutor
+    internal class StepExecutor : IStepHost
     {
         private const int MaxOutputChars = 64 * 1024;
 
@@ -321,61 +322,16 @@ namespace DeployCraft.Runner
 
         private ProcessStartInfo BuildStartInfo(int index, JobStep step)
         {
-            var system32 = Environment.GetFolderPath(Environment.SpecialFolder.System);
             if (step.PullFiles != null)
                 foreach (var file in step.PullFiles) PullFile(file);
-            switch ((step.Type ?? "").ToLowerInvariant())
-            {
-                case "install":
-                    {
-                        if (!string.IsNullOrEmpty(step.SourcePath)) Pull(step);
-                        var file = Path.Combine(_execDir, step.Command ?? "");
-                        if (!File.Exists(file)) throw new FileNotFoundException("Fichier d'installation introuvable sur la cible : " + step.Command);
-                        if (string.IsNullOrWhiteSpace(step.CommandLine)) throw new ArgumentException("Installer : aucune ligne de commande.");
-                        // Journal de Windows Installer : celui d'une étape précédente ne doit pas être repris.
-                        File.Delete(Path.Combine(_execDir, InstallLog.FileName));
-                        // Par cmd : la ligne (générée ou écrite à la main) est lancée telle quelle, dans exec\.
-                        return new ProcessStartInfo(Path.Combine(system32, "cmd.exe"), "/s /c \"" + step.CommandLine + "\"");
-                    }
-                case "command":
-                    return new ProcessStartInfo(Path.Combine(system32, "cmd.exe"), "/c " + step.Command);
-                case "powershell":
-                    {
-                        var script = Path.Combine(_execDir, $"step{index + 1}.ps1");
-                        // BOM UTF-8 : Windows PowerShell 5.1 lit sinon le script en ANSI.
-                        File.WriteAllText(script, step.Command ?? "", new UTF8Encoding(true));
-                        return PowerShell(system32, script, step.Arguments ?? "");
-                    }
-                case "copyfiles":
-                    {
-                        if (string.IsNullOrWhiteSpace(step.CopyDestination)) throw new ArgumentException("Copie de fichiers : aucun dossier de destination.");
-                        string args;
-                        if (string.IsNullOrEmpty(step.SourcePath))
-                            args = FileCopy.Arguments(Path.Combine(_execDir, step.Command ?? ""), step.CopyDestination, step.CopyPatterns, step.CopySubfolders, step.CopyOverwrite);
-                        else
-                        {
-                            // Pull : le poste lit lui-même le partage.
-                            Log($"Copie depuis {step.SourcePath}");
-                            var isFile = File.Exists(step.SourcePath);
-                            if (!isFile && !Directory.Exists(step.SourcePath))
-                                throw new FileNotFoundException("Copie de fichiers : fichier ou dossier introuvable sur le partage (ou illisible avec l'identité de l'étape) : " + step.SourcePath);
-                            args = FileCopy.PullArguments(step.SourcePath, isFile, step.CopyDestination, step.CopyPatterns, step.CopySubfolders, step.CopyOverwrite);
-                        }
-                        // Par cmd : les %variables% de la destination prennent les valeurs de l'identité de l'étape.
-                        return new ProcessStartInfo(Path.Combine(system32, "cmd.exe"), "/c robocopy.exe " + args);
-                    }
-                case "reboot":
-                    // Le redémarrage est seulement programmé : le serveur attend ensuite que le poste revienne.
-                    return new ProcessStartInfo(Path.Combine(system32, "shutdown.exe"), Shutdown.Arguments(step.ShutdownOnly, step.Seconds, step.Command));
-                default:
-                    throw new NotSupportedException("Type d'étape inconnu : " + step.Type);
-            }
+            return StepLaunchers.For(step.Type).Build(this, index, step);
         }
 
-        private static ProcessStartInfo PowerShell(string system32, string script, string args) =>
-            new ProcessStartInfo(
-                Path.Combine(system32, @"WindowsPowerShell\v1.0\powershell.exe"),
-                $"-NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"{script}\" {args}".Trim());
+        string IStepHost.ExecDir => _execDir;
+
+        void IStepHost.Pull(JobStep step) => Pull(step);
+
+        void IStepHost.Log(string message) => Log(message);
 
         private void Log(string message)
         {

@@ -28,6 +28,7 @@
     <Compile Include="..\..\src\DeployCraft.Runner\MessageOutcome.cs" Link="Runner\MessageOutcome.cs" />
     <Compile Include="..\..\src\DeployCraft.Runner\InstallLog.cs" Link="Runner\InstallLog.cs" />
     <Compile Include="..\..\src\DeployCraft.Runner\ProcessOutput.cs" Link="Runner\ProcessOutput.cs" />
+    <Compile Include="..\..\src\DeployCraft.Runner\Steps\*.cs" Link="Runner\Steps\%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>
