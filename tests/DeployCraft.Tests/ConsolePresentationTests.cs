@@ -117,4 +117,91 @@ public class ConsolePresentationTests
         Assert.StartsWith("dans 2 j", row.Countdown);
         Assert.Equal("Désactivée", new ScheduleRow(new Schedule { Enabled = false }).Next);
     }
+
+    private static List<PackageStep> Steps(params string[] names) => names.Select(n => new PackageStep { Name = n }).ToList();
+
+    [Fact]
+    public void StepList_InsertsAfterTheSelectedStepOrAtTheEnd()
+    {
+        var steps = Steps("a", "b");
+        StepList.InsertAfter(steps, steps[0], new PackageStep { Name = "x" });
+        StepList.InsertAfter(steps, null, new PackageStep { Name = "z" });
+
+        Assert.Equal(["a", "x", "b", "z"], steps.Select(s => s.Name));
+    }
+
+    [Fact]
+    public void StepList_MovesWithinBounds()
+    {
+        var steps = Steps("a", "b", "c");
+
+        Assert.False(StepList.CanMove(steps, steps[0], -1));
+        Assert.False(StepList.CanMove(steps, null, 1));
+        StepList.Move(steps, steps[0], 1);
+        StepList.Move(steps, steps[2], 1);
+
+        Assert.Equal(["b", "a", "c"], steps.Select(s => s.Name));
+    }
+
+    [Fact]
+    public void StepList_DuplicateIsADeepCopy()
+    {
+        var step = new PackageStep { Name = "Install", Conditions = new Conditions { FilePath = "app-folder" } };
+
+        var copy = StepList.Duplicate(step);
+        copy.Conditions.FilePath = "changed";
+
+        Assert.Equal("Install (copie)", copy.Name);
+        Assert.Equal("app-folder", step.Conditions.FilePath);
+        Assert.Equal("", StepList.Duplicate(new PackageStep { Name = " " }).Name);
+    }
+
+    [Fact]
+    public void StepList_RemoveSelectsTheNextStep()
+    {
+        var steps = Steps("a", "b", "c");
+
+        Assert.Equal("c", StepList.Remove(steps, steps[1])?.Name);
+        Assert.Equal("a", StepList.Remove(steps, steps[1])?.Name);
+        Assert.Null(StepList.Remove(steps, steps[0]));
+    }
+
+    [Theory]
+    [InlineData("setup.msi", true, true, true)]
+    [InlineData("patch.msp", true, false, true)]
+    [InlineData("kb.msu", true, true, false)]
+    [InlineData("setup.exe", false, false, true)]
+    public void StepTexts_InstallOptionsDependOnTheFile(string file, bool msi, bool operation, bool repair) =>
+        Assert.Equal((msi, operation, repair), StepTexts.InstallOptions(file));
+
+    [Fact]
+    public void StepTexts_HeaderAndHints()
+    {
+        Assert.Equal("Étape 2 (Commande)", StepTexts.Header(new PackageStep { Type = StepType.Command, Name = "" }, 1));
+        Assert.Equal("1. Tool (désactivée)", StepTexts.Header(new PackageStep { Name = "Tool", Enabled = false }, 0));
+        Assert.Contains("/VERYSILENT", StepTexts.SilentHint("setup.EXE"));
+        Assert.Contains("45 min", StepTexts.TimeoutHint(StepType.Command, 45));
+    }
+
+    [Fact]
+    public void PathCheck_AsksOnlyNewPathsUnlessAgain()
+    {
+        var check = new PathCheck();
+        check.Record(["a.msi", "b.msi"], ["A.MSI"]);
+
+        Assert.Contains("a.msi", check.Missing);
+        Assert.Equal(["c.msi"], check.ToCheck(["a.msi", "c.msi"]));
+        Assert.Equal(2, check.ToCheck(["a.msi", "b.msi"], again: true).Count);
+
+        check.Record(["a.msi"], []);
+        Assert.Empty(check.Missing);
+    }
+
+    [Fact]
+    public void StepRow_ListsSteps()
+    {
+        var rows = StepRow.For([new PackageStep { Name = "Pause", Type = StepType.Pause, PauseSeconds = 30 }], _ => null);
+
+        Assert.Equal(new StepRow(1, "Pause", "Pause", "", "30 s"), Assert.Single(rows));
+    }
 }

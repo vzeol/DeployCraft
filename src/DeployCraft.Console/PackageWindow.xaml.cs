@@ -1,11 +1,9 @@
 using System.ComponentModel;
-using System.IO;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using DeployCraft.Server.Data;
-using Microsoft.Win32;
 
 namespace DeployCraft.Console;
 
@@ -96,9 +94,7 @@ public partial class PackageWindow : Window
 
     private static StackPanel StepHeader(PackageStep step, int index)
     {
-        var header = Ui.Header(Ui.StepIcon(step.Type), (string.IsNullOrWhiteSpace(step.Name)
-            ? $"Étape {index + 1} ({StepSummary.TypeText(step.Type)})"
-            : $"{index + 1}. {step.Name}") + (step.Enabled ? "" : " (désactivée)"));
+        var header = Ui.Header(Ui.StepIcon(step.Type), StepTexts.Header(step, index));
         if (!step.Enabled) header.Opacity = 0.55;
         return header;
     }
@@ -119,90 +115,19 @@ public partial class PackageWindow : Window
 
     private void ShowStepsOverview()
     {
-        StepsGrid.ItemsSource = Package.Steps.Select((s, i) => new PackageStepRow(i + 1, StepSummary.Name(s), StepSummary.TypeText(s.Type),
-            s.Conditions.IsEmpty ? "" : "Oui",
-            StepSummary.Details(s, FindPackage))).ToList();
+        StepsGrid.ItemsSource = StepRow.For(Package.Steps, FindPackage);
         ShowOnly(StepsOverview);
     }
 
     private void StepsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        if (StepsGrid.SelectedItem is PackageStepRow row) SelectStep(Package.Steps[row.Number - 1]);
+        if (StepsGrid.SelectedItem is StepRow row) SelectStep(Package.Steps[row.Number - 1]);
     }
 
     private void SelectStep(PackageStep step)
     {
         foreach (TreeViewItem node in _stepsNode.Items)
             if (node.Tag == step) { node.IsSelected = true; node.BringIntoView(); }
-    }
-
-    // ---------- Menus clic droit ----------
-
-    private void SetupContextMenus()
-    {
-        Ui.SelectOnRightClick(Tree);
-        Ui.SelectOnRightClick(StepsGrid);
-
-        Ui.MenuEntry[] AddEntries() =>
-        [
-            new("Nouvelle étape : Installer", () => AddInstall_Click(this, new())),
-            new("Nouvelle étape : Commande", () => AddCommand_Click(this, new())),
-            new("Nouvelle étape : PowerShell", () => AddPowerShell_Click(this, new())),
-            new("Nouvelle étape : Copie de fichiers", () => AddCopy_Click(this, new())),
-            new("Nouvelle étape : Pause", () => AddPause_Click(this, new())),
-            new("Nouvelle étape : Redémarrer", () => AddReboot_Click(this, new())),
-            new("Nouvelle étape : Message", () => AddMessage_Click(this, new())),
-            new("Nouvelle étape : Paquet imbriqué", () => AddNested_Click(this, new())),
-            Ui.Separator,
-            new("Coller", () => Paste_Click(this, new()), CanPaste, "Ctrl+V"),
-        ];
-
-        IEnumerable<Ui.MenuEntry> StepEntries(PackageStep step)
-        {
-            return
-            [
-                .. AddEntries(),
-                new("Couper", () => { SelectStep(step); Cut_Click(this, new()); }, Gesture: "Ctrl+X"),
-                new("Copier", () => { SelectStep(step); Copy_Click(this, new()); }, Gesture: "Ctrl+C"),
-                new("Dupliquer", () => { SelectStep(step); Duplicate_Click(this, new()); }),
-                new(step.Enabled ? "Désactiver" : "Activer", () => SetEnabled(step, !step.Enabled)),
-                Ui.Separator,
-                new("Monter", () => { SelectStep(step); Move(-1); }, CanMove(step, -1), "Ctrl+Haut"),
-                new("Descendre", () => { SelectStep(step); Move(1); }, CanMove(step, 1), "Ctrl+Bas"),
-                Ui.Separator,
-                new("Supprimer", () => { SelectStep(step); DeleteStep_Click(this, new()); }, Gesture: "Suppr"),
-            ];
-        }
-
-        Ui.ContextMenu(Tree, () => SelectedStep is { } step ? StepEntries(step)
-            : Tree.SelectedItem == _stepsNode ? AddEntries()
-            : []);
-
-        Ui.ContextMenu(StepsGrid, () => StepsGrid.SelectedItem is PackageStepRow row
-            ? [new("Modifier", () => SelectStep(Package.Steps[row.Number - 1])), Ui.Separator, .. StepEntries(Package.Steps[row.Number - 1])]
-            : AddEntries());
-
-        Tree.KeyDown += (_, e) =>
-        {
-            var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
-            if (e.Key == Key.Delete && SelectedStep != null) DeleteStep_Click(this, e);
-            else if (ctrl && e.Key == Key.C && SelectedStep != null) Copy_Click(this, e);
-            else if (ctrl && e.Key == Key.X && SelectedStep != null) Cut_Click(this, e);
-            else if (ctrl && e.Key == Key.V && CanPaste) Paste_Click(this, e);
-            else if (ctrl && e.Key == Key.Up && CanMove(SelectedStep, -1)) Move(-1);
-            else if (ctrl && e.Key == Key.Down && CanMove(SelectedStep, 1)) Move(1);
-            else return;
-            e.Handled = true;
-        };
-    }
-
-    private void UpdateButtons()
-    {
-        var step = SelectedStep;
-        UpButton.IsEnabled = CanMove(step, -1);
-        DownButton.IsEnabled = CanMove(step, 1);
-        CutButton.IsEnabled = CopyButton.IsEnabled = DeleteButton.IsEnabled = step != null;
-        PasteButton.IsEnabled = CanPaste;
     }
 
     // ---------- Détail d'une étape ----------
@@ -243,11 +168,7 @@ public partial class PackageWindow : Window
         CommandBox.TextWrapping = step.Type == StepType.PowerShell ? TextWrapping.NoWrap : TextWrapping.Wrap;
 
         StepConditions.Load(step.Conditions, forPackage: false);
-        StepTimeoutHint.Text = pause ? "Sans effet sur une pause : elle dure toujours la durée choisie."
-            : nested ? "Sans effet : chaque étape du paquet imbriqué garde son délai (sinon celui du paquet imbriqué)."
-            : reboot ? $"Vide : délai du paquet ({PackageTimeout} min). Temps laissé au poste pour revenir après le redémarrage."
-            : message ? $"Vide : délai du paquet ({PackageTimeout} min). Attente maximale d'un clic quand la durée d'affichage est 0."
-            : $"Vide : délai du paquet ({PackageTimeout} min). Au-delà, le processus est arrêté et l'étape échoue.";
+        StepTimeoutHint.Text = StepTexts.TimeoutHint(step.Type, PackageTimeout);
         StepTimeoutBox.IsEnabled = ErrorModeBox.IsEnabled = !nested;
         ErrorModeBox.SelectedIndex = (int)step.ErrorMode;
         StepRunAsBox.Items.Clear();
@@ -278,429 +199,6 @@ public partial class PackageWindow : Window
         UpdateSilentHint();
         UpdateCommandLine();
         WarningFields_Changed(sender, e);
-    }
-
-    // ---------- Avertissements (fichier introuvable, pas de paramètre silencieux, mode pull) ----------
-
-    /// <summary>Chemins que le service ne trouve pas, et chemins déjà vérifiés (pour ne pas redemander à chaque frappe).</summary>
-    private readonly HashSet<string> _missing = new(StringComparer.OrdinalIgnoreCase);
-    private readonly HashSet<string> _checkedPaths = new(StringComparer.OrdinalIgnoreCase);
-    private readonly System.Windows.Threading.DispatcherTimer _warningCheck = new() { Interval = TimeSpan.FromMilliseconds(700) };
-
-    private CopyMode EffectiveCopyMode => Package.CopyMode ?? _defaults.CopyMode;
-
-    private void WarningFields_Changed(object sender, TextChangedEventArgs e)
-    {
-        if (_loadingStep) return;
-        UpdateStepWarnings();
-        _warningCheck.Stop();
-        _warningCheck.Start();
-    }
-
-    private void UpdateStepWarnings()
-    {
-        var warnings = SelectedStep is { } step ? StepWarnings.For(step, EffectiveCopyMode, _missing) : [];
-        StepWarningsText.Text = string.Join(Environment.NewLine, warnings.Select(w => "⚠ " + w));
-        StepWarningsText.Visibility = warnings.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-    }
-
-    /// <summary>Demande au service quels chemins il ne trouve pas ; sans réponse, rien n'est signalé.</summary>
-    private async Task CheckPathsAsync(IEnumerable<string> paths, bool again = false)
-    {
-        var toCheck = paths.Where(p => again || !_checkedPaths.Contains(p)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-        if (toCheck.Count == 0) return;
-        try
-        {
-            var missing = await Api.MissingFiles(toCheck);
-            foreach (var path in toCheck)
-            {
-                _checkedPaths.Add(path);
-                if (missing.Contains(path, StringComparer.OrdinalIgnoreCase)) _missing.Add(path);
-                else _missing.Remove(path);
-            }
-        }
-        catch (ApiException) { }
-    }
-
-    private async void WarningCheck_Tick(object? sender, EventArgs e)
-    {
-        _warningCheck.Stop();
-        if (SelectedStep is not { } step) return;
-        await CheckPathsAsync(StepWarnings.Paths(step));
-        UpdateStepWarnings();
-    }
-
-    /// <summary>Avertissements de toutes les étapes, vérifiés à nouveau juste avant l'enregistrement.</summary>
-    private async Task<List<string>> AllWarningsAsync()
-    {
-        await CheckPathsAsync(Package.Steps.SelectMany(StepWarnings.Paths), again: true);
-        return [.. Package.Steps.SelectMany((s, i) => StepWarnings.For(s, EffectiveCopyMode, _missing).Select(w => $"Étape {i + 1} « {s.Name} » : {w}"))];
-    }
-
-    // ---------- Installer : options Windows Installer et ligne de commande ----------
-
-    private bool _updatingCommandLine;
-
-    private void LoadInstallOptions(PackageStep step)
-    {
-        (step.MsiOperation switch
-        {
-            MsiOperation.Repair => MsiRepairRadio,
-            MsiOperation.Uninstall => MsiUninstallRadio,
-            _ => MsiInstallRadio,
-        }).IsChecked = true;
-        (step.MsiRestart switch
-        {
-            MsiRestart.Always => RestartAlwaysRadio,
-            MsiRestart.Prompt => RestartPromptRadio,
-            MsiRestart.NotSet => RestartNotSetRadio,
-            _ => RestartNeverRadio,
-        }).IsChecked = true;
-        CustomCommandBox.IsChecked = !string.IsNullOrWhiteSpace(step.CustomCommandLine);
-        UpdateCommandLine();
-    }
-
-    /// <summary>Options Windows Installer selon le fichier ; ligne générée, ou ligne écrite à la main si « Personnalisée ».</summary>
-    private void UpdateCommandLine()
-    {
-        if (SelectedStep is not { Type: StepType.Install } step) return;
-        var ext = Path.GetExtension(step.File ?? "").ToLowerInvariant();
-        var msi = InstallCommand.HasMsiOptions(step.File);
-        foreach (UIElement el in new UIElement[] { MsiRestartLabel, MsiRestartPanel, MsiQuietBox })
-            el.Visibility = msi ? Visibility.Visible : Visibility.Collapsed;
-        // .msp : un correctif s'applique seulement ; .msu : pas de réparation.
-        MsiOperationLabel.Visibility = MsiOperationPanel.Visibility = msi && ext != ".msp" ? Visibility.Visible : Visibility.Collapsed;
-        MsiRepairRadio.Visibility = ext == ".msu" ? Visibility.Collapsed : Visibility.Visible;
-
-        var custom = CustomCommandBox.IsChecked == true;
-        _updatingCommandLine = true;
-        CommandLineBox.IsReadOnly = !custom;
-        CommandLineBox.Text = custom ? step.CustomCommandLine ?? "" : InstallCommand.Generate(step);
-        _updatingCommandLine = false;
-    }
-
-    private void MsiOption_Checked(object sender, RoutedEventArgs e)
-    {
-        if (_loadingStep || SelectedStep is not { Type: StepType.Install } step) return;
-        step.MsiOperation = MsiRepairRadio.IsChecked == true ? MsiOperation.Repair
-            : MsiUninstallRadio.IsChecked == true ? MsiOperation.Uninstall
-            : MsiOperation.Install;
-        step.MsiRestart = RestartAlwaysRadio.IsChecked == true ? MsiRestart.Always
-            : RestartPromptRadio.IsChecked == true ? MsiRestart.Prompt
-            : RestartNotSetRadio.IsChecked == true ? MsiRestart.NotSet
-            : MsiRestart.Never;
-        UpdateCommandLine();
-    }
-
-    /// <summary>Cochée : la ligne générée devient modifiable. Décochée : on revient à la ligne générée.</summary>
-    private void CustomCommand_Click(object sender, RoutedEventArgs e)
-    {
-        if (SelectedStep is not { Type: StepType.Install } step) return;
-        step.CustomCommandLine = CustomCommandBox.IsChecked == true ? InstallCommand.Generate(step) : null;
-        UpdateCommandLine();
-    }
-
-    private void CommandLine_TextChanged(object sender, TextChangedEventArgs e)
-    {
-        if (_updatingCommandLine || _loadingStep || CustomCommandBox.IsChecked != true || SelectedStep is not { Type: StepType.Install } step) return;
-        step.CustomCommandLine = CommandLineBox.Text;
-    }
-
-    private void BrowseAdditional_Click(object sender, RoutedEventArgs e)
-    {
-        if (SelectedStep is not { } step) return;
-        var dialog = new OpenFileDialog { Title = "Fichiers additionnels", Filter = "Tous les fichiers|*.*", Multiselect = true };
-        if (dialog.ShowDialog(this) != true) return;
-        var files = PackageStep.SplitLines(step.AdditionalFiles);
-        files.AddRange(dialog.FileNames.Where(f => !files.Contains(f, StringComparer.OrdinalIgnoreCase)));
-        step.AdditionalFiles = string.Join(Environment.NewLine, files);
-        AdditionalFilesBox.Text = step.AdditionalFiles;
-    }
-
-    /// <summary>Un .exe sans paramètre silencieux attend un clic qui n'arrivera jamais : on prévient.</summary>
-    private void UpdateSilentHint()
-    {
-        if (SelectedStep is not { Type: StepType.Install } step) return;
-        var ext = Path.GetExtension(step.File ?? "").ToLowerInvariant();
-        // L'absence de paramètre silencieux est signalée en haut de l'étape ; ici, les paramètres courants pour aider.
-        SilentHint.Text = ext switch
-        {
-            ".exe" => "Paramètres silencieux courants : /S (NSIS), /VERYSILENT /NORESTART (Inno Setup), /quiet /norestart, /s /v\"/qn\" (InstallShield).",
-            ".msi" or ".msp" or ".msu" => "Options de Windows Installer ci-dessous (silencieux et sans redémarrage par défaut).",
-            _ => "",
-        };
-    }
-
-    private void ErrorMode_Changed(object sender, SelectionChangedEventArgs e)
-    {
-        if (_loadingStep || SelectedStep is not { } step || ErrorModeBox.SelectedIndex < 0) return;
-        step.ErrorMode = (ErrorMode)ErrorModeBox.SelectedIndex;
-        UpdateErrorModeHint(step);
-    }
-
-    private void StepRunAs_Changed(object sender, SelectionChangedEventArgs e)
-    {
-        if (!_loadingStep && SelectedStep is { } step && StepRunAsBox.SelectedItem is ComboBoxItem item)
-            step.RunAs = item.Tag as RunAsMode?;
-    }
-
-    private void UpdateErrorModeHint(PackageStep step) => ErrorModeHint.Text = step.Type == StepType.Nested
-        ? "Sans effet : chaque étape du paquet imbriqué garde son propre comportement en cas d'erreur."
-        : step.ErrorMode switch
-        {
-            ErrorMode.Continue => "L'étape est notée en échec (le poste aussi), mais les étapes suivantes s'exécutent.",
-            ErrorMode.StopSuccess => "Les étapes suivantes ne s'exécutent pas et le poste est compté réussi : " +
-                                     "utile quand l'échec veut dire « rien à faire » sur ce poste.",
-            _ => "Les étapes suivantes ne s'exécutent pas et le poste est en échec.",
-        };
-
-    private void StepEnabled_Click(object sender, RoutedEventArgs e)
-    {
-        if (SelectedStep != null) StepName_TextChanged(this, null!);
-        UpdateStepWarnings();
-    }
-
-    private void SetEnabled(PackageStep step, bool enabled)
-    {
-        step.Enabled = enabled;
-        foreach (TreeViewItem node in _stepsNode.Items)
-            if (node.Tag == step) node.Header = StepHeader(step, Package.Steps.IndexOf(step));
-        if (StepView.DataContext == step) StepEnabledBox.IsChecked = enabled;
-        if (StepsOverview.Visibility == Visibility.Visible) ShowStepsOverview();
-    }
-
-    private void Browse_Click(object sender, RoutedEventArgs e)
-    {
-        if (SelectedStep is not { } step) return;
-        var dialog = new OpenFileDialog
-        {
-            Title = "Fichier d'installation",
-            Filter = "Installeurs|" + string.Join(";", InstallCommand.Extensions.Select(e => "*" + e)) + "|Tous les fichiers|*.*",
-        };
-        if (!string.IsNullOrEmpty(step.File) && Directory.Exists(Path.GetDirectoryName(step.File)))
-            dialog.InitialDirectory = Path.GetDirectoryName(step.File);
-        if (dialog.ShowDialog(this) != true) return;
-
-        step.File = dialog.FileName;
-        FileBox.Text = dialog.FileName;
-        if (string.IsNullOrWhiteSpace(step.Name))
-        {
-            step.Name = Path.GetFileNameWithoutExtension(dialog.FileName);
-            StepView.DataContext = null;
-            ShowStep(step);
-            StepName_TextChanged(this, null!);
-        }
-    }
-
-    private void BrowseCopyFile_Click(object sender, RoutedEventArgs e)
-    {
-        var dialog = new OpenFileDialog { Title = "Fichier à copier", Filter = "Tous les fichiers|*.*" };
-        if (SelectedStep is { } step && Directory.Exists(Path.GetDirectoryName(step.CopySource ?? "")))
-            dialog.InitialDirectory = Path.GetDirectoryName(step.CopySource);
-        if (dialog.ShowDialog(this) == true) SetCopySource(dialog.FileName);
-    }
-
-    private void BrowseCopyFolder_Click(object sender, RoutedEventArgs e)
-    {
-        var dialog = new OpenFolderDialog { Title = "Dossier à copier" };
-        if (SelectedStep is { } step && Directory.Exists(step.CopySource)) dialog.InitialDirectory = step.CopySource;
-        if (dialog.ShowDialog(this) == true) SetCopySource(dialog.FolderName);
-    }
-
-    private void SetCopySource(string path)
-    {
-        if (SelectedStep is not { } step) return;
-        step.CopySource = path;
-        CopySourceBox.Text = path;
-        if (!string.IsNullOrWhiteSpace(step.Name)) return;
-        step.Name = "Copie de " + Path.GetFileName(path.TrimEnd('\\'));
-        StepView.DataContext = null;
-        ShowStep(step);
-        StepName_TextChanged(this, null!);
-    }
-
-    // ---------- Propriétés ----------
-
-    private void NameBox_TextChanged(object sender, TextChangedEventArgs e)
-    {
-        Package.Name = NameBox.Text;
-        UpdateTitle();
-    }
-
-    private void UpdateTitle() =>
-        Title = string.IsNullOrWhiteSpace(Package.Name) ? "Nouveau paquet" : $"{Package.Name} — Paquet";
-
-    /// <summary>Délai qu'auront les étapes sans délai propre.</summary>
-    private int PackageTimeout => Package.TimeoutMinutes ?? _defaults.TimeoutMinutes;
-
-    /// <summary>Options et Hors ligne : chaque liste commence par « Par défaut (valeur des Préférences) ».</summary>
-    private void FillOptions()
-    {
-        _loadingOptions = true;
-        RunAsBox.Items.Clear();
-        RunAsBox.Items.Add(new ComboBoxItem { Content = $"Par défaut ({Ui.RunAsText(_defaults.RunAs)})", Tag = null, IsSelected = Package.RunAs == null });
-        foreach (var mode in Enum.GetValues<RunAsMode>())
-            RunAsBox.Items.Add(new ComboBoxItem { Content = Ui.RunAsText(mode), Tag = mode, IsSelected = Package.RunAs == mode });
-        CopyModeBox.Items.Clear();
-        CopyModeBox.Items.Add(new ComboBoxItem { Content = $"Par défaut ({Ui.CopyModeText(_defaults.CopyMode)})", Tag = null, IsSelected = Package.CopyMode == null });
-        foreach (var mode in Enum.GetValues<CopyMode>())
-            CopyModeBox.Items.Add(new ComboBoxItem { Content = Ui.CopyModeText(mode), Tag = mode, IsSelected = Package.CopyMode == mode });
-        TimeoutBox.Text = Package.TimeoutMinutes?.ToString() ?? "";
-        TimeoutHint.Text = $"Pour les étapes sans délai propre. Vide : valeur des Préférences ({_defaults.TimeoutMinutes} min).";
-        UpdateRunAsHint();
-
-        OfflineDefaultBox.Content = "Utiliser les réglages des Préférences (Options › Préférences › Hors ligne)";
-        OfflineDefaultBox.IsChecked = Package.Offline == null;
-        PackageOffline.Load(Package.Offline ?? Clone(_defaults.Offline));
-        PackageOffline.IsEnabled = Package.Offline != null;
-        _loadingOptions = false;
-    }
-
-    private void UpdateRunAsHint() =>
-        RunAsHint.Text = Ui.RunAsHint(Package.RunAs ?? _defaults.RunAs);
-
-    private void RunAsBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (_loadingOptions || RunAsBox.SelectedItem is not ComboBoxItem item) return;
-        Package.RunAs = item.Tag as RunAsMode?;
-        UpdateRunAsHint();
-    }
-
-    private void CopyModeBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (!_loadingOptions && CopyModeBox.SelectedItem is ComboBoxItem item) Package.CopyMode = item.Tag as CopyMode?;
-        UpdateStepWarnings();
-    }
-
-    private void TimeoutBox_TextChanged(object sender, TextChangedEventArgs e)
-    {
-        if (_loadingOptions) return;
-        var text = TimeoutBox.Text.Trim();
-        if (text.Length == 0) Package.TimeoutMinutes = null;
-        else if (int.TryParse(text, out var minutes)) Package.TimeoutMinutes = minutes;
-    }
-
-    /// <summary>Case cochée : le paquet suit les Préférences ; décochée : il garde ses propres réglages, partis de ceux des Préférences.</summary>
-    private void OfflineDefault_Click(object sender, RoutedEventArgs e)
-    {
-        Package.Offline = OfflineDefaultBox.IsChecked == true ? null : Clone(_defaults.Offline);
-        PackageOffline.Load(Package.Offline ?? Clone(_defaults.Offline));
-        PackageOffline.IsEnabled = Package.Offline != null;
-    }
-
-    // ---------- Barre d'outils ----------
-
-    private void NewStep_Click(object sender, RoutedEventArgs e)
-    {
-        NewStepButton.ContextMenu.PlacementTarget = NewStepButton;
-        NewStepButton.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
-        NewStepButton.ContextMenu.IsOpen = true;
-    }
-
-    private void AddInstall_Click(object sender, RoutedEventArgs e) => AddStep(NewStep(StepType.Install));
-    private void AddCommand_Click(object sender, RoutedEventArgs e) => AddStep(NewStep(StepType.Command));
-    private void AddPowerShell_Click(object sender, RoutedEventArgs e) => AddStep(NewStep(StepType.PowerShell));
-    private void AddCopy_Click(object sender, RoutedEventArgs e) => AddStep(NewStep(StepType.CopyFiles));
-    private void AddPause_Click(object sender, RoutedEventArgs e) => AddStep(NewStep(StepType.Pause));
-    private void AddReboot_Click(object sender, RoutedEventArgs e) => AddStep(NewStep(StepType.Reboot));
-    private void AddMessage_Click(object sender, RoutedEventArgs e) => AddStep(NewStep(StepType.Message));
-    private void AddNested_Click(object sender, RoutedEventArgs e) => AddStep(NewStep(StepType.Nested));
-
-    private Package? FindPackage(long id) => _library.FirstOrDefault(p => p.Id == id);
-
-    private void Nested_Changed(object sender, SelectionChangedEventArgs e)
-    {
-        if (_loadingStep || SelectedStep is not { Type: StepType.Nested } step || NestedBox.SelectedItem is not Package nested) return;
-        step.NestedPackageId = nested.Id;
-        StepName_TextChanged(this, null!);
-    }
-
-    private void AddStep(PackageStep step)
-    {
-        // Insérée après l'étape sélectionnée, sinon à la fin.
-        var index = SelectedStep is { } current ? Package.Steps.IndexOf(current) + 1 : Package.Steps.Count;
-        Package.Steps.Insert(index, step);
-        RebuildSteps(step);
-    }
-
-    private void MoveUp_Click(object sender, RoutedEventArgs e) => Move(-1);
-    private void MoveDown_Click(object sender, RoutedEventArgs e) => Move(1);
-
-    private bool CanMove(PackageStep? step, int delta)
-    {
-        var j = step == null ? -1 : Package.Steps.IndexOf(step) + delta;
-        return step != null && j >= 0 && j < Package.Steps.Count;
-    }
-
-    private void Move(int delta)
-    {
-        if (SelectedStep is not { } step || !CanMove(step, delta)) return;
-        var i = Package.Steps.IndexOf(step);
-        var j = i + delta;
-        (Package.Steps[i], Package.Steps[j]) = (Package.Steps[j], Package.Steps[i]);
-        RebuildSteps(step);
-    }
-
-    private void Duplicate_Click(object sender, RoutedEventArgs e)
-    {
-        if (SelectedStep is not { } step) return;
-        var copy = Clone(step);
-        copy.Name = string.IsNullOrWhiteSpace(step.Name) ? "" : step.Name + " (copie)";
-        AddStep(copy);
-    }
-
-    private void Copy_Click(object sender, RoutedEventArgs e) => CopyStep();
-
-    private void Cut_Click(object sender, RoutedEventArgs e)
-    {
-        if (CopyStep()) DeleteStep_Click(sender, e);
-    }
-
-    private bool CopyStep()
-    {
-        if (SelectedStep is not { } step) return false;
-        try
-        {
-            Clipboard.SetDataObject(new DataObject(StepFormat, JsonSerializer.Serialize(step, Api.Json)), copy: true);
-        }
-        catch (System.Runtime.InteropServices.ExternalException)
-        {
-            MessageDialog.Show(this, "Presse-papiers occupé par une autre application : réessayez.", "Paquet", MessageBoxButton.OK, MessageBoxImage.Warning);
-            return false;
-        }
-        UpdateButtons();
-        return true;
-    }
-
-    private static bool CanPaste
-    {
-        get
-        {
-            try { return Clipboard.ContainsData(StepFormat); }
-            catch (System.Runtime.InteropServices.ExternalException) { return false; }
-        }
-    }
-
-    private void Paste_Click(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            if (Clipboard.GetData(StepFormat) is not string json) return;
-            if (JsonSerializer.Deserialize<PackageStep>(json, Api.Json) is { } step) AddStep(step);
-        }
-        catch (Exception ex) when (ex is System.Runtime.InteropServices.ExternalException or JsonException)
-        {
-            MessageDialog.Show(this, "Impossible de coller l'étape : " + ex.Message, "Paquet", MessageBoxButton.OK, MessageBoxImage.Warning);
-        }
-    }
-
-    private void DeleteStep_Click(object sender, RoutedEventArgs e)
-    {
-        if (SelectedStep is not { } step) return;
-        var i = Package.Steps.IndexOf(step);
-        Package.Steps.Remove(step);
-        RebuildSteps(Package.Steps.Count > 0 ? Package.Steps[Math.Min(i, Package.Steps.Count - 1)] : null);
-        if (Package.Steps.Count == 0) _propertiesNode.IsSelected = true;
     }
 
     // ---------- Enregistrement ----------
@@ -764,9 +262,5 @@ public partial class PackageWindow : Window
 
     private string Snapshot() => JsonSerializer.Serialize(Package, Api.Json);
 
-    private static T Clone<T>(T value) =>
-        JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(value, Api.Json), Api.Json)!;
+    private static T Clone<T>(T value) => StepList.Copy(value);
 }
-
-/// <summary>Ligne de la vue d'ensemble des étapes.</summary>
-public record PackageStepRow(int Number, string Name, string Type, string Conditions, string Details);
