@@ -97,7 +97,7 @@ public partial class PackageWindow : Window
     private static StackPanel StepHeader(PackageStep step, int index)
     {
         var header = Ui.Header(Ui.StepIcon(step.Type), (string.IsNullOrWhiteSpace(step.Name)
-            ? $"Étape {index + 1} ({MainWindow.StepTypeText(step.Type)})"
+            ? $"Étape {index + 1} ({StepSummary.TypeText(step.Type)})"
             : $"{index + 1}. {step.Name}") + (step.Enabled ? "" : " (désactivée)"));
         if (!step.Enabled) header.Opacity = 0.55;
         return header;
@@ -119,9 +119,9 @@ public partial class PackageWindow : Window
 
     private void ShowStepsOverview()
     {
-        StepsGrid.ItemsSource = Package.Steps.Select((s, i) => new PackageStepRow(i + 1, MainWindow.StepName(s), MainWindow.StepTypeText(s.Type),
+        StepsGrid.ItemsSource = Package.Steps.Select((s, i) => new PackageStepRow(i + 1, StepSummary.Name(s), StepSummary.TypeText(s.Type),
             s.Conditions.IsEmpty ? "" : "Oui",
-            MainWindow.StepDetails(s, FindPackage))).ToList();
+            StepSummary.Details(s, FindPackage))).ToList();
         ShowOnly(StepsOverview);
     }
 

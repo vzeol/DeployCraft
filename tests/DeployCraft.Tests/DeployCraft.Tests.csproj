@@ -16,6 +16,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\DeployCraft.Server\DeployCraft.Server.csproj" />
+    <!-- The console logic (lists, details, refresh) is tested too: it needs the WPF framework. -->
+    <FrameworkReference Include="Microsoft.WindowsDesktop.App.WPF" />
+    <!-- Alias: the console compiles its own copy of the server models; its types are only reached through ConsoleApp::. -->
+    <ProjectReference Include="..\..\src\DeployCraft.Console\DeployCraft.Console.csproj" Aliases="ConsoleApp" />
   </ItemGroup>
 
   <!-- Conditions et enchaînement des étapes du runner (.NET Framework, sur les postes) : mêmes fichiers, testés ici. -->

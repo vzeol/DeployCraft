@@ -342,8 +342,7 @@
           "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.13",
           "Microsoft.Extensions.Logging": "10.0.13",
           "Microsoft.Extensions.Logging.Abstractions": "10.0.13",
-          "Microsoft.Extensions.Options": "10.0.13",
-          "System.Diagnostics.EventLog": "10.0.13"
+          "Microsoft.Extensions.Options": "10.0.13"
         }
       },
       "Microsoft.Extensions.Logging.EventSource": {
@@ -430,33 +429,15 @@
           "SQLitePCLRaw.core": "2.1.13"
         }
       },
-      "System.Diagnostics.EventLog": {
-        "type": "Transitive",
-        "resolved": "10.0.13",
-        "contentHash": "DkNjtQyPR5Ud/zHnWHdsOuKbFRL9nIC92Q76z0NmHVDoQm40toLtsGFTIWq7toBoVa6fo/DInL3PLxY3Asixyw=="
-      },
-      "System.DirectoryServices": {
-        "type": "Transitive",
-        "resolved": "10.0.13",
-        "contentHash": "rLZZeebn3XyN6gqLvn6V8xg4fRlCjuvlNgpXE6elISfjYvKEbQK99ZpwDebpCKhLxxYT0JM5n1QPWFVahQLW/Q=="
-      },
       "System.DirectoryServices.Protocols": {
         "type": "Transitive",
         "resolved": "10.0.13",
         "contentHash": "JZiWshNhK2+lbPnfV+JTYqKKrT27e5LRdbCU2SFkXwIIJPVKw/7KfrHU/DDbO3OXd4KwJZgAdyWbXl+kwzxWOw=="
       },
-      "System.Security.Cryptography.ProtectedData": {
-        "type": "Transitive",
-        "resolved": "10.0.13",
-        "contentHash": "aUSmC6cPjFLSE0rDTsmkR3wvUOnscqewebOaaELEToh12sNmoltZqT3f0C81mJ1zhxKjWco25soHTvYwsXCsUw=="
-      },
       "System.ServiceProcess.ServiceController": {
         "type": "Transitive",
         "resolved": "10.0.13",
-        "contentHash": "0Zh/U/1+hy1MCxx1BTikJi4L5o1Ys6VhB8PKlTNOB4/n2d6ua2+TuoD6T7xN9RV0uiOGod575pQrUSTXg+aYGQ==",
-        "dependencies": {
-          "System.Diagnostics.EventLog": "10.0.13"
-        }
+        "contentHash": "0Zh/U/1+hy1MCxx1BTikJi4L5o1Ys6VhB8PKlTNOB4/n2d6ua2+TuoD6T7xN9RV0uiOGod575pQrUSTXg+aYGQ=="
       },
       "xunit.abstractions": {
         "type": "Transitive",
@@ -498,14 +479,15 @@
           "xunit.extensibility.core": "[2.9.3]"
         }
       },
+      "DeployCraft": {
+        "type": "Project"
+      },
       "deploycraft.server": {
         "type": "Project",
         "dependencies": {
           "Microsoft.AspNetCore.Authentication.Negotiate": "[10.0.13, )",
           "Microsoft.Data.Sqlite": "[10.0.13, )",
-          "Microsoft.Extensions.Hosting.WindowsServices": "[10.0.13, )",
-          "System.DirectoryServices": "[10.0.13, )",
-          "System.Security.Cryptography.ProtectedData": "[10.0.13, )"
+          "Microsoft.Extensions.Hosting.WindowsServices": "[10.0.13, )"
         }
       }
     }
