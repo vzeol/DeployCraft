@@ -161,7 +161,7 @@ public sealed class StepFlowTests : IDisposable
               {"name":"avant","type":"Command","command":"echo 1","section":"Before"},
               {"name":"ko","type":"Command","command":"exit 1","section":"Main"},
               {"name":"nettoyage","type":"Command","command":"echo 3","section":"After"}]}
-            """, Store.Json)!;
+            """, Database.Json)!;
         var resolved = package.Resolve(new DeploymentDefaults());
         var job = new Job();
         foreach (var step in TargetSession.StepsFrom(resolved, 1))
@@ -236,18 +236,18 @@ public sealed class StepFlowTests : IDisposable
     public void Store_KeepsEnabledAndErrorMode_AndOldStepsStayEnabled()
     {
         var store = new Store(Path.Combine(_dir, "test.db"));
-        var saved = store.SavePackage(new Package
+        var saved = store.Packages.Save(new Package
         {
             Name = "Outil",
             Steps = [new() { Name = "a", Enabled = false, ErrorMode = ErrorMode.StopSuccess }],
         });
 
-        var step = store.GetPackage(saved.Id)!.Steps[0];
+        var step = store.Packages.Get(saved.Id)!.Steps[0];
         Assert.False(step.Enabled);
         Assert.Equal(ErrorMode.StopSuccess, step.ErrorMode);
 
         // Étapes enregistrées avant cette version : pas de champ « enabled ».
-        var old = System.Text.Json.JsonSerializer.Deserialize<PackageStep>("""{"name":"a","errorMode":"Continue"}""", Store.Json)!;
+        var old = System.Text.Json.JsonSerializer.Deserialize<PackageStep>("""{"name":"a","errorMode":"Continue"}""", Database.Json)!;
         Assert.True(old.Enabled);
         Assert.Equal(ErrorMode.Continue, old.ErrorMode);
     }

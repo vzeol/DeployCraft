@@ -19,7 +19,7 @@ public sealed class HistoryCleanupTests : IDisposable
     {
         _db = Path.Combine(_dir, "test.db");
         _store = new Store(_db);
-        _cleaner = new HistoryCleaner(_store, NullLogger<HistoryCleaner>.Instance);
+        _cleaner = new HistoryCleaner(_store.Deployments, _store.Settings, NullLogger<HistoryCleaner>.Instance);
     }
 
     public void Dispose()
@@ -30,17 +30,17 @@ public sealed class HistoryCleanupTests : IDisposable
 
     private void Enable(int days, bool cleanup = true)
     {
-        var defaults = _store.GetDefaults();
+        var defaults = _store.Settings.GetDefaults();
         defaults.History = new HistorySettings { Cleanup = cleanup, KeepDays = days };
-        _store.SaveDefaults(defaults);
+        _store.Settings.SaveDefaults(defaults);
     }
 
     /// <summary>Un déploiement d'un poste, dans l'état voulu ; <paramref name="endedDaysAgo"/> null = jamais terminé.</summary>
     private long Deployment(DeploymentStatus status, double? endedDaysAgo, string computer = "PC01")
     {
-        var d = _store.CreateDeployment(new Package { Id = 1, Name = "Essai" }, [new TargetRequest(computer)], "tester", "Compte du service",
+        var d = _store.Deployments.Create(new Package { Id = 1, Name = "Essai" }, [new TargetRequest(computer)], "tester", "Compte du service",
             null, RunAsMode.LocalSystem, CopyMode.Push, prioritized: false);
-        if (status != DeploymentStatus.Queued) _store.UpdateDeploymentStatus(d.Id, status, ended: false);
+        if (status != DeploymentStatus.Queued) _store.Deployments.UpdateStatus(d.Id, status, ended: false);
         if (endedDaysAgo is { } days) SetEnded(d.Id, status, Now.AddDays(-days));
         return d.Id;
     }
@@ -75,7 +75,7 @@ public sealed class HistoryCleanupTests : IDisposable
         Enable(30, cleanup: false);
 
         Assert.Equal(0, _cleaner.Run(Now));
-        Assert.NotNull(_store.GetDeployment(old));
+        Assert.NotNull(_store.Deployments.Get(old));
     }
 
     [Fact]
@@ -84,7 +84,7 @@ public sealed class HistoryCleanupTests : IDisposable
         var old = Deployment(DeploymentStatus.Failed, endedDaysAgo: 400);
 
         Assert.Equal(0, _cleaner.Run(Now));
-        Assert.NotNull(_store.GetDeployment(old));
+        Assert.NotNull(_store.Deployments.Get(old));
     }
 
     [Fact]
@@ -100,12 +100,12 @@ public sealed class HistoryCleanupTests : IDisposable
 
         Assert.Equal(2, _cleaner.Run(Now));
 
-        Assert.Null(_store.GetDeployment(oldSuccess));
-        Assert.Null(_store.GetDeployment(oldFailure));
-        Assert.NotNull(_store.GetDeployment(recentSuccess));
-        Assert.NotNull(_store.GetDeployment(recentFailure));
-        Assert.NotNull(_store.GetDeployment(oldRunning));
-        Assert.NotNull(_store.GetDeployment(oldQueued));
+        Assert.Null(_store.Deployments.Get(oldSuccess));
+        Assert.Null(_store.Deployments.Get(oldFailure));
+        Assert.NotNull(_store.Deployments.Get(recentSuccess));
+        Assert.NotNull(_store.Deployments.Get(recentFailure));
+        Assert.NotNull(_store.Deployments.Get(oldRunning));
+        Assert.NotNull(_store.Deployments.Get(oldQueued));
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public sealed class HistoryCleanupTests : IDisposable
         Enable(1);
 
         Assert.Equal(0, _cleaner.Run(Now));
-        Assert.NotNull(_store.GetDeployment(running));
+        Assert.NotNull(_store.Deployments.Get(running));
     }
 
     [Fact]
@@ -143,20 +143,20 @@ public sealed class HistoryCleanupTests : IDisposable
         Enable(30);
 
         Assert.Equal(1, _cleaner.Run(Now));
-        Assert.NotNull(_store.GetDeployment(justInside));
-        Assert.Null(_store.GetDeployment(justOutside));
+        Assert.NotNull(_store.Deployments.Get(justInside));
+        Assert.Null(_store.Deployments.Get(justOutside));
     }
 
     [Fact]
     public void ScheduleHistory_IsNeverTouched()
     {
-        _store.RecordScheduleResult(1, "PC01", 7, success: true);
+        _store.Schedules.RecordResult(1, "PC01", 7, success: true);
         Deployment(DeploymentStatus.Successful, endedDaysAgo: 365);
         Enable(1);
 
         Assert.Equal(1, _cleaner.Run(Now));
 
-        var line = Assert.Single(_store.GetScheduleHistory(1));
+        var line = Assert.Single(_store.Schedules.GetHistory(1));
         Assert.True(line.Succeeded);
     }
 
@@ -171,20 +171,20 @@ public sealed class HistoryCleanupTests : IDisposable
         Enable(days);
 
         Assert.Equal(1, _cleaner.Run(Now));
-        Assert.NotNull(_store.GetDeployment(lastHour));
-        Assert.Null(_store.GetDeployment(twoDaysAgo));
+        Assert.NotNull(_store.Deployments.Get(lastHour));
+        Assert.Null(_store.Deployments.Get(twoDaysAgo));
     }
 
     [Fact]
     public void Defaults_StoredBeforeTheSettingExisted_MeanDisabled()
     {
-        _store.SetSetting("defaults", """{"timeoutMinutes":45}""");
+        _store.Settings.Set("defaults", """{"timeoutMinutes":45}""");
 
-        var history = _store.GetDefaults().History;
+        var history = _store.Settings.GetDefaults().History;
 
         Assert.False(history.Cleanup);
         Assert.Equal(30, history.KeepDays);
-        Assert.Equal(45, _store.GetDefaults().TimeoutMinutes);
+        Assert.Equal(45, _store.Settings.GetDefaults().TimeoutMinutes);
     }
 
     [Theory]

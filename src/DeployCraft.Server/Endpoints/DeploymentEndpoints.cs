@@ -9,12 +9,12 @@ internal static class DeploymentEndpoints
     public static void MapDeploymentEndpoints(this RouteGroupBuilder api)
     {
         // Un déploiement par paquet, dans l'ordre : la réponse est la liste des déploiements créés.
-        api.MapPost("/deployments", (HttpContext context, DeployInput input, Store store, DeploymentEngine engine) =>
+        api.MapPost("/deployments", (HttpContext context, DeployInput input, IPackageRepository packageRepository, DeploymentEngine engine) =>
         {
             var packages = new List<Package>();
             foreach (var id in input.PackageIds)
             {
-                if (store.GetPackage(id) is not { } package) return Results.NotFound(new { error = $"Paquet introuvable (n° {id})." });
+                if (packageRepository.Get(id) is not { } package) return Results.NotFound(new { error = $"Paquet introuvable (n° {id})." });
                 packages.Add(package);
             }
             try
@@ -27,20 +27,20 @@ internal static class DeploymentEndpoints
             }
         });
 
-        api.MapGet("/deployments", (Store store) => store.ListDeployments());
+        api.MapGet("/deployments", (IDeploymentRepository deploymentRepository) => deploymentRepository.List());
 
-        api.MapGet("/deployments/{id:long}", (long id, Store store) =>
-            store.GetDeployment(id) is { } d ? Results.Ok(d) : Results.NotFound());
+        api.MapGet("/deployments/{id:long}", (long id, IDeploymentRepository deploymentRepository) =>
+            deploymentRepository.Get(id) is { } d ? Results.Ok(d) : Results.NotFound());
 
         api.MapPost("/deployments/{id:long}/abort", (HttpContext context, long id, AbortInput input, DeploymentEngine engine) =>
             Results.Ok(new { aborted = engine.Abort(id, input.TargetIds, context.User.Identity?.Name) }));
 
-        api.MapDelete("/deployments/{id:long}", (long id, Store store) =>
+        api.MapDelete("/deployments/{id:long}", (long id, IDeploymentRepository deploymentRepository) =>
         {
-            if (store.GetDeployment(id) is not { } d) return Results.NoContent();
+            if (deploymentRepository.Get(id) is not { } d) return Results.NoContent();
             if (d.Status is DeploymentStatus.Running or DeploymentStatus.Queued)
                 return Results.BadRequest(new { error = "Ce déploiement est en cours : attendez qu'il se termine." });
-            store.DeleteDeployment(id);
+            deploymentRepository.Delete(id);
             return Results.NoContent();
         });
     }

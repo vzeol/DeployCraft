@@ -17,29 +17,31 @@ public class DeployCredentials
 {
     private static readonly byte[] Entropy = "DeployCraft.Credentials.v1"u8.ToArray();
 
-    private readonly Store _store;
+    private readonly ICredentialRepository _credentialRepository;
+    private readonly ISettingsRepository _settingsRepository;
 
-    public DeployCredentials(Store store)
+    public DeployCredentials(ICredentialRepository credentialRepository, ISettingsRepository settingsRepository)
     {
-        _store = store;
+        _credentialRepository = credentialRepository;
+        _settingsRepository = settingsRepository;
         MigrateSingleAccount();
     }
 
     /// <summary>Avant 0.9, un seul compte rangé dans les réglages : il devient le premier identifiant (par défaut).</summary>
     private void MigrateSingleAccount()
     {
-        var user = _store.GetSetting("cred.user");
+        var user = _settingsRepository.Get("cred.user");
         if (string.IsNullOrEmpty(user)) return;
-        if (_store.ListCredentials().Count == 0)
-            _store.SaveCredential(new Credential { Domain = _store.GetSetting("cred.domain"), User = user }, _store.GetSetting("cred.password"));
-        _store.SetSetting("cred.domain", null);
-        _store.SetSetting("cred.user", null);
-        _store.SetSetting("cred.password", null);
+        if (_credentialRepository.List().Count == 0)
+            _credentialRepository.Save(new Credential { Domain = _settingsRepository.Get("cred.domain"), User = user }, _settingsRepository.Get("cred.password"));
+        _settingsRepository.Set("cred.domain", null);
+        _settingsRepository.Set("cred.user", null);
+        _settingsRepository.Set("cred.password", null);
     }
 
-    public List<Credential> List() => _store.ListCredentials().Select(WithState).ToList();
+    public List<Credential> List() => _credentialRepository.List().Select(WithState).ToList();
 
-    public Credential? Get(long id) => _store.GetCredential(id) is { } c ? WithState(c) : null;
+    public Credential? Get(long id) => _credentialRepository.Get(id) is { } c ? WithState(c) : null;
 
     public Credential? Default
     {
@@ -61,12 +63,12 @@ public class DeployCredentials
         var secret = string.IsNullOrEmpty(password)
             ? null
             : Convert.ToBase64String(ProtectedData.Protect(Encoding.UTF8.GetBytes(password), Entropy, DataProtectionScope.LocalMachine));
-        return WithState(_store.SaveCredential(c, secret));
+        return WithState(_credentialRepository.Save(c, secret));
     }
 
-    public void Delete(long id) => _store.DeleteCredential(id);
+    public void Delete(long id) => _credentialRepository.Delete(id);
 
-    public void SetDefault(long id) => _store.SetDefaultCredential(id);
+    public void SetDefault(long id) => _credentialRepository.SetDefault(id);
 
     private Credential WithState(Credential c)
     {
@@ -76,7 +78,7 @@ public class DeployCredentials
 
     private string? TryPassword(long id)
     {
-        var stored = _store.GetCredentialSecret(id);
+        var stored = _credentialRepository.GetSecret(id);
         if (stored == null) return null;
         try
         {

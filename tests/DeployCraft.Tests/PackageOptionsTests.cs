@@ -117,7 +117,7 @@ public sealed class PackageOptionsTests : IDisposable
         package.Steps[1].Conditions = new Conditions { MinPowerShell = 5 };
         package.Offline = new OfflineSettings { Retry = true, RetryAttempts = 4, RetryIntervalMinutes = 10 };
 
-        var saved = _store.GetPackage(_store.SavePackage(package).Id)!;
+        var saved = _store.Packages.Get(_store.Packages.Save(package).Id)!;
 
         Assert.Null(saved.RunAs);
         Assert.Null(saved.CopyMode);
@@ -130,7 +130,7 @@ public sealed class PackageOptionsTests : IDisposable
 
         saved.RunAs = RunAsMode.LocalSystem;
         saved.Offline = null;
-        var again = _store.GetPackage(_store.SavePackage(saved).Id)!;
+        var again = _store.Packages.Get(_store.Packages.Save(saved).Id)!;
         Assert.Equal(RunAsMode.LocalSystem, again.RunAs);
         Assert.Null(again.Offline);
     }
@@ -138,13 +138,13 @@ public sealed class PackageOptionsTests : IDisposable
     [Fact]
     public void Defaults_AndComputerNetwork_ArePersisted()
     {
-        Assert.Equal(60, _store.GetDefaults().TimeoutMinutes);
-        _store.SaveDefaults(new DeploymentDefaults { TimeoutMinutes = 30, Offline = new OfflineSettings { WakeOnLan = true } });
-        Assert.Equal(30, _store.GetDefaults().TimeoutMinutes);
-        Assert.True(_store.GetDefaults().Offline.WakeOnLan);
+        Assert.Equal(60, _store.Settings.GetDefaults().TimeoutMinutes);
+        _store.Settings.SaveDefaults(new DeploymentDefaults { TimeoutMinutes = 30, Offline = new OfflineSettings { WakeOnLan = true } });
+        Assert.Equal(30, _store.Settings.GetDefaults().TimeoutMinutes);
+        Assert.True(_store.Settings.GetDefaults().Offline.WakeOnLan);
 
-        Assert.Empty(_store.GetComputerNetwork("PC-TEST-01"));
-        _store.SaveComputerNetwork("PC-TEST-01", [new("00-11-22-AA-BB-CC", "192.168.10.255")]);
-        Assert.Equal("00-11-22-AA-BB-CC", Assert.Single(_store.GetComputerNetwork("pc-test-01")).Mac);
+        Assert.Empty(_store.Computers.GetNetwork("PC-TEST-01"));
+        _store.Computers.SaveNetwork("PC-TEST-01", [new("00-11-22-AA-BB-CC", "192.168.10.255")]);
+        Assert.Equal("00-11-22-AA-BB-CC", Assert.Single(_store.Computers.GetNetwork("pc-test-01")).Mac);
     }
 }

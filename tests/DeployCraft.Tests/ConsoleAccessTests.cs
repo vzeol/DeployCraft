@@ -24,7 +24,7 @@ public sealed class ConsoleAccessTests : IDisposable
     private readonly string _dir = Directory.CreateTempSubdirectory("dc-tests-").FullName;
     private readonly ConsoleAccess _access;
 
-    public ConsoleAccessTests() => _access = new ConsoleAccess(new Store(Path.Combine(_dir, "test.db")));
+    public ConsoleAccessTests() => _access = new ConsoleAccess(new Store(Path.Combine(_dir, "test.db")).Settings);
 
     public void Dispose()
     {

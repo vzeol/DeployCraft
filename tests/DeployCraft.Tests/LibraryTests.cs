@@ -208,7 +208,7 @@ public class LibraryTests
         try
         {
             var store = new Store(Path.Combine(dir, "test.db"));
-            var library = new PackageLibrary(store, new DeployCredentials(store), dir, NullLogger<PackageLibrary>.Instance);
+            var library = new PackageLibrary(store.Packages, store.Settings, new DeployCredentials(store.Credentials, store.Settings), dir, NullLogger<PackageLibrary>.Instance);
             Assert.Null(library.SetAutoUpdate(LibraryAutoUpdate.Delayed, 7));
             Assert.NotNull(library.SetAutoUpdate(LibraryAutoUpdate.Delayed, 0));
             Assert.NotNull(library.SetAutoUpdate(LibraryAutoUpdate.Delayed, PackageLibrary.MaxAutoUpdateDays + 1));

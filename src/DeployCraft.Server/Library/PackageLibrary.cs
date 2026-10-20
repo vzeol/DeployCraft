@@ -12,7 +12,7 @@ namespace DeployCraft.Server.Library;
 /// télécharge son installeur (empreinte vérifiée) dans le dossier de la bibliothèque et crée ou met à jour le paquet
 /// DeployCraft correspondant. Index et téléchargements sont traités en arrière-plan ; la console suit l'état.
 /// </summary>
-public class PackageLibrary(Store store, DeployCredentials credentials, string dataDir, ILogger<PackageLibrary> log)
+public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepository settingsRepository, DeployCredentials credentials, string dataDir, ILogger<PackageLibrary> log)
 {
     private const string SettingKey = "library";
     private const string CatalogRaw = "https://raw.githubusercontent.com/microsoft/winget-pkgs/master/";
@@ -100,7 +100,7 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
     /// <summary>Logiciels déjà téléchargés, puis logiciels courants, puis le reste par ordre alphabétique.</summary>
     private List<IndexEntry> Ordered(List<IndexEntry> all, LibraryState state)
     {
-        var linked = state.Links.Where(l => store.GetPackage(l.Value.PackageId) != null).Select(l => l.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var linked = state.Links.Where(l => packageRepository.Get(l.Value.PackageId) != null).Select(l => l.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var suggested = LibraryCatalog.Suggested.ToHashSet(StringComparer.OrdinalIgnoreCase);
         return [.. all.OrderBy(e => linked.Contains(e.Id) ? 0 : suggested.Contains(e.Id) ? 1 : 2)];
     }
@@ -111,7 +111,7 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
         var entry = state.Entries.GetValueOrDefault(e.Id) is { } known && known.Version == e.Version ? known : null;
         var link = state.Links.GetValueOrDefault(e.Id);
         // Un paquet supprimé dans DeployCraft n'est plus relié.
-        if (link != null && store.GetPackage(link.PackageId) == null) link = null;
+        if (link != null && packageRepository.Get(link.PackageId) == null) link = null;
         return new LibraryItem
         {
             Id = e.Id,
@@ -242,7 +242,7 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
         var latest = _index.Get(state.Links.Keys);
         foreach (var (id, link) in state.Links)
         {
-            if (store.GetPackage(link.PackageId) == null || latest.GetValueOrDefault(id) is not { } e) continue;
+            if (packageRepository.Get(link.PackageId) == null || latest.GetValueOrDefault(id) is not { } e) continue;
             var seen = state.Entries.GetValueOrDefault(id) is { } entry && entry.Version == e.Version ? entry.SeenUtc : null;
             if (!IsUpdateDue(state.AutoUpdate, state.AutoUpdateDays, link.Version, e.Version, seen, nowUtc)) continue;
             log.LogInformation("Mise à jour automatique de {App} : {Old} → {New}", e.Name, link.Version, e.Version);
@@ -437,7 +437,7 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
     /// </summary>
     private Package SavePackage(IndexEntry app, string version, LibraryInstaller installer, string file, LibraryLink? previous)
     {
-        if (previous != null && store.GetPackage(previous.PackageId) is { } existing)
+        if (previous != null && packageRepository.Get(previous.PackageId) is { } existing)
         {
             var step = existing.Steps.FirstOrDefault(s => s.Type == StepType.Install && string.Equals(s.File, previous.File, StringComparison.OrdinalIgnoreCase));
             if (step != null)
@@ -445,10 +445,10 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
                 step.File = file;
                 step.Arguments = NullIfEmpty(installer.Arguments);
                 existing.Version = version;
-                return store.SavePackage(existing);
+                return packageRepository.Save(existing);
             }
         }
-        return store.SavePackage(new Package
+        return packageRepository.Save(new Package
         {
             Name = app.Name,
             Version = version,
@@ -486,9 +486,9 @@ public class PackageLibrary(Store store, DeployCredentials credentials, string d
     private string Folder(LibraryState state) => string.IsNullOrWhiteSpace(state.Folder) ? DefaultFolder : state.Folder;
 
     private LibraryState Load() =>
-        store.GetSetting(SettingKey) is { } json ? JsonSerializer.Deserialize<LibraryState>(json, Store.Json) ?? new() : new();
+        settingsRepository.Get(SettingKey) is { } json ? JsonSerializer.Deserialize<LibraryState>(json, Database.Json) ?? new() : new();
 
-    private void Save(LibraryState state) => store.SetSetting(SettingKey, JsonSerializer.Serialize(state, Store.Json));
+    private void Save(LibraryState state) => settingsRepository.Set(SettingKey, JsonSerializer.Serialize(state, Database.Json));
 
     /// <summary>Nom utilisable comme nom de dossier ou de fichier.</summary>
     internal static string SafeName(string name)

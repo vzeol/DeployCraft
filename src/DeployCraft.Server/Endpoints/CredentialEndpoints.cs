@@ -24,9 +24,9 @@ internal static class CredentialEndpoints
             return Results.Ok(cred.Save(input.ToCredential(id), input.Password));
         });
 
-        api.MapDelete("/credentials/{id:long}", (long id, DeployCredentials cred, Store store) =>
+        api.MapDelete("/credentials/{id:long}", (long id, DeployCredentials cred, IScheduleRepository scheduleRepository) =>
         {
-            var users = store.ListSchedules().Where(s => s.CredentialId == id).Select(s => $"« {s.Name} »").ToList();
+            var users = scheduleRepository.List().Where(s => s.CredentialId == id).Select(s => $"« {s.Name} »").ToList();
             if (users.Count > 0)
                 return Results.BadRequest(new { error = $"Cet identifiant est utilisé par la planification {string.Join(", ", users)} : choisissez-en un autre dans ses options avant de le supprimer." });
             cred.Delete(id);
