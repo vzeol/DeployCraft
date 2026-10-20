@@ -1,5 +1,3 @@
-using System.IO;
-using System.Text.Json;
 using System.Windows;
 using Microsoft.Win32;
 
@@ -15,9 +13,6 @@ namespace DeployCraft.Console;
 public static class Theme
 {
     public const string Light = "Clair", Dark = "Sombre", System = "Windows";
-
-    private static readonly string PrefsFile = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DeployCraft", "console.json");
 
     private static ResourceDictionary? palette;
 
@@ -42,13 +37,7 @@ public static class Theme
     {
         Current = choice;
         Apply(Application.Current, choice);
-        try
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(PrefsFile)!);
-            File.WriteAllText(PrefsFile, JsonSerializer.Serialize(new Prefs { Theme = choice }));
-        }
-        catch (IOException) { } // préférence non enregistrée : le thème reste appliqué pour cette session
-        catch (UnauthorizedAccessException) { }
+        ConsolePrefs.Set("Theme", choice);
     }
 
     private static void Apply(Application app, string choice)
@@ -68,18 +57,6 @@ public static class Theme
         return key?.GetValue("AppsUseLightTheme") is int light && light == 0;
     }
 
-    private static string Load()
-    {
-        try
-        {
-            var theme = JsonSerializer.Deserialize<Prefs>(File.ReadAllText(PrefsFile))?.Theme;
-            return theme is Dark or System ? theme : Light;
-        }
-        catch (Exception) { return Light; } // fichier absent ou illisible : thème clair
-    }
-
-    private sealed class Prefs
-    {
-        public string? Theme { get; set; }
-    }
+    /// <summary>Thème enregistré ; clair si aucun (ou illisible).</summary>
+    private static string Load() => ConsolePrefs.Get<string>("Theme") is { } theme && theme is Dark or System ? theme : Light;
 }
