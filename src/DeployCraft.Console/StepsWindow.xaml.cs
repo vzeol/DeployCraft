@@ -36,7 +36,7 @@ public partial class StepsWindow : Window
             var outcome = j >= 0 && j < target.Steps.Count ? target.Steps[j] : null;
             return new StepDetailRow(
                 i + 1,
-                outcome?.Name ?? (string.IsNullOrWhiteSpace(step.Name) ? MainWindow.StepTypeText(step.Type) : step.Name),
+                outcome?.Name ?? (string.IsNullOrWhiteSpace(step.Name) ? StepSummary.TypeText(step.Type) : step.Name),
                 outcome?.State ?? (j < 0 || target.Status == TargetStatus.Failed ? "skipped" : "Queued"),
                 outcome?.ExitCode?.ToString() ?? "",
                 outcome?.State == "skipped" ? "" : Ui.Duration(outcome?.StartedUtc, outcome?.EndedUtc),
