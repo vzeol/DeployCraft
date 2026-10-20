@@ -36,7 +36,7 @@
         </ItemsControl>
 
         <DockPanel Margin="0,8,0,0">
-            <Button DockPanel.Dock="Right" Style="{StaticResource DialogButton}" IsCancel="True">Fermer</Button>
+            <Button DockPanel.Dock="Right" Style="{StaticResource DialogButton}" IsCancel="True" Click="Close_Click">Fermer</Button>
             <TextBlock x:Name="Progress" VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}" />
         </DockPanel>
     </StackPanel>
