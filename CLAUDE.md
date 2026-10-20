@@ -92,6 +92,30 @@ Who tests what before merging:
 - Small, easy-to-review PRs, with: what, why, how to test (template `.github/pull_request_template.md`).
   Polite, precise, professional issues and PRs.
 
+## Architecture
+
+Rules for all new code. Existing code is being brought in line step by step (issue #127);
+when you touch a file that does not follow them yet, do not make it worse.
+
+- **Layers, one job each.** HTTP endpoints only read the request, call a service and return the result: no
+  business logic, no SQL. Deployment logic lives in services (`Deployment/`, `Library/`…). SQLite access lives in
+  the data layer only. Network and Windows calls (shares, remote services, Active Directory) live in
+  `Remote/` only.
+- **Depend on interfaces at the boundaries.** Services use the database and the network through interfaces
+  registered in dependency injection, so they can be tested with in-memory fakes, without a real computer.
+- **One file per area.** Endpoints are grouped by area (packages, deployments, schedules…), one file each; the
+  data layer has one repository per area. `Program.cs` only wires things together.
+- **Models are data.** Logic that is more than a simple computed property goes into a service or a dedicated
+  class, not into the models.
+- **Step types are separate classes.** Each step type (Install, Command, File copy, Restart…) has its own
+  class behind a shared interface; adding a step type should not mean editing a big `switch`.
+- **Console: keep the UI thin.** Windows display data and forward user actions; loading, saving and decisions go
+  into separate classes (view models or services) that can be tested without opening a window.
+- **Small units.** As a rough guide: a class above ~400 lines or a method above ~60 lines is a sign it should be
+  split. Prefer simple code over patterns: add an abstraction only when it removes a real problem.
+- **Refactoring keeps behavior.** A refactoring PR changes no behavior, says so, and relies on the existing tests
+  (plus new ones where coverage is missing). Never mix a refactoring with a feature in the same PR.
+
 ## Quality
 
 - Add or update **tests** (`tests/DeployCraft.Tests`) for any behavior change, even basic ones. What touches a
