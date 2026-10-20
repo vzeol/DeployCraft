@@ -5,7 +5,7 @@ namespace DeployCraft.Server.Data;
 /// <summary>Export et import de paquets (fichiers JSON DeployCraft, ou fichiers XML de paquets).</summary>
 public static class PackageExchange
 {
-    private static readonly JsonSerializerOptions WriteOptions = new(Store.Json) { WriteIndented = true };
+    private static readonly JsonSerializerOptions WriteOptions = new(Database.Json) { WriteIndented = true };
 
     /// <summary>
     /// Paquets à exporter : ceux demandés puis les paquets imbriqués qu'ils utilisent (à tous les niveaux),
@@ -47,7 +47,7 @@ public static class PackageExchange
         PackageExport? export;
         try
         {
-            export = JsonSerializer.Deserialize<PackageExport>(json, Store.Json);
+            export = JsonSerializer.Deserialize<PackageExport>(json, Database.Json);
         }
         catch (JsonException ex)
         {

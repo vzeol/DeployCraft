@@ -9,9 +9,9 @@ internal static class SettingsEndpoints
 {
     public static void MapSettingsEndpoints(this RouteGroupBuilder api)
     {
-        api.MapGet("/settings/defaults", (Store store) => store.GetDefaults());
+        api.MapGet("/settings/defaults", (ISettingsRepository settingsRepository) => settingsRepository.GetDefaults());
 
-        api.MapPut("/settings/defaults", (DeploymentDefaults defaults, Store store, DeploymentEngine engine) =>
+        api.MapPut("/settings/defaults", (DeploymentDefaults defaults, ISettingsRepository settingsRepository, DeploymentEngine engine) =>
         {
             defaults.Offline ??= new();
             defaults.History ??= new();
@@ -20,7 +20,7 @@ internal static class SettingsEndpoints
             if (PackageValidation.ValidateOffline(defaults.Offline) is { } error) return Results.BadRequest(new { error = $"Hors ligne : {error}" });
             if (HistorySettings.Validate(defaults.History.KeepDays) is { } historyError) return Results.BadRequest(new { error = $"Historique : {historyError}" });
             if (PerformanceSettings.Validate(defaults.Performance) is { } performanceError) return Results.BadRequest(new { error = $"Performance : {performanceError}" });
-            store.SaveDefaults(defaults);
+            settingsRepository.SaveDefaults(defaults);
             engine.ApplyPerformance(defaults.Performance);
             return Results.Ok(defaults);
         });

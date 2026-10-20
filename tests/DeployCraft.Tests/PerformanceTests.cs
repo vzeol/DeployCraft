@@ -131,14 +131,14 @@ public sealed class PerformanceTests : IDisposable
     public void Settings_DefaultTo8Targets_AndNoLimit_AndAreSavedWithTheDefaults()
     {
         var store = new Store(Path.Combine(_dir, "test.db"));
-        Assert.Equal(8, store.GetDefaults().Performance.ParallelTargets);
-        Assert.Equal(0, store.GetDefaults().Performance.CopyLimitMbps);
+        Assert.Equal(8, store.Settings.GetDefaults().Performance.ParallelTargets);
+        Assert.Equal(0, store.Settings.GetDefaults().Performance.CopyLimitMbps);
 
-        var defaults = store.GetDefaults();
+        var defaults = store.Settings.GetDefaults();
         defaults.Performance = new PerformanceSettings { ParallelTargets = 20, CopyLimitMbps = 100 };
-        store.SaveDefaults(defaults);
+        store.Settings.SaveDefaults(defaults);
 
-        Assert.Equal(20, store.GetDefaults().Performance.ParallelTargets);
-        Assert.Equal(100, store.GetDefaults().Performance.CopyLimitMbps);
+        Assert.Equal(20, store.Settings.GetDefaults().Performance.ParallelTargets);
+        Assert.Equal(100, store.Settings.GetDefaults().Performance.CopyLimitMbps);
     }
 }

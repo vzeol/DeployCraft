@@ -7,37 +7,37 @@ internal static class FolderEndpoints
 {
     public static void MapFolderEndpoints(this RouteGroupBuilder api)
     {
-        api.MapGet("/folders", (Store store) => store.ListFolders());
+        api.MapGet("/folders", (IFolderRepository folderRepository) => folderRepository.List());
 
-        api.MapPost("/folders", (PackageFolder f, Store store) =>
+        api.MapPost("/folders", (PackageFolder f, IFolderRepository folderRepository) =>
         {
             f.Id = 0;
-            if (PackageFolder.Check(f, store.ListFolders()) is { } error) return Results.BadRequest(new { error });
-            return Results.Ok(store.SaveFolder(f));
+            if (PackageFolder.Check(f, folderRepository.List()) is { } error) return Results.BadRequest(new { error });
+            return Results.Ok(folderRepository.Save(f));
         });
 
-        api.MapPut("/folders/{id:long}", (long id, PackageFolder f, Store store) =>
+        api.MapPut("/folders/{id:long}", (long id, PackageFolder f, IFolderRepository folderRepository) =>
         {
-            var all = store.ListFolders();
+            var all = folderRepository.List();
             if (all.All(x => x.Id != id)) return Results.NotFound();
             f.Id = id;
             if (PackageFolder.Check(f, all) is { } error) return Results.BadRequest(new { error });
-            return Results.Ok(store.SaveFolder(f));
+            return Results.Ok(folderRepository.Save(f));
         });
 
-        api.MapDelete("/folders/{id:long}", (long id, Store store) =>
+        api.MapDelete("/folders/{id:long}", (long id, IPackageRepository packageRepository, IFolderRepository folderRepository) =>
         {
-            if (PackageFolder.CheckDelete(id, store.ListFolders(), store.ListPackages()) is { } error) return Results.BadRequest(new { error });
-            store.DeleteFolder(id);
+            if (PackageFolder.CheckDelete(id, folderRepository.List(), packageRepository.List()) is { } error) return Results.BadRequest(new { error });
+            folderRepository.Delete(id);
             return Results.NoContent();
         });
 
-        api.MapPut("/packages/{id:long}/folder", (long id, PackageMove move, Store store) =>
+        api.MapPut("/packages/{id:long}/folder", (long id, PackageMove move, IPackageRepository packageRepository, IFolderRepository folderRepository) =>
         {
-            if (store.GetPackage(id) == null) return Results.NotFound();
-            if (move.FolderId is { } folder && store.ListFolders().All(f => f.Id != folder))
+            if (packageRepository.Get(id) == null) return Results.NotFound();
+            if (move.FolderId is { } folder && folderRepository.List().All(f => f.Id != folder))
                 return Results.BadRequest(new { error = "Dossier introuvable." });
-            store.MovePackage(id, move.FolderId);
+            packageRepository.Move(id, move.FolderId);
             return Results.NoContent();
         });
     }

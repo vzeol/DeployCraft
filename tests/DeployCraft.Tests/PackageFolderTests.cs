@@ -62,34 +62,34 @@ public sealed class PackageFolderTests : IDisposable
     [Fact]
     public void Folders_AreSavedRenamedAndDeleted()
     {
-        var parent = _store.SaveFolder(new PackageFolder { Name = " Bureautique " });
-        var child = _store.SaveFolder(new PackageFolder { Name = "Navigateurs", ParentId = parent.Id });
-        _store.SaveFolder(new PackageFolder { Id = child.Id, Name = "Web", ParentId = null });
+        var parent = _store.Folders.Save(new PackageFolder { Name = " Bureautique " });
+        var child = _store.Folders.Save(new PackageFolder { Name = "Navigateurs", ParentId = parent.Id });
+        _store.Folders.Save(new PackageFolder { Id = child.Id, Name = "Web", ParentId = null });
 
-        var all = _store.ListFolders();
+        var all = _store.Folders.List();
         Assert.Equal(["Bureautique", "Web"], all.Select(f => f.Name));
         Assert.All(all, f => Assert.Null(f.ParentId));
 
-        _store.DeleteFolder(child.Id);
-        Assert.Single(_store.ListFolders());
+        _store.Folders.Delete(child.Id);
+        Assert.Single(_store.Folders.List());
     }
 
     [Fact]
     public void Package_KeepsItsFolder_WhenSaved_AndChangesOnlyByAMove()
     {
-        var a = _store.SaveFolder(new PackageFolder { Name = "A" });
-        var b = _store.SaveFolder(new PackageFolder { Name = "B" });
-        var package = _store.SavePackage(new Package { Name = "Lecteur PDF", FolderId = a.Id });
-        Assert.Equal(a.Id, _store.GetPackage(package.Id)!.FolderId);
+        var a = _store.Folders.Save(new PackageFolder { Name = "A" });
+        var b = _store.Folders.Save(new PackageFolder { Name = "B" });
+        var package = _store.Packages.Save(new Package { Name = "Lecteur PDF", FolderId = a.Id });
+        Assert.Equal(a.Id, _store.Packages.Get(package.Id)!.FolderId);
 
         // Fenêtre ouverte avant un déplacement : l'enregistrer ne remet pas le paquet dans son ancien dossier.
-        _store.MovePackage(package.Id, b.Id);
+        _store.Packages.Move(package.Id, b.Id);
         package.Description = "modifié";
-        _store.SavePackage(package);
-        Assert.Equal(b.Id, _store.GetPackage(package.Id)!.FolderId);
+        _store.Packages.Save(package);
+        Assert.Equal(b.Id, _store.Packages.Get(package.Id)!.FolderId);
 
-        _store.MovePackage(package.Id, null);
-        Assert.Null(_store.GetPackage(package.Id)!.FolderId);
+        _store.Packages.Move(package.Id, null);
+        Assert.Null(_store.Packages.Get(package.Id)!.FolderId);
     }
 
     [Fact]

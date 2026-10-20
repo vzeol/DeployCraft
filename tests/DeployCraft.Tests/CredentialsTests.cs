@@ -25,7 +25,7 @@ public sealed class CredentialsTests : IDisposable
     [Fact]
     public void FirstCredential_BecomesDefault()
     {
-        var credentials = new DeployCredentials(_store);
+        var credentials = new DeployCredentials(_store.Credentials, _store.Settings);
         var first = credentials.Save(new Credential { Domain = "DOMAINE.LOCAL", User = "admin" }, FakePassword);
         var second = credentials.Save(new Credential { Domain = ".", User = "Administrateur" }, FakePassword);
 
@@ -38,7 +38,7 @@ public sealed class CredentialsTests : IDisposable
     [Fact]
     public void DeletingDefault_PromotesTheOldestRemaining()
     {
-        var credentials = new DeployCredentials(_store);
+        var credentials = new DeployCredentials(_store.Credentials, _store.Settings);
         var a = credentials.Save(new Credential { User = "a" }, FakePassword);
         var b = credentials.Save(new Credential { User = "b" }, FakePassword);
         var c = credentials.Save(new Credential { User = "c" }, FakePassword);
@@ -53,7 +53,7 @@ public sealed class CredentialsTests : IDisposable
     [Fact]
     public void EmptyPassword_KeepsTheStoredOne()
     {
-        var credentials = new DeployCredentials(_store);
+        var credentials = new DeployCredentials(_store.Credentials, _store.Settings);
         var saved = credentials.Save(new Credential { Domain = "DOMAINE.LOCAL", User = "admin" }, FakePassword);
 
         credentials.Save(new Credential { Id = saved.Id, Domain = "DOMAINE.LOCAL", User = "admin", Description = "Admin domaine" }, "");
@@ -66,10 +66,10 @@ public sealed class CredentialsTests : IDisposable
     [Fact]
     public void PasswordIsStoredEncrypted()
     {
-        var credentials = new DeployCredentials(_store);
+        var credentials = new DeployCredentials(_store.Credentials, _store.Settings);
         var saved = credentials.Save(new Credential { User = "admin" }, FakePassword);
 
-        var stored = _store.GetCredentialSecret(saved.Id)!;
+        var stored = _store.Credentials.GetSecret(saved.Id)!;
         Assert.DoesNotContain(FakePassword, stored);
         Assert.DoesNotContain(FakePassword, System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(stored)));
     }
@@ -77,9 +77,9 @@ public sealed class CredentialsTests : IDisposable
     [Fact]
     public void UnreadablePassword_IsFlagged_AndRefusedWithAClearMessage()
     {
-        var credentials = new DeployCredentials(_store);
+        var credentials = new DeployCredentials(_store.Credentials, _store.Settings);
         // Chiffré « ailleurs » : des octets que DPAPI ne sait pas déchiffrer sur ce poste.
-        var saved = _store.SaveCredential(new Credential { Domain = "DOMAINE.LOCAL", User = "admin" }, Convert.ToBase64String(new byte[64]));
+        var saved = _store.Credentials.Save(new Credential { Domain = "DOMAINE.LOCAL", User = "admin" }, Convert.ToBase64String(new byte[64]));
 
         var reloaded = credentials.Get(saved.Id)!;
         Assert.True(reloaded.PasswordUnreadable);
@@ -90,21 +90,21 @@ public sealed class CredentialsTests : IDisposable
     [Fact]
     public void SingleAccountFrom08_BecomesTheDefaultCredential()
     {
-        var old = new DeployCredentials(_store).Save(new Credential { User = "tmp" }, FakePassword);
-        var cipher = _store.GetCredentialSecret(old.Id);
-        _store.DeleteCredential(old.Id);
-        _store.SetSetting("cred.domain", "DOMAINE.LOCAL");
-        _store.SetSetting("cred.user", "svc-deploy");
-        _store.SetSetting("cred.password", cipher);
+        var old = new DeployCredentials(_store.Credentials, _store.Settings).Save(new Credential { User = "tmp" }, FakePassword);
+        var cipher = _store.Credentials.GetSecret(old.Id);
+        _store.Credentials.Delete(old.Id);
+        _store.Settings.Set("cred.domain", "DOMAINE.LOCAL");
+        _store.Settings.Set("cred.user", "svc-deploy");
+        _store.Settings.Set("cred.password", cipher);
 
-        var credentials = new DeployCredentials(_store);
+        var credentials = new DeployCredentials(_store.Credentials, _store.Settings);
 
         var migrated = Assert.Single(credentials.List());
         Assert.Equal(@"DOMAINE.LOCAL\svc-deploy", migrated.Account);
         Assert.True(migrated.IsDefault);
         Assert.Equal(FakePassword, credentials.Password(migrated));
-        Assert.Null(_store.GetSetting("cred.user"));
-        Assert.Null(_store.GetSetting("cred.password"));
+        Assert.Null(_store.Settings.Get("cred.user"));
+        Assert.Null(_store.Settings.Get("cred.password"));
     }
 
     [Theory]
@@ -138,7 +138,7 @@ public sealed class CredentialsTests : IDisposable
     [InlineData("DOMAINE.LOCAL", "admin", "DOMAINE.LOCAL", "admin")]
     public void Save_NormalizesTheDomainAsTyped(string? domain, string user, string? savedDomain, string savedUser)
     {
-        var saved = new DeployCredentials(_store).Save(new Credential { Domain = domain, User = user }, FakePassword);
+        var saved = new DeployCredentials(_store.Credentials, _store.Settings).Save(new Credential { Domain = domain, User = user }, FakePassword);
 
         Assert.Equal(savedDomain, saved.Domain);
         Assert.Equal(savedUser, saved.User);
@@ -162,7 +162,7 @@ public sealed class CredentialsTests : IDisposable
     [Fact]
     public void Directory_UsesADomainCredential_EvenIfTheDefaultIsLocal()
     {
-        var credentials = new DeployCredentials(_store);
+        var credentials = new DeployCredentials(_store.Credentials, _store.Settings);
         credentials.Save(new Credential { User = "Administrateur" }, FakePassword);
         var domain = credentials.Save(new Credential { Domain = "DOMAINE.LOCAL", User = "admin" }, FakePassword);
 
@@ -172,7 +172,7 @@ public sealed class CredentialsTests : IDisposable
     [Fact]
     public void Directory_WithoutDomainCredential_AsksToAddOne()
     {
-        var credentials = new DeployCredentials(_store);
+        var credentials = new DeployCredentials(_store.Credentials, _store.Settings);
         credentials.Save(new Credential { User = "Administrateur" }, FakePassword);
 
         Assert.Throws<DeployException>(credentials.ForDirectory);

@@ -9,36 +9,36 @@ internal static class PackageEndpoints
 {
     public static void MapPackageEndpoints(this RouteGroupBuilder api)
     {
-        api.MapGet("/packages", (Store store) => store.ListPackages());
+        api.MapGet("/packages", (IPackageRepository packageRepository) => packageRepository.List());
 
-        api.MapGet("/packages/{id:long}", (long id, Store store) =>
-            store.GetPackage(id) is { } p ? Results.Ok(p) : Results.NotFound());
+        api.MapGet("/packages/{id:long}", (long id, IPackageRepository packageRepository) =>
+            packageRepository.Get(id) is { } p ? Results.Ok(p) : Results.NotFound());
 
-        api.MapPost("/packages", (Package p, Store store) =>
+        api.MapPost("/packages", (Package p, IPackageRepository packageRepository, IFolderRepository folderRepository) =>
         {
             p.Id = 0;
-            if (p.FolderId is { } folder && store.ListFolders().All(f => f.Id != folder)) p.FolderId = null;
-            if (PackageValidation.Validate(p, store.GetPackage) is { } error) return Results.BadRequest(new { error });
-            return Results.Ok(store.SavePackage(p));
+            if (p.FolderId is { } folder && folderRepository.List().All(f => f.Id != folder)) p.FolderId = null;
+            if (PackageValidation.Validate(p, packageRepository.Get) is { } error) return Results.BadRequest(new { error });
+            return Results.Ok(packageRepository.Save(p));
         });
 
-        api.MapPut("/packages/{id:long}", (long id, Package p, Store store) =>
+        api.MapPut("/packages/{id:long}", (long id, Package p, IPackageRepository packageRepository) =>
         {
-            if (store.GetPackage(id) == null) return Results.NotFound();
+            if (packageRepository.Get(id) == null) return Results.NotFound();
             p.Id = id;
-            if (PackageValidation.Validate(p, store.GetPackage) is { } error) return Results.BadRequest(new { error });
-            return Results.Ok(store.SavePackage(p));
+            if (PackageValidation.Validate(p, packageRepository.Get) is { } error) return Results.BadRequest(new { error });
+            return Results.Ok(packageRepository.Save(p));
         });
 
-        api.MapDelete("/packages/{id:long}", (long id, Store store) =>
+        api.MapDelete("/packages/{id:long}", (long id, IPackageRepository packageRepository) =>
         {
-            if (Package.UsersOf(store.ListPackages(), id) is { Count: > 0 } users)
+            if (Package.UsersOf(packageRepository.List(), id) is { Count: > 0 } users)
                 return Results.BadRequest(new
                 {
                     error = "Ce paquet est utilisé comme paquet imbriqué par : " + string.Join(", ", users.Select(u => $"« {u.Name} »")) +
                             ". Retirez-le de ces paquets avant de le supprimer.",
                 });
-            store.DeletePackage(id);
+            packageRepository.Delete(id);
             return Results.NoContent();
         });
 
@@ -63,11 +63,11 @@ internal static class PackageEndpoints
         });
 
         // Export : les paquets choisis et les paquets imbriqués qu'ils utilisent, dans un fichier qui se suffit à lui-même.
-        api.MapPost("/packages/export", (List<long> ids, Store store) =>
+        api.MapPost("/packages/export", (List<long> ids, IPackageRepository packageRepository) =>
         {
             try
             {
-                return Results.Ok(PackageExchange.Export(ids, store.GetPackage));
+                return Results.Ok(PackageExchange.Export(ids, packageRepository.Get));
             }
             catch (ArgumentException ex)
             {
@@ -76,7 +76,7 @@ internal static class PackageEndpoints
         });
 
         // Import d'un fichier de paquets (.json ou .xml) : aperçu (Apply = false) ou création des paquets.
-        api.MapPost("/packages/import", (ImportInput input, Store store) =>
+        api.MapPost("/packages/import", (ImportInput input, IPackageRepository packageRepository) =>
         {
             ImportReport report;
             try
@@ -87,17 +87,17 @@ internal static class PackageEndpoints
             {
                 return Results.BadRequest(new { error = ex.Message });
             }
-            PackageExchange.Complete(report, store.ListPackages(), PackageValidation.Validate, input.Apply ? store.SavePackage : null);
+            PackageExchange.Complete(report, packageRepository.List(), PackageValidation.Validate, input.Apply ? packageRepository.Save : null);
             return Results.Ok(report);
         });
 
         // « Mémoriser ces cibles » : la fenêtre Déployer une fois les propose à nouveau pour ce paquet.
-        api.MapGet("/packages/{id:long}/targets", (long id, Store store) => store.GetPackageTargets(id));
+        api.MapGet("/packages/{id:long}/targets", (long id, IPackageRepository packageRepository) => packageRepository.GetTargets(id));
 
-        api.MapPut("/packages/{id:long}/targets", (long id, List<string> computers, Store store) =>
+        api.MapPut("/packages/{id:long}/targets", (long id, List<string> computers, IPackageRepository packageRepository) =>
         {
-            if (store.GetPackage(id) == null) return Results.NotFound();
-            store.SetPackageTargets(id, computers.Select(c => c.Trim()).Where(c => c.Length > 0)
+            if (packageRepository.Get(id) == null) return Results.NotFound();
+            packageRepository.SetTargets(id, computers.Select(c => c.Trim()).Where(c => c.Length > 0)
                 .Distinct(StringComparer.OrdinalIgnoreCase).ToList());
             return Results.NoContent();
         });

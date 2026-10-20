@@ -9,7 +9,9 @@ namespace DeployCraft.Server.Deployment;
 /// File d'attente des déploiements. Chaque PC est traité indépendamment,
 /// avec au plus <see cref="PerformanceSettings.ParallelTargets"/> PCs en parallèle (prioritaires d'abord).
 /// </summary>
-public class DeploymentEngine(Store store, DeployCredentials credentials, ILogger<DeploymentEngine> log) : BackgroundService
+public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentRepository deploymentRepository,
+    IScheduleRepository scheduleRepository, ISettingsRepository settingsRepository, IComputerRepository computerRepository,
+    DeployCredentials credentials, ILogger<DeploymentEngine> log) : BackgroundService
 {
     private readonly Channel<long> _queue = Channel.CreateUnbounded<long>();
     private readonly SlotQueue _slots = new(new PerformanceSettings().ParallelTargets);
@@ -51,7 +53,7 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
         foreach (var p in packages.Where(p => p.Steps.Count == 0))
             throw new ArgumentException($"Le paquet « {p.Name} » n'a aucune étape.");
         // L'étape de départ se compte sur la liste déployée, paquets imbriqués remplacés par leurs étapes.
-        var stepCount = packages[0].Flatten(store.GetPackage).Steps.Count;
+        var stepCount = packages[0].Flatten(packageRepository.Get).Steps.Count;
         foreach (var t in requests.Where(t => t.StartStep < 1 || t.StartStep > stepCount))
             throw new ArgumentException($"{t.Computer} : étape de départ invalide ({t.StartStep}) ; le paquet a {stepCount} étape(s).");
 
@@ -72,7 +74,7 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
         if (options.CredentialId != null && credential == null) throw new ArgumentException("Identifiant introuvable (supprimé ?).");
         var account = credential?.Account ?? "Compte du service";
 
-        var defaults = store.GetDefaults();
+        var defaults = settingsRepository.GetDefaults();
         ApplyPerformance(defaults.Performance);
         var deployments = new List<Data.Deployment>();
         var previous = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
@@ -80,13 +82,13 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
         {
             // Réglages « par défaut » remplacés par ceux des Préférences et paquets imbriqués remplacés par leurs
             // étapes : figés dans l'historique du déploiement.
-            var package = original.Resolve(defaults, store.GetPackage);
+            var package = original.Resolve(defaults, packageRepository.Get);
             var runAs = options.RunAs ?? package.RunAs!.Value;
             // Sans identifiant, le service ne peut tourner que sous un compte intégré.
             if (runAs == RunAsMode.DeployUser && credential == null) runAs = RunAsMode.LocalSystem;
             var copyMode = options.CopyMode ?? package.CopyMode!.Value;
 
-            var deployment = store.CreateDeployment(package, packageTargets, launchedBy, account, credential?.Id, runAs, copyMode, options.Prioritize, schedule);
+            var deployment = deploymentRepository.Create(package, packageTargets, launchedBy, account, credential?.Id, runAs, copyMode, options.Prioritize, schedule);
             foreach (var t in deployment.Targets)
             {
                 _done[t.Id] = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -122,8 +124,8 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
 
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        store.FailInterrupted();
-        ApplyPerformance(store.GetDefaults().Performance);
+        deploymentRepository.FailInterrupted();
+        ApplyPerformance(settingsRepository.GetDefaults().Performance);
         if (!File.Exists(_runnerExe)) log.LogError("Runner introuvable : {Path}", _runnerExe);
 
         await foreach (var id in _queue.Reader.ReadAllAsync(ct))
@@ -135,7 +137,7 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
 
     private async Task RunDeploymentAsync(long id, CancellationToken ct)
     {
-        var deployment = store.GetDeployment(id);
+        var deployment = deploymentRepository.Get(id);
         if (deployment == null) return;
 
         // Enregistrés tout de suite : un poste encore en attente doit pouvoir être annulé.
@@ -146,11 +148,11 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
             return (Target: t, Cts: cts);
         }).ToList();
 
-        store.UpdateDeploymentStatus(id, DeploymentStatus.Running, ended: false);
+        deploymentRepository.UpdateStatus(id, DeploymentStatus.Running, ended: false);
         await Task.WhenAll(runs.Select(r => RunTargetAsync(deployment, r.Target, r.Cts, ct)));
 
         var ok = deployment.Targets.All(t => t.Status == TargetStatus.Successful);
-        store.UpdateDeploymentStatus(id, ok ? DeploymentStatus.Successful : DeploymentStatus.Failed, ended: true);
+        deploymentRepository.UpdateStatus(id, ok ? DeploymentStatus.Successful : DeploymentStatus.Failed, ended: true);
     }
 
     private async Task RunTargetAsync(Data.Deployment deployment, DeploymentTarget target, CancellationTokenSource cts, CancellationToken appStopping)
@@ -172,7 +174,7 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
                 if (_after.TryRemove(target.Id, out var before) && _done.TryGetValue(before, out var previous))
                 {
                     target.Stage = "En attente du paquet précédent";
-                    store.UpdateTarget(target);
+                    deploymentRepository.UpdateTarget(target);
                     await previous.Task.WaitAsync(waitCts.Token);
                 }
 
@@ -190,7 +192,7 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
             target.Status = TargetStatus.Running;
             target.StartedUtc = DateTime.UtcNow;
             target.Stage = "Démarrage";
-            store.UpdateTarget(target);
+            deploymentRepository.UpdateTarget(target);
 
             Credential? credential = null;
             if (deployment.CredentialId is { } credentialId)
@@ -213,16 +215,16 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
                         target.StartStep,
                         deployment.RunAsMode,
                         deployment.CopyMode,
-                        stage: s => { target.Stage = s; store.UpdateTarget(target); },
+                        stage: s => { target.Stage = s; deploymentRepository.UpdateTarget(target); },
                         progress: status =>
                         {
                             if (!networkSaved && status.Network is { Count: > 0 } cards)
                             {
-                                store.SaveComputerNetwork(target.Computer, cards.Select(c => new NetworkCard(c.Mac, c.Broadcast)).ToList());
+                                computerRepository.SaveNetwork(target.Computer, cards.Select(c => new NetworkCard(c.Mac, c.Broadcast)).ToList());
                                 networkSaved = true;
                             }
                             target.Steps = ToOutcomes(status, earlierRuns);
-                            store.UpdateTarget(target);
+                            deploymentRepository.UpdateTarget(target);
                         },
                         cts.Token);
                     break;
@@ -237,17 +239,17 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
                     target.Status = TargetStatus.Queued;
                     target.Error = ex.Message;
                     target.Stage = $"Hors ligne : nouvel essai à {next:HH:mm} (essai {attempt + 1} sur {attempts})";
-                    store.UpdateTarget(target);
+                    deploymentRepository.UpdateTarget(target);
 
                     await Task.Delay(next - DateTime.Now, cts.Token);
                     target.Stage = "En attente d'un créneau";
-                    store.UpdateTarget(target);
+                    deploymentRepository.UpdateTarget(target);
                     await _slots.WaitAsync(target.Prioritized, cts.Token);
                     slotTaken = true;
                     target.Status = TargetStatus.Running;
                     target.Error = null;
                     target.Stage = "Démarrage";
-                    store.UpdateTarget(target);
+                    deploymentRepository.UpdateTarget(target);
                 }
             }
 
@@ -272,12 +274,12 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
             target.Stage = null;
             target.StartedUtc ??= DateTime.UtcNow;
             target.EndedUtc = DateTime.UtcNow;
-            store.UpdateTarget(target);
+            deploymentRepository.UpdateTarget(target);
             if (countForSchedule && deployment.ScheduleId is { } scheduleId && !appStopping.IsCancellationRequested)
             {
                 try
                 {
-                    store.RecordScheduleResult(scheduleId, target.Computer, deployment.PackageId, target.Status == TargetStatus.Successful);
+                    scheduleRepository.RecordResult(scheduleId, target.Computer, deployment.PackageId, target.Status == TargetStatus.Successful);
                 }
                 catch (Exception ex) { log.LogWarning(ex, "Historique de planification non mis à jour ({Computer})", target.Computer); }
             }
@@ -295,12 +297,12 @@ public class DeploymentEngine(Store store, DeployCredentials credentials, ILogge
     private async Task WakeAsync(DeploymentTarget target, int waitMinutes, CancellationToken ct)
     {
         if (await TargetSession.ProbeAsync(target.Computer, ct) is not { } down) return;
-        var cards = store.GetComputerNetwork(target.Computer);
+        var cards = computerRepository.GetNetwork(target.Computer);
         if (cards.Count == 0)
             throw new DeployException(down.Message + " Réveil impossible : adresse MAC inconnue (elle est apprise au premier déploiement réussi sur ce poste).") { Offline = true };
 
         target.Stage = "Réveil du poste (Wake-on-LAN)";
-        store.UpdateTarget(target);
+        deploymentRepository.UpdateTarget(target);
         WakeOnLan.Send(cards);
         var deadline = DateTime.UtcNow.AddMinutes(Math.Max(1, waitMinutes));
         while (DateTime.UtcNow < deadline)

@@ -18,7 +18,7 @@ public record ConsoleSession(string User, string Computer, DateTime LastSeenUtc)
 /// Qui a le droit d'utiliser le service : les administrateurs locaux du serveur (toujours, pour qu'on ne puisse pas
 /// se fermer la porte), plus les comptes et groupes de la liste « Utilisateurs de la console ».
 /// </summary>
-public class ConsoleAccess(Store store)
+public class ConsoleAccess(ISettingsRepository settingsRepository)
 {
     public const string AdministratorsSid = "S-1-5-32-544";
 
@@ -32,7 +32,7 @@ public class ConsoleAccess(Store store)
     private readonly ConcurrentDictionary<string, string> _computers = new();
 
     public List<ConsoleUser> ListUsers() =>
-        store.GetSetting(SettingKey) is { } json ? JsonSerializer.Deserialize<List<ConsoleUser>>(json, Store.Json) ?? [] : [];
+        settingsRepository.Get(SettingKey) is { } json ? JsonSerializer.Deserialize<List<ConsoleUser>>(json, Database.Json) ?? [] : [];
 
     /// <summary>Ajoute un compte ou un groupe (DOMAINE\nom) ; renvoie l'entrée enregistrée, ou une erreur lisible.</summary>
     public (ConsoleUser? User, string? Error) AddUser(string? name)
@@ -59,7 +59,7 @@ public class ConsoleAccess(Store store)
     public void RemoveUser(string sid) => Save(ListUsers().Where(u => u.Sid != sid).ToList());
 
     private void Save(List<ConsoleUser> users) =>
-        store.SetSetting(SettingKey, users.Count == 0 ? null : JsonSerializer.Serialize(users, Store.Json));
+        settingsRepository.Set(SettingKey, users.Count == 0 ? null : JsonSerializer.Serialize(users, Database.Json));
 
     /// <summary>SID de la personne et de ses groupes, y compris ceux que le contrôle de compte (UAC) garde en refus seul.</summary>
     public static HashSet<string> Sids(ClaimsPrincipal user)

@@ -23,7 +23,14 @@ builder.Services.ConfigureHttpJsonOptions(o =>
 {
     o.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
-builder.Services.AddSingleton(new Store(Path.Combine(dataDir, "deploycraft.db")));
+var store = new Store(Path.Combine(dataDir, "deploycraft.db"));
+builder.Services.AddSingleton(store.Settings);
+builder.Services.AddSingleton(store.Packages);
+builder.Services.AddSingleton(store.Folders);
+builder.Services.AddSingleton(store.Computers);
+builder.Services.AddSingleton(store.Deployments);
+builder.Services.AddSingleton(store.Schedules);
+builder.Services.AddSingleton(store.Credentials);
 builder.Services.AddSingleton<DeployCredentials>();
 builder.Services.AddSingleton<ConsoleAccess>();
 builder.Services.AddSingleton<ServiceAccount>();
@@ -34,7 +41,7 @@ builder.Services.AddHostedService(sp => sp.GetRequiredService<DeploymentEngine>(
 builder.Services.AddSingleton<Scheduler>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<Scheduler>());
 builder.Services.AddHostedService<HistoryCleaner>();
-builder.Services.AddSingleton(sp => new PackageLibrary(sp.GetRequiredService<Store>(), sp.GetRequiredService<DeployCredentials>(),
+builder.Services.AddSingleton(sp => new PackageLibrary(store.Packages, store.Settings, sp.GetRequiredService<DeployCredentials>(),
     dataDir, sp.GetRequiredService<ILogger<PackageLibrary>>()));
 builder.Services.AddHostedService<LibraryUpdater>();
 // La console s'identifie avec la session Windows de la personne (aucun mot de passe à saisir).

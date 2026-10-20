@@ -7,7 +7,7 @@ namespace DeployCraft.Server.Deployment;
 /// déclencheurs est passé depuis le dernier examen ; si oui, elle lance un déploiement par paquet
 /// sur les postes qui en ont encore besoin.
 /// </summary>
-public class Scheduler(Store store, DeploymentEngine engine, ILogger<Scheduler> log) : BackgroundService
+public class Scheduler(IScheduleRepository scheduleRepository, IPackageRepository packageRepository, DeploymentEngine engine, ILogger<Scheduler> log) : BackgroundService
 {
     private static readonly TimeSpan Tick = TimeSpan.FromSeconds(15);
 
@@ -38,10 +38,10 @@ public class Scheduler(Store store, DeploymentEngine engine, ILogger<Scheduler> 
     private void CheckAll()
     {
         var now = DateTime.Now;
-        foreach (var schedule in store.ListSchedules())
+        foreach (var schedule in scheduleRepository.List())
         {
-            var since = store.GetScheduleChecked(schedule.Id) ?? now;
-            store.SetScheduleChecked(schedule.Id, now);
+            var since = scheduleRepository.GetChecked(schedule.Id) ?? now;
+            scheduleRepository.SetChecked(schedule.Id, now);
             if (!schedule.Enabled) continue;
 
             // Plusieurs déclenchements passés depuis le dernier examen : un seul lancement.
@@ -65,7 +65,7 @@ public class Scheduler(Store store, DeploymentEngine engine, ILogger<Scheduler> 
         lock (_lock)
         {
             var (deployments, result) = Plan(schedule, launchedBy);
-            store.SetScheduleRun(schedule.Id, DateTime.UtcNow, result);
+            scheduleRepository.SetRun(schedule.Id, DateTime.UtcNow, result);
             log.LogInformation("Planification {Name} : {Result}", schedule.Name, result);
             return deployments;
         }
@@ -73,16 +73,16 @@ public class Scheduler(Store store, DeploymentEngine engine, ILogger<Scheduler> 
 
     private (List<Data.Deployment>, string) Plan(Schedule schedule, string? launchedBy)
     {
-        var packages = schedule.PackageIds.Select(store.GetPackage).OfType<Package>().Where(p => p.Steps.Count > 0).ToList();
+        var packages = schedule.PackageIds.Select(packageRepository.Get).OfType<Package>().Where(p => p.Steps.Count > 0).ToList();
         if (packages.Count == 0) return ([], "Aucun paquet à déployer (paquets supprimés ou sans étape).");
         var computers = schedule.Targets.Select(c => c.Trim().TrimStart('\\')).Where(c => c.Length > 0)
             .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         if (computers.Count == 0) return ([], "Aucune cible.");
 
-        var history = store.GetScheduleHistory(schedule.Id)
+        var history = scheduleRepository.GetHistory(schedule.Id)
             .ToDictionary(h => (h.Computer.ToUpperInvariant(), h.PackageId));
         // Un poste encore servi par un lancement précédent est laissé tranquille jusqu'au suivant.
-        var busy = store.ActiveScheduleComputers(schedule.Id);
+        var busy = scheduleRepository.ActiveComputers(schedule.Id);
 
         var plan = new List<(Package, List<TargetRequest>)>();
         int done = 0, gaveUp = 0;
