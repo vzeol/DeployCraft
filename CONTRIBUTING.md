@@ -126,6 +126,8 @@ resolve any conflicts, re-test, push.
 
 ## 7. Code conventions
 
+- Follow the architecture rules in [`CLAUDE.md`](CLAUDE.md) § "Architecture" (layers, interfaces at the
+  boundaries, one file per area, thin UI). They apply to everyone, with or without an AI assistant.
 - Follow the style of the surrounding code: modern C#, code names in English, **comments and test
   messages in English**; UI texts are French for now (English UI: issue #120).
   Few comments, and only to explain *why*.
