@@ -55,7 +55,8 @@ public partial class PackageWindow
             ? [new("Modifier", () => SelectStep(Package.Steps[row.Number - 1])), Ui.Separator, .. StepEntries(Package.Steps[row.Number - 1])]
             : AddEntries());
 
-        Tree.KeyDown += (_, e) =>
+        // Preview: the tree uses the arrow keys itself (Ctrl+Up / Down would never reach KeyDown).
+        Tree.PreviewKeyDown += (_, e) =>
         {
             var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
             if (e.Key == Key.Delete && SelectedStep != null) DeleteStep_Click(this, e);
@@ -122,6 +123,8 @@ public partial class PackageWindow
         if (SelectedStep is not { } step || !CanMove(step, delta)) return;
         StepList.Move(Package.Steps, step, delta);
         RebuildSteps(step);
+        // The tree is rebuilt: keyboard focus goes back to the moved step, so Ctrl+Up / Down can be repeated.
+        (Tree.SelectedItem as TreeViewItem)?.Focus();
     }
 
     private void Duplicate_Click(object sender, RoutedEventArgs e)
