@@ -11,11 +11,10 @@ namespace DeployCraft.Server.Deployment;
 /// </summary>
 public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentRepository deploymentRepository,
     IScheduleRepository scheduleRepository, ISettingsRepository settingsRepository, IComputerRepository computerRepository,
-    DeployCredentials credentials, ILogger<DeploymentEngine> log) : BackgroundService
+    DeployCredentials credentials, IRemoteTargets remote, ILogger<DeploymentEngine> log) : BackgroundService
 {
     private readonly Channel<long> _queue = Channel.CreateUnbounded<long>();
     private readonly SlotQueue _slots = new(new PerformanceSettings().ParallelTargets);
-    private readonly string _runnerExe = Path.Combine(AppContext.BaseDirectory, "runner", "DeployCraft.Runner.exe");
 
     /// <summary>Postes en attente ou en cours, par id de cible, pour pouvoir les annuler.</summary>
     private readonly ConcurrentDictionary<long, (long DeploymentId, CancellationTokenSource Cts)> _active = new();
@@ -126,7 +125,7 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
     {
         deploymentRepository.FailInterrupted();
         ApplyPerformance(settingsRepository.GetDefaults().Performance);
-        if (!File.Exists(_runnerExe)) log.LogError("Runner introuvable : {Path}", _runnerExe);
+        if (remote.SetupProblem() is { } problem) log.LogError("{Problem}", problem);
 
         await foreach (var id in _queue.Reader.ReadAllAsync(ct))
         {
@@ -208,9 +207,10 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
                 try
                 {
                     if (offline.WakeOnLan) await WakeAsync(target, offline.WakeWaitMinutes, cts.Token);
-                    var session = new TargetSession(target.Computer, credentials, credential, _runnerExe);
                     var networkSaved = false;
-                    await session.RunAsync(
+                    await remote.RunAsync(
+                        target.Computer,
+                        credential,
                         deployment.Snapshot,
                         target.StartStep,
                         deployment.RunAsMode,
@@ -296,19 +296,19 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
     /// </summary>
     private async Task WakeAsync(DeploymentTarget target, int waitMinutes, CancellationToken ct)
     {
-        if (await TargetSession.ProbeAsync(target.Computer, ct) is not { } down) return;
+        if (await remote.ProbeAsync(target.Computer, ct) is not { } down) return;
         var cards = computerRepository.GetNetwork(target.Computer);
         if (cards.Count == 0)
             throw new DeployException(down.Message + " Réveil impossible : adresse MAC inconnue (elle est apprise au premier déploiement réussi sur ce poste).") { Offline = true };
 
         target.Stage = "Réveil du poste (Wake-on-LAN)";
         deploymentRepository.UpdateTarget(target);
-        WakeOnLan.Send(cards);
+        remote.Wake(cards);
         var deadline = DateTime.UtcNow.AddMinutes(Math.Max(1, waitMinutes));
         while (DateTime.UtcNow < deadline)
         {
             await Task.Delay(TimeSpan.FromSeconds(10), ct);
-            if (await TargetSession.ProbeAsync(target.Computer, ct) == null) return;
+            if (await remote.ProbeAsync(target.Computer, ct) == null) return;
         }
         throw new DeployException($"{target.Computer} ne répond toujours pas {Math.Max(1, waitMinutes)} min après le réveil (Wake-on-LAN désactivé sur le poste, ou poste débranché ?).") { Offline = true };
     }

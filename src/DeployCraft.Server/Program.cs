@@ -36,6 +36,7 @@ builder.Services.AddSingleton<ConsoleAccess>();
 builder.Services.AddSingleton<ServiceAccount>();
 builder.Services.AddSingleton<ActiveDirectory>();
 builder.Services.AddSingleton(new NameCheck());
+builder.Services.AddSingleton<IRemoteTargets, RemoteTargets>();
 builder.Services.AddSingleton<DeploymentEngine>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<DeploymentEngine>());
 builder.Services.AddSingleton<Scheduler>();
