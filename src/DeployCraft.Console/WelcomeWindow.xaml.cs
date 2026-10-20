@@ -102,6 +102,9 @@ public partial class WelcomeWindow : Window
         await Api.SetLibraryFolder(folder);
     }
 
+    // The window is modeless: IsCancel only closes dialogs, so Close (and Escape) must close it explicitly.
+    private void Close_Click(object sender, RoutedEventArgs e) => Close();
+
     private async void Step_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as Button)?.DataContext is not WelcomeStep step) return;
