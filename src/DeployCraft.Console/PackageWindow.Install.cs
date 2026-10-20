@@ -164,6 +164,9 @@ public partial class PackageWindow
     {
         if (SelectedStep != null) StepName_TextChanged(this, null!);
         UpdateStepWarnings();
+        // A disabled step has no path to check: once enabled, its files are checked like after an edit.
+        _warningCheck.Stop();
+        _warningCheck.Start();
     }
 
     private void SetEnabled(PackageStep step, bool enabled)
