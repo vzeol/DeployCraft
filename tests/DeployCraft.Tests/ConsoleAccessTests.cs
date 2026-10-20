@@ -96,6 +96,18 @@ public sealed class ConsoleAccessTests : IDisposable
         Assert.Equal(@"DOMAINE\admin", Assert.Single(_access.ActiveSessions()).User);
     }
 
+    [Fact]
+    public void ActiveSessions_OnePerComputer_TheServerByItsName()
+    {
+        _access.Seen(@"DOMAINE\admin", IPAddress.Loopback);
+        _access.Seen(@"DOMAINE\admin", IPAddress.Parse("192.0.2.10"));
+
+        var sessions = _access.ActiveSessions();
+        Assert.Equal(2, sessions.Count);
+        Assert.Contains(sessions, s => s.Computer == Environment.MachineName);
+        Assert.All(sessions, s => Assert.Equal(@"DOMAINE\admin", s.User));
+    }
+
     /// <summary>Vraie authentification Windows en boucle locale, comme entre la console et le service.</summary>
     [Fact]
     public async Task Api_RequiresWindowsAuthentication_AndAnAllowedAccount()

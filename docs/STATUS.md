@@ -18,13 +18,20 @@ starts once they have validated everything**.
 Information specific to the maintainer's environment (servers, test computers, accounts) stays in their notes
 **outside the repository**: never copy it here.
 
-## Current version: 1.0.0-rc.1, being tested by the maintainer
+## Current version: 1.0.0-rc.1, 1.0.0 postponed until the code is reorganized
 
 **The whole [`FEATURES.md`](FEATURES.md) list is covered**: 61 features done, 22 dropped by the maintainer, 6 set
-aside. Only 8.1 remains partial: LAPS is planned after v1 (issue #106). 1.0.0-rc.1 is a release candidate: the
-maintainer uses it for a few days on their fleet. If nothing blocks, the same build is released as **1.0.0**
-(stable), and the installed console offers it at startup ("Yes" → install): this will be the first real test of
-updating from the console. A problem → fix, then 1.0.0-rc.2.
+aside. Only 8.1 remains partial: LAPS is planned after v1 (issue #106).
+
+**Decision of the maintainer (20/10): 1.0.0 is postponed until the code follows the architecture rules**
+(`CLAUDE.md` § "Architecture", plan in issue #127). The freeze on `main` is lifted. Order:
+1. Merge #116 (background service, active sessions) and #117 (tree width), both already validated.
+2. Small refactoring PRs from #127, each without behavior change. Those touching the deployment path
+   (`DeploymentEngine`, `TargetSession`, `Remote/`, step classes) get a regression run on the domain test
+   environment before merging (Install / Command / File copy / Restart steps, push and pull, cancel during copy,
+   rate limit, parallel computers).
+3. Then **1.0.0-rc.2**, tested by the maintainer on their fleet, then **1.0.0**. The installed rc.1 console will
+   offer 1.0.0 at startup ("Yes" → install): first real test of updating from the console.
 
 New since 0.14.0 (PRs #61 to #114):
 - Complete Install step: MSI options, command line, additional files (2.20–2.22)

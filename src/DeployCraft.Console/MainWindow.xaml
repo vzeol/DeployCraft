@@ -87,6 +87,7 @@
             <MenuItem Header="_Options" x:Name="MenuOptions">
                 <MenuItem Header="_Identifiants…" Click="Credentials_Click" />
                 <MenuItem Header="_Utilisateurs de la console…" Click="ConsoleUsers_Click" />
+                <MenuItem Header="_Service en arrière-plan…" Click="BackgroundService_Click" />
                 <Separator />
                 <MenuItem Header="_Préférences…" Click="Settings_Click" InputGestureText="Ctrl+," />
             </MenuItem>

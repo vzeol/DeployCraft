@@ -1,3 +1,4 @@
+using System.Net;
 using System.Security.Principal;
 using System.Text.Json.Serialization;
 using DeployCraft.Server.Data;
@@ -26,6 +27,7 @@ builder.Services.ConfigureHttpJsonOptions(o =>
 builder.Services.AddSingleton(new Store(Path.Combine(dataDir, "deploycraft.db")));
 builder.Services.AddSingleton<DeployCredentials>();
 builder.Services.AddSingleton<ConsoleAccess>();
+builder.Services.AddSingleton<ServiceAccount>();
 builder.Services.AddSingleton<ActiveDirectory>();
 builder.Services.AddSingleton(new NameCheck());
 builder.Services.AddSingleton<DeploymentEngine>();
@@ -86,6 +88,30 @@ api.MapDelete("/access/users/{sid}", (HttpContext context, string sid, ConsoleAc
     if (!ConsoleAccess.IsServerAdmin(ConsoleAccess.Sids(context.User))) return OnlyAdmins();
     access.RemoveUser(sid);
     return Results.NoContent();
+});
+
+// ---------- Service en arrière-plan ----------
+
+api.MapGet("/service", (HttpContext context) => new
+{
+    info = ServiceAccount.Info(),
+    canEdit = ConsoleAccess.IsServerAdmin(ConsoleAccess.Sids(context.User)),
+    // Le mot de passe ne voyage pas sur le réseau : le compte se change depuis la console du serveur.
+    local = context.Connection.RemoteIpAddress is { } ip && IPAddress.IsLoopback(ip),
+});
+
+api.MapPost("/service/restart", (HttpContext context, ServiceAccount service) =>
+{
+    if (!ConsoleAccess.IsServerAdmin(ConsoleAccess.Sids(context.User))) return OnlyAdmins();
+    return service.Restart() is { } error ? Results.BadRequest(new { error }) : Results.NoContent();
+});
+
+api.MapPut("/service/account", (HttpContext context, ServiceAccountInput input, ServiceAccount service) =>
+{
+    if (!ConsoleAccess.IsServerAdmin(ConsoleAccess.Sids(context.User))) return OnlyAdmins();
+    if (context.Connection.RemoteIpAddress is not { } ip || !IPAddress.IsLoopback(ip))
+        return Results.BadRequest(new { error = "Le compte du service se change depuis la console du serveur (le mot de passe ne passe pas par le réseau)." });
+    return service.Change(input.Account, input.Password) is { } error ? Results.BadRequest(new { error }) : Results.NoContent();
 });
 
 // ---------- Préférences de déploiement ----------
@@ -535,6 +561,7 @@ record AbortInput(List<long>? TargetIds);
 record ConsoleUserInput(string? Name);
 record ImportInput(string? Content, string? Repository, bool Apply);
 record LibraryFolderInput(string? Folder);
+record ServiceAccountInput(string? Account, string? Password);
 record LibraryAutoUpdateInput(LibraryAutoUpdate Mode, int Days);
 record LibraryDownloadInput(string? Id);
 record PackageMove(long? FolderId);
