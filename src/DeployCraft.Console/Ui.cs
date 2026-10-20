@@ -138,8 +138,11 @@ public static class Ui
 
     // ---------- Menus clic droit ----------
 
-    /// <summary>Entrée de menu contextuel ; <see cref="Separator"/> pour un trait.</summary>
-    public record MenuEntry(string Header, Action Action, bool Enabled = true, string? Gesture = null);
+    /// <summary>
+    /// Context menu entry; <see cref="Separator"/> for a line. With <paramref name="Children"/>, the entry opens a
+    /// submenu instead of running <paramref name="Action"/>.
+    /// </summary>
+    public record MenuEntry(string Header, Action Action, bool Enabled = true, string? Gesture = null, IReadOnlyList<MenuEntry>? Children = null);
 
     public static readonly MenuEntry Separator = new("-", () => { });
 
@@ -156,14 +159,18 @@ public static class Ui
             if (entries.Count == 0) { e.Handled = true; return; }
             var menu = element.ContextMenu;
             menu.Items.Clear();
-            foreach (var entry in entries)
-            {
-                if (entry == Separator) { menu.Items.Add(new System.Windows.Controls.Separator()); continue; }
-                var item = new MenuItem { Header = entry.Header, IsEnabled = entry.Enabled, InputGestureText = entry.Gesture ?? "" };
-                item.Click += (_, _) => entry.Action();
-                menu.Items.Add(item);
-            }
+            foreach (var entry in entries) menu.Items.Add(MenuItemFor(entry));
         };
+    }
+
+    private static Control MenuItemFor(MenuEntry entry)
+    {
+        if (entry == Separator) return new System.Windows.Controls.Separator();
+        var item = new MenuItem { Header = entry.Header, IsEnabled = entry.Enabled, InputGestureText = entry.Gesture ?? "" };
+        if (entry.Children is { } children)
+            foreach (var child in children) item.Items.Add(MenuItemFor(child));
+        else item.Click += (_, _) => entry.Action();
+        return item;
     }
 
     /// <summary>Le clic droit sélectionne d'abord l'élément sous la souris (ligne de grille, nœud d'arbre, élément de liste).</summary>

@@ -45,6 +45,8 @@ public partial class DeployWindow : Window
             new("Fichier texte…", () => TextFile_Click(this, new())),
             Ui.Separator,
             new("Démarrer à l'étape 1", () => SetStartStep(1), TargetsGrid.SelectedItems.Count > 0),
+            new("Démarrer à l'étape", () => { }, TargetsGrid.SelectedItems.Count > 0 && StepChoices.Count > 1,
+                Children: [.. StepChoices.Select(c => new Ui.MenuEntry(c.Text, () => SetStartStep(c.Number)))]),
             Ui.Separator,
             new("Retirer", () => Remove_Click(this, new()), TargetsGrid.SelectedItems.Count > 0, "Suppr"),
             new("Tout retirer", () => Clear_Click(this, new()), _targets.Count > 0),
