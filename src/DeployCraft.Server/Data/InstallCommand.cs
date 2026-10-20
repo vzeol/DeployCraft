@@ -29,6 +29,8 @@ public static class InstallCommand
         var file = $"\"{name}\"";
         var args = step.Arguments?.Trim() ?? "";
         var quiet = step.MsiQuiet;
+        // Per-machine install, unless the parameters already set ALLUSERS (library packages, imports, typed by hand).
+        var allUsers = args.Contains("ALLUSERS=", StringComparison.OrdinalIgnoreCase) ? "" : "ALLUSERS=1";
         var restart = step.MsiRestart switch
         {
             MsiRestart.Never => "/norestart",
@@ -43,7 +45,7 @@ public static class InstallCommand
                 MsiOperation.Repair => "/f",
                 MsiOperation.Uninstall => "/x",
                 _ => "/i",
-            }, file, "ALLUSERS=1", quiet ? "/qn" : "", restart, $"/log {LogFile}", args),
+            }, file, allUsers, quiet ? "/qn" : "", restart, $"/log {LogFile}", args),
             ".msp" => Join("msiexec.exe", "/p", file, quiet ? "/qn" : "", restart, $"/log {LogFile}", args),
             ".msu" => Join("wusa.exe", step.MsiOperation == MsiOperation.Uninstall ? "/uninstall" : "", file, quiet ? "/quiet" : "", restart, args),
             ".ps1" => Join("powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File", file, args),
