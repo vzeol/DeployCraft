@@ -131,8 +131,8 @@ in the same PR as the code that implements it.
 | 8.6 | Target filters | ❌ | Dropped: maintainer's choice (see 6.3) |
 | 8.7 | Mail server + notifications | ❌ | Dropped: maintainer's choice |
 | 8.8 | Interface, printing | ✅ | 0.7.0: Interface page (theme); Preferences window as a list of pages. Printing dropped (maintainer's choice) |
-| 8.9 | Background service | ⛔ | Service account: on hold, maintainer's decision (16/10); resumed only if the need arises. Today the service runs as Local System and uses the deployment account for computers and shares |
-| 8.10 | Console users, active sessions | ✅ | Windows authentication; server administrators + list of accounts and groups |
+| 8.9 | Background service | ✅ | Options › Background service: status, restart, open Windows services, service account (Local System or a server administrator account, changed from the console on the server) |
+| 8.10 | Console users, active sessions | ✅ | Windows authentication; server administrators + list of accounts and groups; Active sessions tab (account, computer, last activity) |
 | 8.11 | Central server mode (local / server / client) | ❌ | Dropped: maintainer's choice (console and service on the same machine) |
 | 8.12 | Service on the target | ❌ | Dropped: maintainer's choice |
 | 8.13 | Proxy, database, logging | ❌ | Dropped: maintainer's choice |

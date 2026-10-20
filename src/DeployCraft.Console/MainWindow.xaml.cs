@@ -1198,6 +1198,7 @@ public partial class MainWindow : Window
     });
 
     private void ConsoleUsers_Click(object sender, RoutedEventArgs e) => new ConsoleUsersWindow { Owner = this }.ShowDialog();
+    private void BackgroundService_Click(object sender, RoutedEventArgs e) => new ServiceWindow { Owner = this }.ShowDialog();
 
     private void AdminCmd_Click(object sender, RoutedEventArgs e) => StartElevated("cmd.exe");
     private void AdminPowerShell_Click(object sender, RoutedEventArgs e) => StartElevated("powershell.exe");

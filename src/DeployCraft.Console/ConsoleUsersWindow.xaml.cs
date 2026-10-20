@@ -32,10 +32,14 @@ public partial class ConsoleUsersWindow : Window
         try
         {
             var info = await Api.Access();
+            var status = await Api.Status();
             _canEdit = info.CanEdit;
             List.ItemsSource = info.Users;
+            AccessHint.Text = $"Les administrateurs de {status.Machine} ont toujours accès à DeployCraft. Ajoutez ici d'autres comptes ou groupes " +
+                              $"Windows (DOMAINE\\nom) qui pourront ouvrir la console, sans les rendre administrateurs du serveur. Vous êtes connecté en tant que {status.ConnectedAs}.";
             Sessions.ItemsSource = info.Sessions
-                .Select(s => $"{s.User} — dernière activité à {s.LastSeenUtc.ToLocalTime():HH:mm:ss}").ToList();
+                .Select(s => new { s.User, s.Computer, LastSeen = s.LastSeenUtc.ToLocalTime().ToString("HH:mm:ss") }).ToList();
+            SessionsCount.Text = $"{info.Sessions.Count} console(s) ouverte(s) en ce moment (une console fermée disparaît de la liste après 2 minutes).";
             Warning.Text = _canEdit ? "" : "Seuls les administrateurs de ce serveur peuvent modifier cette liste.";
             UpdateButtons();
         }
