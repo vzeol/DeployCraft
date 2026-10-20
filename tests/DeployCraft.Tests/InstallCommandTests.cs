@@ -29,6 +29,12 @@ public class InstallCommandTests
     }
 
     [Theory]
+    [InlineData("ALLUSERS=1 ADDLOCAL=ALL", "msiexec.exe /i \"app.msi\" /qn /norestart /log output.log ALLUSERS=1 ADDLOCAL=ALL")]
+    [InlineData("allusers=2", "msiexec.exe /i \"app.msi\" /qn /norestart /log output.log allusers=2")]
+    public void Msi_AllUsersFromParameters_IsNotRepeated(string arguments, string expected) =>
+        Assert.Equal(expected, InstallCommand.Generate(Install("app.msi", arguments)));
+
+    [Theory]
     [InlineData(MsiRestart.Always, "msiexec.exe /i \"app.msi\" ALLUSERS=1 /forcerestart /log output.log")]
     [InlineData(MsiRestart.Prompt, "msiexec.exe /i \"app.msi\" ALLUSERS=1 /promptrestart /log output.log")]
     [InlineData(MsiRestart.NotSet, "msiexec.exe /i \"app.msi\" ALLUSERS=1 /log output.log")]
