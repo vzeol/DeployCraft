@@ -245,8 +245,7 @@ public partial class MainWindow : Window
         PackageSubtitle.Text = string.IsNullOrWhiteSpace(p.Description)
             ? $"Paquet · {steps} · modifié le {Ui.LocalTime(p.ModifiedUtc)}"
             : $"{p.Description} · {steps} · modifié le {Ui.LocalTime(p.ModifiedUtc)}";
-        StepsGrid.ItemsSource = p.Steps.Select((s, i) => new StepRow(i + 1, StepSummary.Name(s), StepSummary.TypeText(s.Type),
-            s.Conditions.IsEmpty ? "" : "Oui", StepSummary.Details(s, FindPackage))).ToList();
+        StepsGrid.ItemsSource = StepRow.For(p.Steps, FindPackage);
         ShowPackageDetails(p);
         PackageDeployments.SetDeployments([]);
         PackageSchedulesGrid.ItemsSource = null;
