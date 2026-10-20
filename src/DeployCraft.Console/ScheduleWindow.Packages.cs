@@ -12,7 +12,7 @@ public partial class ScheduleWindow
     private void UpdatePackages()
     {
         var selected = (PackagesList.SelectedItem as PackageItem)?.Package.Id;
-        var items = _packages.Select((p, i) => new PackageItem(p.Package, ScheduleEditing.PackageLine(i, p.Package))).ToList();
+        var items = _packages.Select((p, i) => new PackageItem(p.Package, WindowInputs.PackageLine(i, p.Package))).ToList();
         _packages.Clear();
         foreach (var item in items) _packages.Add(item);
         PackagesList.SelectedItem = _packages.FirstOrDefault(p => p.Package.Id == selected);
@@ -77,7 +77,7 @@ public partial class ScheduleWindow
     }
 
     private string PackageSetting<T>(Func<Package, T> get, Func<T, string> text) =>
-        ScheduleEditing.PackageSetting(_packages.Select(p => get(p.Package)), text);
+        WindowInputs.PackageSetting(_packages.Select(p => get(p.Package)), text);
 
     private void Options_Click(object sender, RoutedEventArgs e)
     {

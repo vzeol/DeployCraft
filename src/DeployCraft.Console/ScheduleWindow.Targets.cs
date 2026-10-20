@@ -13,7 +13,7 @@ public partial class ScheduleWindow
 
     private void AddNames(string text)
     {
-        foreach (var name in ScheduleEditing.ComputerNames(text))
+        foreach (var name in WindowInputs.ComputerNames(text))
             if (!_targets.Contains(name, StringComparer.OrdinalIgnoreCase)) _targets.Add(name);
         UpdateTargets();
     }
