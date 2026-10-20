@@ -1,25 +1,25 @@
-## Quoi
+## What
 
-<!-- Une ou deux phrases : ce que fait cette PR. -->
+<!-- One or two sentences: what this PR does. -->
 
-## Pourquoi
+## Why
 
-<!-- La demande ou le problème d'origine. -->
+<!-- The original request or problem. -->
 
-## Lignes de PARITE.md
+## docs/FEATURES.md rows
 
-<!-- Ex. 5.1, 5.2 — et elles sont mises à jour dans cette PR. -->
+<!-- E.g. 5.1, 5.2 — and they are updated in this PR. -->
 
-## Comment tester
+## How to test
 
-<!-- Tests automatiques ajoutés ; et à la main : instance isolée (port 5091) ? Sur quel poste ? Captures si l'interface change. -->
+<!-- Automated tests added; and manually: isolated instance (port 5091)? On which computer? Screenshots if the UI changes. -->
 
-## Vérifications
+## Checks
 
-- [ ] `dotnet build DeployCraft.slnx` passe sans erreur ni avertissement
-- [ ] `dotnet test DeployCraft.slnx` passe ; tests ajoutés ou mis à jour pour le comportement modifié
-- [ ] `dotnet format DeployCraft.slnx --verify-no-changes` passe
-- [ ] `PARITE.md` (et `SPEC.md` si besoin) mis à jour
-- [ ] Réalisation indépendante : rien de copié d'un autre logiciel (code, icônes, textes)
-- [ ] Aucun secret ni information interne (serveurs, postes, domaines, comptes) dans `git diff --staged`, le code ou les captures ; `.gitignore` intact
-- [ ] Commits au format `feat:` / `fix:` / `docs:` …, un changement logique par commit
+- [ ] `dotnet build DeployCraft.slnx` passes with no error or warning
+- [ ] `dotnet test DeployCraft.slnx` passes; tests added or updated for the changed behavior
+- [ ] `dotnet format DeployCraft.slnx --verify-no-changes` passes
+- [ ] `docs/FEATURES.md` (and `docs/SPEC.md` if needed) updated
+- [ ] Independent work: nothing copied from another software (code, icons, texts)
+- [ ] No secret or internal information (servers, computers, domains, accounts) in `git diff --staged`, the code or the screenshots; `.gitignore` intact
+- [ ] Commits formatted as `feat:` / `fix:` / `docs:` …, one logical change per commit

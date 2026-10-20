@@ -1,4 +1,4 @@
-# Mise en forme du code : appliquée par `dotnet format DeployCraft.slnx`, vérifiée par la CI.
+# Code formatting: applied by `dotnet format DeployCraft.slnx`, checked by CI.
 root = true
 
 [*]

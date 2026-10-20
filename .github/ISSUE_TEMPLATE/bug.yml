@@ -1,0 +1,64 @@
+name: Report a bug
+description: Something does not work as expected (deployment, console, service, installer).
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting this problem. The more precise the description, the faster it gets fixed.
+        **Do not write any sensitive information here**: password, names of your domain, servers or computers
+        (replace them with `DOMAINE.LOCAL`, `SERVEUR-01`, `PC-TEST-01`).
+        A security vulnerability? Do not report it here: see [SECURITY.md](../blob/main/SECURITY.md).
+        Issues can be written in English or French.
+  - type: input
+    id: version
+    attributes:
+      label: DeployCraft version
+      description: Help › About menu ("copy information" button).
+      placeholder: 1.0.0-rc.1
+    validations:
+      required: true
+  - type: input
+    id: server
+    attributes:
+      label: Server Windows version
+      placeholder: Windows Server 2022, Windows 11 23H2…
+    validations:
+      required: true
+  - type: input
+    id: targets
+    attributes:
+      label: Windows version of the computers involved
+      description: If the problem concerns a deployment.
+      placeholder: Windows 11 24H2, Windows 10 22H2…
+  - type: textarea
+    id: steps
+    attributes:
+      label: What you did
+      description: Steps to reproduce the problem.
+      placeholder: |
+        1. Package with an Install step (.msi file)
+        2. Deploy once to a computer
+        3. …
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened
+      description: Exact error message, computer status, step output (step details › copy the output). A screenshot helps a lot.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Service log (optional)
+      description: Event Viewer › Windows Logs › Application, entries related to DeployCraft. Re-read them to remove internal names.
+      render: text
