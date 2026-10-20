@@ -47,7 +47,7 @@ public class ScheduleEditingTests
     [Fact]
     public void ComputerNames_SplitsAPastedList() =>
         Assert.Equal(["PC-TEST-01", "PC-TEST-02", "PC-TEST-03", "PC-TEST-04"],
-            ScheduleEditing.ComputerNames("PC-TEST-01, \\\\PC-TEST-02;PC-TEST-03\r\n\tPC-TEST-04 "));
+            WindowInputs.ComputerNames("PC-TEST-01, \\\\PC-TEST-02;PC-TEST-03\r\n\tPC-TEST-04 "));
 
     [Fact]
     public void TriggerProblem_FindsTheFirstInvalidTrigger()
@@ -64,9 +64,9 @@ public class ScheduleEditingTests
     [Fact]
     public void Texts()
     {
-        Assert.Equal("2. Tool (1 étape)", ScheduleEditing.PackageLine(1, new Package { Name = "Tool", Steps = [new()] }));
-        Assert.Equal("Paramètre du paquet (A)", ScheduleEditing.PackageSetting(["A", "A"], v => v));
-        Assert.Equal("Paramètre de chaque paquet", ScheduleEditing.PackageSetting(["A", "B"], v => v));
+        Assert.Equal("2. Tool (1 étape)", WindowInputs.PackageLine(1, new Package { Name = "Tool", Steps = [new()] }));
+        Assert.Equal("Paramètre du paquet (A)", WindowInputs.PackageSetting(["A", "A"], v => v));
+        Assert.Equal("Paramètre de chaque paquet", WindowInputs.PackageSetting(["A", "B"], v => v));
         Assert.Equal("Déclencheur désactivé.", ScheduleEditing.NextText(new ScheduleTrigger { Enabled = false }, Now));
         Assert.Equal("Hebdomadaire", ScheduleEditing.TypeText(TriggerType.Weekly));
         Assert.Equal("1 réussi(s) sur 2 poste(s) × paquet", ScheduleEditing.HistorySummary(

@@ -37,12 +37,6 @@ public static class ScheduleEditing
     /// <summary>Positive number, or 0 when empty or unreadable.</summary>
     public static int ParseInt(string text) => int.TryParse(text.Trim(), out var n) && n > 0 ? n : 0;
 
-    /// <summary>Computer names typed or pasted: separated by spaces, commas, semicolons, tabs or lines; leading \\ removed.</summary>
-    public static IEnumerable<string> ComputerNames(string text) =>
-        text.Split([' ', ',', ';', '\t', '\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
-            .Select(raw => raw.Trim().TrimStart('\\'))
-            .Where(name => name.Length > 0);
-
     /// <summary>First trigger the window refuses to save, with the reason (the service checks the rest).</summary>
     public static (int Index, string Message)? TriggerProblem(IReadOnlyList<ScheduleTrigger> triggers)
     {
@@ -53,17 +47,6 @@ public static class ScheduleEditing
             if (t.Type != TriggerType.Once && t.End is { } end && end <= t.Start) return (i, "La fin d'un déclencheur doit être après son début.");
         }
         return null;
-    }
-
-    /// <summary>Line of a package in the schedule: position, name and number of steps.</summary>
-    public static string PackageLine(int index, Package p) =>
-        $"{index + 1}. {p.Name} ({p.Steps.Count} étape{(p.Steps.Count > 1 ? "s" : "")})";
-
-    /// <summary>"Package setting" choice: the common value of the packages, or "each package" when they differ.</summary>
-    public static string PackageSetting<T>(IEnumerable<T> values, Func<T, string> text)
-    {
-        var distinct = values.Distinct().ToList();
-        return distinct.Count == 1 ? $"Paramètre du paquet ({text(distinct[0])})" : "Paramètre de chaque paquet";
     }
 
     public static string HistorySummary(IReadOnlyCollection<HistoryRow> rows) =>
