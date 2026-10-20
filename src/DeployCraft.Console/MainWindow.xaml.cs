@@ -132,6 +132,7 @@ public partial class MainWindow : Window
                     foreach (var row in rows) row.Tick();
         };
         countdown.Start();
+        if (ConsolePrefs.Get<double>(NavWidthPref) is var width and >= 180 and <= 800) NavColumn.Width = new GridLength(width);
         Loaded += async (_, _) =>
         {
             _homeNode.IsSelected = true;
@@ -145,6 +146,19 @@ public partial class MainWindow : Window
     }
 
     private Package? SelectedPackage => (Nav.SelectedItem as TreeViewItem)?.Tag as Package;
+
+    // Largeur de l'arbre choisie à la souris, retrouvée à la prochaine ouverture.
+    private const string NavWidthPref = "NavWidth";
+    private const double NavDefaultWidth = 250;
+
+    private void NavSplitter_DragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e) =>
+        ConsolePrefs.Set(NavWidthPref, NavColumn.ActualWidth);
+
+    private void NavSplitter_DoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        NavColumn.Width = new GridLength(NavDefaultWidth);
+        ConsolePrefs.Set(NavWidthPref, NavDefaultWidth);
+    }
 
     /// <summary>Panneau des déploiements visible (celui sur lequel agit le menu Édition).</summary>
     private DeploymentsPanel CurrentPanel => _view switch
