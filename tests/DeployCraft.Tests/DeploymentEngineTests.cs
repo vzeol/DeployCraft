@@ -22,7 +22,17 @@ public sealed class DeploymentEngineTests : IAsyncLifetime
             credentials, _remote, NullLogger<DeploymentEngine>.Instance);
     }
 
-    public Task InitializeAsync() => _engine.StartAsync(_stop.Token);
+    /// <summary>
+    /// Starts the engine and waits until its startup cleanup has run: it fails any deployment left "running" by a
+    /// previous stop, so a deployment started before that point would be failed too.
+    /// </summary>
+    public async Task InitializeAsync()
+    {
+        var leftOver = _store.Deployments.Create(SavedPackage(), [new TargetRequest("PC-OLD")], null, null, null,
+            RunAsMode.LocalSystem, CopyMode.Push, prioritized: false);
+        await _engine.StartAsync(_stop.Token);
+        for (var i = 0; i < 200 && _store.Deployments.Get(leftOver.Id)!.Status != DeploymentStatus.Failed; i++) await Task.Delay(10);
+    }
 
     public async Task DisposeAsync()
     {
@@ -105,7 +115,7 @@ public sealed class DeploymentEngineTests : IAsyncLifetime
     {
         var deployment = await WaitEndAsync(Deploy("PC-TEST-01", "PC-TEST-02", "PC-TEST-03").Id);
 
-        Assert.All(deployment.Targets, t => Assert.Equal(TargetStatus.Successful, t.Status));
+        Assert.All(deployment.Targets, t => Assert.True(t.Status == TargetStatus.Successful, $"{t.Computer}: {t.Status} {t.Error}"));
         Assert.Equal(["PC-TEST-01", "PC-TEST-02", "PC-TEST-03"], _remote.Computers.Order());
     }
 
