@@ -12,6 +12,8 @@ public class RunnerJob
     [JsonPropertyName("steps")] public List<RunnerJobStep> Steps { get; set; } = [];
     /// <summary>Number (in the package) of the job's first step, for messages.</summary>
     [JsonPropertyName("firstNumber")] public int FirstNumber { get; set; } = 1;
+    /// <summary>Language of the runner's messages ("fr" or "en"): the one of the deployment's messages.</summary>
+    [JsonPropertyName("language")] public string Language { get; set; } = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
 }
 
 public class RunnerJobStep

@@ -61,6 +61,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 {
                     Conditions = job.Conditions,
                     FirstNumber = startStep + tranche.Start,
+                    Language = job.Language,
                     Steps = job.Steps.GetRange(tranche.Start, tranche.Count),
                 };
                 var later = job.Steps.Skip(tranche.Start + tranche.Count).Select(s => s.Name).ToList();

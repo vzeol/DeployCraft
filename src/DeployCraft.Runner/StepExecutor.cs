@@ -54,6 +54,7 @@ namespace DeployCraft.Runner
             try
             {
                 var job = Json.Read<Job>(Path.Combine(_slotDir, "job.json"));
+                RunnerTexts.Language = job.Language == "en" ? "en" : "fr";
                 Log($"Job chargé : {job.Steps.Count} étape(s)");
                 status.Network = LocalFacts.NetworkCards();
                 Json.Write(_statusPath, status);

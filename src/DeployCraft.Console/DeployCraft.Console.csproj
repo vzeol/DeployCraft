@@ -27,10 +27,14 @@
     <Compile Include="..\DeployCraft.Server\Data\HomeSummary.cs" Link="Shared\HomeSummary.cs" />
     <Compile Include="..\DeployCraft.Server\Data\HelpContent.cs" Link="Shared\HelpContent.cs" />
     <Compile Include="..\DeployCraft.Server\Data\PackageDetails.cs" Link="Shared\PackageDetails.cs" />
+    <!-- Texts of the shared models, in the console language. -->
+    <Compile Include="..\DeployCraft.Server\Texts\Msg.cs" Link="Shared\Msg.cs" />
+    <EmbeddedResource Include="..\DeployCraft.Server\Texts\Msg.resx" Link="Shared\Msg.resx" />
+    <EmbeddedResource Include="..\DeployCraft.Server\Texts\Msg.en.resx" Link="Shared\Msg.en.resx" />
   </ItemGroup>
 
   <!-- Console texts: Resources\Strings.resx in French (default language), Strings.en.resx in English.
-       Read through L.Get / L.Format in C# and {l:T Key} in XAML (UiLanguage.cs). -->
+       Read through L.Get / L.Format in C# and {local:T Key} in XAML (UiLanguage.cs). -->
   <PropertyGroup>
     <NeutralLanguage>fr</NeutralLanguage>
   </PropertyGroup>

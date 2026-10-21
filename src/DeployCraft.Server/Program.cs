@@ -1,4 +1,6 @@
+using System.Globalization;
 using System.Text.Json.Serialization;
+using DeployCraft.Server;
 using DeployCraft.Server.Data;
 using DeployCraft.Server.Deployment;
 using DeployCraft.Server.Endpoints;
@@ -13,6 +15,9 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions
     ContentRootPath = AppContext.BaseDirectory, // needed when running as a Windows service
 });
 builder.Host.UseWindowsService(o => o.ServiceName = "DeployCraft");
+
+// Messages of background work in the server's Windows language; a request uses the console's (below).
+CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.GetCultureInfo(Msg.ServerLanguage);
 
 // Data in C:\ProgramData\DeployCraft (SQLite database); --DataDir for a test instance.
 var dataDir = builder.Configuration["DataDir"]
@@ -50,6 +55,12 @@ builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme).AddNe
 
 var app = builder.Build();
 
+app.Use(async (context, next) =>
+{
+    if (Msg.Supported(context.Request.Headers.AcceptLanguage) is { } language)
+        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(language);
+    await next(context);
+});
 app.UseAuthentication();
 var access = app.Services.GetRequiredService<ConsoleAccess>();
 app.Use(access.Check);
