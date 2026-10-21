@@ -8,11 +8,11 @@ namespace DeployCraft.Console;
 /// <summary>Library view: catalog search, downloads and automatic updates.</summary>
 public partial class MainWindow
 {
-    // ---------- Bibliothèque de paquets ----------
+    // ---------- Package library ----------
 
     private string _libraryPackages = "";
     private bool _refreshingLibrary;
-    // La recherche part un court instant après la dernière touche, pas à chaque lettre.
+    // The search starts a short moment after the last keystroke, not on every letter.
     private readonly DispatcherTimer _librarySearchDelay = new() { Interval = TimeSpan.FromMilliseconds(350) };
     private readonly LibraryList _library = new();
 
@@ -22,7 +22,7 @@ public partial class MainWindow
     {
         var search = LibrarySearch.Text.Trim();
         var status = await Api.LibraryStatus();
-        // Liste rechargée seulement si la recherche ou le catalogue ont changé.
+        // List reloaded only if the search or the catalog changed.
         if (_library.NeedsReload(search, status.LastRefreshUtc))
         {
             var list = await Api.Library(search);
@@ -51,7 +51,7 @@ public partial class MainWindow
         ShowLibraryUpdates(status);
         ShowAutoUpdate(status);
 
-        // Un téléchargement terminé crée ou met à jour un paquet : l'arbre suit.
+        // A finished download creates or updates a package: the tree follows.
         var packages = string.Join(";", status.Items.Select(i => $"{i.PackageId}:{i.PackageVersion}"));
         if (packages != _libraryPackages)
         {
@@ -60,7 +60,7 @@ public partial class MainWindow
         }
     }
 
-    /// <summary>Lignes dont l'état a changé remplacées, la sélection suit.</summary>
+    /// <summary>Rows whose state changed are replaced, the selection follows.</summary>
     private void MergeLibraryStatus(List<LibraryItem> items)
     {
         _refreshingLibrary = true;
@@ -111,7 +111,7 @@ public partial class MainWindow
 
     private bool _showingAutoUpdate;
 
-    /// <summary>Réglage des mises à jour automatiques, sans écraser une saisie en cours.</summary>
+    /// <summary>Automatic updates setting, without overwriting an input in progress.</summary>
     private void ShowAutoUpdate(LibraryInfo status)
     {
         if (LibraryAutoUpdateBox.IsDropDownOpen || LibraryAutoUpdateDays.IsKeyboardFocusWithin) return;
@@ -133,7 +133,7 @@ public partial class MainWindow
         if (_showingAutoUpdate || LibraryAutoUpdateBox.SelectedItem is not ComboBoxItem { Tag: string tag }) return;
         ShowAutoUpdateDays();
         var mode = Enum.Parse<LibraryAutoUpdate>(tag);
-        // Le délai n'est vérifié que s'il sert ; sinon une saisie illisible garde la valeur d'usine.
+        // The delay is only checked if it is used; otherwise an unreadable input keeps the factory value.
         if (!int.TryParse(LibraryAutoUpdateDays.Text.Trim(), out var days)) days = mode == LibraryAutoUpdate.Delayed ? -1 : 3;
         try
         {

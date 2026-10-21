@@ -8,8 +8,8 @@ using DeployCraft.Server.Data;
 namespace DeployCraft.Console;
 
 /// <summary>
-/// Glisser-déposer des étapes dans l'arbre : déposée sur la moitié haute d'une étape, elle passe avant ; sur la moitié
-/// basse, après. Échap pendant le glissement annule.
+/// Drag and drop of steps in the tree: dropped on the upper half of a step, it goes before; on the lower
+/// half, after. Esc during the drag cancels.
 /// </summary>
 public partial class PackageWindow
 {
@@ -72,7 +72,7 @@ public partial class PackageWindow
         e.Handled = true;
     }
 
-    /// <summary>Étape survolée, son en-tête et le côté (après = moitié basse).</summary>
+    /// <summary>Hovered step, its header and the side (after = lower half).</summary>
     private static (PackageStep Step, FrameworkElement Header, bool After)? DropTarget(DragEventArgs e)
     {
         if (StepItemAt(e.OriginalSource) is not { Tag: PackageStep step, Header: FrameworkElement header }) return null;
@@ -103,7 +103,7 @@ public partial class PackageWindow
         _insertion = null;
     }
 
-    /// <summary>Trait de la couleur d'accent au-dessus ou au-dessous de l'étape : là où l'étape glissée sera posée.</summary>
+    /// <summary>Line in the accent color above or below the step: where the dragged step will be placed.</summary>
     private sealed class InsertionLine : Adorner
     {
         private readonly bool _after;

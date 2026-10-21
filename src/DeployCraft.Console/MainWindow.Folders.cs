@@ -6,18 +6,18 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Console;
 
-/// <summary>Arbre des paquets : dossiers, sous-dossiers, et glisser-déposer pour y ranger paquets et dossiers.</summary>
+/// <summary>Package tree: folders, subfolders, and drag and drop to store packages and folders in them.</summary>
 public partial class MainWindow
 {
     private List<PackageFolder> _folders = [];
-    /// <summary>Dossiers ouverts, gardés d'un rafraîchissement à l'autre.</summary>
+    /// <summary>Open folders, kept from one refresh to the next.</summary>
     private readonly HashSet<long> _expandedFolders = [];
     private Point _dragStart;
     private TreeViewItem? _dragNode;
 
     private PackageFolder? SelectedFolder => (Nav.SelectedItem as TreeViewItem)?.Tag as PackageFolder;
 
-    /// <summary>Dossier où ranger un nouveau paquet ou dossier : le dossier sélectionné, ou celui du paquet sélectionné.</summary>
+    /// <summary>Folder where to put a new package or folder: the selected folder, or the one of the selected package.</summary>
     private long? CurrentFolderId => SelectedFolder?.Id ?? SelectedPackage?.FolderId;
 
     private void SetupFolderDragDrop()
@@ -41,7 +41,7 @@ public partial class MainWindow
         _packagesNode.Items.Clear();
         AddChildren(_packagesNode, null);
 
-        // Renvoie vrai si le dossier contient quelque chose à afficher (tout, sans filtre).
+        // Returns true if the folder contains something to show (everything, with no filter).
         bool AddChildren(TreeViewItem parent, long? folderId)
         {
             var any = false;
@@ -57,7 +57,7 @@ public partial class MainWindow
                 if (folder.Id == selectFolderId) node.IsSelected = true;
                 any = true;
             }
-            // Un paquet dont le dossier n'existe plus est affiché à la racine.
+            // A package whose folder no longer exists is shown at the root.
             foreach (var p in shown.Where(p => p.FolderId == folderId || folderId == null && p.FolderId is { } f && !known.Contains(f)))
             {
                 var header = Ui.Header(Ui.IconPackage, p.Name);
@@ -97,7 +97,7 @@ public partial class MainWindow
         node.BringIntoView();
     }
 
-    // ---------- Commandes ----------
+    // ---------- Commands ----------
 
     private async void NewFolder_Click(object sender, RoutedEventArgs e)
     {
@@ -144,9 +144,9 @@ public partial class MainWindow
         if (selectId == null && selectFolderId == null) _packagesNode.IsSelected = true;
     }
 
-    // ---------- Couper / copier / coller (Ctrl+X / C / V dans l'arbre) ----------
+    // ---------- Cut / copy / paste (Ctrl+X / C / V in the tree) ----------
 
-    /// <summary>Élément coupé ou copié dans l'arbre : un paquet, ou un dossier (seulement coupé).</summary>
+    /// <summary>Item cut or copied in the tree: a package, or a folder (cut only).</summary>
     private (long Id, bool IsFolder, bool Cut)? _treeClipboard;
 
     private void CutOrCopyNode(bool cut)
@@ -158,7 +158,7 @@ public partial class MainWindow
     private bool CanPaste => _treeClipboard != null && _connected
         && (Nav.SelectedItem == _packagesNode || SelectedFolder != null || SelectedPackage != null);
 
-    /// <summary>Colle dans le dossier sélectionné (ou celui du paquet sélectionné, ou la racine).</summary>
+    /// <summary>Pastes into the selected folder (or the one of the selected package, or the root).</summary>
     private async Task PasteNodeAsync()
     {
         if (!CanPaste || _treeClipboard is not { } item) return;
@@ -194,7 +194,7 @@ public partial class MainWindow
         catch (ApiException ex) { Ui.Error(this, ex); }
     }
 
-    // ---------- Glisser-déposer ----------
+    // ---------- Drag and drop ----------
 
     private static TreeViewItem? NodeAt(object source)
     {
@@ -214,7 +214,7 @@ public partial class MainWindow
         DragDrop.DoDragDrop(Nav, new DataObject(typeof(TreeViewItem), node), DragDropEffects.Move);
     }
 
-    /// <summary>Dossier où atterrit l'élément déposé sur <paramref name="target"/> (racine = null), ou faux si impossible.</summary>
+    /// <summary>Folder where the item dropped on <paramref name="target"/> lands (root = null), or false if impossible.</summary>
     private bool DropFolder(TreeViewItem? dragged, TreeViewItem? target, out long? folderId)
     {
         folderId = null;

@@ -3,8 +3,8 @@ using System.Globalization;
 namespace DeployCraft.Server.Remote;
 
 /// <summary>
-/// Avancement de la copie des fichiers vers un poste : octets copiés sur le total, et débit mesuré sur les dernières
-/// secondes. Les octets sont ajoutés par la copie ; le texte est lu une fois par seconde pour le suivi.
+/// Progress of the file copy to a computer: bytes copied out of the total, and throughput measured over the last
+/// seconds. The bytes are added by the copy; the text is read once per second for the follow-up.
 /// </summary>
 public sealed class CopyProgress(Func<DateTime>? clock = null)
 {
@@ -16,7 +16,7 @@ public sealed class CopyProgress(Func<DateTime>? clock = null)
     private long _done;
     private long _total = -1;
 
-    /// <summary>Total à copier, connu une fois la liste des fichiers établie (avant, rien n'est affiché).</summary>
+    /// <summary>Total to copy, known once the file list is built (before that, nothing is shown).</summary>
     public long Total
     {
         get => Interlocked.Read(ref _total);
@@ -27,7 +27,7 @@ public sealed class CopyProgress(Func<DateTime>? clock = null)
 
     public void Add(int bytes) => Interlocked.Add(ref _done, bytes);
 
-    /// <summary>« Copie des fichiers : 45 % (12,3 Mo/s) », ou null tant que le total n'est pas connu.</summary>
+    /// <summary>"Copie des fichiers : 45 % (12,3 Mo/s)", or null until the total is known.</summary>
     public string? Text()
     {
         var total = Total;
@@ -44,14 +44,14 @@ public sealed class CopyProgress(Func<DateTime>? clock = null)
             : $"Copie des fichiers : {percent} %";
     }
 
-    /// <summary>Débit lisible : « 12,3 Mo/s » ou « 850 Ko/s » (1 Mo = 1 024 Ko).</summary>
+    /// <summary>Readable throughput: "12,3 Mo/s" or "850 Ko/s" (1 Mo = 1 024 Ko).</summary>
     public static string Rate(double bytesPerSecond) =>
         bytesPerSecond >= 1024 * 1024
             ? (bytesPerSecond / (1024 * 1024)).ToString("0.0", French) + " Mo/s"
             : (bytesPerSecond / 1024).ToString("0", French) + " Ko/s";
 }
 
-/// <summary>Fichiers à copier vers un poste, rassemblés pour connaître le total avant de commencer.</summary>
+/// <summary>Files to copy to a computer, gathered to know the total before starting.</summary>
 internal sealed class CopyBatch
 {
     private readonly List<(string Source, string Destination)> _files = [];
@@ -60,7 +60,7 @@ internal sealed class CopyBatch
 
     public long TotalBytes => _files.Sum(f => new FileInfo(f.Source).Length);
 
-    /// <param name="ct">Annulation : la copie s'arrête en route ; le fichier à moitié copié part avec le slot.</param>
+    /// <param name="ct">Cancellation: the copy stops on the way; the half-copied file goes with the slot.</param>
     public void Run(BandwidthLimiter limiter, CopyProgress? progress, CancellationToken ct = default)
     {
         foreach (var (source, destination) in _files)

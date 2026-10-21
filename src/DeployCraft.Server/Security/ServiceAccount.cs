@@ -7,18 +7,18 @@ using Microsoft.Extensions.Hosting.WindowsServices;
 
 namespace DeployCraft.Server.Security;
 
-/// <summary>État du service DeployCraft, renvoyé à la fenêtre Options › Service en arrière-plan.</summary>
+/// <summary>State of the DeployCraft service, returned to the Options › Service en arrière-plan window.</summary>
 public record ServiceInfo(bool IsService, string Account, bool LocalSystem, bool Elevated, DateTime StartedUtc);
 
 /// <summary>
-/// Le service DeployCraft lui-même : redémarrage, et compte Windows sous lequel il tourne (Système local, ou un compte
-/// administrateur du serveur). Seul le vrai service peut agir sur lui-même : une instance de test lancée à la main
-/// ne touche jamais au service installé.
+/// The DeployCraft service itself: restart, and the Windows account it runs under (local System, or a server
+/// administrator account). Only the real service can act on itself: a test instance started by hand
+/// never touches the installed service.
 /// </summary>
 public class ServiceAccount(ILogger<ServiceAccount> log)
 {
     public const string ServiceName = "DeployCraft";
-    /// <summary>Valeur à choisir pour revenir au compte d'usine.</summary>
+    /// <summary>Value to choose to go back to the factory account.</summary>
     public const string LocalSystem = "LocalSystem";
 
     public static bool IsService => WindowsServiceHelpers.IsWindowsService();
@@ -31,8 +31,8 @@ public class ServiceAccount(ILogger<ServiceAccount> log)
     }
 
     /// <summary>
-    /// Redémarre le service dans deux secondes (le temps de répondre à la console) : une commande séparée l'arrête puis
-    /// le relance. Erreur si ce n'est pas le service installé.
+    /// Restarts the service in two seconds (long enough to answer the console): a separate command stops it then
+    /// starts it again. Error if this is not the installed service.
     /// </summary>
     public string? Restart()
     {
@@ -47,8 +47,8 @@ public class ServiceAccount(ILogger<ServiceAccount> log)
     }
 
     /// <summary>
-    /// Compte saisi → (domaine, utilisateur) pour l'ouverture de session et nom pour le service.
-    /// « DOMAINE\nom », « .\nom » (compte local) ou « nom@domaine » ; erreur lisible sinon.
+    /// Entered account → (domain, user) for logon and name for the service.
+    /// "DOMAIN\name", ".\name" (local account) or "name@domain"; readable error otherwise.
     /// </summary>
     public static (string? Domain, string User, string ServiceName, string? Error) Parse(string? account)
     {
@@ -63,8 +63,8 @@ public class ServiceAccount(ILogger<ServiceAccount> log)
     }
 
     /// <summary>
-    /// Fait tourner le service sous un autre compte, puis le redémarre. Le compte doit exister, avoir ce mot de passe et
-    /// être administrateur du serveur (dossier de données, déploiements). <see cref="LocalSystem"/> : retour au compte d'usine.
+    /// Runs the service under another account, then restarts it. The account must exist, have this password and
+    /// be a server administrator (data folder, deployments). <see cref="LocalSystem"/>: back to the factory account.
     /// </summary>
     public string? Change(string? account, string? password)
     {
@@ -84,9 +84,9 @@ public class ServiceAccount(ILogger<ServiceAccount> log)
             if (!Win32.LogonUser(user, domain, password, Win32.LOGON32_LOGON_NETWORK, Win32.LOGON32_PROVIDER_DEFAULT, out var check))
                 return $"Compte ou mot de passe refusé : {Win32.LastError("ouverture de session").Message}";
             check.Dispose();
-            // Contrôle avant tout changement : un compte refusé ne reçoit aucun droit sur le serveur. L'ouverture de
-            // session « tâche planifiée » donne le jeton complet (sans le filtrage du contrôle de compte d'utilisateur)
-            // et n'est permise d'usine qu'aux administrateurs.
+            // Check before any change: a refused account gets no right on the server. The "scheduled task"
+            // logon type gives the full token (without User Account Control filtering)
+            // and is allowed by default only to administrators.
             if (!Win32.LogonUser(user, domain, password, Win32.LOGON32_LOGON_BATCH, Win32.LOGON32_PROVIDER_DEFAULT, out var token))
                 return $"{name} n'est pas administrateur de ce serveur : le service ne pourrait ni lire ses données ni déployer.";
             using (token)
@@ -129,7 +129,7 @@ public class ServiceAccount(ILogger<ServiceAccount> log)
         return Restart();
     }
 
-    /// <summary>Droit Windows nécessaire à un compte pour faire tourner un service (accordé sans effet s'il l'a déjà).</summary>
+    /// <summary>Windows right an account needs to run a service (granting it has no effect if it already has it).</summary>
     private static void GrantServiceLogon(NTAccount account)
     {
         var sid = (SecurityIdentifier)account.Translate(typeof(SecurityIdentifier));

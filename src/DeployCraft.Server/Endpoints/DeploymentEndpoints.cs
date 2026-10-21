@@ -8,7 +8,7 @@ internal static class DeploymentEndpoints
 {
     public static void MapDeploymentEndpoints(this RouteGroupBuilder api)
     {
-        // Un déploiement par paquet, dans l'ordre : la réponse est la liste des déploiements créés.
+        // One deployment per package, in order: the response is the list of deployments created.
         api.MapPost("/deployments", (HttpContext context, DeployInput input, IPackageRepository packageRepository, DeploymentEngine engine) =>
         {
             var packages = new List<Package>();

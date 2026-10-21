@@ -1,6 +1,6 @@
 namespace DeployCraft.Server.Data;
 
-/// <summary>Chiffres de la page d'accueil de la console, calculés à partir des déploiements et des planifications.</summary>
+/// <summary>Figures for the console's home page, computed from the deployments and the schedules.</summary>
 public record HomeSummary(
     int RunningDeployments,
     int RunningTargets,
@@ -10,7 +10,7 @@ public record HomeSummary(
     List<Deployment> RecentFailures,
     List<Schedule> NextSchedules)
 {
-    /// <param name="nowUtc">Heure de référence : « les dernières 24 heures » se comptent à partir d'elle.</param>
+    /// <param name="nowUtc">Reference time: "the last 24 hours" is counted from it.</param>
     public static HomeSummary From(IReadOnlyCollection<Deployment> deployments, IEnumerable<Schedule> schedules, DateTime nowUtc, int max = 5)
     {
         var active = deployments.Where(d => d.Status is DeploymentStatus.Running or DeploymentStatus.Queued).ToList();

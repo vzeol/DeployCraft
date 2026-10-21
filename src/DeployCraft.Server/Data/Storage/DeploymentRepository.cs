@@ -111,7 +111,7 @@ public sealed class DeploymentRepository(Database database) : IDeploymentReposit
         return d;
     }
 
-    /// <summary>Déploiements interrompus par un arrêt du serveur : on les clôt proprement au démarrage.</summary>
+    /// <summary>Deployments interrupted by a server stop: closed cleanly at startup.</summary>
     public void FailInterrupted()
     {
         using var connection = database.Open();
@@ -134,9 +134,9 @@ public sealed class DeploymentRepository(Database database) : IDeploymentReposit
     }
 
     /// <summary>
-    /// Supprime les déploiements terminés (réussis ou en échec) dont la fin est antérieure à <paramref name="endedBeforeUtc"/>
-    /// (UTC), avec leurs postes. Un déploiement en attente ou en cours n'est jamais touché, ni l'historique des
-    /// planifications. Renvoie le nombre de déploiements supprimés.
+    /// Deletes finished deployments (succeeded or failed) whose end is earlier than <paramref name="endedBeforeUtc"/>
+    /// (UTC), with their computers. A waiting or running deployment is never touched, nor the history of the
+    /// schedules. Returns the number of deployments deleted.
     /// </summary>
     public int PurgeFinished(DateTime endedBeforeUtc)
     {

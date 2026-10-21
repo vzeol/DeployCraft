@@ -35,8 +35,8 @@ public sealed class ScheduleRepository(Database database) : IScheduleRepository
     public Schedule? Get(long id) => List().FirstOrDefault(s => s.Id == id);
 
     /// <summary>
-    /// Enregistre une planification. Les déclenchements ne sont comptés qu'à partir de maintenant :
-    /// modifier une planification ne rattrape pas les déclenchements passés.
+    /// Saves a schedule. Triggers are only counted from now on:
+    /// editing a schedule does not catch up on past triggers.
     /// </summary>
     public Schedule Save(Schedule s)
     {
@@ -73,7 +73,7 @@ public sealed class ScheduleRepository(Database database) : IScheduleRepository
         cmd.ExecuteNonQuery();
     }
 
-    /// <summary>Dernier instant (heure locale) jusqu'auquel les déclencheurs ont été examinés.</summary>
+    /// <summary>Last moment (local time) up to which the triggers were examined.</summary>
     public DateTime? GetChecked(long id)
     {
         using var connection = database.Open();
@@ -130,7 +130,7 @@ public sealed class ScheduleRepository(Database database) : IScheduleRepository
         return list;
     }
 
-    /// <summary>Compte le résultat d'un poste : réussite (définitive) ou un échec de plus.</summary>
+    /// <summary>Counts the result of a computer: success (final) or one more failure.</summary>
     public void RecordResult(long scheduleId, string computer, long packageId, bool success)
     {
         using var connection = database.Open();
@@ -146,7 +146,7 @@ public sealed class ScheduleRepository(Database database) : IScheduleRepository
         cmd.ExecuteNonQuery();
     }
 
-    /// <summary>Efface des lignes d'historique (toutes si <paramref name="keys"/> est vide) : ces postes seront de nouveau servis.</summary>
+    /// <summary>Deletes history rows (all of them if <paramref name="keys"/> is empty): these computers will be served again.</summary>
     public void ClearHistory(long scheduleId, IReadOnlyCollection<ScheduleHistoryKey>? keys)
     {
         using var connection = database.Open();
@@ -167,7 +167,7 @@ public sealed class ScheduleRepository(Database database) : IScheduleRepository
         tx.Commit();
     }
 
-    /// <summary>Postes qui ont encore un déploiement de cette planification en attente ou en cours.</summary>
+    /// <summary>Computers that still have a deployment of this schedule pending or in progress.</summary>
     public HashSet<string> ActiveComputers(long scheduleId)
     {
         using var connection = database.Open();

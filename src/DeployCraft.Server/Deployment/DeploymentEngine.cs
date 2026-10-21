@@ -6,8 +6,8 @@ using DeployCraft.Server.Remote;
 namespace DeployCraft.Server.Deployment;
 
 /// <summary>
-/// File d'attente des déploiements. Chaque PC est traité indépendamment,
-/// avec au plus <see cref="PerformanceSettings.ParallelTargets"/> PCs en parallèle (prioritaires d'abord).
+/// Deployment queue. Each computer is processed independently,
+/// with at most <see cref="PerformanceSettings.ParallelTargets"/> computers in parallel (priority ones first).
 /// </summary>
 public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentRepository deploymentRepository,
     IScheduleRepository scheduleRepository, ISettingsRepository settingsRepository, IComputerRepository computerRepository,
@@ -16,18 +16,18 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
     private readonly Channel<long> _queue = Channel.CreateUnbounded<long>();
     private readonly SlotQueue _slots = new(new PerformanceSettings().ParallelTargets);
 
-    /// <summary>Postes en attente ou en cours, par id de cible, pour pouvoir les annuler.</summary>
+    /// <summary>Computers waiting or running, by target id, so they can be cancelled.</summary>
     private readonly ConcurrentDictionary<long, (long DeploymentId, CancellationTokenSource Cts)> _active = new();
 
-    /// <summary>Fin de chaque poste, par id de cible : le paquet suivant sur le même poste l'attend.</summary>
+    /// <summary>End of each computer, by target id: the next package on the same computer waits for it.</summary>
     private readonly ConcurrentDictionary<long, TaskCompletionSource> _done = new();
 
-    /// <summary>Cible du paquet précédent sur le même poste (plusieurs paquets lancés ensemble).</summary>
+    /// <summary>Target of the previous package on the same computer (several packages started together).</summary>
     private readonly ConcurrentDictionary<long, long> _after = new();
 
     /// <summary>
-    /// Applique les réglages de performance des Préférences : à chaque lancement et à chaque enregistrement. Les postes
-    /// déjà en cours continuent ; une baisse ne prend effet qu'à mesure qu'ils se terminent.
+    /// Applies the performance settings from Preferences: at each start and at each save. Computers
+    /// already running continue; a decrease only takes effect as they finish.
     /// </summary>
     public void ApplyPerformance(PerformanceSettings? settings)
     {
@@ -37,8 +37,8 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
     }
 
     /// <summary>
-    /// Lance un déploiement par paquet, dans l'ordre donné. Sur un même poste, un paquet ne commence
-    /// qu'une fois le précédent terminé (même en échec). L'étape de départ s'applique au premier paquet.
+    /// Starts one deployment per package, in the given order. On a given computer, a package only starts
+    /// once the previous one has finished (even if it failed). The start step applies to the first package.
     /// </summary>
     public List<Data.Deployment> Start(IReadOnlyList<Package> packages, IEnumerable<TargetRequest> targets, string? launchedBy, DeployOptions options)
     {
@@ -51,7 +51,7 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
         if (packages.Count == 0) throw new ArgumentException("Aucun paquet.");
         foreach (var p in packages.Where(p => p.Steps.Count == 0))
             throw new ArgumentException($"Le paquet « {p.Name} » n'a aucune étape.");
-        // L'étape de départ se compte sur la liste déployée, paquets imbriqués remplacés par leurs étapes.
+        // The start step is counted on the deployed list, with nested packages replaced by their steps.
         var stepCount = packages[0].Flatten(packageRepository.Get).Steps.Count;
         foreach (var t in requests.Where(t => t.StartStep < 1 || t.StartStep > stepCount))
             throw new ArgumentException($"{t.Computer} : étape de départ invalide ({t.StartStep}) ; le paquet a {stepCount} étape(s).");
@@ -62,13 +62,13 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
     }
 
     /// <summary>
-    /// Lance un déploiement par paquet, chacun avec ses propres postes (une planification ne renvoie
-    /// pas un paquet déjà réussi). Sur un même poste, les paquets restent enchaînés dans l'ordre.
+    /// Starts one deployment per package, each with its own computers (a schedule does not resend
+    /// a package that already succeeded). On a given computer, packages stay chained in order.
     /// </summary>
     public List<Data.Deployment> StartPlan(IReadOnlyList<(Package Package, List<TargetRequest> Targets)> plan, string? launchedBy,
         DeployOptions options, Schedule? schedule)
     {
-        // Identifiant désigné, sinon celui par défaut ; aucun enregistré = identité du service.
+        // Chosen credential, otherwise the default one; none saved = the service identity.
         var credential = credentials.Resolve(options.CredentialId);
         if (options.CredentialId != null && credential == null) throw new ArgumentException("Identifiant introuvable (supprimé ?).");
         var account = credential?.Account ?? "Compte du service";
@@ -79,11 +79,11 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
         var previous = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
         foreach (var (original, packageTargets) in plan.Where(p => p.Targets.Count > 0))
         {
-            // Réglages « par défaut » remplacés par ceux des Préférences et paquets imbriqués remplacés par leurs
-            // étapes : figés dans l'historique du déploiement.
+            // "Default" settings replaced by those from Preferences, and nested packages replaced by their
+            // steps: frozen in the deployment history.
             var package = original.Resolve(defaults, packageRepository.Get);
             var runAs = options.RunAs ?? package.RunAs!.Value;
-            // Sans identifiant, le service ne peut tourner que sous un compte intégré.
+            // Without a credential, the service can only run under a built-in account.
             if (runAs == RunAsMode.DeployUser && credential == null) runAs = RunAsMode.LocalSystem;
             var copyMode = options.CopyMode ?? package.CopyMode!.Value;
 
@@ -102,8 +102,8 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
     }
 
     /// <summary>
-    /// Annule des postes d'un déploiement (tous si <paramref name="targetIds"/> est vide).
-    /// Un poste en attente n'est pas lancé ; un poste en cours voit son installation arrêtée.
+    /// Cancels computers of a deployment (all of them if <paramref name="targetIds"/> is empty).
+    /// A waiting computer is not started; on a running computer the installation is stopped.
     /// </summary>
     public int Abort(long deploymentId, IReadOnlyCollection<long>? targetIds, string? by)
     {
@@ -129,7 +129,7 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
 
         await foreach (var id in _queue.Reader.ReadAllAsync(ct))
         {
-            // Chaque déploiement avance en parallèle des autres ; la file de créneaux limite le total de PCs.
+            // Each deployment advances in parallel with the others; the slot queue limits the total number of computers.
             _ = Task.Run(() => RunDeploymentAsync(id, ct), ct);
         }
     }
@@ -139,7 +139,7 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
         var deployment = deploymentRepository.Get(id);
         if (deployment == null) return;
 
-        // Enregistrés tout de suite : un poste encore en attente doit pouvoir être annulé.
+        // Registered right away: a computer still waiting must be cancellable.
         var runs = deployment.Targets.Select(t =>
         {
             var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
@@ -157,9 +157,9 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
     private async Task RunTargetAsync(Data.Deployment deployment, DeploymentTarget target, CancellationTokenSource cts, CancellationToken appStopping)
     {
         var slotTaken = false;
-        // Compté dans l'historique de la planification : pas les annulations ni les postes jamais démarrés.
+        // Counted in the schedule history: not cancellations nor computers that never started.
         var countForSchedule = false;
-        // Attente d'un créneau limitée (option de planification) : le poste est abandonné s'il n'a pas démarré à temps.
+        // Slot wait is limited (schedule option): the computer is abandoned if it has not started in time.
         using var waitCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token);
         if (deployment.QueueTimeoutMinutes is > 0 and var minutes)
         {
@@ -198,7 +198,7 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
                 credential = credentials.Get(credentialId)
                     ?? throw new DeployException($"L'identifiant {deployment.RunAs} a été supprimé depuis le lancement.");
 
-            // Hors ligne : nouvel essai plus tard si le paquet le prévoit (le créneau est rendu pendant l'attente).
+            // Offline: retry later if the package allows it (the slot is released during the wait).
             var offline = deployment.Snapshot.Offline ?? new OfflineSettings();
             var attempts = offline.Retry ? Math.Max(1, offline.RetryAttempts) : 1;
             IReadOnlyList<int>? earlierRuns = null;
@@ -231,7 +231,7 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
                 }
                 catch (DeployException ex) when (ex.Offline && attempt < attempts)
                 {
-                    // Les étapes déjà passées pendant cet essai comptent dans les exécutions de l'essai suivant.
+                    // Steps already passed during this attempt count in the runs of the next attempt.
                     earlierRuns = [.. target.Steps.Select(s => s.Runs)];
                     _slots.Release();
                     slotTaken = false;
@@ -291,8 +291,8 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
     }
 
     /// <summary>
-    /// Poste qui ne répond pas : envoie le paquet de réveil puis attend qu'il réponde.
-    /// Renvoie sans rien faire si le poste répond déjà ; lève une erreur « hors ligne » s'il ne se réveille pas.
+    /// Computer that does not respond: sends the wake-up packet then waits for it to respond.
+    /// Returns without doing anything if the computer already responds; throws an "offline" error if it does not wake up.
     /// </summary>
     private async Task WakeAsync(DeploymentTarget target, int waitMinutes, CancellationToken ct)
     {
@@ -314,8 +314,8 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
     }
 
     /// <summary>
-    /// Résultat d'un poste d'après ses étapes : une étape en échec le met en échec. Arrêt en succès ou étapes
-    /// ignorées (conditions non remplies, étape désactivée…) : poste réussi, avec la raison en remarque.
+    /// Result of a computer from its steps: a failed step makes it fail. Stop on success or skipped
+    /// steps (conditions not met, disabled step...): computer succeeded, with the reason as a note.
     /// </summary>
     internal static (TargetStatus Status, string? Error) Outcome(List<StepOutcome> steps)
     {
@@ -325,7 +325,7 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
             return (TargetStatus.Successful, "Arrêt en succès demandé en cas d'erreur. " + ErrorMessages.ForStep(stopped));
         var skipped = steps.Where(s => s.State == "skipped").ToList();
         if (skipped.Count == 0) return (TargetStatus.Successful, null);
-        // Tout ignoré (conditions du paquet non remplies…) : la raison suffit.
+        // Everything skipped (package conditions not met...): the reason is enough.
         if (skipped.Count == steps.Count) return (TargetStatus.Successful, steps[0].Error);
         var first = skipped[0];
         var reason = string.IsNullOrEmpty(first.Error) ? "" : $" ({first.Error})";
@@ -334,7 +334,7 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
             : $"{skipped.Count} étapes ignorées, dont « {first.Name} »{reason}");
     }
 
-    /// <summary>Annulation : l'étape interrompue (encore « en cours ») passe en échec « Annulé. », avec une date de fin.</summary>
+    /// <summary>Cancellation: the interrupted step (still "running") becomes failed "Annulé.", with an end date.</summary>
     internal static void MarkAborted(List<StepOutcome> steps, DateTime nowUtc)
     {
         foreach (var step in steps.Where(s => s.State == "running"))
@@ -345,7 +345,7 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
         }
     }
 
-    /// <param name="earlierRuns">Exécutions des essais précédents sur ce poste, par position d'étape.</param>
+    /// <param name="earlierRuns">Runs from earlier attempts on this computer, by step position.</param>
     internal static List<StepOutcome> ToOutcomes(RunnerStatus status, IReadOnlyList<int>? earlierRuns = null) =>
         status.Steps.Select(s => new StepOutcome
         {

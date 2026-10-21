@@ -4,7 +4,7 @@ using DeployCraft.Server.Remote;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Étape « message » : consignes du runner et résultat selon les réponses des sessions.</summary>
+/// <summary>"message" step: runner instructions and result according to the sessions' answers.</summary>
 public class MessageTests
 {
     [Fact]
@@ -49,10 +49,10 @@ public class MessageTests
         Assert.Contains("Text = 'L''équipe'", script);
         Assert.Contains("Text = 'Fermez l''application.\r\nMerci'", script);
         Assert.Contains("Interval = 20000", script);
-        // « & » affiché tel quel, pas pris pour la marque d'un raccourci clavier.
+        // "&" shown as is, not taken for a keyboard shortcut marker.
         Assert.Contains("UseMnemonic = $false", script);
         Assert.Contains("$script:code = 2", script);
-        // Sans durée : pas de minuterie, la fenêtre reste jusqu'au clic.
+        // Without a duration: no timer, the window stays until the click.
         Assert.DoesNotContain("Timer", MessageOutcome.Script(null!, "x", 0));
     }
 

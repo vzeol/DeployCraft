@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- Console DeployCraft : l'application fenêtrée qui pilote le service DeployCraft. -->
+  <!-- DeployCraft Console: the windowed application that drives the DeployCraft service. -->
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
-    <!-- Publié en win-x64 autonome (build.ps1) : le lock file inclut ce runtime. -->
+    <!-- Published as self-contained win-x64 (build.ps1): the lock file includes this runtime. -->
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -13,7 +13,7 @@
     <RootNamespace>DeployCraft.Console</RootNamespace>
   </PropertyGroup>
 
-  <!-- Même modèle de données que le service. -->
+  <!-- Same data model as the service. -->
   <ItemGroup>
     <Compile Include="..\DeployCraft.Server\Data\Models.cs" Link="Shared\Models.cs" />
     <Compile Include="..\DeployCraft.Server\Data\TriggerCalendar.cs" Link="Shared\TriggerCalendar.cs" />
@@ -29,7 +29,7 @@
     <Compile Include="..\DeployCraft.Server\Data\PackageDetails.cs" Link="Shared\PackageDetails.cs" />
   </ItemGroup>
 
-  <!-- Aide intégrée (Aide › Aide de DeployCraft, F1). -->
+  <!-- Built-in help (Help › Aide de DeployCraft, F1). -->
   <ItemGroup>
     <Resource Include="Help\aide.txt" />
   </ItemGroup>

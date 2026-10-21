@@ -1,8 +1,8 @@
 namespace DeployCraft.Server.Deployment;
 
 /// <summary>
-/// Limite le nombre de postes traités en même temps, comme un sémaphore,
-/// mais les postes prioritaires en attente sont servis avant les autres. Le nombre de créneaux peut changer en route.
+/// Limits the number of computers processed at the same time, like a semaphore,
+/// but waiting priority computers are served before the others. The number of slots can change on the fly.
 /// </summary>
 public sealed class SlotQueue(int slots)
 {
@@ -10,10 +10,10 @@ public sealed class SlotQueue(int slots)
     private readonly LinkedList<TaskCompletionSource> _priority = new();
     private readonly LinkedList<TaskCompletionSource> _normal = new();
     private int _capacity = slots;
-    /// <summary>Créneaux libres ; négatif après une baisse, tant que les postes en trop ne sont pas terminés.</summary>
+    /// <summary>Free slots; negative after a decrease, while the excess computers are not finished.</summary>
     private int _free = slots;
 
-    /// <summary>Change le nombre de créneaux : une hausse sert tout de suite les postes en attente.</summary>
+    /// <summary>Changes the number of slots: an increase immediately serves the waiting computers.</summary>
     public void Resize(int slots)
     {
         var served = new List<TaskCompletionSource>();
@@ -52,7 +52,7 @@ public sealed class SlotQueue(int slots)
         {
             lock (_lock)
             {
-                // Pas encore servi : on quitte la file. Déjà servi : le créneau est à nous, l'appelant le rendra.
+                // Not served yet: we leave the queue. Already served: the slot is ours, the caller will give it back.
                 if (node.List == null) return;
                 node.List.Remove(node);
             }
@@ -68,7 +68,7 @@ public sealed class SlotQueue(int slots)
         TaskCompletionSource? next = null;
         lock (_lock)
         {
-            // Au-delà de la capacité (après une baisse), le créneau rendu n'est pas redonné.
+            // Beyond capacity (after a decrease), the returned slot is not handed out again.
             var list = _free < 0 ? null : Next();
             if (list == null)
             {

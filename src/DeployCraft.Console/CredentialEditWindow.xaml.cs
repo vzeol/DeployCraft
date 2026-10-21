@@ -4,12 +4,12 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Console;
 
-/// <summary>Ajout ou modification d'un identifiant. Le mot de passe saisi part au service et n'est jamais relu.</summary>
+/// <summary>Add or edit a credential. The password typed goes to the service and is never read back.</summary>
 public partial class CredentialEditWindow : Window
 {
     private readonly Credential? _existing;
 
-    /// <summary>Identifiant enregistré (après OK).</summary>
+    /// <summary>Saved credential (after OK).</summary>
     public Credential? Saved { get; private set; }
 
     public CredentialEditWindow(Credential? existing)
@@ -28,7 +28,7 @@ public partial class CredentialEditWindow : Window
         }
         else
         {
-            // Domaine du poste, comme point de départ.
+            // Computer's domain, as a starting point.
             DomainBox.Text = IPGlobalProperties.GetIPGlobalProperties().DomainName;
             PasswordHint.Visibility = Visibility.Collapsed;
         }
@@ -63,7 +63,7 @@ public partial class CredentialEditWindow : Window
         computer,
     };
 
-    /// <summary>Dernier poste choisi pour tester un compte local (proposé à nouveau).</summary>
+    /// <summary>Last computer chosen to test a local account (offered again).</summary>
     private static string _testComputer = "";
 
     private async void Test_Click(object sender, RoutedEventArgs e)

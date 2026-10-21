@@ -3,7 +3,7 @@ using DeployCraft.Server.Remote;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Vérification des noms de postes saisis dans « Déployer une fois ».</summary>
+/// <summary>Check of the computer names entered in "Déployer une fois".</summary>
 public class NameCheckTests
 {
     private static readonly Dictionary<string, string> Dns = new(StringComparer.OrdinalIgnoreCase)

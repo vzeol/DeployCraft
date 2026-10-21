@@ -10,10 +10,10 @@ public record CredentialRow(Credential Credential)
     public string? Description => Credential.Description;
     public string DefaultText => Credential.IsDefault ? "(par défaut)" : "";
     public string UnreadableText => Credential.PasswordUnreadable ? "mot de passe à ressaisir" : "";
-    public override string ToString() => Credential.Display; // nom lu par les outils d'accessibilité
+    public override string ToString() => Credential.Display; // name read by accessibility tools
 }
 
-/// <summary>Liste des identifiants : ajouter, modifier, par défaut, supprimer.</summary>
+/// <summary>List of credentials: add, edit, default, delete.</summary>
 public partial class CredentialsWindow : Window
 {
     public CredentialsWindow()
@@ -104,11 +104,11 @@ public partial class CredentialsWindow : Window
         catch (ApiException ex) { Ui.Error(this, ex); }
     }
 
-    // ---------- Liste de choix des autres fenêtres ----------
+    // ---------- Choice list for the other windows ----------
 
     /// <summary>
-    /// Remplit une liste de choix d'identifiant (Déployer une fois, planification) et sélectionne
-    /// <paramref name="selectedId"/>, ou celui par défaut. Renvoie les identifiants chargés.
+    /// Fills a credential choice list (Deploy once, schedule) and selects
+    /// <paramref name="selectedId"/>, or the default one. Returns the loaded credentials.
     /// </summary>
     public static async Task<List<Credential>> Fill(ComboBox box, long? selectedId)
     {
@@ -127,6 +127,6 @@ public partial class CredentialsWindow : Window
         return all;
     }
 
-    /// <summary>Identifiant choisi dans une liste remplie par <see cref="Fill"/>.</summary>
+    /// <summary>Credential chosen in a list filled by <see cref="Fill"/>.</summary>
     public static long? Chosen(ComboBox box) => (box.SelectedItem as ComboBoxItem)?.Tag as long?;
 }

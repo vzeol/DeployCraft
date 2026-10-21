@@ -6,15 +6,15 @@ using System.Text;
 
 namespace DeployCraft.Runner
 {
-    /// <summary>Résultat d'une étape « Installer » : journal de Windows Installer et explication des codes d'erreur courants.</summary>
+    /// <summary>Result of an "Installer" step: Windows Installer log and explanation of the common error codes.</summary>
     public static class InstallLog
     {
-        /// <summary>Journal demandé à msiexec par la ligne de commande générée (« /log output.log »).</summary>
+        /// <summary>Log requested from msiexec by the generated command line ("/log output.log").</summary>
         public const string FileName = "output.log";
 
         /// <summary>
-        /// Ajoute à la sortie de l'étape le journal laissé dans <paramref name="execDir"/> (sa fin, la plus utile, si
-        /// tout ne tient pas), puis le supprime pour que l'étape suivante ne le reprenne pas.
+        /// Appends to the step output the log left in <paramref name="execDir"/> (its end, the most useful part, if
+        /// it does not all fit), then deletes it so that the next step does not pick it up.
         /// </summary>
         public static string Append(string output, string execDir, int maxChars)
         {
@@ -23,7 +23,7 @@ namespace DeployCraft.Runner
             {
                 if (!File.Exists(path)) return output;
                 string log;
-                // Windows Installer écrit en UTF-16 (avec marque d'ordre) ; sinon page de code du système.
+                // Windows Installer writes in UTF-16 (with byte order mark); otherwise the system code page.
                 using (var reader = new StreamReader(path, Encoding.Default, detectEncodingFromByteOrderMarks: true))
                     log = reader.ReadToEnd();
                 File.Delete(path);
@@ -68,7 +68,7 @@ namespace DeployCraft.Runner
             [17031] = "Un prérequis de cette installation manque sur ce poste.",
         };
 
-        /// <summary>Explication d'un code de sortie de Windows Installer (.msi, .msp, .msu) ; null pour les autres fichiers ou codes.</summary>
+        /// <summary>Explanation of a Windows Installer exit code (.msi, .msp, .msu); null for other files or codes.</summary>
         public static string ErrorMessage(string file, int code)
         {
             var ext = Path.GetExtension(file ?? "").ToLowerInvariant();
@@ -77,12 +77,12 @@ namespace DeployCraft.Runner
             return InstallerMessages.TryGetValue(code, out var message) ? message : WindowsMessage(code);
         }
 
-        /// <summary>Texte que Windows associe à ce code (les codes de Windows Installer en font partie), ou null s'il n'en a pas.</summary>
+        /// <summary>Text that Windows associates with this code (Windows Installer codes are part of it), or null if it has none.</summary>
         public static string WindowsMessage(int code)
         {
             if (code <= 0 || code > 0xFFFF) return null;
             var message = new System.ComponentModel.Win32Exception(code).Message.Trim();
-            // Code inconnu de Windows : son texte se termine par le code en hexadécimal.
+            // Code unknown to Windows: its text ends with the code in hexadecimal.
             return message.Length == 0 || message.EndsWith(")") && message.Contains("0x") ? null : message;
         }
     }

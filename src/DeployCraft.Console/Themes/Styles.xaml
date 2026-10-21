@@ -1,5 +1,5 @@
-<!-- Styles de la console. Chargés après le thème Fluent (voir Theme.cs) : les styles implicites
-     des contrôles standard s'appuient sur ceux de Fluent (BasedOn) pour suivre le clair / sombre. -->
+<!-- Console styles. Loaded after the Fluent theme (see Theme.cs): the implicit styles
+     of the standard controls build on Fluent's (BasedOn) to follow light / dark. -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
@@ -8,8 +8,8 @@
             <Setter Property="FontSize" Value="13" />
         </Style>
 
-        <!-- Gros bouton de barre d'outils : icône au-dessus, libellé en dessous. Tag = glyphe.
-             Fond et bordure fine au repos pour qu'il se voie cliquable ; marge + bordure + espacement = même taille qu'avant. -->
+        <!-- Large toolbar button: icon above, label below. Tag = glyph.
+             Background and thin border at rest so it looks clickable; margin + border + spacing = same size as before. -->
         <Style x:Key="ToolButton" TargetType="Button">
             <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
             <Setter Property="Cursor" Value="Hand" />
@@ -54,7 +54,7 @@
             <Setter Property="Margin" Value="0,0,12,0" />
         </Style>
 
-        <!-- Poignée entre l'arbre et la vue : fine ligne, plus visible au survol et pendant le glissement. -->
+        <!-- Handle between the tree and the view: thin line, more visible on hover and while dragging. -->
         <Style x:Key="NavSplitter" TargetType="GridSplitter">
             <Setter Property="Cursor" Value="SizeWE" />
             <Setter Property="Template">
@@ -84,14 +84,14 @@
             <Setter Property="Margin" Value="0,2,0,8" />
         </Style>
 
-        <!-- Champs : bordure visible au repos, pas seulement au focus. -->
+        <!-- Fields: visible border at rest, not only on focus. -->
         <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
             <Setter Property="Padding" Value="4,3" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="BorderBrush" Value="{DynamicResource ControlBorder}" />
             <Setter Property="BorderThickness" Value="1" />
         </Style>
-        <!-- Petite case (nombre, heure) : sans la croix d'effacement de Fluent, qui mange la place du texte. -->
+        <!-- Small box (number, time): without Fluent's clear cross, which eats the text space. -->
         <Style x:Key="CompactBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
             <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
             <Setter Property="CaretBrush" Value="{DynamicResource TextBrush}" />
@@ -131,8 +131,8 @@
             <Setter Property="BorderThickness" Value="1" />
         </Style>
 
-        <!-- Bouton de dialogue : fond un peu plus clair que le panneau, bordure visible, survol marqué ;
-             le bouton par défaut (Enregistrer, Oui, Déployer…) prend l'accent. -->
+        <!-- Dialog button: background a bit lighter than the panel, visible border, marked hover;
+             the default button (Enregistrer, Oui, Déployer…) takes the accent. -->
         <Style x:Key="DialogButton" TargetType="Button">
             <Setter Property="MinWidth" Value="90" />
             <Setter Property="Padding" Value="12,5" />
@@ -184,8 +184,8 @@
             </Setter>
         </Style>
 
-        <!-- Onglets (fenêtre paquet, étape, Déployer une fois…) : l'onglet choisi est souligné d'accent, en texte
-             plein (pas de gras : la largeur des onglets ne bouge pas), les autres en texte atténué, avec un fond au survol. Les Préférences gardent leur liste de pages. -->
+        <!-- Tabs (package window, step, Déployer une fois…): the chosen tab is underlined with the accent, in full
+             text (not bold: tab widths do not move), the others in muted text, with a background on hover. Preferences keep their page list. -->
         <Style TargetType="TabItem">
             <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
             <Setter Property="Padding" Value="12,6" />
@@ -215,7 +215,7 @@
             </Setter>
         </Style>
 
-        <!-- Liens (« Redéployer », « 2 sur 2 étapes »…) : soulignés, couleur d'accent, main au survol. -->
+        <!-- Links ("Redéployer", "2 sur 2 étapes"…): underlined, accent color, hand cursor on hover. -->
         <Style TargetType="Hyperlink" BasedOn="{StaticResource {x:Type Hyperlink}}">
             <Setter Property="Foreground" Value="{DynamicResource LinkBrush}" />
             <Setter Property="TextDecorations" Value="Underline" />
@@ -243,7 +243,7 @@
             <Setter Property="RowHeight" Value="26" />
             <Setter Property="SelectionMode" Value="Single" />
         </Style>
-        <!-- Survol des lignes (les cellules sont transparentes : la ligne choisie garde sa couleur de sélection). -->
+        <!-- Row hover (cells are transparent: the chosen row keeps its selection color). -->
         <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
@@ -269,7 +269,7 @@
                 </Setter.Value>
             </Setter>
             <Style.Triggers>
-                <!-- Ligne sélectionnée : même couleur que la fenêtre ait le focus ou non (lisible en clair comme en sombre). -->
+                <!-- Selected row: same color whether the window has focus or not (readable in light and dark). -->
                 <Trigger Property="IsSelected" Value="True">
                     <Setter Property="Background" Value="{DynamicResource SelectionBackground}" />
                     <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />

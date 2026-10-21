@@ -5,7 +5,7 @@ namespace DeployCraft.Server.Remote;
 
 public record AdComputer(string Name, string? DnsName, string? OperatingSystem, string Ou, DateTime? LastLogon, bool Enabled);
 
-/// <summary>Lecture des ordinateurs de l'Active Directory avec un identifiant du domaine.</summary>
+/// <summary>Reading of Active Directory computers with a domain credential.</summary>
 public class ActiveDirectory(DeployCredentials credentials)
 {
     private const int UacAccountDisable = 0x2;
@@ -52,14 +52,14 @@ public class ActiveDirectory(DeployCredentials credentials)
         return list.OrderBy(c => c.Ou).ThenBy(c => c.Name).ToList();
     }
 
-    /// <summary>Vérifie un compte du domaine en se connectant à l'annuaire avec ce mot de passe.</summary>
+    /// <summary>Checks a domain account by connecting to the directory with this password.</summary>
     public static void TestConnection(Credential account, string password)
     {
         var domain = account.Domain!;
         try
         {
             using var root = new DirectoryEntry($"LDAP://{domain}", QualifiedUser(account), password);
-            _ = root.NativeObject; // force la connexion
+            _ = root.NativeObject; // forces the connection
         }
         catch (System.Runtime.InteropServices.COMException ex)
         {

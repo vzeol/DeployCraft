@@ -4,7 +4,7 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Console;
 
-/// <summary>Onglet Conditions, commun au paquet et à ses étapes : modifie directement l'objet chargé.</summary>
+/// <summary>Conditions tab, shared by the package and its steps: edits the loaded object directly.</summary>
 public partial class ConditionsEditor : UserControl
 {
     private Conditions _conditions = new();
@@ -12,7 +12,7 @@ public partial class ConditionsEditor : UserControl
 
     public ConditionsEditor() => InitializeComponent();
 
-    /// <summary>Affiche les conditions à modifier ; <paramref name="forPackage"/> adapte l'explication.</summary>
+    /// <summary>Shows the conditions to edit; <paramref name="forPackage"/> adapts the explanation.</summary>
     public void Load(Conditions conditions, bool forPackage)
     {
         _loading = true;

@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 
 namespace DeployCraft.Server.Remote;
 
-/// <summary>Appels Windows bruts pour le compte du service : configuration du service et droit « Ouvrir une session en tant que service ».</summary>
+/// <summary>Raw Windows calls for the service account: service configuration and the "Ouvrir une session en tant que service" (Log on as a service) right.</summary>
 internal static partial class Win32
 {
     public const uint SERVICE_CHANGE_CONFIG = 0x0002;

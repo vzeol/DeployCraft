@@ -16,7 +16,7 @@ public record ServiceInfo(bool IsService, string Account, bool LocalSystem, bool
 public record ServiceState(ServiceInfo Info, bool CanEdit, bool Local);
 public record ScheduleRunResult(List<Deployment> Deployments, string? Result);
 
-/// <summary>Accès au service DeployCraft (API HTTP locale).</summary>
+/// <summary>Access to the DeployCraft service (local HTTP API).</summary>
 public static class Api
 {
     public static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
@@ -24,10 +24,10 @@ public static class Api
         Converters = { new JsonStringEnumConverter() },
     };
 
-    /// <summary>Pour les fichiers enregistrés par la console (export de paquets).</summary>
+    /// <summary>For files saved by the console (package export).</summary>
     public static readonly JsonSerializerOptions JsonIndented = new(Json) { WriteIndented = true };
 
-    // La session Windows de la personne sert d'identité auprès du service (authentification Windows).
+    // The person's Windows session serves as identity with the service (Windows authentication).
     private static readonly HttpClient Http = new(new HttpClientHandler { UseDefaultCredentials = true })
     {
         BaseAddress = new Uri((Environment.GetEnvironmentVariable("DEPLOYCRAFT_URL") ?? "http://localhost:5080") + "/api/"),
@@ -46,11 +46,11 @@ public static class Api
     public static Task DeletePackage(long id) => Send<object>(HttpMethod.Delete, $"packages/{id}");
     public static Task MovePackage(long id, long? folderId) => Send<object>(HttpMethod.Put, $"packages/{id}/folder", new { folderId });
 
-    /// <summary>Recherche de ces noms de postes dans le DNS du serveur.</summary>
+    /// <summary>Looks up these computer names in the server's DNS.</summary>
     public static Task<List<NameCheckResult>> CheckNames(IEnumerable<string> names) =>
         Send<List<NameCheckResult>>(HttpMethod.Post, "names/check", names.ToList());
 
-    /// <summary>Parmi ces chemins, ceux que le serveur ne trouve pas (avec l'identifiant par défaut).</summary>
+    /// <summary>Among these paths, the ones the server cannot find (with the default credentials).</summary>
     public static Task<List<string>> MissingFiles(IEnumerable<string> paths) => Send<List<string>>(HttpMethod.Post, "files/missing", paths.ToList());
 
     public static Task<List<PackageFolder>> Folders() => Get<List<PackageFolder>>("folders");
@@ -58,26 +58,26 @@ public static class Api
         f.Id == 0 ? Send<PackageFolder>(HttpMethod.Post, "folders", f) : Send<PackageFolder>(HttpMethod.Put, $"folders/{f.Id}", f);
     public static Task DeleteFolder(long id) => Send<object>(HttpMethod.Delete, $"folders/{id}");
 
-    /// <summary>Fichier d'export : les paquets choisis et les paquets imbriqués qu'ils utilisent.</summary>
+    /// <summary>Export file: the chosen packages and the nested packages they use.</summary>
     public static Task<PackageExport> ExportPackages(IEnumerable<long> ids) => Send<PackageExport>(HttpMethod.Post, "packages/export", ids.ToList());
-    /// <summary>Import d'un fichier de paquets (.json ou .xml) : aperçu, ou création des paquets si <paramref name="apply"/>.</summary>
+    /// <summary>Import of a packages file (.json or .xml): preview, or creation of the packages if <paramref name="apply"/>.</summary>
     public static Task<ImportReport> ImportPackages(string content, string? repository, bool apply) =>
         Send<ImportReport>(HttpMethod.Post, "packages/import", new { content, repository, apply });
 
-    /// <summary>Sans recherche : tout le catalogue (paquets déjà téléchargés et logiciels courants en tête) ; sinon, les résultats.</summary>
+    /// <summary>Without a search: the whole catalog (already downloaded packages and common software first); otherwise, the results.</summary>
     public static Task<LibraryInfo> Library(string? search = null) => Get<LibraryInfo>("library?search=" + Uri.EscapeDataString(search ?? ""));
-    /// <summary>Seulement les logiciels qui ont un état propre (téléchargement en cours, erreur, paquet créé).</summary>
+    /// <summary>Only the software that has a state of its own (download in progress, error, package created).</summary>
     public static Task<LibraryInfo> LibraryStatus() => Get<LibraryInfo>("library/status");
     public static Task RefreshLibrary() => Send<object>(HttpMethod.Post, "library/refresh");
     public static Task SetLibraryFolder(string folder) => Send<object>(HttpMethod.Put, "library/folder", new { folder });
     public static Task SetLibraryAutoUpdate(LibraryAutoUpdate mode, int days) => Send<object>(HttpMethod.Put, "library/auto-update", new { mode, days });
-    /// <summary>Lance le téléchargement en arrière-plan ; la progression se lit dans <see cref="Library"/>.</summary>
+    /// <summary>Starts the download in the background; progress is read from <see cref="Library"/>.</summary>
     public static Task DownloadFromLibrary(string id) => Send<object>(HttpMethod.Post, "library/download", new { id });
 
     public static Task<List<Deployment>> Deployments() => Get<List<Deployment>>("deployments");
     public static Task<Deployment> Deployment(long id) => Get<Deployment>($"deployments/{id}");
     public static Task DeleteDeployment(long id) => Send<object>(HttpMethod.Delete, $"deployments/{id}");
-    /// <summary>Un déploiement par paquet, dans l'ordre ; renvoie les déploiements créés.</summary>
+    /// <summary>One deployment per package, in order; returns the deployments created.</summary>
     public static Task<List<Deployment>> Deploy(IEnumerable<long> packageIds, IEnumerable<TargetRequest> targets, DeployOptions options) =>
         Send<List<Deployment>>(HttpMethod.Post, "deployments",
             new { packageIds = packageIds.ToList(), targets = targets.ToList(), options });
@@ -86,7 +86,7 @@ public static class Api
     public static Task SavePackageTargets(long packageId, IEnumerable<string> computers) =>
         Send<object>(HttpMethod.Put, $"packages/{packageId}/targets", computers.ToList());
 
-    /// <summary>Annule des postes d'un déploiement (tous si la liste est vide).</summary>
+    /// <summary>Cancels computers of a deployment (all if the list is empty).</summary>
     public static Task Abort(long deploymentId, IEnumerable<long>? targetIds = null) =>
         Send<object>(HttpMethod.Post, $"deployments/{deploymentId}/abort", new { targetIds = targetIds?.ToList() });
 
@@ -95,11 +95,11 @@ public static class Api
     public static Task<Schedule> SaveSchedule(Schedule s) =>
         s.Id == 0 ? Send<Schedule>(HttpMethod.Post, "schedules", s) : Send<Schedule>(HttpMethod.Put, $"schedules/{s.Id}", s);
     public static Task DeleteSchedule(long id) => Send<object>(HttpMethod.Delete, $"schedules/{id}");
-    /// <summary>« Démarrer maintenant » ; renvoie le compte rendu du lancement.</summary>
+    /// <summary>"Démarrer maintenant" (Start now); returns the launch report.</summary>
     public static Task<ScheduleRunResult> RunSchedule(long id) =>
         Send<ScheduleRunResult>(HttpMethod.Post, $"schedules/{id}/run");
     public static Task<List<ScheduleTargetHistory>> ScheduleHistory(long id) => Get<List<ScheduleTargetHistory>>($"schedules/{id}/history");
-    /// <summary>Efface des lignes de l'historique des cibles (toutes si la liste est vide).</summary>
+    /// <summary>Clears rows of the targets history (all if the list is empty).</summary>
     public static Task ClearScheduleHistory(long id, IEnumerable<ScheduleHistoryKey> keys) =>
         Send<object>(HttpMethod.Post, $"schedules/{id}/history/clear", keys.ToList());
 
@@ -108,7 +108,7 @@ public static class Api
         id == 0 ? Send<Credential>(HttpMethod.Post, "credentials", input) : Send<Credential>(HttpMethod.Put, $"credentials/{id}", input);
     public static Task DeleteCredential(long id) => Send<object>(HttpMethod.Delete, $"credentials/{id}");
     public static Task SetDefaultCredential(long id) => Send<object>(HttpMethod.Post, $"credentials/{id}/default");
-    /// <summary>Teste un compte du domaine (mot de passe vide + id = celui enregistré).</summary>
+    /// <summary>Tests a domain account (empty password + id = the saved one).</summary>
     public static Task TestCredential(object input) => Send<object>(HttpMethod.Post, "credentials/test", input);
 
     public static Task<ConsoleAccessInfo> Access() => Get<ConsoleAccessInfo>("access");
@@ -117,7 +117,7 @@ public static class Api
 
     public static Task<ServiceState> Service() => Get<ServiceState>("service");
     public static Task RestartService() => Send<object>(HttpMethod.Post, "service/restart");
-    /// <summary>Compte « LocalSystem » (sans mot de passe) ou DOMAINE\nom : le service redémarre aussitôt.</summary>
+    /// <summary>"LocalSystem" account (no password) or DOMAIN\name: the service restarts right away.</summary>
     public static Task SetServiceAccount(string account, string password) => Send<object>(HttpMethod.Put, "service/account", new { account, password });
 
     public static Task<List<AdComputer>> AdComputers(string? search) =>
@@ -164,6 +164,6 @@ public static class Api
 
 public class ApiException(string message, bool accessDenied = false) : Exception(message)
 {
-    /// <summary>Le service répond, mais refuse ce compte Windows.</summary>
+    /// <summary>The service answers, but refuses this Windows account.</summary>
     public bool AccessDenied { get; } = accessDenied;
 }

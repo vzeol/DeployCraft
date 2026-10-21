@@ -2,7 +2,7 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Fenêtre « À propos » : textes affichés et informations copiées.</summary>
+/// <summary>"À propos" window: displayed texts and copied information.</summary>
 public class AboutInfoTests
 {
     [Fact]

@@ -7,7 +7,7 @@ namespace DeployCraft.Console;
 /// <summary>Packages: create, edit, duplicate, rename, delete, import / export, deploy.</summary>
 public partial class MainWindow
 {
-    // ---------- Paquets ----------
+    // ---------- Packages ----------
 
     private async void NewPackage_Click(object sender, RoutedEventArgs e)
     {
@@ -65,7 +65,7 @@ public partial class MainWindow
         if (_packages.Count > 0) await ExportAsync(_packages.Select(p => p.Id), "Paquets DeployCraft");
     }
 
-    /// <summary>Enregistre les paquets (et les paquets imbriqués qu'ils utilisent) dans un fichier .json.</summary>
+    /// <summary>Saves the packages (and the nested packages they use) to a .json file.</summary>
     private async Task ExportAsync(IEnumerable<long> ids, string defaultName)
     {
         var dialog = new Microsoft.Win32.SaveFileDialog
@@ -136,7 +136,7 @@ public partial class MainWindow
         catch (ApiException ex) { Ui.Error(this, ex); }
     }
 
-    // ---------- Déploiement ----------
+    // ---------- Deployment ----------
 
     private void DeployOnce_Click(object sender, RoutedEventArgs e)
     {
@@ -150,7 +150,7 @@ public partial class MainWindow
         if (window.ScheduleRequest is { } schedule) { OpenSchedule(schedule); return; }
         if (!ok || window.Deployments.FirstOrDefault() is not { } d) return;
 
-        // On affiche le nouveau déploiement là où l'utilisateur se trouve.
+        // The new deployment is shown where the user currently is.
         if (_view == View.Package && SelectedPackage?.Id == d.PackageId) PackageDeployments.Select(d.Id);
         else
         {

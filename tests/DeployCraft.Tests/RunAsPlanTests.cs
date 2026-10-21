@@ -4,7 +4,7 @@ using DeployCraft.Server.Remote;
 
 namespace DeployCraft.Tests;
 
-/// <summary>« Exécuter en tant que » par étape : identité réelle, tranches lancées l'une après l'autre, arrêt entre tranches.</summary>
+/// <summary>"Exécuter en tant que" per step: real identity, slices launched one after the other, stop between slices.</summary>
 public class RunAsPlanTests
 {
     private const RunAsMode D = RunAsMode.DeployUser, S = RunAsMode.LocalSystem, U = RunAsMode.LoggedOnUser;
@@ -14,7 +14,7 @@ public class RunAsPlanTests
     {
         Assert.Equal(S, RunAsPlan.Effective(new PackageStep(), S, hasAccount: true));
         Assert.Equal(U, RunAsPlan.Effective(new PackageStep { RunAs = U }, D, hasAccount: true));
-        // Le choix du déploiement ne remplace que les étapes « Paramètre du paquet ».
+        // The deployment's choice only replaces the "Paramètre du paquet" steps.
         Assert.Equal(D, RunAsPlan.Effective(new PackageStep { RunAs = D }, U, hasAccount: true));
         Assert.Equal(S, RunAsPlan.Effective(new PackageStep { RunAs = D }, S, hasAccount: false));
     }
@@ -27,7 +27,7 @@ public class RunAsPlanTests
         Assert.Equal(
             [new RunAsPlan.Tranche(0, 2, true), new RunAsPlan.Tranche(2, 2, false), new RunAsPlan.Tranche(4, 1, true)],
             tranches);
-        Assert.Single(RunAsPlan.Split([S, S, S])); // un paquet sans réglage par étape : un seul service, comme avant
+        Assert.Single(RunAsPlan.Split([S, S, S])); // a package with no per-step setting: a single service, as before
         Assert.Empty(RunAsPlan.Split([]));
     }
 
@@ -55,7 +55,7 @@ public class RunAsPlanTests
 
         Assert.Equal("done", RunAsPlan.Combine(done, Status("done", false, null, "success"), [], last: true).State);
 
-        // Runner interrompu par une erreur sans demander l'arrêt : on n'enchaîne pas non plus.
+        // Runner interrupted by an error without asking to stop: we do not chain either.
         var crashed = Status("done", false, null, "failed");
         crashed.Error = "Accès refusé.";
         var afterCrash = RunAsPlan.Combine(done, crashed, ["c"], last: false);

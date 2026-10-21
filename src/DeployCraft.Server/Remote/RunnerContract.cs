@@ -3,14 +3,14 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Server.Remote;
 
-// Miroir de DeployCraft.Runner/Job.cs : job.json et status.json échangés avec le runner.
+// Mirror of DeployCraft.Runner/Job.cs: job.json and status.json exchanged with the runner.
 
 public class RunnerJob
 {
-    /// <summary>Conditions du paquet : non remplies, aucune étape n'est exécutée.</summary>
+    /// <summary>Package conditions: if not met, no step is run.</summary>
     [JsonPropertyName("conditions")] public RunnerConditions? Conditions { get; set; }
     [JsonPropertyName("steps")] public List<RunnerJobStep> Steps { get; set; } = [];
-    /// <summary>Numéro (dans le paquet) de la première étape du job, pour les messages.</summary>
+    /// <summary>Number (in the package) of the job's first step, for messages.</summary>
     [JsonPropertyName("firstNumber")] public int FirstNumber { get; set; } = 1;
 }
 
@@ -20,42 +20,42 @@ public class RunnerJobStep
     [JsonPropertyName("type")] public string Type { get; set; } = "";
     [JsonPropertyName("command")] public string? Command { get; set; }
     [JsonPropertyName("arguments")] public string? Arguments { get; set; }
-    /// <summary>pause : durée d'attente en secondes. reboot : délai avant le redémarrage. message : durée d'affichage (0 = jusqu'au clic).</summary>
+    /// <summary>pause: wait duration in seconds. reboot: delay before the reboot. message: display duration (0 = until clicked).</summary>
     [JsonPropertyName("seconds")] public int Seconds { get; set; }
     [JsonPropertyName("successCodes")] public List<int> SuccessCodes { get; set; } = [0];
     [JsonPropertyName("timeoutSeconds")] public int TimeoutSeconds { get; set; }
     [JsonPropertyName("continueOnError")] public bool ContinueOnError { get; set; }
-    /// <summary>En cas d'échec : arrêter le paquet et compter le poste réussi (prime sur continueOnError).</summary>
+    /// <summary>On failure: stop the package and count the computer as successful (takes precedence over continueOnError).</summary>
     [JsonPropertyName("stopSuccessOnError")] public bool StopSuccessOnError { get; set; }
-    /// <summary>Étape désactivée : jamais exécutée, notée « skipped ».</summary>
+    /// <summary>Disabled step: never run, marked "skipped".</summary>
     [JsonPropertyName("disabled")] public bool Disabled { get; set; }
-    /// <summary>Lancer l'étape dans la session de l'utilisateur connecté (le runner tourne en Système).</summary>
+    /// <summary>Run the step in the logged-on user's session (the runner runs as System).</summary>
     [JsonPropertyName("runAsLoggedOnUser")] public bool RunAsLoggedOnUser { get; set; }
-    /// <summary>Mode pull : fichier (UNC) que le runner copie lui-même dans exec avant l'étape.</summary>
+    /// <summary>Pull mode: file (UNC) that the runner itself copies into exec before the step.</summary>
     [JsonPropertyName("sourcePath")] public string? SourcePath { get; set; }
     [JsonPropertyName("includeDirectory")] public bool IncludeDirectory { get; set; }
-    /// <summary>copyfiles : dossier du poste où copier (variables d'environnement acceptées).</summary>
+    /// <summary>copyfiles: folder on the computer to copy to (environment variables accepted).</summary>
     [JsonPropertyName("copyDestination")] public string? CopyDestination { get; set; }
-    /// <summary>copyfiles : motifs des fichiers à copier (« * » = tous).</summary>
+    /// <summary>copyfiles: patterns of the files to copy ("*" = all).</summary>
     [JsonPropertyName("copyPatterns")] public List<string>? CopyPatterns { get; set; }
     [JsonPropertyName("copySubfolders")] public bool CopySubfolders { get; set; }
-    /// <summary>copyfiles : remplacer les fichiers déjà présents sur le poste.</summary>
+    /// <summary>copyfiles: replace files already present on the computer.</summary>
     [JsonPropertyName("copyOverwrite")] public bool CopyOverwrite { get; set; }
-    /// <summary>reboot : éteindre au lieu de redémarrer.</summary>
+    /// <summary>reboot: shut down instead of restarting.</summary>
     [JsonPropertyName("shutdownOnly")] public bool ShutdownOnly { get; set; }
-    /// <summary>message : attendre le clic de l'utilisateur (ou la fin de l'affichage).</summary>
+    /// <summary>message: wait for the user's click (or the end of the display).</summary>
     [JsonPropertyName("waitForUser")] public bool WaitForUser { get; set; }
-    /// <summary>install : ligne de commande complète, lancée par cmd dans exec\ (null pour les autres types).</summary>
+    /// <summary>install: full command line, run by cmd in exec\ (null for other types).</summary>
     [JsonPropertyName("commandLine")] public string? CommandLine { get; set; }
-    /// <summary>Mode pull : fichiers additionnels (UNC) que le runner copie lui-même dans exec\ avant l'étape.</summary>
+    /// <summary>Pull mode: additional files (UNC) that the runner itself copies into exec\ before the step.</summary>
     [JsonPropertyName("pullFiles")] public List<string>? PullFiles { get; set; }
-    /// <summary>install : dossier du poste où garder le fichier d'installation après l'étape (null = ne pas le garder).</summary>
+    /// <summary>install: folder on the computer where the installation file is kept after the step (null = do not keep it).</summary>
     [JsonPropertyName("keepFolder")] public string? KeepFolder { get; set; }
-    /// <summary>install : noms (dans exec\) des fichiers additionnels, gardés avec le fichier d'installation.</summary>
+    /// <summary>install: names (in exec\) of the additional files, kept with the installation file.</summary>
     [JsonPropertyName("additionalFiles")] public List<string>? AdditionalFiles { get; set; }
-    /// <summary>Conditions de l'étape : non remplies, l'étape est sautée.</summary>
+    /// <summary>Step conditions: if not met, the step is skipped.</summary>
     [JsonPropertyName("conditions")] public RunnerConditions? Conditions { get; set; }
-    /// <summary>Conditions supplémentaires (paquet imbriqué), vérifiées avant celles de l'étape (null = aucune).</summary>
+    /// <summary>Extra conditions (nested package), checked before those of the step (null = none).</summary>
     [JsonPropertyName("extraConditions")] public List<RunnerConditionGroup>? ExtraConditions { get; set; }
 }
 
@@ -65,24 +65,24 @@ public class RunnerConditionGroup
     [JsonPropertyName("conditions")] public RunnerConditions? Conditions { get; set; }
 }
 
-/// <summary>Conditions à plat, en chaînes : le runner (.NET Framework) les lit sans dépendre des énumérations du serveur.</summary>
+/// <summary>Flat conditions, as strings: the runner (.NET Framework) reads them without depending on the server's enums.</summary>
 public class RunnerConditions
 {
-    /// <summary>Versions acceptées : « 10 », « 11 », « server », « older » (vide = toutes).</summary>
+    /// <summary>Accepted versions: "10", "11", "server", "older" (empty = all).</summary>
     [JsonPropertyName("windows")] public List<string> Windows { get; set; } = [];
-    /// <summary>« x64 », « x86 » ou null.</summary>
+    /// <summary>"x64", "x86" or null.</summary>
     [JsonPropertyName("architecture")] public string? Architecture { get; set; }
     [JsonPropertyName("minPowerShell")] public int? MinPowerShell { get; set; }
-    /// <summary>true = quelqu'un doit être connecté, false = personne, null = indifférent.</summary>
+    /// <summary>true = someone must be logged on, false = nobody, null = don't care.</summary>
     [JsonPropertyName("loggedOn")] public bool? LoggedOn { get; set; }
     [JsonPropertyName("filePath")] public string? FilePath { get; set; }
-    /// <summary>true = doit exister, false = ne doit pas exister, null = pas de condition.</summary>
+    /// <summary>true = must exist, false = must not exist, null = no condition.</summary>
     [JsonPropertyName("fileExists")] public bool? FileExists { get; set; }
     [JsonPropertyName("registryKey")] public string? RegistryKey { get; set; }
     [JsonPropertyName("registryValue")] public string? RegistryValue { get; set; }
     [JsonPropertyName("registryExists")] public bool? RegistryExists { get; set; }
 
-    /// <summary>null si aucune condition n'est posée.</summary>
+    /// <summary>null if no condition is set.</summary>
     public static RunnerConditions? From(Conditions c)
     {
         if (c.IsEmpty) return null;
@@ -118,11 +118,11 @@ public class RunnerStatus
     [JsonPropertyName("state")] public string State { get; set; } = "";
     [JsonPropertyName("error")] public string? Error { get; set; }
     [JsonPropertyName("steps")] public List<RunnerStepResult> Steps { get; set; } = [];
-    /// <summary>Cartes réseau du poste, retenues pour le réveiller plus tard (Wake-on-LAN).</summary>
+    /// <summary>Network adapters of the computer, kept to wake it up later (Wake-on-LAN).</summary>
     [JsonPropertyName("network")] public List<RunnerNetworkCard>? Network { get; set; }
-    /// <summary>Le paquet s'arrête ici : les étapes suivantes (autre identité) ne doivent pas être lancées.</summary>
+    /// <summary>The package stops here: the following steps (other identity) must not be started.</summary>
     [JsonPropertyName("halt")] public bool Halt { get; set; }
-    /// <summary>Raison donnée aux étapes non lancées (null : aucune, comme après un échec).</summary>
+    /// <summary>Reason given to the steps not started (null: none, as after a failure).</summary>
     [JsonPropertyName("haltReason")] public string? HaltReason { get; set; }
 }
 

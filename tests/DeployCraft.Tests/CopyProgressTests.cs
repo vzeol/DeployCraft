@@ -4,7 +4,7 @@ using DeployCraft.Server.Remote;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Suivi d'un poste : avancement de la copie, exécutions et note de chaque étape.</summary>
+/// <summary>Follow-up of a computer: copy progress, runs and note of each step.</summary>
 public sealed class CopyProgressTests : IDisposable
 {
     private readonly string _dir = Directory.CreateTempSubdirectory("deploycraft-progress-").FullName;
@@ -16,7 +16,7 @@ public sealed class CopyProgressTests : IDisposable
     public void Text_ShowsPercentAndRecentRate()
     {
         var progress = new CopyProgress(() => _now);
-        Assert.Null(progress.Text()); // total pas encore connu
+        Assert.Null(progress.Text()); // total not known yet
 
         progress.Total = 100L * 1024 * 1024;
         Assert.Equal("Copie des fichiers : 0 %", progress.Text());
@@ -35,7 +35,7 @@ public sealed class CopyProgressTests : IDisposable
     {
         var progress = new CopyProgress(() => _now) { Total = 1_000_000_000 };
         progress.Text();
-        progress.Add(500 * 1024 * 1024); // rafale au début
+        progress.Add(500 * 1024 * 1024); // burst at the start
         for (var i = 0; i < 5; i++)
         {
             _now += TimeSpan.FromSeconds(1);
@@ -100,7 +100,7 @@ public sealed class CopyProgressTests : IDisposable
     [InlineData("failed", null, "Délai dépassé (60 min).\nDétails", "Délai dépassé (60 min).")]
     [InlineData("stopped", 1, null, "Paquet arrêté en succès.")]
     [InlineData("success", 3010, null, "Réussie : redémarrage nécessaire (code 3010).")]
-    [InlineData("success", 1, null, "")] // code de succès d'une copie de fichiers : pas de note
+    [InlineData("success", 1, null, "")] // success code of a file copy: no note
     [InlineData("success", 0, null, "")]
     [InlineData("running", null, null, "")]
     public void Note_SummarizesTheResult(string state, int? exitCode, string? error, string expected) =>

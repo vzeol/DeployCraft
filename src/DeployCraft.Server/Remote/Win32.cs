@@ -4,7 +4,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace DeployCraft.Server.Remote;
 
-/// <summary>Appels Windows bruts : gestionnaire de services (local ou distant) et ouverture de session.</summary>
+/// <summary>Raw Windows calls: service manager (local or remote) and logon.</summary>
 internal static partial class Win32
 {
     public const uint SC_MANAGER_ALL_ACCESS = 0xF003F;

@@ -10,11 +10,11 @@ using Microsoft.AspNetCore.Authentication.Negotiate;
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
     Args = args,
-    ContentRootPath = AppContext.BaseDirectory, // nécessaire quand on tourne en service Windows
+    ContentRootPath = AppContext.BaseDirectory, // needed when running as a Windows service
 });
 builder.Host.UseWindowsService(o => o.ServiceName = "DeployCraft");
 
-// Données dans C:\ProgramData\DeployCraft (base SQLite) ; --DataDir pour une instance de test.
+// Data in C:\ProgramData\DeployCraft (SQLite database); --DataDir for a test instance.
 var dataDir = builder.Configuration["DataDir"]
               ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "DeployCraft");
 DataFolder.Restrict(dataDir, LoggerFactory.Create(l => l.AddConsole()).CreateLogger("DeployCraft"));
@@ -45,7 +45,7 @@ builder.Services.AddHostedService<HistoryCleaner>();
 builder.Services.AddSingleton(sp => new PackageLibrary(store.Packages, store.Settings, sp.GetRequiredService<DeployCredentials>(),
     dataDir, sp.GetRequiredService<ILogger<PackageLibrary>>()));
 builder.Services.AddHostedService<LibraryUpdater>();
-// La console s'identifie avec la session Windows de la personne (aucun mot de passe à saisir).
+// The console identifies itself with the person's Windows session (no password to type).
 builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme).AddNegotiate();
 
 var app = builder.Build();

@@ -9,9 +9,9 @@ using Microsoft.Win32.SafeHandles;
 namespace DeployCraft.Server.Remote;
 
 /// <summary>
-/// Identifiants (comptes admin des postes). Les mots de passe sont chiffrés avec DPAPI
-/// (portée machine) : la base copiée sur un autre PC ne permet pas de les relire. Le dossier
-/// de données est en plus réservé à Système et aux Administrateurs (voir <see cref="DataFolder"/>).
+/// Credentials (admin accounts of the computers). Passwords are encrypted with DPAPI
+/// (machine scope): a database copied to another PC does not allow reading them. The data folder
+/// is also restricted to System and Administrators (see <see cref="DataFolder"/>).
 /// </summary>
 public class DeployCredentials
 {
@@ -27,7 +27,7 @@ public class DeployCredentials
         MigrateSingleAccount();
     }
 
-    /// <summary>Avant 0.9, un seul compte rangé dans les réglages : il devient le premier identifiant (par défaut).</summary>
+    /// <summary>Before 0.9, a single account stored in the settings: it becomes the first credential (the default).</summary>
     private void MigrateSingleAccount()
     {
         var user = _settingsRepository.Get("cred.user");
@@ -52,10 +52,10 @@ public class DeployCredentials
         }
     }
 
-    /// <summary>L'identifiant désigné, ou celui par défaut (null : aucun identifiant enregistré).</summary>
+    /// <summary>The designated credential, or the default one (null: no credential saved).</summary>
     public Credential? Resolve(long? id) => id is { } i ? Get(i) : Default;
 
-    /// <summary>Enregistre un identifiant ; mot de passe vide = on garde l'actuel (l'interface ne le renvoie jamais).</summary>
+    /// <summary>Saves a credential; empty password = keep the current one (the interface never sends it back).</summary>
     public Credential Save(Credential c, string? password)
     {
         c.Normalize();
@@ -86,7 +86,7 @@ public class DeployCredentials
         }
         catch (Exception ex) when (ex is CryptographicException or FormatException)
         {
-            return null; // chiffré sur un autre serveur : à ressaisir
+            return null; // encrypted on another server: to be re-entered
         }
     }
 
@@ -94,8 +94,8 @@ public class DeployCredentials
         ?? throw new DeployException($"Le mot de passe de {c.Account} ne peut pas être relu : ressaisissez-le (Options › Identifiants).");
 
     /// <summary>
-    /// Nom sous lequel le compte s'authentifie auprès de <paramref name="computer"/> : un compte local
-    /// est vérifié par le poste lui-même, donc « POSTE\utilisateur ».
+    /// Name under which the account authenticates to <paramref name="computer"/>: a local account
+    /// is verified by the computer itself, hence "COMPUTER\user".
     /// </summary>
     public static string LogonDomain(Credential c, string? computer)
     {
@@ -105,8 +105,8 @@ public class DeployCredentials
     }
 
     /// <summary>
-    /// Exécute <paramref name="action"/> en utilisant <paramref name="c"/> pour tout accès réseau vers
-    /// <paramref name="computer"/> (partage ADMIN$, gestionnaire de services distant). Sans identifiant : identité du service.
+    /// Runs <paramref name="action"/> using <paramref name="c"/> for all network access to
+    /// <paramref name="computer"/> (ADMIN$ share, remote service manager). Without a credential: the service's identity.
     /// </summary>
     public T RunAs<T>(Credential? c, string? computer, Func<T> action) =>
         c == null ? action() : RunAs(c, Password(c), computer, action);
@@ -115,7 +115,7 @@ public class DeployCredentials
 
     private static T RunAs<T>(Credential c, string password, string? computer, Func<T> action)
     {
-        // NEW_CREDENTIALS : l'identité locale ne change pas, seuls les accès réseau utilisent ce compte.
+        // NEW_CREDENTIALS: the local identity does not change, only network access uses this account.
         if (!Win32.LogonUser(c.User, LogonDomain(c, computer), password, Win32.LOGON32_LOGON_NEW_CREDENTIALS,
                 Win32.LOGON32_PROVIDER_WINNT50, out SafeAccessTokenHandle token))
             throw Win32.LastError($"Ouverture de session de {c.Account}");
@@ -124,8 +124,8 @@ public class DeployCredentials
     }
 
     /// <summary>
-    /// Essaie le compte sur un poste, comme le ferait un déploiement : il doit ouvrir le partage
-    /// d'administration ADMIN$. Sur le serveur lui-même, on vérifie seulement le mot de passe.
+    /// Tries the account on a computer, as a deployment would: it must open the ADMIN$
+    /// administrative share. On the server itself, only the password is checked.
     /// </summary>
     public static void TestOnComputer(Credential c, string password, string computer)
     {
@@ -151,7 +151,7 @@ public class DeployCredentials
         }
     }
 
-    /// <summary>Identifiant pour lire l'Active Directory : celui par défaut s'il est du domaine, sinon le premier du domaine.</summary>
+    /// <summary>Credential for reading Active Directory: the default one if it belongs to the domain, otherwise the first of the domain.</summary>
     public Credential ForDirectory()
     {
         var all = List();

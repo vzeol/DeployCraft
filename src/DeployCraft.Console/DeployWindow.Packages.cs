@@ -16,7 +16,7 @@ public partial class DeployWindow
         UpdatePackages();
     }
 
-    /// <summary>Renumérote la liste, recalcule les étapes proposées et les libellés « paramètre du paquet ».</summary>
+    /// <summary>Renumbers the list, recomputes the offered steps and the "paramètre du paquet" labels.</summary>
     private void UpdatePackages()
     {
         var selected = (PackagesList.SelectedItem as PackageItem)?.Package.Id;
@@ -28,7 +28,7 @@ public partial class DeployWindow
         Title = _packages.Count == 1 ? $"Déployer une fois — {_packages[0].Package.Name}" : "Déployer une fois";
         PackagesHint.Visibility = _packages.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
 
-        // L'étape de départ porte sur le premier paquet, paquets imbriqués remplacés par leurs étapes (comme au lancement).
+        // The start step applies to the first package, nested packages replaced by their steps (as at launch).
         var choices = DeployEditing.StepChoices(_packages.FirstOrDefault()?.Package, id => _library.FirstOrDefault(p => p.Id == id));
         StepChoices.Clear();
         foreach (var choice in choices) StepChoices.Add(choice);
@@ -89,7 +89,7 @@ public partial class DeployWindow
         UpdateHints();
     }
 
-    /// <summary>« Paramètre du paquet (…) » : la valeur commune aux paquets choisis, ou « selon chaque paquet ».</summary>
+    /// <summary>"Paramètre du paquet (...)": the value common to the chosen packages, or "selon chaque paquet".</summary>
     private string PackageSetting<T>(Func<Package, T> get, Func<T, string> text) =>
         WindowInputs.PackageSetting(_packages.Select(p => get(p.Package)), text);
 

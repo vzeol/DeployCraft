@@ -13,9 +13,9 @@ namespace DeployCraft.Runner.Steps
             var file = Path.Combine(host.ExecDir, step.Command ?? "");
             if (!File.Exists(file)) throw new FileNotFoundException("Fichier d'installation introuvable sur la cible : " + step.Command);
             if (string.IsNullOrWhiteSpace(step.CommandLine)) throw new ArgumentException("Installer : aucune ligne de commande.");
-            // Journal de Windows Installer : celui d'une étape précédente ne doit pas être repris.
+            // Windows Installer log: the one from a previous step must not be reused.
             File.Delete(Path.Combine(host.ExecDir, InstallLog.FileName));
-            // Par cmd : la ligne (générée ou écrite à la main) est lancée telle quelle, dans exec\.
+            // Through cmd: the line (generated or hand-written) is run as is, in exec\.
             return new ProcessStartInfo(Path.Combine(StepLaunchers.System32, "cmd.exe"), "/s /c \"" + step.CommandLine + "\"");
         }
     }

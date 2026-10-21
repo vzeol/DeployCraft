@@ -2,7 +2,7 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Avertissements d'une étape dans la fenêtre du paquet.</summary>
+/// <summary>Warnings of a step in the package window.</summary>
 public class StepWarningsTests
 {
     private const string Share = @"\\SERVEUR-01\Logiciels\";

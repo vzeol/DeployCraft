@@ -46,7 +46,7 @@
             <TreeView x:Name="Tree" SelectedItemChanged="Tree_SelectedItemChanged" BorderBrush="{DynamicResource PanelBorder}" Padding="2,4" />
             <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Background="Transparent" />
 
-            <!-- Propriétés du paquet -->
+            <!-- Package properties -->
             <DockPanel Grid.Column="2" x:Name="PropertiesView" Margin="8,4,4,4">
                 <TextBlock DockPanel.Dock="Top" Text="Propriétés du paquet" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,10" />
                 <TabControl x:Name="PropertiesTabs">
@@ -113,7 +113,7 @@
                 </TabControl>
             </DockPanel>
 
-            <!-- Vue d'ensemble des étapes -->
+            <!-- Steps overview -->
             <DockPanel Grid.Column="2" x:Name="StepsOverview" Margin="8,4,4,4" Visibility="Collapsed">
                 <TextBlock DockPanel.Dock="Top" Text="Étapes" FontSize="16" FontWeight="SemiBold" />
                 <TextBlock DockPanel.Dock="Top" Style="{StaticResource Hint}" Margin="0,2,0,10"
@@ -140,7 +140,7 @@
                 </DataGrid>
             </DockPanel>
 
-            <!-- Étape -->
+            <!-- Step -->
             <DockPanel Grid.Column="2" x:Name="StepView" Margin="8,4,4,4" Visibility="Collapsed">
                 <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
                     <Grid.ColumnDefinitions>
@@ -192,7 +192,7 @@
                             <TextBox x:Name="ArgsBox" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Arguments, UpdateSourceTrigger=PropertyChanged}" TextChanged="InstallFields_Changed" />
                             <TextBlock x:Name="SilentHint" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}" />
 
-                            <!-- Fichiers additionnels (Installer, Commande, PowerShell) et dossier entier (Installer) -->
+                            <!-- Additional files (Install, Command, PowerShell) and whole folder (Install) -->
                             <Grid x:Name="FilesPanel" Grid.Row="4" Grid.ColumnSpan="3">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="130" />
@@ -218,7 +218,7 @@
                                           Content="Copier tout le dossier du fichier (installeurs en plusieurs fichiers)" IsChecked="{Binding IncludeDirectory}" />
                             </Grid>
 
-                            <!-- Installer : options Windows Installer, ligne de commande, garder le fichier -->
+                            <!-- Install: Windows Installer options, command line, keep the file -->
                             <Grid x:Name="InstallPanel" Grid.Row="5" Grid.ColumnSpan="3">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="130" />
@@ -274,7 +274,7 @@
                                      Text="{Binding Command, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas"
                                      AcceptsReturn="True" AcceptsTab="True" VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto" Margin="0,0,0,10" />
 
-                            <!-- Copie de fichiers -->
+                            <!-- File copy -->
                             <Grid x:Name="CopyPanel" Grid.RowSpan="8" Grid.ColumnSpan="3" VerticalAlignment="Top">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="130" />
@@ -327,7 +327,7 @@
                                           ToolTip="Par exemple un fichier en cours d'utilisation. Une source introuvable reste une erreur." />
                             </Grid>
 
-                            <!-- Redémarrer -->
+                            <!-- Restart -->
                             <Grid x:Name="RebootPanel" Grid.RowSpan="8" Grid.ColumnSpan="3" VerticalAlignment="Top">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="130" />
@@ -406,7 +406,7 @@
                             <TextBlock x:Name="PauseHint" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}"
                                        Text="Le poste attend avant l'étape suivante (1 seconde à 24 heures). Rien n'est lancé sur le poste." />
 
-                            <!-- Paquet imbriqué -->
+                            <!-- Nested package -->
                             <TextBlock x:Name="NestedLabel" Style="{StaticResource FieldLabel}" Text="Paquet" />
                             <ComboBox x:Name="NestedBox" Grid.Column="1" Grid.ColumnSpan="2" DisplayMemberPath="Name" SelectedValuePath="Id"
                                       AutomationProperties.Name="Paquet imbriqué" SelectionChanged="Nested_Changed" />

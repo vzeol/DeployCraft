@@ -9,8 +9,8 @@ public record StepDetailRow(int Number, string Name, string Status, string Retur
     /// <summary>Every step of the package, run or not, to see where the deployment stopped.</summary>
     public static List<StepDetailRow> For(Deployment deployment, DeploymentTarget target)
     {
-        // Toutes les étapes du paquet, exécutées ou non, pour voir où le déploiement s'est arrêté.
-        // Les étapes avant l'étape de départ n'ont pas été exécutées (« redéployer depuis l'étape en échec »).
+        // Every step of the package, run or not, to see where the deployment stopped.
+        // Steps before the start step were not run ("redeploy from the failed step").
         var offset = target.StartStep - 1;
         return deployment.Snapshot.Steps.Select((step, i) =>
         {
@@ -22,7 +22,7 @@ public record StepDetailRow(int Number, string Name, string Status, string Retur
                 outcome?.State ?? (j < 0 || target.Status == TargetStatus.Failed ? "skipped" : "Queued"),
                 outcome?.ExitCode?.ToString() ?? "",
                 outcome?.State == "skipped" ? "" : Ui.Duration(outcome?.StartedUtc, outcome?.EndedUtc),
-                // Déploiements antérieurs au compteur : une étape passée compte pour une exécution.
+                // Deployments from before the counter: a past step counts as one run.
                 outcome == null ? "" : Math.Max(outcome.Runs, outcome.Ran ? 1 : 0).ToString(),
                 outcome?.Note ?? "",
                 outcome?.CommandLine ?? outcome?.Error ?? "",

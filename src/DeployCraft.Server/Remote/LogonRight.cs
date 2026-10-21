@@ -5,9 +5,9 @@ using System.Text;
 namespace DeployCraft.Server.Remote;
 
 /// <summary>
-/// Accorde au compte de déploiement le droit « Ouvrir une session en tant que service » sur un poste,
-/// sans quoi le service temporaire ne peut pas démarrer sous ce compte (erreur 1069).
-/// À appeler sous l'identité du compte de déploiement (il doit être admin du poste).
+/// Grants the deployment account the "Log on as a service" right on a computer,
+/// without which the temporary service cannot start under that account (error 1069).
+/// To be called under the deployment account's identity (it must be admin of the computer).
 /// </summary>
 internal static class LogonRight
 {
@@ -50,8 +50,8 @@ internal static class LogonRight
     private static extern bool LookupAccountName(string? systemName, string accountName, byte[]? sid, ref uint sidSize,
         StringBuilder? domain, ref uint domainSize, out int use);
 
-    /// <param name="computer">null pour la machine locale.</param>
-    /// <param name="account">DOMAINE\utilisateur (ou POSTE\utilisateur pour un compte local).</param>
+    /// <param name="computer">null for the local machine.</param>
+    /// <param name="account">DOMAIN\user (or COMPUTER\user for a local account).</param>
     public static void GrantServiceLogon(string? computer, string account)
     {
         var sid = LookupSid(computer, account);

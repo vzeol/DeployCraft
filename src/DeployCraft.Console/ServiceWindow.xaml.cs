@@ -4,7 +4,7 @@ using System.Windows.Media;
 
 namespace DeployCraft.Console;
 
-/// <summary>Options › Service en arrière-plan : état du service, redémarrage, compte Windows sous lequel il tourne.</summary>
+/// <summary>Options › Service en arrière-plan: service state, restart, Windows account it runs under.</summary>
 public partial class ServiceWindow : Window
 {
     private ServiceState? _state;
@@ -23,7 +23,7 @@ public partial class ServiceWindow : Window
         }
         catch (ApiException ex)
         {
-            StateIcon.Text = ""; // croix
+            StateIcon.Text = ""; // cross
             StateIcon.Foreground = (Brush)FindResource("KoBrush");
             StateText.Text = "Service injoignable";
             Hint.Text = ex.Message;
@@ -33,7 +33,7 @@ public partial class ServiceWindow : Window
         }
 
         var info = _state.Info;
-        StateIcon.Text = info.Elevated ? "" : ""; // coche, ou avertissement
+        StateIcon.Text = info.Elevated ? "" : ""; // checkmark, or warning
         StateIcon.Foreground = (Brush)FindResource(info.Elevated ? "OkBrush" : "WarnBrush");
         StateText.Text = $"En marche depuis le {Ui.LocalTime(info.StartedUtc)}" + (info.IsService ? "" : " (lancé à la main, pas en service Windows)");
         ServicesLink.Visibility = _state.Local ? Visibility.Visible : Visibility.Collapsed;

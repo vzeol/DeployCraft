@@ -19,7 +19,7 @@ internal static class TargetEndpoints
             }
         });
 
-        // « Déployer une fois » : chaque poste ajouté est cherché dans le DNS du serveur (coche ou croix dans la liste).
+        // "Déployer une fois": each added computer is looked up in the server DNS (check or cross in the list).
         api.MapPost("/names/check", (List<string> names, NameCheck check, CancellationToken ct) => check.CheckAsync(names.Take(1000), ct));
     }
 }

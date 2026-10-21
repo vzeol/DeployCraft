@@ -10,8 +10,8 @@ using Microsoft.Win32.SafeHandles;
 namespace DeployCraft.Runner
 {
     /// <summary>
-    /// Processus lancé dans la session de l'utilisateur connecté (bureau winsta0\default),
-    /// avec sa sortie récupérée par un tube. Le runner doit tourner en Système local.
+    /// Process started in the logged-on user's session (desktop winsta0\default),
+    /// with its output collected through a pipe. The runner must run as Local System.
     /// </summary>
     internal sealed class UserProcess : IDisposable
     {
@@ -20,11 +20,11 @@ namespace DeployCraft.Runner
 
         public int Id { get; private set; }
 
-        /// <summary>Utilisateur de la session ciblée (DOMAINE\nom), pour le journal.</summary>
+        /// <summary>User of the targeted session (DOMAIN\name), for the log.</summary>
         public string User { get; private set; }
 
-        /// <param name="sessionId">Session où lancer le processus (null = la première session ouverte).</param>
-        /// <param name="onOutput">Reçoit la sortie du programme par morceaux d'octets (décodés plus tard).</param>
+        /// <param name="sessionId">Session where to start the process (null = the first open session).</param>
+        /// <param name="onOutput">Receives the program output in chunks of bytes (decoded later).</param>
         public static UserProcess Start(string fileName, string arguments, string workingDirectory, Action<byte[], int> onOutput, uint? sessionId = null)
         {
             string user;
@@ -50,7 +50,7 @@ namespace DeployCraft.Runner
                 var sa = new SECURITY_ATTRIBUTES { nLength = Marshal.SizeOf(typeof(SECURITY_ATTRIBUTES)), bInheritHandle = true };
                 if (!CreatePipe(out outRead, out outWrite, ref sa, 0) || !CreatePipe(out inRead, out inWrite, ref sa, 0))
                     throw new Win32Exception(Marshal.GetLastWin32Error(), "Création des tubes de sortie");
-                // Seuls les bouts côté processus enfant sont hérités.
+                // Only the child-side ends are inherited.
                 SetHandleInformation(outRead, HANDLE_FLAG_INHERIT, 0);
                 SetHandleInformation(inWrite, HANDLE_FLAG_INHERIT, 0);
 
@@ -71,7 +71,7 @@ namespace DeployCraft.Runner
                 CloseHandle(pi.hThread);
                 var result = new UserProcess { _process = pi.hProcess, Id = pi.dwProcessId, User = user };
 
-                // Aucune saisie possible : l'entrée est fermée tout de suite, comme pour les étapes en Système.
+                // No input possible: the input is closed right away, as for the System steps.
                 CloseHandle(inWrite); inWrite = IntPtr.Zero;
                 var readHandle = new SafeFileHandle(outRead, true);
                 outRead = IntPtr.Zero;
@@ -90,7 +90,7 @@ namespace DeployCraft.Runner
             }
             finally
             {
-                // Les bouts hérités par l'enfant se ferment chez nous : la lecture s'arrête quand il se termine.
+                // The ends inherited by the child are closed on our side: reading stops when it ends.
                 foreach (var h in new[] { outWrite, inRead, inWrite, outRead })
                     if (h != IntPtr.Zero) CloseHandle(h);
                 if (environment != IntPtr.Zero) DestroyEnvironmentBlock(environment);
@@ -100,7 +100,7 @@ namespace DeployCraft.Runner
 
         public bool WaitForExit(int milliseconds) => WaitForSingleObject(_process, (uint)milliseconds) == 0;
 
-        /// <summary>Attend la fin de la lecture de la sortie (après la fin du processus).</summary>
+        /// <summary>Waits for the end of the output reading (after the process has ended).</summary>
         public void WaitForOutput() => _reader?.Join(10000);
 
         public int ExitCode => GetExitCodeProcess(_process, out var code) ? (int)code : -1;
@@ -111,7 +111,7 @@ namespace DeployCraft.Runner
             _process = IntPtr.Zero;
         }
 
-        /// <summary>Quelqu'un a-t-il ouvert une session sur le poste (écran verrouillé compris) ?</summary>
+        /// <summary>Has someone opened a session on the computer (locked screen included)?</summary>
         public static bool IsUserLoggedOn()
         {
             try
@@ -125,7 +125,7 @@ namespace DeployCraft.Runner
             }
         }
 
-        /// <summary>Sessions ouvertes sur le poste (hors session des services), avec leur utilisateur.</summary>
+        /// <summary>Sessions open on the computer (except the services session), with their user.</summary>
         public static List<KeyValuePair<uint, string>> ActiveSessions()
         {
             var list = new List<KeyValuePair<uint, string>>();

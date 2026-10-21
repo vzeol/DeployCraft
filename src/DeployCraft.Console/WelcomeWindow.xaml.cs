@@ -4,16 +4,16 @@ using System.Windows.Media;
 
 namespace DeployCraft.Console;
 
-/// <summary>Une étape de l'assistant : faite ou non, et ce que fait son bouton.</summary>
+/// <summary>One step of the wizard: done or not, and what its button does.</summary>
 public record WelcomeStep(string Title, string Text, string Action, bool Done, bool Optional, Func<Task> Run)
 {
-    public string Mark => Done ? Ui.StatusIcon("Successful") : Optional ? Ui.IconSettings : ""; // coche, réglages, cercle vide
+    public string Mark => Done ? Ui.StatusIcon("Successful") : Optional ? Ui.IconSettings : ""; // checkmark, settings, empty circle
     public Brush MarkBrush => (Brush)Application.Current.Resources[Done ? "OkBrush" : Optional ? "MutedBrush" : "Accent"];
 }
 
 /// <summary>
-/// Assistant de premier démarrage (Aide › Assistant de démarrage) : identifiant de déploiement, dossier de la
-/// bibliothèque, premier paquet, préférences. Ouvert tout seul tant que le serveur n'a ni identifiant ni paquet.
+/// First-start wizard (Aide › Assistant de démarrage): deployment credentials, library folder,
+/// first package, preferences. Opens by itself as long as the server has neither credentials nor package.
 /// </summary>
 public partial class WelcomeWindow : Window
 {
@@ -25,7 +25,7 @@ public partial class WelcomeWindow : Window
         _main = main;
         Owner = main;
         Loaded += async (_, _) => await LoadAsync();
-        // Non modale : on peut travailler dans la console (bibliothèque…) et revenir ; l'état est relu au retour.
+        // Modeless: you can work in the console (library...) and come back; the state is re-read on return.
         Activated += async (_, _) =>
         {
             if (IsLoaded && !_loading) await LoadAsync();
@@ -34,7 +34,7 @@ public partial class WelcomeWindow : Window
 
     private bool _loading;
 
-    /// <summary>Le serveur n'a encore rien de configuré : l'assistant s'ouvre au démarrage de la console.</summary>
+    /// <summary>The server has nothing configured yet: the wizard opens when the console starts.</summary>
     public static async Task<bool> NeededAsync()
     {
         try

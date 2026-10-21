@@ -4,7 +4,7 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Console;
 
-/// <summary>Choix d'une planification où ajouter un paquet (clic droit sur un paquet › Ajouter à une planification…).</summary>
+/// <summary>Choice of a schedule to add a package to (right-click on a package › Ajouter à une planification...).</summary>
 public partial class SchedulePickerWindow : Window
 {
     public Schedule? Selected => List.SelectedItem as Schedule;

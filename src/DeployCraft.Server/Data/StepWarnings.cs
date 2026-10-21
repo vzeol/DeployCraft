@@ -1,12 +1,12 @@
 namespace DeployCraft.Server.Data;
 
 /// <summary>
-/// Avertissements d'une étape, affichés dans la fenêtre du paquet et rappelés à l'enregistrement : rien de bloquant,
-/// mais un déploiement risque d'échouer ou de ne pas se passer comme prévu.
+/// Warnings of a step, shown in the package window and recalled on save: nothing blocking,
+/// but a deployment may fail or not go as planned.
 /// </summary>
 public static class StepWarnings
 {
-    /// <summary>Fichiers et dossiers que le serveur (ou le poste, en pull) devra lire pour cette étape.</summary>
+    /// <summary>Files and folders the server (or the computer, in pull) will have to read for this step.</summary>
     public static List<string> Paths(PackageStep step)
     {
         var paths = new List<string>();
@@ -18,8 +18,8 @@ public static class StepWarnings
         return paths;
     }
 
-    /// <param name="copyMode">Mode de copie effectif du paquet.</param>
-    /// <param name="missing">Chemins introuvables depuis le serveur (vérifiés par le service).</param>
+    /// <param name="copyMode">Effective copy mode of the package.</param>
+    /// <param name="missing">Paths not found from the server (checked by the service).</param>
     public static List<string> For(PackageStep step, CopyMode copyMode, IReadOnlyCollection<string> missing)
     {
         var warnings = new List<string>();

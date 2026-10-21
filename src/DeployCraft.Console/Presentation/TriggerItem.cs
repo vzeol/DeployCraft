@@ -3,7 +3,7 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Console;
 
-/// <summary>Déclencheur affiché dans la liste ; le texte suit les modifications de l'éditeur.</summary>
+/// <summary>Trigger shown in the list; the text follows the editor's changes.</summary>
 public class TriggerItem(ScheduleTrigger trigger) : INotifyPropertyChanged
 {
     public ScheduleTrigger Trigger { get; } = trigger;

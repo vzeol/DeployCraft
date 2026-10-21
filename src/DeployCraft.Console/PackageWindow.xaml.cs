@@ -7,10 +7,10 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Console;
 
-/// <summary>Éditeur de paquet : propriétés et étapes à gauche, détail de l'élément sélectionné à droite.</summary>
+/// <summary>Package editor: properties and steps on the left, details of the selected item on the right.</summary>
 public partial class PackageWindow : Window
 {
-    /// <summary>Format presse-papiers des étapes : on peut coller dans un autre paquet, même dans une autre fenêtre.</summary>
+    /// <summary>Steps clipboard format: can be pasted into another package, even in another window.</summary>
     private const string StepFormat = "DeployCraft.Step";
 
     private readonly TreeViewItem _propertiesNode;
@@ -18,12 +18,12 @@ public partial class PackageWindow : Window
     private string _savedSnapshot;
     private bool _loadingStep;
     private bool _loadingOptions;
-    /// <summary>Valeurs des Préférences, affichées pour les réglages laissés « par défaut ».</summary>
+    /// <summary>Preferences values, shown for settings left on "default".</summary>
     private DeploymentDefaults _defaults = new();
-    /// <summary>Paquets du service : choix d'un paquet imbriqué et résumé des étapes.</summary>
+    /// <summary>Service packages: choice of a nested package and steps summary.</summary>
     private List<Package> _library = [];
 
-    /// <summary>Paquet tel qu'enregistré en dernier (valide si <see cref="Saved"/>).</summary>
+    /// <summary>Package as last saved (valid if <see cref="Saved"/>).</summary>
     public Package Package { get; private set; }
     public bool Saved { get; private set; }
 
@@ -77,7 +77,7 @@ public partial class PackageWindow : Window
 
     private PackageStep? SelectedStep => (Tree.SelectedItem as TreeViewItem)?.Tag as PackageStep;
 
-    // ---------- Arbre ----------
+    // ---------- Tree ----------
 
     private void RebuildSteps(PackageStep? select)
     {
@@ -130,7 +130,7 @@ public partial class PackageWindow : Window
             if (node.Tag == step) { node.IsSelected = true; node.BringIntoView(); }
     }
 
-    // ---------- Détail d'une étape ----------
+    // ---------- Step details ----------
 
     private void ShowStep(PackageStep step)
     {
@@ -209,11 +209,11 @@ public partial class PackageWindow : Window
         WarningFields_Changed(sender, e);
     }
 
-    // ---------- Enregistrement ----------
+    // ---------- Saving ----------
 
     private async void Save_Click(object sender, RoutedEventArgs e) => await SaveAsync();
 
-    /// <summary>Champs lus à l'enregistrement (pas de liaison) : nom, version, description.</summary>
+    /// <summary>Fields read on saving (no binding): name, version, description.</summary>
     private void ReadTextFields()
     {
         Package.Name = NameBox.Text.Trim();
@@ -253,14 +253,14 @@ public partial class PackageWindow : Window
         base.OnClosing(e);
         var name = Package.Name;
         ReadTextFields();
-        Package.Name = name; // le nom n'est rogné qu'à l'enregistrement
+        Package.Name = name; // the name is only trimmed on saving
         if (e.Cancel || Snapshot() == _savedSnapshot) return;
 
         var answer = MessageDialog.Show(this, "Enregistrer les modifications du paquet ?", "Paquet",
             MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
         if (answer == MessageBoxResult.No) return;
 
-        e.Cancel = true; // on rouvre la question après l'enregistrement asynchrone
+        e.Cancel = true; // we reopen the question after the asynchronous save
         if (answer == MessageBoxResult.Yes && await SaveAsync())
         {
             _savedSnapshot = Snapshot();

@@ -9,7 +9,7 @@ namespace DeployCraft.Console;
 /// <summary>Package editor: Install step options, command line and warnings.</summary>
 public partial class PackageWindow
 {
-    // ---------- Avertissements (fichier introuvable, pas de paramètre silencieux, mode pull) ----------
+    // ---------- Warnings (file not found, no silent parameter, pull mode) ----------
 
     private readonly PathCheck _paths = new();
     private readonly System.Windows.Threading.DispatcherTimer _warningCheck = new() { Interval = TimeSpan.FromMilliseconds(700) };
@@ -31,7 +31,7 @@ public partial class PackageWindow
         StepWarningsText.Visibility = warnings.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    /// <summary>Demande au service quels chemins il ne trouve pas ; sans réponse, rien n'est signalé.</summary>
+    /// <summary>Asks the service which paths it cannot find; with no answer, nothing is reported.</summary>
     private async Task CheckPathsAsync(IEnumerable<string> paths, bool again = false)
     {
         var toCheck = _paths.ToCheck(paths, again);
@@ -51,14 +51,14 @@ public partial class PackageWindow
         UpdateStepWarnings();
     }
 
-    /// <summary>Avertissements de toutes les étapes, vérifiés à nouveau juste avant l'enregistrement.</summary>
+    /// <summary>Warnings of all the steps, checked again just before saving.</summary>
     private async Task<List<string>> AllWarningsAsync()
     {
         await CheckPathsAsync(Package.Steps.SelectMany(StepWarnings.Paths), again: true);
         return [.. Package.Steps.SelectMany((s, i) => StepWarnings.For(s, EffectiveCopyMode, _paths.Missing).Select(w => $"Étape {i + 1} « {s.Name} » : {w}"))];
     }
 
-    // ---------- Installer : options Windows Installer et ligne de commande ----------
+    // ---------- Installer: Windows Installer options and command line ----------
 
     private bool _updatingCommandLine;
 
@@ -81,14 +81,14 @@ public partial class PackageWindow
         UpdateCommandLine();
     }
 
-    /// <summary>Options Windows Installer selon le fichier ; ligne générée, ou ligne écrite à la main si « Personnalisée ».</summary>
+    /// <summary>Windows Installer options according to the file; generated line, or hand-written line if "Personnalisée".</summary>
     private void UpdateCommandLine()
     {
         if (SelectedStep is not { Type: StepType.Install } step) return;
         var (msi, operation, repair) = StepTexts.InstallOptions(step.File);
         foreach (UIElement el in new UIElement[] { MsiRestartLabel, MsiRestartPanel, MsiQuietBox })
             el.Visibility = msi ? Visibility.Visible : Visibility.Collapsed;
-        // .msp : un correctif s'applique seulement ; .msu : pas de réparation.
+        // .msp: a patch can only be applied; .msu: no repair.
         MsiOperationLabel.Visibility = MsiOperationPanel.Visibility = operation ? Visibility.Visible : Visibility.Collapsed;
         MsiRepairRadio.Visibility = repair ? Visibility.Visible : Visibility.Collapsed;
 
@@ -112,7 +112,7 @@ public partial class PackageWindow
         UpdateCommandLine();
     }
 
-    /// <summary>Cochée : la ligne générée devient modifiable. Décochée : on revient à la ligne générée.</summary>
+    /// <summary>Checked: the generated line becomes editable. Unchecked: back to the generated line.</summary>
     private void CustomCommand_Click(object sender, RoutedEventArgs e)
     {
         if (SelectedStep is not { Type: StepType.Install } step) return;
@@ -137,11 +137,11 @@ public partial class PackageWindow
         AdditionalFilesBox.Text = step.AdditionalFiles;
     }
 
-    /// <summary>Un .exe sans paramètre silencieux attend un clic qui n'arrivera jamais : on prévient.</summary>
+    /// <summary>An .exe with no silent parameter waits for a click that will never come: we warn.</summary>
     private void UpdateSilentHint()
     {
         if (SelectedStep is not { Type: StepType.Install } step) return;
-        // L'absence de paramètre silencieux est signalée en haut de l'étape ; ici, les paramètres courants pour aider.
+        // The missing silent parameter is reported at the top of the step; here, the usual parameters to help.
         SilentHint.Text = StepTexts.SilentHint(step.File);
     }
 

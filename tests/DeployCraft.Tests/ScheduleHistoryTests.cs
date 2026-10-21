@@ -2,7 +2,7 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Historique des cibles d'une planification, sur une base SQLite jetable.</summary>
+/// <summary>History of the targets of a schedule, on a throwaway SQLite database.</summary>
 public sealed class ScheduleHistoryTests : IDisposable
 {
     private readonly string _dir = Directory.CreateTempSubdirectory("dc-tests-").FullName;

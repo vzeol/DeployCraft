@@ -6,8 +6,8 @@ using DeployCraft.Server.Data;
 namespace DeployCraft.Console;
 
 /// <summary>
-/// Fenêtre d'une planification, à onglets : déclencheurs, cibles, paquets, options,
-/// historique des cibles (réussite et nombre d'échecs par poste et par paquet).
+/// Schedule window, with tabs: triggers, targets, packages, options,
+/// target history (success and number of failures per computer and per package).
 /// </summary>
 public partial class ScheduleWindow : Window
 {
@@ -16,11 +16,11 @@ public partial class ScheduleWindow : Window
     private readonly ObservableCollection<string> _targets = [];
     private readonly ObservableCollection<PackageItem> _packages = [];
     private List<Package> _library = [];
-    /// <summary>Préférences : valeur des paquets laissés « par défaut ».</summary>
+    /// <summary>Preferences: value of packages left on "default".</summary>
     private DeploymentDefaults _defaults = new();
     private bool _loading;
 
-    /// <summary>Planification enregistrée (après OK).</summary>
+    /// <summary>Saved schedule (after OK).</summary>
     public Schedule? Saved { get; private set; }
 
     public ScheduleWindow(Schedule schedule)
@@ -86,9 +86,9 @@ public partial class ScheduleWindow : Window
         catch (ApiException ex) { Ui.Error(this, ex); }
     }
 
-    // ---------- Enregistrement ----------
+    // ---------- Saving ----------
 
-    /// <summary>Recopie la fenêtre dans un objet planification ; null (avec message) si une saisie est invalide.</summary>
+    /// <summary>Copies the window into a schedule object; null (with a message) if an input is invalid.</summary>
     private Schedule? Collect()
     {
         if (!string.IsNullOrWhiteSpace(ComputerBox.Text)) { AddNames(ComputerBox.Text); ComputerBox.Clear(); }

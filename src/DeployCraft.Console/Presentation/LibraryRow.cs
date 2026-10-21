@@ -2,7 +2,7 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Console;
 
-/// <summary>Ligne de la bibliothèque de paquets.</summary>
+/// <summary>Row of the package library.</summary>
 public record LibraryRow(LibraryItem Item)
 {
     public string Id => Item.Id;
@@ -10,7 +10,7 @@ public record LibraryRow(LibraryItem Item)
     public string Latest => Item.LatestVersion ?? "—";
     public string Downloaded => Item.PackageVersion ?? "—";
     public string Installer => Item.Installer ?? "";
-    /// <summary>Le logiciel peut être téléchargé (ou mis à jour) maintenant.</summary>
+    /// <summary>The software can be downloaded (or updated) now.</summary>
     public bool CanDownload => Item.Stage == null && Item.Problem == null && Item.LatestVersion != null && (Item.PackageId == null || Item.UpdateAvailable);
 
     public string State

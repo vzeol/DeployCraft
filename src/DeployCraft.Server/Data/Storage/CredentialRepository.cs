@@ -36,7 +36,7 @@ public sealed class CredentialRepository(Database database) : ICredentialReposit
         return r.Read() ? ReadCredential(r) : null;
     }
 
-    /// <summary>Mot de passe chiffré (base64) tel qu'il est rangé.</summary>
+    /// <summary>Encrypted password (base64) as stored.</summary>
     public string? GetSecret(long id)
     {
         using var connection = database.Open();
@@ -45,8 +45,8 @@ public sealed class CredentialRepository(Database database) : ICredentialReposit
     }
 
     /// <summary>
-    /// Enregistre un identifiant. <paramref name="secret"/> null = garder le mot de passe actuel.
-    /// Le premier identifiant devient celui par défaut.
+    /// Saves a credential. <paramref name="secret"/> null = keep the current password.
+    /// The first credential becomes the default one.
     /// </summary>
     public Credential Save(Credential c, string? secret)
     {
@@ -79,7 +79,7 @@ public sealed class CredentialRepository(Database database) : ICredentialReposit
         return Get(c.Id)!;
     }
 
-    /// <summary>Supprime un identifiant ; s'il était par défaut, le premier restant le devient.</summary>
+    /// <summary>Deletes a credential; if it was the default, the first remaining one becomes it.</summary>
     public void Delete(long id)
     {
         using var connection = database.Open();

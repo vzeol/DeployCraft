@@ -42,8 +42,8 @@ internal static class PackageEndpoints
             return Results.NoContent();
         });
 
-        // Avertissements de la fenêtre du paquet : chemins introuvables depuis le serveur, lus comme pour un déploiement
-        // (partage ouvert avec l'identifiant par défaut). Une vérification impossible (identifiant refusé…) ne signale rien.
+        // Package window warnings: paths not found from the server, read as for a deployment
+        // (share opened with the default credentials). A check that is impossible (credentials refused...) reports nothing.
         api.MapPost("/files/missing", (List<string> paths, DeployCredentials cred) =>
         {
             var account = cred.Default;
@@ -62,7 +62,7 @@ internal static class PackageEndpoints
             }).ToList();
         });
 
-        // Export : les paquets choisis et les paquets imbriqués qu'ils utilisent, dans un fichier qui se suffit à lui-même.
+        // Export: the chosen packages and the nested packages they use, in a self-contained file.
         api.MapPost("/packages/export", (List<long> ids, IPackageRepository packageRepository) =>
         {
             try
@@ -75,7 +75,7 @@ internal static class PackageEndpoints
             }
         });
 
-        // Import d'un fichier de paquets (.json ou .xml) : aperçu (Apply = false) ou création des paquets.
+        // Import of a packages file (.json or .xml): preview (Apply = false) or creation of the packages.
         api.MapPost("/packages/import", (ImportInput input, IPackageRepository packageRepository) =>
         {
             ImportReport report;
@@ -91,7 +91,7 @@ internal static class PackageEndpoints
             return Results.Ok(report);
         });
 
-        // « Mémoriser ces cibles » : la fenêtre Déployer une fois les propose à nouveau pour ce paquet.
+        // "Mémoriser ces cibles" (Remember these targets): the Déployer une fois window offers them again for this package.
         api.MapGet("/packages/{id:long}/targets", (long id, IPackageRepository packageRepository) => packageRepository.GetTargets(id));
 
         api.MapPut("/packages/{id:long}/targets", (long id, List<string> computers, IPackageRepository packageRepository) =>

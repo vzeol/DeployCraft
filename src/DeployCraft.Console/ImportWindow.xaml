@@ -12,7 +12,7 @@
 
         <TextBlock DockPanel.Dock="Top" x:Name="FileText" TextWrapping="Wrap" Margin="0,0,0,8" />
 
-        <!-- Dossier qui remplace $(Repository) dans les chemins -->
+        <!-- Folder that replaces $(Repository) in the paths -->
         <DockPanel DockPanel.Dock="Top" x:Name="RepositoryPanel" Margin="0,0,0,8" Visibility="Collapsed">
             <TextBlock DockPanel.Dock="Top" Style="{StaticResource Hint}" Margin="0,0,0,4"
                        Text="Dossier du dépôt (partage réseau) : il remplace $(Repository) dans les chemins des paquets. Laissez vide si vos paquets ne l'utilisent pas." />

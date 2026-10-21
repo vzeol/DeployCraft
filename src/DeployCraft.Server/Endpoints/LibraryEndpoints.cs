@@ -24,7 +24,7 @@ internal static class LibraryEndpoints
         api.MapPut("/library/auto-update", (LibraryAutoUpdateInput input, PackageLibrary library) =>
             library.SetAutoUpdate(input.Mode, input.Days) is { } error ? Results.BadRequest(new { error }) : Results.NoContent());
 
-        // La fiche du logiciel est lue tout de suite (refus expliqué) ; le téléchargement continue en arrière-plan.
+        // The software's entry is read right away (refusal explained); the download continues in the background.
         api.MapPost("/library/download", async (LibraryDownloadInput input, PackageLibrary library) =>
             await library.StartDownloadAsync(input.Id ?? "") is { } error ? Results.BadRequest(new { error }) : Results.NoContent());
     }

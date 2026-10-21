@@ -5,7 +5,7 @@
         Title="Préférences" Height="500" Width="760" ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner" Background="{DynamicResource WindowBackground}" Foreground="{DynamicResource TextBrush}" ShowInTaskbar="False">
     <Window.Resources>
-        <!-- Pages en liste à gauche : la page choisie est surlignée en orange. -->
+        <!-- Pages as a list on the left: the chosen page is highlighted in orange. -->
         <Style x:Key="PageItem" TargetType="TabItem">
             <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
             <Setter Property="Template">
@@ -63,7 +63,7 @@
                 </StackPanel>
             </TabItem>
 
-            <!-- Déploiement : valeurs des paquets laissés « par défaut » -->
+            <!-- Deployment: values of packages left on "default" -->
             <TabItem Header="Déploiement">
                 <Grid x:Name="DeploymentPage" IsEnabled="False">
                     <Grid.ColumnDefinitions>
@@ -114,7 +114,7 @@
                 </Grid>
             </TabItem>
 
-            <!-- Hors ligne -->
+            <!-- Offline -->
             <TabItem Header="Hors ligne">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel>

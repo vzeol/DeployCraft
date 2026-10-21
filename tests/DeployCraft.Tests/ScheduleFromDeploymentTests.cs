@@ -2,7 +2,7 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Nouvelle planification pré-remplie à partir d'un déploiement.</summary>
+/// <summary>New schedule pre-filled from a deployment.</summary>
 public class ScheduleFromDeploymentTests
 {
     [Fact]
@@ -41,7 +41,7 @@ public class ScheduleFromDeploymentTests
         Assert.Equal([1L, 2L], schedule.PackageIds);
 
         Assert.True(schedule.Detach(1));
-        Assert.False(schedule.Detach(2)); // seul paquet restant
+        Assert.False(schedule.Detach(2)); // last remaining package
         Assert.False(schedule.Detach(9));
         Assert.Equal([2L], schedule.PackageIds);
     }

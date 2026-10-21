@@ -2,7 +2,7 @@ using System.Windows;
 
 namespace DeployCraft.Console;
 
-/// <summary>Petite fenêtre de saisie d'un texte (renommer…).</summary>
+/// <summary>Small window to enter a text (rename...).</summary>
 public partial class InputDialog : Window
 {
     public string Value => Input.Text.Trim();
@@ -16,7 +16,7 @@ public partial class InputDialog : Window
         Loaded += (_, _) => { Input.Focus(); Input.SelectAll(); };
     }
 
-    /// <summary>Affiche la fenêtre ; renvoie le texte saisi, ou null si annulé ou vide.</summary>
+    /// <summary>Shows the window; returns the entered text, or null if cancelled or empty.</summary>
     public static string? Ask(Window owner, string title, string prompt, string initial)
     {
         var dialog = new InputDialog(title, prompt, initial) { Owner = owner };

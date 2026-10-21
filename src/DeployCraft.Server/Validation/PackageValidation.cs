@@ -7,17 +7,17 @@ internal static class PackageValidation
 {
     internal static string? Validate(Package p, Func<long, Package?> lookup)
     {
-        // Un client qui envoie null obtient « aucune condition ».
+        // A client that sends null gets "no condition".
         p.Conditions ??= new();
         foreach (var step in p.Steps)
         {
             step.Conditions ??= new();
-            step.ExtraConditions = null; // posées seulement au lancement, à partir des paquets imbriqués
+            step.ExtraConditions = null; // set only at launch, from nested packages
         }
         if (string.IsNullOrWhiteSpace(p.Name)) return "Le paquet doit avoir un nom.";
         if (p.TimeoutMinutes is < 1) return "Options : le délai max doit être d'au moins 1 minute.";
         if (ValidateConditions(p.Conditions) is { } conditionError) return $"Conditions du paquet : {conditionError}";
-        // Paquets imbriqués : choisis, existants, sans boucle ni trop de niveaux (le paquet enregistré compte pour lui-même).
+        // Nested packages: chosen, existing, no loop nor too many levels (the saved package counts for itself).
         try
         {
             p.Flatten(id => id == p.Id ? p : lookup(id));

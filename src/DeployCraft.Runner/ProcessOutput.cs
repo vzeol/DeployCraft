@@ -6,8 +6,8 @@ using System.Text;
 namespace DeployCraft.Runner
 {
     /// <summary>
-    /// Sortie d'un programme, gardée telle quelle (octets) puis décodée d'un bloc : un outil peut écrire en page de code
-    /// OEM (la plupart des outils console) ou en UTF-16 (msiexec, certains utilitaires), voire mélanger les deux.
+    /// Output of a program, kept as is (bytes) then decoded in one go: a tool may write in the OEM code page
+    /// (most console tools) or in UTF-16 (msiexec, some utilities), or even mix both.
     /// </summary>
     internal sealed class ProcessOutput
     {
@@ -26,7 +26,7 @@ namespace DeployCraft.Runner
             }
         }
 
-        /// <summary>Lit <paramref name="stream"/> jusqu'au bout (fin du programme).</summary>
+        /// <summary>Reads <paramref name="stream"/> to the end (end of the program).</summary>
         public void ReadAll(Stream stream)
         {
             var buffer = new byte[4096];
@@ -40,8 +40,8 @@ namespace DeployCraft.Runner
         }
 
         /// <summary>
-        /// Décode les passages UTF-16 (un octet nul après chaque caractère courant) en UTF-16, le reste en
-        /// <paramref name="oem"/>. Un texte OEM ne contient jamais d'octet nul : pas de confusion possible.
+        /// Decodes UTF-16 passages (a null byte after each common character) as UTF-16, the rest as
+        /// <paramref name="oem"/>. OEM text never contains a null byte: no confusion possible.
         /// </summary>
         public static string Decode(byte[] data, Encoding oem)
         {
@@ -49,7 +49,7 @@ namespace DeployCraft.Runner
             int start = 0, i = 0, n = data.Length;
             while (i < n)
             {
-                // Marque d'ordre UTF-16 en tête de sortie : ignorée.
+                // UTF-16 byte order mark at the start of the output: ignored.
                 if (i + 1 < n && data[i] == 0xFF && data[i + 1] == 0xFE)
                 {
                     text.Append(oem.GetString(data, start, i - start));
@@ -72,7 +72,7 @@ namespace DeployCraft.Runner
             return text.Replace("\0", "").ToString();
         }
 
-        /// <summary>Longueur (en octets) du passage UTF-16 qui commence à <paramref name="i"/>.</summary>
+        /// <summary>Length (in bytes) of the UTF-16 passage starting at <paramref name="i"/>.</summary>
         private static int Utf16Run(byte[] data, int i, int n)
         {
             var j = i;
@@ -83,7 +83,7 @@ namespace DeployCraft.Runner
                     j += 2;
                     continue;
                 }
-                // Caractère hors Latin-1 (apostrophe typographique…) au milieu d'un passage UTF-16 déjà reconnu.
+                // Character outside Latin-1 (typographic apostrophe...) in the middle of an already recognized UTF-16 passage.
                 if (j - i >= 6 && data[j + 1] != 0 && j + 3 < n && data[j + 2] != 0 && data[j + 3] == 0)
                 {
                     j += 2;

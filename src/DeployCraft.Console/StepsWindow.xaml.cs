@@ -7,7 +7,7 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Console;
 
-/// <summary>Détail des étapes exécutées sur un poste : statut, code retour, durée, sortie.</summary>
+/// <summary>Detail of the steps run on a computer: status, return code, duration, output.</summary>
 public partial class StepsWindow : Window
 {
     private readonly int _startStep;
@@ -42,7 +42,7 @@ public partial class StepsWindow : Window
         else
         {
             if (!string.IsNullOrEmpty(row.Outcome.CommandLine)) sb.AppendLine("> " + row.Outcome.CommandLine).AppendLine();
-            // Étape ignorée ou arrêtée en succès : c'est une raison, pas une erreur.
+            // Skipped step or stop on success: it is a reason, not an error.
             if (!string.IsNullOrEmpty(row.Outcome.Error))
                 sb.AppendLine((row.Outcome.State == "failed" ? "Erreur : " : "Raison : ") + row.Outcome.Error).AppendLine();
             sb.Append(string.IsNullOrWhiteSpace(row.Outcome.Output) ? "(aucune sortie)" : row.Outcome.Output.TrimEnd());
@@ -50,7 +50,7 @@ public partial class StepsWindow : Window
         Output.Text = sb.ToString();
     }
 
-    // ---------- Sortie complète : copier, ouvrir, enregistrer ----------
+    // ---------- Full output: copy, open, save ----------
 
     private string CurrentFileName => DeploymentSummary.OutputFileName(_computer, _deploymentId, (Grid.SelectedItem as StepDetailRow)?.Number ?? 0);
 

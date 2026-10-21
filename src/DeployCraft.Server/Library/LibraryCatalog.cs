@@ -1,11 +1,11 @@
 namespace DeployCraft.Server.Library;
 
-/// <summary>Logiciels courants proposés tant que rien n'est cherché, et chemin des fiches dans le catalogue.</summary>
+/// <summary>Common software offered as long as nothing is searched, and path of the entries in the catalog.</summary>
 public static class LibraryCatalog
 {
     /// <summary>
-    /// Sélection de logiciels courants dans un parc (bureautique, Internet, multimédia, enseignement). Chacun a été vérifié :
-    /// le catalogue propose pour lui un installeur pour tout le poste, lançable sans fenêtre.
+    /// Selection of common software for a fleet (office, Internet, multimedia, teaching). Each was checked:
+    /// the catalog offers an installer for the whole machine, launchable without a window.
     /// </summary>
     public static readonly IReadOnlyList<string> Suggested =
     [
@@ -35,7 +35,7 @@ public static class LibraryCatalog
         "Microsoft.VisualStudioCode",
     ];
 
-    /// <summary>Dossier de la fiche dans le dépôt du catalogue : manifests/v/VideoLAN/VLC.</summary>
+    /// <summary>Entry folder in the catalog repository: manifests/v/VideoLAN/VLC.</summary>
     public static string ManifestFolder(string id)
     {
         var parts = id.Split('.');

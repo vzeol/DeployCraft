@@ -3,7 +3,7 @@ using DeployCraft.Server.Remote;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Préférences › Déploiement : postes en parallèle et limite de débit des copies vers les postes.</summary>
+/// <summary>Preferences › Déploiement: computers in parallel and rate limit of the copies to the computers.</summary>
 public sealed class PerformanceTests : IDisposable
 {
     private readonly string _dir = Directory.CreateTempSubdirectory("deploycraft-perf-").FullName;
@@ -15,7 +15,7 @@ public sealed class PerformanceTests : IDisposable
         Directory.Delete(_dir, recursive: true);
     }
 
-    /// <summary>Limiteur sur une horloge simulée : chaque attente fait avancer l'horloge, sans attendre pour de vrai.</summary>
+    /// <summary>Limiter on a simulated clock: each wait advances the clock, without really waiting.</summary>
     private BandwidthLimiter Limiter(long bytesPerSecond) =>
         new(() => _now, (wait, _) => _now += wait) { BytesPerSecond = bytesPerSecond };
 
@@ -38,7 +38,7 @@ public sealed class PerformanceTests : IDisposable
         var limiter = Limiter(1_000_000);
         var start = _now;
 
-        // Deux postes copient en même temps, morceau par morceau : le total reste à 1 Mo/s.
+        // Two computers copy at the same time, chunk by chunk: the total stays at 1 MB/s.
         for (var i = 0; i < 20; i++)
         {
             limiter.Take(250_000);
@@ -56,9 +56,9 @@ public sealed class PerformanceTests : IDisposable
         _now += TimeSpan.FromMinutes(5);
         var start = _now;
 
-        limiter.Take(1_000_000); // la réserve d'une seconde suffit
+        limiter.Take(1_000_000); // the one-second reserve is enough
         Assert.Equal(start, _now);
-        limiter.Take(500_000);   // ensuite, le débit redevient la limite
+        limiter.Take(500_000);   // then the rate becomes the limit again
         Assert.InRange((_now - start).TotalSeconds, 0.49, 0.51);
     }
 
@@ -70,14 +70,14 @@ public sealed class PerformanceTests : IDisposable
         var limiter = new BandwidthLimiter(() => _now, (wait, _) =>
         {
             _now += wait;
-            if (++waits == 3) cts.Cancel(); // annulation pendant la 3e attente
+            if (++waits == 3) cts.Cancel(); // cancellation during the 3rd wait
         })
         { BytesPerSecond = 1_000_000 };
         var output = new MemoryStream();
 
         Assert.Throws<OperationCanceledException>(() => limiter.Copy(new MemoryStream(new byte[10_000_000]), output, ct: cts.Token));
 
-        // Arrêt juste après l'attente annulée : 2 morceaux écrits sur 39, au lieu de toute la copie.
+        // Stop right after the cancelled wait: 2 chunks written out of 39, instead of the whole copy.
         Assert.Equal(2 * 256 * 1024, output.Length);
     }
 

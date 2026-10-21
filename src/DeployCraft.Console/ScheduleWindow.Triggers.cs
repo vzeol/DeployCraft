@@ -7,7 +7,7 @@ namespace DeployCraft.Console;
 /// <summary>Schedule window: triggers list and editor.</summary>
 public partial class ScheduleWindow
 {
-    // ---------- Déclencheurs ----------
+    // ---------- Triggers ----------
 
     private static readonly DayOfWeek[] WeekOrder =
         [DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday];
@@ -30,7 +30,7 @@ public partial class ScheduleWindow
 
     private void AddTrigger(TriggerType type)
     {
-        // Prochaine heure pile, comme point de départ.
+        // Next whole hour, as a starting point.
         var item = new TriggerItem(ScheduleEditing.NewTrigger(type, DateTime.Now));
         _triggers.Add(item);
         TriggersList.SelectedItem = item;
@@ -61,7 +61,7 @@ public partial class ScheduleWindow
 
     private void TriggersList_SelectionChanged(object sender, SelectionChangedEventArgs e) => ShowEditor();
 
-    /// <summary>Remplit l'éditeur avec le déclencheur sélectionné et n'affiche que ses réglages.</summary>
+    /// <summary>Fills the editor with the selected trigger and shows only its settings.</summary>
     private void ShowEditor()
     {
         NoTriggerText.Visibility = _triggers.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -108,7 +108,7 @@ public partial class ScheduleWindow
 
     private static T Chosen<T>(ComboBox box, T fallback) => box.SelectedItem is ComboBoxItem { Tag: T v } ? v : fallback;
 
-    /// <summary>Reporte l'éditeur dans le déclencheur sélectionné (les valeurs mal saisies sont ignorées).</summary>
+    /// <summary>Writes the editor back into the selected trigger (badly typed values are ignored).</summary>
     private void Editor_Changed(object sender, RoutedEventArgs e)
     {
         if (_loading || Selected is not { Trigger: var t } item) return;

@@ -4,7 +4,7 @@ using DeployCraft.Server.Remote;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Étape « Installer » : ligne de commande générée ou personnalisée, journal, fichiers additionnels.</summary>
+/// <summary>"Installer" step: generated or custom command line, log, additional files.</summary>
 public class InstallCommandTests
 {
     private static PackageStep Install(string file, string? args = null) =>
@@ -97,7 +97,7 @@ public class InstallCommandTests
 
             Assert.Contains("Produit installé.", output);
             Assert.False(File.Exists(Path.Combine(dir, InstallLog.FileName)));
-            Assert.Equal("sortie", InstallLog.Append("sortie", dir, 1000)); // plus de journal
+            Assert.Equal("sortie", InstallLog.Append("sortie", dir, 1000)); // no more log
         }
         finally
         {
@@ -132,7 +132,7 @@ public class InstallCommandTests
         Assert.Null(InstallLog.ErrorMessage("setup.exe", 1618));
         Assert.Null(InstallLog.ErrorMessage("app.msi", 4242));
         Assert.Contains("non reconnu", InstallLog.ErrorMessage("maj.msu", 1630));
-        // Code sans message prévu : le texte de Windows, s'il en a un.
+        // Code with no expected message: Windows' text, if it has one.
         Assert.False(string.IsNullOrWhiteSpace(InstallLog.ErrorMessage("app.msi", 1612)));
     }
 

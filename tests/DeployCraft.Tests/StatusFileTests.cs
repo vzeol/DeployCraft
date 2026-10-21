@@ -5,7 +5,7 @@ using DeployCraft.Server.Remote;
 
 namespace DeployCraft.Tests;
 
-/// <summary>status.json lu par le serveur pendant que le runner le remplace, et étape interrompue par une annulation.</summary>
+/// <summary>status.json read by the server while the runner replaces it, and a step interrupted by a cancellation.</summary>
 public sealed class StatusFileTests : IDisposable
 {
     private readonly string _dir = Directory.CreateTempSubdirectory("dc-tests-").FullName;
@@ -86,7 +86,7 @@ public sealed class StatusFileTests : IDisposable
     [Fact]
     public async Task FinalStatus_WaitsForTheFinalFile_WhenTheShareShowsItLate()
     {
-        // Juste après l'arrêt du runner : fichier « absent » (cache du partage), puis ancien état, puis le bon.
+        // Right after the runner stops: file "absent" (share cache), then old state, then the right one.
         var reads = new Queue<RunnerStatus?>([null, new RunnerStatus { State = "running" }, new RunnerStatus { State = "done" }]);
         var waits = 0;
 

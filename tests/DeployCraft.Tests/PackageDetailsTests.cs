@@ -2,7 +2,7 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Textes de l'onglet Détails de la page d'un paquet.</summary>
+/// <summary>Texts of the Details tab of a package page.</summary>
 public class PackageDetailsTests
 {
     [Fact]

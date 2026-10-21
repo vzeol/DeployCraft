@@ -10,7 +10,7 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <TextBlock x:Name="Glyph" FontSize="28" Margin="0,0,14,0" VerticalAlignment="Top" />
-            <!-- Texte sélectionnable (Ctrl+C) : utile pour copier un message d'erreur. -->
+            <!-- Selectable text (Ctrl+C): useful to copy an error message. -->
             <TextBox x:Name="Message" Grid.Column="1" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Padding="0"
                      Background="Transparent" Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center"
                      MaxHeight="420" VerticalScrollBarVisibility="Auto" AutomationProperties.Name="Message" />

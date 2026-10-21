@@ -197,7 +197,7 @@ public class LibraryTests
     {
         Assert.False(PackageLibrary.IsUpdateDue(LibraryAutoUpdate.Delayed, 3, "1.0", "1.1", Now.AddDays(-2), Now));
         Assert.True(PackageLibrary.IsUpdateDue(LibraryAutoUpdate.Delayed, 3, "1.0", "1.1", Now.AddDays(-3), Now));
-        // Version lue avant le réglage : sa date est inconnue, elle compte comme ancienne.
+        // Version read before the setting existed: its date is unknown, it counts as old.
         Assert.True(PackageLibrary.IsUpdateDue(LibraryAutoUpdate.Delayed, 3, "1.0", "1.1", null, Now));
     }
 

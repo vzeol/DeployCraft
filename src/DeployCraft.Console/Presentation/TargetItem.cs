@@ -4,7 +4,7 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Console;
 
-/// <summary>Un poste cible et l'étape du premier paquet à laquelle il commence.</summary>
+/// <summary>A target computer and the step of the first package it starts at.</summary>
 public class TargetItem(string computer, int startStep, DeployWindow window) : INotifyPropertyChanged
 {
     private int _startStep = startStep;
@@ -24,7 +24,7 @@ public class TargetItem(string computer, int startStep, DeployWindow window) : I
 
     public string StepText => window.StepChoices.FirstOrDefault(c => c.Number == StartStep)?.Text ?? StartStep.ToString();
 
-    // Vérification du nom dans le DNS du serveur : en cours (null), trouvé ou introuvable.
+    // Name check in the server DNS: in progress (null), found or not found.
     private NameCheckResult? _check;
 
     public NameCheckResult? Check
@@ -37,7 +37,7 @@ public class TargetItem(string computer, int startStep, DeployWindow window) : I
         }
     }
 
-    public string CheckIcon => _check == null ? "" : Ui.StatusIcon(_check.Found ? "Successful" : "Failed"); // sablier / coche / croix
+    public string CheckIcon => _check == null ? "" : Ui.StatusIcon(_check.Found ? "Successful" : "Failed"); // hourglass / check / cross
 
     public System.Windows.Media.Brush CheckBrush =>
         (System.Windows.Media.Brush)Application.Current.Resources[_check == null ? "MutedBrush" : _check.Found ? "OkBrush" : "KoBrush"];

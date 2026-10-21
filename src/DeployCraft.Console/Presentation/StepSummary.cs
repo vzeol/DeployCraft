@@ -5,10 +5,10 @@ namespace DeployCraft.Console;
 /// <summary>How a step is shown in the lists: title, type, one-line summary.</summary>
 public static class StepSummary
 {
-    /// <summary>Titre de l'étape, signalée si elle est désactivée.</summary>
+    /// <summary>Title of the step, flagged if it is disabled.</summary>
     public static string Name(PackageStep s) => s.Enabled ? s.Name : $"{s.Name} (désactivée)";
 
-    /// <summary>Résumé d'une étape pour les listes : fichier, première ligne de commande, durée de pause, copie, redémarrage, message, paquet imbriqué.</summary>
+    /// <summary>Summary of a step for the lists: file, first command line, pause duration, copy, restart, message, nested package.</summary>
     public static string Details(PackageStep s, Func<long, Package?> lookup) => s.Type switch
     {
         StepType.Install => $"{s.File} {s.Arguments}".Trim(),

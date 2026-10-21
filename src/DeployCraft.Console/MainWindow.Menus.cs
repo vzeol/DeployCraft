@@ -17,16 +17,16 @@ public partial class MainWindow
             e.Handled = true;
             return;
         }
-        // Pas de raccourci pendant la saisie dans une zone de texte (sauf F5).
+        // No shortcut while typing in a text box (except F5).
         if (e.Key != Key.F5 && Keyboard.FocusedElement is TextBox) return;
 
         var ctrl = Keyboard.Modifiers == ModifierKeys.Control;
         var ctrlShift = Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift);
         var alt = Keyboard.Modifiers == ModifierKeys.Alt;
         var key = e.Key == Key.System ? e.SystemKey : e.Key;
-        // Ctrl+R sur la grille des postes : laissé au panneau (redéploie les postes sélectionnés).
+        // Ctrl+R on the computers grid: left to the panel (redeploys the selected computers).
         if (key == Key.R && ctrl && CurrentPanel.TargetsFocused) return;
-        // Sans accès au service, seul F5 (réessayer) reste disponible.
+        // Without access to the service, only F5 (retry) remains available.
         if (!_connected && key != Key.F5) return;
 
         Action? action = (key, ctrl, ctrlShift, alt) switch
@@ -59,7 +59,7 @@ public partial class MainWindow
         e.Handled = true;
     }
 
-    /// <summary>Active ou grise les entrées des menus Fichier et Édition selon la sélection.</summary>
+    /// <summary>Enables or greys out the entries of the Fichier and Édition menus according to the selection.</summary>
     private void Menu_Opened(object sender, RoutedEventArgs e)
     {
         var package = _connected && SelectedPackage != null;
@@ -179,7 +179,7 @@ public partial class MainWindow
             ]);
     }
 
-    // ---------- Édition (agit sur le déploiement sélectionné) ----------
+    // ---------- Édition (acts on the selected deployment) ----------
 
     private void Abort_Click(object sender, RoutedEventArgs e)
     {
@@ -201,7 +201,7 @@ public partial class MainWindow
         if (CurrentPanel.CanRedeployFailed) CurrentPanel.RedeployFromFailedStep();
     }
 
-    /// <summary>Suppr : le paquet si l'arbre a le focus, la planification si sa grille l'a, sinon le déploiement sélectionné.</summary>
+    /// <summary>Delete: the package if the tree has focus, the schedule if its grid has it, otherwise the selected deployment.</summary>
     private void Delete_Click(object sender, RoutedEventArgs e)
     {
         if (TreeHasFocus && SelectedFolder is { } folder) _ = DeleteFolderAsync(folder);

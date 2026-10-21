@@ -2,7 +2,7 @@ using DeployCraft.Runner;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Conditions d'un paquet ou d'une étape, vérifiées par le runner sur un poste simulé.</summary>
+/// <summary>Conditions of a package or a step, checked by the runner on a simulated computer.</summary>
 public class ConditionsTests
 {
     private sealed class FakeFacts : ITargetFacts
@@ -12,7 +12,7 @@ public class ConditionsTests
         public int PowerShellVersion { get; init; } = 5;
         public bool UserLoggedOn { get; init; }
         public HashSet<string> Paths { get; init; } = new(StringComparer.OrdinalIgnoreCase);
-        /// <summary>« clé » ou « clé|valeur ».</summary>
+        /// <summary>"key" or "key|value".</summary>
         public HashSet<string> Registry { get; init; } = new(StringComparer.OrdinalIgnoreCase);
 
         public bool PathExists(string path) => Paths.Contains(path);

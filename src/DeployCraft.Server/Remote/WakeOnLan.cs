@@ -5,15 +5,15 @@ using DeployCraft.Server.Data;
 namespace DeployCraft.Server.Remote;
 
 /// <summary>
-/// Réveil d'un poste éteint : paquet « magique » (6 octets FF puis 16 fois l'adresse MAC) envoyé en UDP
-/// à la diffusion générale et à celle du sous-réseau du poste. Le poste doit avoir le réveil réseau activé
-/// (BIOS et carte réseau) ; entre sous-réseaux, le routeur doit laisser passer la diffusion dirigée.
+/// Wake-up of a powered-off computer: "magic" packet (6 bytes of FF then the MAC address 16 times) sent over UDP
+/// to the general broadcast and to the broadcast of the computer's subnet. The computer must have wake-on-LAN enabled
+/// (BIOS and network card); across subnets, the router must let directed broadcast through.
 /// </summary>
 public static class WakeOnLan
 {
     private static readonly int[] Ports = [9, 7];
 
-    /// <summary>Paquet de réveil pour une adresse MAC « AA-BB-CC-DD-EE-FF » (séparateurs « - », « : » ou aucun).</summary>
+    /// <summary>Wake-up packet for a MAC address "AA-BB-CC-DD-EE-FF" (separators "-", ":" or none).</summary>
     public static byte[] MagicPacket(string mac)
     {
         var hex = new string(mac.Where(Uri.IsHexDigit).ToArray());
@@ -25,7 +25,7 @@ public static class WakeOnLan
         return packet;
     }
 
-    /// <summary>Adresses où envoyer le paquet : diffusion générale, puis celles des sous-réseaux connus du poste.</summary>
+    /// <summary>Addresses to send the packet to: general broadcast, then those of the computer's known subnets.</summary>
     public static List<IPAddress> Destinations(IEnumerable<NetworkCard> cards)
     {
         var list = new List<IPAddress> { IPAddress.Broadcast };

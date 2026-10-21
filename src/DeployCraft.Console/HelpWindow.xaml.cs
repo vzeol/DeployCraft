@@ -6,7 +6,7 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Console;
 
-/// <summary>Aide intégrée (Aide › Aide de DeployCraft, F1) : sujets à gauche, recherche, texte à droite.</summary>
+/// <summary>Built-in help (Aide › Aide de DeployCraft, F1): topics on the left, search, text on the right.</summary>
 public partial class HelpWindow : Window
 {
     private static HelpWindow? _open;
@@ -21,7 +21,7 @@ public partial class HelpWindow : Window
         Closed += (_, _) => _open = null;
     }
 
-    /// <summary>Ouvre l'aide (une seule fenêtre à la fois) sur le sujet <paramref name="topicId"/>, ou le premier.</summary>
+    /// <summary>Opens the help (one window at a time) on the topic <paramref name="topicId"/>, or the first one.</summary>
     public static void Show(Window owner, string? topicId = null)
     {
         _open ??= new HelpWindow { Owner = owner };

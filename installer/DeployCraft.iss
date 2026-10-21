@@ -1,7 +1,7 @@
-﻿; Installeur DeployCraft : installe le service (démarrage automatique) et la console Windows.
-; Rien d'autre à installer : .NET est embarqué.
+﻿; DeployCraft installer: installs the service (automatic start) and the Windows console.
+; Nothing else to install: .NET is embedded.
 ;
-; Compilation : build.ps1 à la racine du dépôt.
+; Build: build.ps1 at the repository root.
 
 #define AppName "DeployCraft"
 #ifndef AppVersion
@@ -28,18 +28,18 @@ ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=admin
 WizardStyle=modern
 UninstallDisplayName={#AppName}
-; Console ouverte : fermée proprement avant de remplacer les fichiers (demandé en mode interactif,
-; automatique en /VERYSILENT), et pas relancée par l'installeur.
+; Console open: closed cleanly before the files are replaced (asked in interactive mode,
+; automatic with /VERYSILENT), and not relaunched by the installer.
 CloseApplications=yes
 RestartApplications=no
-; Seulement la console : le service est arrêté (et, en cas d'échec, redémarré) par le code plus bas.
+; Console only: the service is stopped (and, on failure, restarted) by the code below.
 CloseApplicationsFilter=DeployCraft.exe
 
 [Languages]
 Name: "fr"; MessagesFile: "compiler:Languages\French.isl"
 
 [InstallDelete]
-; Interface web de la v0.1, remplacée par la console Windows.
+; Web interface of v0.1, replaced by the Windows console.
 Type: filesandordirs; Name: "{app}\wwwroot"
 Type: files; Name: "{app}\DeployCraft.url"
 Type: files; Name: "{group}\DeployCraft.url"
@@ -55,15 +55,15 @@ Name: "{autodesktop}\DeployCraft"; Filename: "{app}\DeployCraft.exe"; Tasks: des
 Name: "desktopicon"; Description: "Créer un raccourci sur le Bureau"
 
 [Run]
-; Service sous LocalSystem : administrateur du serveur. Les accès aux postes utilisent le compte de déploiement.
-; Création à la première installation ; lors d'une mise à jour, il existe déjà et « config » le remet d'aplomb.
+; Service under LocalSystem: server administrator. Access to computers uses the deployment account.
+; Created at first installation; on an update it already exists and "config" puts it back in order.
 Filename: "{sys}\sc.exe"; Parameters: "create {#ServiceName} binPath= ""\""{app}\DeployCraft.Server.exe\"""" start= delayed-auto DisplayName= ""DeployCraft"""; Flags: runhidden
 Filename: "{sys}\sc.exe"; Parameters: "config {#ServiceName} binPath= ""\""{app}\DeployCraft.Server.exe\"""" start= delayed-auto DisplayName= ""DeployCraft"""; Flags: runhidden
 Filename: "{sys}\sc.exe"; Parameters: "description {#ServiceName} ""Serveur de déploiement de logiciels DeployCraft"""; Flags: runhidden
 Filename: "{sys}\sc.exe"; Parameters: "failure {#ServiceName} reset= 86400 actions= restart/5000/restart/5000/restart/30000"; Flags: runhidden
 Filename: "{sys}\sc.exe"; Parameters: "start {#ServiceName}"; Flags: runhidden
 Filename: "{app}\DeployCraft.exe"; Description: "Ouvrir DeployCraft"; Flags: postinstall nowait skipifsilent runasoriginaluser
-; Mise à jour lancée depuis la console (/RELAUNCH=1) : la console, fermée par l'installeur, est rouverte.
+; Update launched from the console (/RELAUNCH=1): the console, closed by the installer, is reopened.
 Filename: "{app}\DeployCraft.exe"; Flags: nowait runasoriginaluser; Check: RelaunchAsked
 
 [UninstallRun]
@@ -72,9 +72,9 @@ Filename: "{sys}\timeout.exe"; Parameters: "/t 3 /nobreak"; Flags: runhidden; Ru
 Filename: "{sys}\sc.exe"; Parameters: "delete {#ServiceName}"; Flags: runhidden; RunOnceId: "DeleteService"
 
 [Code]
-// Mise à jour : le service n'est plus supprimé. Il est seulement arrêté, juste avant la copie des fichiers (après la
-// fermeture de la console), puis reconfiguré et redémarré par [Run]. Si l'installation échoue ou est annulée
-// après l'arrêt, il est redémarré tel quel : le serveur n'est jamais laissé sans service.
+// Update: the service is no longer deleted. It is only stopped, just before the files are copied (after the
+// console is closed), then reconfigured and restarted by [Run]. If the installation fails or is cancelled
+// after the stop, it is restarted as is: the server is never left without a service.
 var
   ServiceStopped: Boolean;
   InstallDone: Boolean;
@@ -95,7 +95,7 @@ begin
   begin
     Exec(ExpandConstant('{sys}\sc.exe'), 'stop {#ServiceName}', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
     ServiceStopped := True;
-    // Le temps que le service libère DeployCraft.Server.exe.
+    // Time for the service to release DeployCraft.Server.exe.
     Sleep(3000);
   end;
   if CurStep = ssPostInstall then InstallDone := True;

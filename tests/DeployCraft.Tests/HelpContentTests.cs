@@ -2,7 +2,7 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Aide intégrée : lecture du texte et recherche.</summary>
+/// <summary>Built-in help: text reading and search.</summary>
 public class HelpContentTests
 {
     private const string Sample = """

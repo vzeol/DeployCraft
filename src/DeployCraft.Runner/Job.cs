@@ -8,16 +8,16 @@ using System.Text;
 
 namespace DeployCraft.Runner
 {
-    // Contrat d'échange avec le serveur : job.json (consignes) et status.json (résultat).
-    // Les noms JSON doivent rester alignés avec DeployCraft.Server/Remote/RunnerContract.cs.
+    // Exchange contract with the server: job.json (instructions) and status.json (result).
+    // The JSON names must stay aligned with DeployCraft.Server/Remote/RunnerContract.cs.
 
     [DataContract]
     public class Job
     {
-        /// <summary>Conditions du paquet : non remplies, aucune étape n'est exécutée.</summary>
+        /// <summary>Conditions of the package: if not met, no step is run.</summary>
         [DataMember(Name = "conditions")] public JobConditions Conditions { get; set; }
         [DataMember(Name = "steps")] public List<JobStep> Steps { get; set; } = new List<JobStep>();
-        /// <summary>Numéro (dans le paquet) de la première étape du job, pour les messages (0 = 1).</summary>
+        /// <summary>Number (in the package) of the job's first step, for messages (0 = 1).</summary>
         [DataMember(Name = "firstNumber")] public int FirstNumber { get; set; }
     }
 
@@ -26,10 +26,10 @@ namespace DeployCraft.Runner
     {
         /// <summary>« 10 », « 11 », « server », « older » (vide = toutes).</summary>
         [DataMember(Name = "windows")] public List<string> Windows { get; set; } = new List<string>();
-        /// <summary>« x64 », « x86 » ou null.</summary>
+        /// <summary>"x64", "x86" or null.</summary>
         [DataMember(Name = "architecture")] public string Architecture { get; set; }
         [DataMember(Name = "minPowerShell")] public int? MinPowerShell { get; set; }
-        /// <summary>true = quelqu'un doit être connecté, false = personne, null = indifférent.</summary>
+        /// <summary>true = someone must be logged on, false = nobody, null = does not matter.</summary>
         [DataMember(Name = "loggedOn")] public bool? LoggedOn { get; set; }
         [DataMember(Name = "filePath")] public string FilePath { get; set; }
         [DataMember(Name = "fileExists")] public bool? FileExists { get; set; }
@@ -38,7 +38,7 @@ namespace DeployCraft.Runner
         [DataMember(Name = "registryExists")] public bool? RegistryExists { get; set; }
     }
 
-    /// <summary>Conditions héritées (paquet imbriqué), avec leur origine pour expliquer une étape ignorée.</summary>
+    /// <summary>Inherited conditions (nested package), with their origin to explain a skipped step.</summary>
     [DataContract]
     public class JobConditionGroup
     {
@@ -59,46 +59,46 @@ namespace DeployCraft.Runner
         [DataMember(Name = "name")] public string Name { get; set; }
         /// <summary>install | command | powershell | pause | copyfiles | reboot | message</summary>
         [DataMember(Name = "type")] public string Type { get; set; }
-        /// <summary>install : nom du fichier dans exec\. command : ligne cmd. powershell : script. copyfiles : dossier dans exec\ (push). reboot et message : texte du message.</summary>
+        /// <summary>install: file name in exec\. command: cmd line. powershell: script. copyfiles: folder in exec\ (push). reboot and message: message text.</summary>
         [DataMember(Name = "command")] public string Command { get; set; }
-        /// <summary>message : titre de la fenêtre.</summary>
+        /// <summary>message: window title.</summary>
         [DataMember(Name = "arguments")] public string Arguments { get; set; }
-        /// <summary>pause : durée d'attente en secondes. reboot : délai avant le redémarrage. message : durée d'affichage (0 = jusqu'au clic).</summary>
+        /// <summary>pause: wait time in seconds. reboot: delay before the restart. message: display duration (0 = until click).</summary>
         [DataMember(Name = "seconds")] public int Seconds { get; set; }
         [DataMember(Name = "successCodes")] public List<int> SuccessCodes { get; set; } = new List<int> { 0 };
         [DataMember(Name = "timeoutSeconds")] public int TimeoutSeconds { get; set; } = 3600;
         [DataMember(Name = "continueOnError")] public bool ContinueOnError { get; set; }
-        /// <summary>En cas d'échec : arrêter le paquet et compter le poste réussi (prime sur continueOnError).</summary>
+        /// <summary>On failure: stop the package and count the computer as succeeded (takes precedence over continueOnError).</summary>
         [DataMember(Name = "stopSuccessOnError")] public bool StopSuccessOnError { get; set; }
-        /// <summary>Étape désactivée : jamais exécutée, notée « skipped ».</summary>
+        /// <summary>Disabled step: never run, recorded as "skipped".</summary>
         [DataMember(Name = "disabled")] public bool Disabled { get; set; }
-        /// <summary>Lancer l'étape dans la session de l'utilisateur connecté (le runner tourne en Système).</summary>
+        /// <summary>Run the step in the logged-on user's session (the runner runs as System).</summary>
         [DataMember(Name = "runAsLoggedOnUser")] public bool RunAsLoggedOnUser { get; set; }
-        /// <summary>Mode pull : fichier (UNC) à copier dans exec\ avant l'étape, avec l'identité du runner.</summary>
+        /// <summary>Pull mode: file (UNC) to copy into exec\ before the step, with the runner's identity.</summary>
         [DataMember(Name = "sourcePath")] public string SourcePath { get; set; }
         [DataMember(Name = "includeDirectory")] public bool IncludeDirectory { get; set; }
-        /// <summary>copyfiles : dossier du poste où copier (variables d'environnement acceptées).</summary>
+        /// <summary>copyfiles: folder on the computer to copy to (environment variables accepted).</summary>
         [DataMember(Name = "copyDestination")] public string CopyDestination { get; set; }
-        /// <summary>copyfiles : motifs des fichiers à copier (« * » = tous).</summary>
+        /// <summary>copyfiles: patterns of the files to copy ("*" = all).</summary>
         [DataMember(Name = "copyPatterns")] public List<string> CopyPatterns { get; set; }
         [DataMember(Name = "copySubfolders")] public bool CopySubfolders { get; set; }
-        /// <summary>copyfiles : remplacer les fichiers déjà présents sur le poste.</summary>
+        /// <summary>copyfiles: replace files already present on the computer.</summary>
         [DataMember(Name = "copyOverwrite")] public bool CopyOverwrite { get; set; }
-        /// <summary>reboot : éteindre au lieu de redémarrer.</summary>
+        /// <summary>reboot: shut down instead of restarting.</summary>
         [DataMember(Name = "shutdownOnly")] public bool ShutdownOnly { get; set; }
-        /// <summary>message : attendre le clic de l'utilisateur (ou la fin de l'affichage).</summary>
+        /// <summary>message: wait for the user's click (or for the display to end).</summary>
         [DataMember(Name = "waitForUser")] public bool WaitForUser { get; set; }
-        /// <summary>install : ligne de commande complète, lancée par cmd dans exec\.</summary>
+        /// <summary>install: full command line, launched by cmd in exec\.</summary>
         [DataMember(Name = "commandLine")] public string CommandLine { get; set; }
-        /// <summary>Mode pull : fichiers additionnels (UNC) à copier dans exec\ avant l'étape.</summary>
+        /// <summary>Pull mode: additional files (UNC) to copy into exec\ before the step.</summary>
         [DataMember(Name = "pullFiles")] public List<string> PullFiles { get; set; }
-        /// <summary>install : dossier où garder le fichier d'installation après l'étape (variables d'environnement acceptées).</summary>
+        /// <summary>install: folder where to keep the installation file after the step (environment variables accepted).</summary>
         [DataMember(Name = "keepFolder")] public string KeepFolder { get; set; }
-        /// <summary>install : noms (dans exec\) des fichiers additionnels, gardés avec le fichier d'installation.</summary>
+        /// <summary>install: names (in exec\) of the additional files, kept with the installation file.</summary>
         [DataMember(Name = "additionalFiles")] public List<string> AdditionalFiles { get; set; }
-        /// <summary>Conditions de l'étape : non remplies, l'étape est sautée.</summary>
+        /// <summary>Conditions of the step: if not met, the step is skipped.</summary>
         [DataMember(Name = "conditions")] public JobConditions Conditions { get; set; }
-        /// <summary>Conditions supplémentaires (paquet imbriqué), vérifiées avant celles de l'étape (null = aucune).</summary>
+        /// <summary>Additional conditions (nested package), checked before the step's own (null = none).</summary>
         [DataMember(Name = "extraConditions")] public List<JobConditionGroup> ExtraConditions { get; set; }
     }
 
@@ -109,11 +109,11 @@ namespace DeployCraft.Runner
         [DataMember(Name = "state")] public string State { get; set; } = "running";
         [DataMember(Name = "error")] public string Error { get; set; }
         [DataMember(Name = "steps")] public List<StepResult> Steps { get; set; } = new List<StepResult>();
-        /// <summary>Cartes réseau du poste, retenues par le serveur pour le réveiller plus tard (Wake-on-LAN).</summary>
+        /// <summary>Network cards of the computer, remembered by the server to wake it up later (Wake-on-LAN).</summary>
         [DataMember(Name = "network")] public List<NetworkCard> Network { get; set; }
-        /// <summary>Le paquet s'arrête ici : les étapes suivantes (autre identité) ne doivent pas être lancées.</summary>
+        /// <summary>The package stops here: the following steps (other identity) must not be launched.</summary>
         [DataMember(Name = "halt")] public bool Halt { get; set; }
-        /// <summary>Raison donnée aux étapes non lancées (null : aucune, comme après un échec).</summary>
+        /// <summary>Reason given to the steps not launched (null: none, as after a failure).</summary>
         [DataMember(Name = "haltReason")] public string HaltReason { get; set; }
     }
 
@@ -121,7 +121,7 @@ namespace DeployCraft.Runner
     public class StepResult
     {
         [DataMember(Name = "name")] public string Name { get; set; }
-        /// <summary>running | success | failed | skipped | stopped (échec avec arrêt en succès)</summary>
+        /// <summary>running | success | failed | skipped | stopped (failure with stop counted as success)</summary>
         [DataMember(Name = "state")] public string State { get; set; }
         [DataMember(Name = "exitCode")] public int? ExitCode { get; set; }
         [DataMember(Name = "commandLine")] public string CommandLine { get; set; }
@@ -140,8 +140,8 @@ namespace DeployCraft.Runner
         }
 
         /// <summary>
-        /// Écriture atomique : le serveur ne lit jamais un fichier à moitié écrit. Le remplacement échoue tant que
-        /// le serveur lit l'ancien fichier par le partage : on réessaie un peu.
+        /// Atomic write: the server never reads a half-written file. The replacement fails while
+        /// the server reads the old file through the share: we retry a few times.
         /// </summary>
         public static void Write<T>(string path, T value)
         {
@@ -158,7 +158,7 @@ namespace DeployCraft.Runner
             }, 10, System.Threading.Thread.Sleep);
         }
 
-        /// <summary>Relance <paramref name="action"/> après une IOException (fichier verrouillé), au plus <paramref name="attempts"/> fois.</summary>
+        /// <summary>Re-runs <paramref name="action"/> after an IOException (locked file), at most <paramref name="attempts"/> times.</summary>
         public static void Retry(Action action, int attempts, Action<int> sleep)
         {
             for (var attempt = 1; ; attempt++)

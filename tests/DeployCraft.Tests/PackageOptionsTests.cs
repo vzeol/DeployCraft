@@ -4,7 +4,7 @@ using DeployCraft.Server.Remote;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Valeurs par défaut (étape → paquet → Préférences), conditions transmises au runner, Wake-on-LAN, stockage.</summary>
+/// <summary>Default values (step → package → Preferences), conditions passed to the runner, Wake-on-LAN, storage.</summary>
 public sealed class PackageOptionsTests : IDisposable
 {
     private readonly string _dir = Directory.CreateTempSubdirectory("dc-tests-").FullName;
