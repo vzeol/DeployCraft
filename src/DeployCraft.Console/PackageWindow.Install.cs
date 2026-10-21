@@ -55,7 +55,7 @@ public partial class PackageWindow
     private async Task<List<string>> AllWarningsAsync()
     {
         await CheckPathsAsync(Package.Steps.SelectMany(StepWarnings.Paths), again: true);
-        return [.. Package.Steps.SelectMany((s, i) => StepWarnings.For(s, EffectiveCopyMode, _paths.Missing).Select(w => $"Étape {i + 1} « {s.Name} » : {w}"))];
+        return [.. Package.Steps.SelectMany((s, i) => StepWarnings.For(s, EffectiveCopyMode, _paths.Missing).Select(w => L.Format("PackageWindow_StepWarning", i + 1, s.Name, w)))];
     }
 
     // ---------- Installer: Windows Installer options and command line ----------
@@ -129,7 +129,7 @@ public partial class PackageWindow
     private void BrowseAdditional_Click(object sender, RoutedEventArgs e)
     {
         if (SelectedStep is not { } step) return;
-        var dialog = new OpenFileDialog { Title = "Fichiers additionnels", Filter = "Tous les fichiers|*.*", Multiselect = true };
+        var dialog = new OpenFileDialog { Title = L.Get("PackageWindow_AdditionalFiles"), Filter = L.Get("PackageWindow_FilterAllFiles") + "|*.*", Multiselect = true };
         if (dialog.ShowDialog(this) != true) return;
         var files = PackageStep.SplitLines(step.AdditionalFiles);
         files.AddRange(dialog.FileNames.Where(f => !files.Contains(f, StringComparer.OrdinalIgnoreCase)));
@@ -183,8 +183,8 @@ public partial class PackageWindow
         if (SelectedStep is not { } step) return;
         var dialog = new OpenFileDialog
         {
-            Title = "Fichier d'installation",
-            Filter = "Installeurs|" + string.Join(";", InstallCommand.Extensions.Select(e => "*" + e)) + "|Tous les fichiers|*.*",
+            Title = L.Get("PackageWindow_InstallFile"),
+            Filter = L.Get("PackageWindow_FilterInstallers") + "|" + string.Join(";", InstallCommand.Extensions.Select(e => "*" + e)) + "|" + L.Get("PackageWindow_FilterAllFiles") + "|*.*",
         };
         if (!string.IsNullOrEmpty(step.File) && Directory.Exists(Path.GetDirectoryName(step.File)))
             dialog.InitialDirectory = Path.GetDirectoryName(step.File);
@@ -203,7 +203,7 @@ public partial class PackageWindow
 
     private void BrowseCopyFile_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new OpenFileDialog { Title = "Fichier à copier", Filter = "Tous les fichiers|*.*" };
+        var dialog = new OpenFileDialog { Title = L.Get("PackageWindow_FileToCopy"), Filter = L.Get("PackageWindow_FilterAllFiles") + "|*.*" };
         if (SelectedStep is { } step && Directory.Exists(Path.GetDirectoryName(step.CopySource ?? "")))
             dialog.InitialDirectory = Path.GetDirectoryName(step.CopySource);
         if (dialog.ShowDialog(this) == true) SetCopySource(dialog.FileName);
@@ -211,7 +211,7 @@ public partial class PackageWindow
 
     private void BrowseCopyFolder_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new OpenFolderDialog { Title = "Dossier à copier" };
+        var dialog = new OpenFolderDialog { Title = L.Get("PackageWindow_FolderToCopy") };
         if (SelectedStep is { } step && Directory.Exists(step.CopySource)) dialog.InitialDirectory = step.CopySource;
         if (dialog.ShowDialog(this) == true) SetCopySource(dialog.FolderName);
     }
@@ -222,7 +222,7 @@ public partial class PackageWindow
         step.CopySource = path;
         CopySourceBox.Text = path;
         if (!string.IsNullOrWhiteSpace(step.Name)) return;
-        step.Name = "Copie de " + Path.GetFileName(path.TrimEnd('\\'));
+        step.Name = L.Format("PackageWindow_CopyOf", Path.GetFileName(path.TrimEnd('\\')));
         StepView.DataContext = null;
         ShowStep(step);
         StepName_TextChanged(this, null!);

@@ -28,7 +28,7 @@ public partial class ServiceAccountWindow : Window
         try
         {
             await Api.SetServiceAccount(account, SystemBox.IsChecked == true ? "" : PasswordBox.Password);
-            MessageDialog.Show(this, "Compte enregistré : le service redémarre. La console se reconnecte d'elle-même dans quelques secondes.",
+            MessageDialog.Show(this, L.Get("ServiceAccount_Saved"),
                 Title, MessageBoxButton.OK, MessageBoxImage.Information);
             DialogResult = true;
         }

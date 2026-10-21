@@ -17,9 +17,7 @@ public partial class ConditionsEditor : UserControl
     {
         _loading = true;
         _conditions = conditions;
-        Intro.Text = forPackage
-            ? "Le paquet n'est installé que sur les postes qui remplissent toutes ces conditions. Les autres sont comptés réussis, sans rien exécuter (étapes « Ignoré »)."
-            : "L'étape n'est exécutée que sur les postes qui remplissent toutes ces conditions. Sinon elle est sautée (« Ignoré ») et le paquet continue.";
+        Intro.Text = L.Get(forPackage ? "ConditionsEditor_IntroPackage" : "ConditionsEditor_IntroStep");
 
         Win10Box.IsChecked = conditions.Windows.HasFlag(WindowsVersions.Windows10);
         Win11Box.IsChecked = conditions.Windows.HasFlag(WindowsVersions.Windows11);

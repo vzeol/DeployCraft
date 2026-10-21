@@ -16,7 +16,7 @@ public partial class PackageWindow
     }
 
     private void UpdateTitle() =>
-        Title = string.IsNullOrWhiteSpace(Package.Name) ? "Nouveau paquet" : $"{Package.Name} — Paquet";
+        Title = string.IsNullOrWhiteSpace(Package.Name) ? L.Get("PackageWindow_NewPackage") : L.Format("PackageWindow_TitleNamed", Package.Name);
 
     /// <summary>Delay that steps without their own delay will have.</summary>
     private int PackageTimeout => Package.TimeoutMinutes ?? _defaults.TimeoutMinutes;
@@ -26,18 +26,18 @@ public partial class PackageWindow
     {
         _loadingOptions = true;
         RunAsBox.Items.Clear();
-        RunAsBox.Items.Add(new ComboBoxItem { Content = $"Par défaut ({Ui.RunAsText(_defaults.RunAs)})", Tag = null, IsSelected = Package.RunAs == null });
+        RunAsBox.Items.Add(new ComboBoxItem { Content = L.Format("PackageWindow_DefaultOption", Ui.RunAsText(_defaults.RunAs)), Tag = null, IsSelected = Package.RunAs == null });
         foreach (var mode in Enum.GetValues<RunAsMode>())
             RunAsBox.Items.Add(new ComboBoxItem { Content = Ui.RunAsText(mode), Tag = mode, IsSelected = Package.RunAs == mode });
         CopyModeBox.Items.Clear();
-        CopyModeBox.Items.Add(new ComboBoxItem { Content = $"Par défaut ({Ui.CopyModeText(_defaults.CopyMode)})", Tag = null, IsSelected = Package.CopyMode == null });
+        CopyModeBox.Items.Add(new ComboBoxItem { Content = L.Format("PackageWindow_DefaultOption", Ui.CopyModeText(_defaults.CopyMode)), Tag = null, IsSelected = Package.CopyMode == null });
         foreach (var mode in Enum.GetValues<CopyMode>())
             CopyModeBox.Items.Add(new ComboBoxItem { Content = Ui.CopyModeText(mode), Tag = mode, IsSelected = Package.CopyMode == mode });
         TimeoutBox.Text = Package.TimeoutMinutes?.ToString() ?? "";
-        TimeoutHint.Text = $"Pour les étapes sans délai propre. Vide : valeur des Préférences ({_defaults.TimeoutMinutes} min).";
+        TimeoutHint.Text = L.Format("PackageWindow_TimeoutHint", _defaults.TimeoutMinutes);
         UpdateRunAsHint();
 
-        OfflineDefaultBox.Content = "Utiliser les réglages des Préférences (Options › Préférences › Hors ligne)";
+        OfflineDefaultBox.Content = L.Get("PackageWindow_OfflineUsePreferences");
         OfflineDefaultBox.IsChecked = Package.Offline == null;
         PackageOffline.Load(Package.Offline ?? Clone(_defaults.Offline));
         PackageOffline.IsEnabled = Package.Offline != null;

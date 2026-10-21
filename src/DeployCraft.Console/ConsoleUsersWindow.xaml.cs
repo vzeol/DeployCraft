@@ -15,9 +15,9 @@ public partial class ConsoleUsersWindow : Window
         Ui.SelectOnRightClick(List);
         Ui.ContextMenu(List, () =>
         [
-            new("Ajouter…", () => Add_Click(this, new()), _canEdit),
+            new(L.Get("Dialog_Add"), () => Add_Click(this, new()), _canEdit),
             Ui.Separator,
-            new("Supprimer", () => Remove_Click(this, new()), _canEdit && Selected != null, "Suppr"),
+            new(L.Get("Dialog_Delete"), () => Remove_Click(this, new()), _canEdit && Selected != null, L.Get("Dialog_DeleteKey")),
         ]);
         List.KeyDown += (_, e) =>
         {
@@ -35,12 +35,11 @@ public partial class ConsoleUsersWindow : Window
             var status = await Api.Status();
             _canEdit = info.CanEdit;
             List.ItemsSource = info.Users;
-            AccessHint.Text = $"Les administrateurs de {status.Machine} ont toujours accès à DeployCraft. Ajoutez ici d'autres comptes ou groupes " +
-                              $"Windows (DOMAINE\\nom) qui pourront ouvrir la console, sans les rendre administrateurs du serveur. Vous êtes connecté en tant que {status.ConnectedAs}.";
+            AccessHint.Text = L.Format("ConsoleUsers_AccessHint", status.Machine, status.ConnectedAs);
             Sessions.ItemsSource = info.Sessions
                 .Select(s => new { s.User, s.Computer, LastSeen = s.LastSeenUtc.ToLocalTime().ToString("HH:mm:ss") }).ToList();
-            SessionsCount.Text = $"{info.Sessions.Count} console(s) ouverte(s) en ce moment (une console fermée disparaît de la liste après 2 minutes).";
-            Warning.Text = _canEdit ? "" : "Seuls les administrateurs de ce serveur peuvent modifier cette liste.";
+            SessionsCount.Text = L.Format("ConsoleUsers_SessionsCount", info.Sessions.Count);
+            Warning.Text = _canEdit ? "" : L.Get("ConsoleUsers_NoEdit");
             UpdateButtons();
         }
         catch (ApiException ex) { Ui.Error(this, ex); }
@@ -57,7 +56,7 @@ public partial class ConsoleUsersWindow : Window
     private async void Add_Click(object sender, RoutedEventArgs e)
     {
         if (!_canEdit) return;
-        if (InputDialog.Ask(this, Title, "Compte ou groupe Windows (DOMAINE\\nom) :", "") is not { } name) return;
+        if (InputDialog.Ask(this, Title, L.Get("ConsoleUsers_AddPrompt"), "") is not { } name) return;
         try
         {
             await Api.AddConsoleUser(name);
@@ -69,7 +68,7 @@ public partial class ConsoleUsersWindow : Window
     private async void Remove_Click(object sender, RoutedEventArgs e)
     {
         if (!_canEdit || Selected is not { } user) return;
-        if (MessageDialog.Show(this, $"Retirer l'accès de {user.Name} ?", Title, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+        if (MessageDialog.Show(this, L.Format("ConsoleUsers_RemoveConfirm", user.Name), Title, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
             return;
         try
         {

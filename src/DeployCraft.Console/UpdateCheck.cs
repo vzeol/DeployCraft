@@ -75,7 +75,7 @@ public static class UpdateCheck
         if (!hash.Equals(update.SetupSha256, StringComparison.OrdinalIgnoreCase))
         {
             File.Delete(file);
-            throw new InvalidDataException("L'installeur téléchargé ne correspond pas à l'empreinte publiée : il a été supprimé. Réessayez plus tard.");
+            throw new InvalidDataException(L.Get("UpdateCheck_BadHash"));
         }
         return file;
     }

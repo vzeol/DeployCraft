@@ -89,60 +89,60 @@ public partial class MainWindow
             if (SelectedPackage != null)
                 return
                 [
-                    new("Déployer une fois…", () => DeployOnce_Click(this, new()), Gesture: "Ctrl+D"),
-                    new("Modifier…", () => EditPackage_Click(this, new()), Gesture: "Ctrl+O"),
-                    new("Ajouter à une planification…", () => _ = AttachToScheduleAsync()),
+                    new(L.Get("MainWindow_DeployOnceDots"), () => DeployOnce_Click(this, new()), Gesture: "Ctrl+D"),
+                    new(L.Get("MainWindow_CtxEdit"), () => EditPackage_Click(this, new()), Gesture: "Ctrl+O"),
+                    new(L.Get("MainWindow_CtxAddToSchedule"), () => _ = AttachToScheduleAsync()),
                     Ui.Separator,
-                    new("Couper", () => CutOrCopyNode(cut: true), Gesture: "Ctrl+X"),
-                    new("Copier", () => CutOrCopyNode(cut: false), Gesture: "Ctrl+C"),
-                    new("Coller", () => _ = PasteNodeAsync(), CanPaste, "Ctrl+V"),
-                    new("Dupliquer", () => Duplicate_Click(this, new()), Gesture: "Alt+Inser"),
-                    new("Renommer", () => Rename_Click(this, new()), Gesture: "F2"),
-                    new("Exporter…", () => ExportPackage_Click(this, new())),
+                    new(L.Get("MainWindow_CtxCut"), () => CutOrCopyNode(cut: true), Gesture: "Ctrl+X"),
+                    new(L.Get("MainWindow_CtxCopy"), () => CutOrCopyNode(cut: false), Gesture: "Ctrl+C"),
+                    new(L.Get("MainWindow_CtxPaste"), () => _ = PasteNodeAsync(), CanPaste, "Ctrl+V"),
+                    new(L.Get("MainWindow_CtxDuplicate"), () => Duplicate_Click(this, new()), Gesture: L.Get("MainWindow_KeyAltInsert")),
+                    new(L.Get("MainWindow_Rename"), () => Rename_Click(this, new()), Gesture: "F2"),
+                    new(L.Get("MainWindow_CtxExport"), () => ExportPackage_Click(this, new())),
                     Ui.Separator,
-                    new("Supprimer", () => DeletePackage_Click(this, new()), Gesture: "Suppr"),
+                    new(L.Get("MainWindow_Delete"), () => DeletePackage_Click(this, new()), Gesture: L.Get("MainWindow_KeyDelete")),
                 ];
             if (SelectedFolder is { } folder)
                 return
                 [
-                    new("Nouveau paquet…", () => NewPackage_Click(this, new()), Gesture: "Ctrl+N"),
-                    new("Nouveau dossier…", () => NewFolder_Click(this, new()), Gesture: "Ctrl+Maj+F"),
+                    new(L.Get("MainWindow_CtxNewPackage"), () => NewPackage_Click(this, new()), Gesture: "Ctrl+N"),
+                    new(L.Get("MainWindow_CtxNewFolder"), () => NewFolder_Click(this, new()), Gesture: L.Get("MainWindow_KeyCtrlShiftF")),
                     Ui.Separator,
-                    new("Couper", () => CutOrCopyNode(cut: true), Gesture: "Ctrl+X"),
-                    new("Coller", () => _ = PasteNodeAsync(), CanPaste, "Ctrl+V"),
-                    new("Renommer", () => _ = RenameFolderAsync(folder), Gesture: "F2"),
-                    new("Supprimer", () => _ = DeleteFolderAsync(folder), Gesture: "Suppr"),
+                    new(L.Get("MainWindow_CtxCut"), () => CutOrCopyNode(cut: true), Gesture: "Ctrl+X"),
+                    new(L.Get("MainWindow_CtxPaste"), () => _ = PasteNodeAsync(), CanPaste, "Ctrl+V"),
+                    new(L.Get("MainWindow_Rename"), () => _ = RenameFolderAsync(folder), Gesture: "F2"),
+                    new(L.Get("MainWindow_Delete"), () => _ = DeleteFolderAsync(folder), Gesture: L.Get("MainWindow_KeyDelete")),
                 ];
             if (Nav.SelectedItem == _packagesNode)
                 return
                 [
-                    new("Nouveau paquet…", () => NewPackage_Click(this, new()), Gesture: "Ctrl+N"),
-                    new("Nouveau dossier…", () => NewFolder_Click(this, new()), Gesture: "Ctrl+Maj+F"),
-                    new("Coller", () => _ = PasteNodeAsync(), CanPaste, "Ctrl+V"),
+                    new(L.Get("MainWindow_CtxNewPackage"), () => NewPackage_Click(this, new()), Gesture: "Ctrl+N"),
+                    new(L.Get("MainWindow_CtxNewFolder"), () => NewFolder_Click(this, new()), Gesture: L.Get("MainWindow_KeyCtrlShiftF")),
+                    new(L.Get("MainWindow_CtxPaste"), () => _ = PasteNodeAsync(), CanPaste, "Ctrl+V"),
                     Ui.Separator,
-                    new("Importer des paquets…", () => Import_Click(this, new())),
-                    new("Exporter tous les paquets…", () => ExportAll_Click(this, new()), _packages.Count > 0),
+                    new(L.Get("MainWindow_CtxImportPackages"), () => Import_Click(this, new())),
+                    new(L.Get("MainWindow_CtxExportAll"), () => ExportAll_Click(this, new()), _packages.Count > 0),
                 ];
-            return [new("Actualiser", () => Refresh_Click(this, new()), Gesture: "F5")];
+            return [new(L.Get("MainWindow_Refresh"), () => Refresh_Click(this, new()), Gesture: "F5")];
         });
 
         Ui.ContextMenu(StepsGrid, () => SelectedPackage != null
-            ? [new("Modifier le paquet…", () => EditPackage_Click(this, new()))]
+            ? [new(L.Get("MainWindow_CtxEditPackage"), () => EditPackage_Click(this, new()))]
             : []);
 
         Ui.SelectOnRightClick(SchedulesGrid);
         Ui.ContextMenu(SchedulesGrid, () =>
         {
-            if (SelectedSchedule is not { } s) return [new("Nouvelle planification…", () => NewSchedule_Click(this, new()), Gesture: "Ctrl+Maj+N")];
+            if (SelectedSchedule is not { } s) return [new(L.Get("MainWindow_NewScheduleDots"), () => NewSchedule_Click(this, new()), Gesture: L.Get("MainWindow_KeyCtrlShiftN"))];
             return
             [
-                new("Démarrer maintenant", () => RunSchedule_Click(this, new())),
-                new("Modifier…", () => EditSchedule_Click(this, new())),
+                new(L.Get("MainWindow_StartNow"), () => RunSchedule_Click(this, new())),
+                new(L.Get("MainWindow_CtxEdit"), () => EditSchedule_Click(this, new())),
                 Ui.Separator,
-                new(s.Enabled ? "Désactiver" : "Activer", () => ToggleSchedule(s)),
-                new("Dupliquer", () => DuplicateSchedule(s)),
+                new(s.Enabled ? L.Get("MainWindow_CtxDisable") : L.Get("MainWindow_CtxEnable"), () => ToggleSchedule(s)),
+                new(L.Get("MainWindow_CtxDuplicate"), () => DuplicateSchedule(s)),
                 Ui.Separator,
-                new("Supprimer", () => DeleteSchedule(s), Gesture: "Suppr"),
+                new(L.Get("MainWindow_Delete"), () => DeleteSchedule(s), Gesture: L.Get("MainWindow_KeyDelete")),
             ];
         });
 
@@ -155,10 +155,10 @@ public partial class MainWindow
             {
                 entries.Add(new(LibraryDownloadText.Text, () => LibraryDownload_Click(this, new()), rows.Any(r => r.CanDownload)));
                 if (rows.Count == 1 && rows[0].Item.PackageId is { } packageId)
-                    entries.Add(new("Afficher le paquet", () => SelectPackageNode(packageId)));
+                    entries.Add(new(L.Get("MainWindow_CtxShowPackage"), () => SelectPackageNode(packageId)));
                 entries.Add(Ui.Separator);
             }
-            entries.Add(new("Actualiser le catalogue", () => LibraryRefresh_Click(this, new())));
+            entries.Add(new(L.Get("MainWindow_RefreshCatalog"), () => LibraryRefresh_Click(this, new())));
             return entries;
         });
 
@@ -166,16 +166,16 @@ public partial class MainWindow
         Ui.ContextMenu(PackageSchedulesGrid, () => PackageSchedulesGrid.SelectedItem is ScheduleRow row
             ?
             [
-                new("Modifier…", () => EditPackageSchedule_Click(this, new())),
-                new("Retirer ce paquet de la planification", () => _ = DetachFromScheduleAsync(row.Id)),
+                new(L.Get("MainWindow_CtxEdit"), () => EditPackageSchedule_Click(this, new())),
+                new(L.Get("MainWindow_CtxRemoveFromSchedule"), () => _ = DetachFromScheduleAsync(row.Id)),
                 Ui.Separator,
-                new("Ajouter à une autre planification…", () => _ = AttachToScheduleAsync()),
-                new("Nouvelle planification…", () => NewScheduleForPackage_Click(this, new())),
+                new(L.Get("MainWindow_CtxAddToOtherSchedule"), () => _ = AttachToScheduleAsync()),
+                new(L.Get("MainWindow_NewScheduleDots"), () => NewScheduleForPackage_Click(this, new())),
             ]
             :
             [
-                new("Ajouter à une planification…", () => _ = AttachToScheduleAsync()),
-                new("Nouvelle planification…", () => NewScheduleForPackage_Click(this, new())),
+                new(L.Get("MainWindow_CtxAddToSchedule"), () => _ = AttachToScheduleAsync()),
+                new(L.Get("MainWindow_NewScheduleDots"), () => NewScheduleForPackage_Click(this, new())),
             ]);
     }
 

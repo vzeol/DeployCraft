@@ -31,7 +31,7 @@ public partial class ScheduleWindow : Window
         TargetsList.ItemsSource = _targets;
         PackagesList.ItemsSource = _packages;
 
-        Title = schedule.Id == 0 ? "Nouvelle planification" : $"Planification n° {schedule.Id}";
+        Title = schedule.Id == 0 ? L.Get("ScheduleWindow_NewSchedule") : L.Format("ScheduleWindow_ScheduleNumber", schedule.Id);
         NameBox.Text = schedule.Name;
         foreach (var t in schedule.Triggers) _triggers.Add(new TriggerItem(t));
         foreach (var c in schedule.Targets) _targets.Add(c);
@@ -51,18 +51,18 @@ public partial class ScheduleWindow : Window
         Ui.SelectOnRightClick(TargetsList);
         Ui.ContextMenu(TargetsList, () =>
         [
-            new("Coller une liste de postes", PasteNames, Clipboard.ContainsText(), "Ctrl+V"),
+            new(L.Get("ScheduleWindow_PasteList"), PasteNames, Clipboard.ContainsText(), "Ctrl+V"),
             new("Active Directory…", () => Ad_Click(this, new())),
-            new("Fichier texte…", () => TextFile_Click(this, new())),
+            new(L.Get("ScheduleWindow_TextFile"), () => TextFile_Click(this, new())),
             Ui.Separator,
-            new("Retirer", () => Remove_Click(this, new()), TargetsList.SelectedItems.Count > 0, "Suppr"),
-            new("Tout retirer", () => Clear_Click(this, new()), _targets.Count > 0),
+            new(L.Get("ScheduleWindow_RemoveItem"), () => Remove_Click(this, new()), TargetsList.SelectedItems.Count > 0, L.Get("ScheduleWindow_DeleteKey")),
+            new(L.Get("ScheduleWindow_RemoveAll"), () => Clear_Click(this, new()), _targets.Count > 0),
         ]);
         Ui.SelectOnRightClick(HistoryGrid);
         Ui.ContextMenu(HistoryGrid, () =>
         [
-            new("Effacer (redéployer ce paquet sur ce poste)", () => ClearHistory_Click(this, new()), HistoryGrid.SelectedItems.Count > 0),
-            new("Tout effacer", () => ClearAllHistory_Click(this, new()), HistoryGrid.Items.Count > 0),
+            new(L.Get("ScheduleWindow_ClearRedeploy"), () => ClearHistory_Click(this, new()), HistoryGrid.SelectedItems.Count > 0),
+            new(L.Get("ScheduleWindow_ClearAll"), () => ClearAllHistory_Click(this, new()), HistoryGrid.Items.Count > 0),
         ]);
 
         Loaded += async (_, _) => await LoadAsync();
@@ -76,7 +76,7 @@ public partial class ScheduleWindow : Window
             _defaults = await Api.Defaults();
             await CredentialsWindow.Fill(CredentialBox, _schedule.CredentialId);
             foreach (var id in _schedule.PackageIds)
-                _packages.Add(new PackageItem(_library.FirstOrDefault(p => p.Id == id) ?? new Package { Id = id, Name = $"(paquet supprimé n° {id})" }, ""));
+                _packages.Add(new PackageItem(_library.FirstOrDefault(p => p.Id == id) ?? new Package { Id = id, Name = L.Format("ScheduleWindow_DeletedPackage", id) }, ""));
             UpdatePackages();
             FillOptions();
             await LoadHistoryAsync();
@@ -93,19 +93,19 @@ public partial class ScheduleWindow : Window
     {
         if (!string.IsNullOrWhiteSpace(ComputerBox.Text)) { AddNames(ComputerBox.Text); ComputerBox.Clear(); }
         var name = NameBox.Text.Trim();
-        if (name.Length == 0) return Invalid("Donnez un nom à la planification.", null, NameBox);
-        if (_packages.Count == 0) return Invalid("Ajoutez au moins un paquet.", 2, null);
-        if (_targets.Count == 0) return Invalid("Ajoutez au moins une cible.", 1, ComputerBox);
+        if (name.Length == 0) return Invalid(L.Get("ScheduleWindow_NeedName"), null, NameBox);
+        if (_packages.Count == 0) return Invalid(L.Get("ScheduleWindow_NeedPackage"), 2, null);
+        if (_targets.Count == 0) return Invalid(L.Get("ScheduleWindow_NeedTarget"), 1, ComputerBox);
         int? failures = null, queue = null;
         if (StopFailBox.IsChecked == true)
         {
             if (ScheduleEditing.ParseInt(FailCountBox.Text) is var n and > 0) failures = n;
-            else return Invalid("Indiquez un nombre d'échecs (1 ou plus).", 3, FailCountBox);
+            else return Invalid(L.Get("ScheduleWindow_NeedFailureCount"), 3, FailCountBox);
         }
         if (QueueBox.IsChecked == true)
         {
             if (ScheduleEditing.ParseInt(QueueMinutesBox.Text) is var m and > 0) queue = m;
-            else return Invalid("Indiquez un délai d'attente en minutes (1 ou plus).", 3, QueueMinutesBox);
+            else return Invalid(L.Get("ScheduleWindow_NeedQueueDelay"), 3, QueueMinutesBox);
         }
         if (ScheduleEditing.TriggerProblem(_triggers.Select(t => t.Trigger).ToList()) is var (index, message))
         {

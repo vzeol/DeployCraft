@@ -40,8 +40,8 @@ public partial class PackageWindow : Window
         PackageConditions.Load(Package.Conditions, forPackage: true);
         FillOptions();
 
-        _propertiesNode = new TreeViewItem { Header = Ui.Header(Ui.IconProperties, "Propriétés"), Tag = "properties" };
-        _stepsNode = new TreeViewItem { Header = Ui.Header(Ui.IconSteps, "Étapes"), IsExpanded = true };
+        _propertiesNode = new TreeViewItem { Header = Ui.Header(Ui.IconProperties, L.Get("PackageWindow_Properties")), Tag = "properties" };
+        _stepsNode = new TreeViewItem { Header = Ui.Header(Ui.IconSteps, L.Get("PackageWindow_Steps")), IsExpanded = true };
         Tree.Items.Add(_propertiesNode);
         Tree.Items.Add(_stepsNode);
         RebuildSteps(select: null);
@@ -170,7 +170,7 @@ public partial class PackageWindow : Window
             el.Visibility = Show(f.Pause);
         foreach (UIElement el in new UIElement[] { CodesLabel, CodesBox, CodesHint })
             el.Visibility = Show(f.SuccessCodes);
-        CommandLabel.Text = step.Type == StepType.PowerShell ? "Script" : "Commande";
+        CommandLabel.Text = L.Get(step.Type == StepType.PowerShell ? "PackageWindow_Script" : "StepSummary_TypeCommand");
         CommandBox.MinHeight = step.Type == StepType.PowerShell ? 220 : 26;
         CommandBox.TextWrapping = step.Type == StepType.PowerShell ? TextWrapping.NoWrap : TextWrapping.Wrap;
     }
@@ -188,7 +188,7 @@ public partial class PackageWindow : Window
         StepRunAsBox.Items.Clear();
         StepRunAsBox.Items.Add(new ComboBoxItem
         {
-            Content = $"Paramètre du paquet ({Ui.RunAsText(Package.RunAs ?? _defaults.RunAs)})",
+            Content = L.Format("PackageWindow_RunAsPackageSetting", Ui.RunAsText(Package.RunAs ?? _defaults.RunAs)),
             Tag = null,
             IsSelected = step.RunAs == null,
         });
@@ -225,8 +225,8 @@ public partial class PackageWindow : Window
     {
         ReadTextFields();
         if (await AllWarningsAsync() is { Count: > 0 } warnings
-            && MessageDialog.Show(this, "Ce paquet a des avertissements :\n\n" + string.Join("\n", warnings.Select(w => "• " + w)) +
-                    "\n\nEnregistrer quand même ?", "Paquet", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            && MessageDialog.Show(this, L.Format("PackageWindow_WarningsPrompt", string.Join("\n", warnings.Select(w => "• " + w))),
+                    L.Get("PackageWindow_Title"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
             return false;
         try
         {
@@ -256,7 +256,7 @@ public partial class PackageWindow : Window
         Package.Name = name; // the name is only trimmed on saving
         if (e.Cancel || Snapshot() == _savedSnapshot) return;
 
-        var answer = MessageDialog.Show(this, "Enregistrer les modifications du paquet ?", "Paquet",
+        var answer = MessageDialog.Show(this, L.Get("PackageWindow_SaveChangesPrompt"), L.Get("PackageWindow_Title"),
             MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
         if (answer == MessageBoxResult.No) return;
 

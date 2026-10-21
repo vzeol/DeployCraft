@@ -18,6 +18,7 @@ public partial class SettingsWindow : Window
     {
         InitializeComponent();
         ThemeBox.SelectedItem = ThemeBox.Items.Cast<ComboBoxItem>().First(i => (string)i.Tag == Theme.Current);
+        LanguageBox.SelectedItem = LanguageBox.Items.Cast<ComboBoxItem>().First(i => (string)i.Tag == UiLanguage.Saved());
         Loaded += async (_, _) => await LoadDefaultsAsync();
     }
 
@@ -27,6 +28,12 @@ public partial class SettingsWindow : Window
     {
         if (ThemeBox.SelectedItem is ComboBoxItem { Tag: string choice } && choice != Theme.Current)
             Theme.Set(choice);
+    }
+
+    private void Language_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (LanguageBox.SelectedItem is ComboBoxItem { Tag: string choice } && choice != UiLanguage.Saved())
+            UiLanguage.Set(choice);
     }
 
     // ---------- Deployment and Offline (server settings) ----------
@@ -68,7 +75,7 @@ public partial class SettingsWindow : Window
         {
             e.Cancel = true;
             Tabs.SelectedIndex = 1;
-            MessageDialog.Show(this, "Délai max : saisissez un nombre de minutes (1 ou plus).", "Préférences", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageDialog.Show(this, L.Get("Settings_TimeoutError"), L.Get("Settings_Title"), MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
         _defaults.TimeoutMinutes = timeout;
@@ -82,7 +89,7 @@ public partial class SettingsWindow : Window
         {
             e.Cancel = true;
             Tabs.SelectedIndex = 1;
-            MessageDialog.Show(this, char.ToUpper(performanceError[0]) + performanceError[1..], "Préférences", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageDialog.Show(this, char.ToUpper(performanceError[0]) + performanceError[1..], L.Get("Settings_Title"), MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
         _defaults.Performance = performance;
@@ -94,7 +101,7 @@ public partial class SettingsWindow : Window
         {
             e.Cancel = true;
             Tabs.SelectedIndex = 1;
-            MessageDialog.Show(this, $"Historique : saisissez un nombre de jours entre {HistorySettings.MinDays} et {HistorySettings.MaxDays}.", "Préférences", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageDialog.Show(this, L.Format("Settings_HistoryError", HistorySettings.MinDays, HistorySettings.MaxDays), L.Get("Settings_Title"), MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
         _defaults.History.Cleanup = cleanup;

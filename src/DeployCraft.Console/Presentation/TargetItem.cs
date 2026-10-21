@@ -42,9 +42,9 @@ public class TargetItem(string computer, int startStep, DeployWindow window) : I
     public System.Windows.Media.Brush CheckBrush =>
         (System.Windows.Media.Brush)Application.Current.Resources[_check == null ? "MutedBrush" : _check.Found ? "OkBrush" : "KoBrush"];
 
-    public string CheckTip => _check == null ? "Recherche dans le DNS…"
-        : _check.Found ? $"Trouvé : {_check.DnsName}"
-        : (_check.Error ?? "Introuvable") + " Le déploiement reste possible.";
+    public string CheckTip => _check == null ? L.Get("TargetItem_Searching")
+        : _check.Found ? L.Format("TargetItem_Found", _check.DnsName)
+        : (_check.Error ?? L.Get("TargetItem_NotFound")) + " " + L.Get("TargetItem_StillPossible");
 
     public void Refresh() => PropertyChanged?.Invoke(this, new(nameof(StepText)));
 

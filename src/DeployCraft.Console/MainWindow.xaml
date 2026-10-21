@@ -48,75 +48,75 @@
     <DockPanel>
         <!-- Menu -->
         <Menu DockPanel.Dock="Top" Padding="2">
-            <MenuItem Header="_Fichier" SubmenuOpened="Menu_Opened">
-                <MenuItem Header="_Nouveau paquet" Click="NewPackage_Click" InputGestureText="Ctrl+N" x:Name="MenuNewPackage" />
-                <MenuItem Header="Nouveau d_ossier" Click="NewFolder_Click" InputGestureText="Ctrl+Maj+F" x:Name="MenuNewFolder" />
+            <MenuItem Header="{local:T MainWindow_MenuFile}" SubmenuOpened="Menu_Opened">
+                <MenuItem Header="{local:T MainWindow_MenuNewPackage}" Click="NewPackage_Click" InputGestureText="Ctrl+N" x:Name="MenuNewPackage" />
+                <MenuItem Header="{local:T MainWindow_MenuNewFolder}" Click="NewFolder_Click" InputGestureText="{local:T MainWindow_KeyCtrlShiftF}" x:Name="MenuNewFolder" />
                 <Separator />
-                <MenuItem Header="D_upliquer le paquet" Click="Duplicate_Click" InputGestureText="Alt+Inser" x:Name="MenuDuplicate" />
-                <MenuItem Header="_Modifier le paquet…" Click="EditPackage_Click" InputGestureText="Ctrl+O" x:Name="MenuOpen" />
+                <MenuItem Header="{local:T MainWindow_MenuDuplicate}" Click="Duplicate_Click" InputGestureText="{local:T MainWindow_KeyAltInsert}" x:Name="MenuDuplicate" />
+                <MenuItem Header="{local:T MainWindow_MenuEditPackage}" Click="EditPackage_Click" InputGestureText="Ctrl+O" x:Name="MenuOpen" />
                 <Separator />
-                <MenuItem Header="_Déployer une fois…" Click="DeployOnce_Click" InputGestureText="Ctrl+D" x:Name="MenuDeployOnce" />
-                <MenuItem Header="Nouvelle _planification…" Click="NewSchedule_Click" InputGestureText="Ctrl+Maj+N" x:Name="MenuNewSchedule" />
+                <MenuItem Header="{local:T MainWindow_MenuDeployOnce}" Click="DeployOnce_Click" InputGestureText="Ctrl+D" x:Name="MenuDeployOnce" />
+                <MenuItem Header="{local:T MainWindow_MenuNewSchedule}" Click="NewSchedule_Click" InputGestureText="{local:T MainWindow_KeyCtrlShiftN}" x:Name="MenuNewSchedule" />
                 <Separator />
-                <MenuItem Header="_Importer des paquets…" Click="Import_Click" x:Name="MenuImport" />
-                <MenuItem Header="_Exporter le paquet…" Click="ExportPackage_Click" x:Name="MenuExport" />
-                <MenuItem Header="Exporter _tous les paquets…" Click="ExportAll_Click" x:Name="MenuExportAll" />
+                <MenuItem Header="{local:T MainWindow_MenuImport}" Click="Import_Click" x:Name="MenuImport" />
+                <MenuItem Header="{local:T MainWindow_MenuExport}" Click="ExportPackage_Click" x:Name="MenuExport" />
+                <MenuItem Header="{local:T MainWindow_MenuExportAll}" Click="ExportAll_Click" x:Name="MenuExportAll" />
                 <Separator />
-                <MenuItem Header="_Quitter" Click="Exit_Click" InputGestureText="Alt+F4" />
+                <MenuItem Header="{local:T MainWindow_MenuQuit}" Click="Exit_Click" InputGestureText="Alt+F4" />
             </MenuItem>
-            <MenuItem Header="_Édition" SubmenuOpened="Menu_Opened" x:Name="MenuEdit">
-                <MenuItem Header="_Annuler le déploiement" Click="Abort_Click" x:Name="MenuAbort" />
+            <MenuItem Header="{local:T MainWindow_MenuEdit}" SubmenuOpened="Menu_Opened" x:Name="MenuEdit">
+                <MenuItem Header="{local:T MainWindow_MenuCancelDeployment}" Click="Abort_Click" x:Name="MenuAbort" />
                 <Separator />
-                <MenuItem Header="_Redéployer" Click="Redeploy_Click" InputGestureText="Ctrl+R" x:Name="MenuRedeploy" />
-                <MenuItem Header="Redéployer sur les postes en _échec" Click="RedeployFailed_Click" InputGestureText="Ctrl+Maj+R" x:Name="MenuRedeployFailed" />
-                <MenuItem Header="Redéployer depuis l'é_tape en échec" Click="RedeployFromStep_Click" x:Name="MenuRedeployFromStep" />
+                <MenuItem Header="{local:T MainWindow_MenuRedeploy}" Click="Redeploy_Click" InputGestureText="Ctrl+R" x:Name="MenuRedeploy" />
+                <MenuItem Header="{local:T MainWindow_MenuRedeployFailed}" Click="RedeployFailed_Click" InputGestureText="{local:T MainWindow_KeyCtrlShiftR}" x:Name="MenuRedeployFailed" />
+                <MenuItem Header="{local:T MainWindow_MenuRedeployFromStep}" Click="RedeployFromStep_Click" x:Name="MenuRedeployFromStep" />
                 <Separator />
-                <MenuItem Header="_Supprimer" Click="Delete_Click" InputGestureText="Suppr" x:Name="MenuDelete" />
-                <MenuItem Header="Re_nommer le paquet" Click="Rename_Click" InputGestureText="F2" x:Name="MenuRename" />
+                <MenuItem Header="{local:T MainWindow_MenuDelete}" Click="Delete_Click" InputGestureText="{local:T MainWindow_KeyDelete}" x:Name="MenuDelete" />
+                <MenuItem Header="{local:T MainWindow_MenuRename}" Click="Rename_Click" InputGestureText="F2" x:Name="MenuRename" />
             </MenuItem>
-            <MenuItem Header="_Affichage" x:Name="MenuView">
-                <MenuItem Header="A_ccueil" Click="ViewHome_Click" InputGestureText="Ctrl+0" />
-                <MenuItem Header="Tous les _déploiements" Click="ViewDeployments_Click" InputGestureText="Ctrl+1" />
-                <MenuItem Header="Toutes les _planifications" Click="ViewSchedules_Click" InputGestureText="Ctrl+2" />
-                <MenuItem Header="_Bibliothèque de paquets" Click="ViewLibrary_Click" InputGestureText="Ctrl+3" />
-                <MenuItem Header="Pa_quets" Click="ViewPackages_Click" InputGestureText="Ctrl+4" />
+            <MenuItem Header="{local:T MainWindow_MenuView}" x:Name="MenuView">
+                <MenuItem Header="{local:T MainWindow_MenuHome}" Click="ViewHome_Click" InputGestureText="Ctrl+0" />
+                <MenuItem Header="{local:T MainWindow_MenuAllDeployments}" Click="ViewDeployments_Click" InputGestureText="Ctrl+1" />
+                <MenuItem Header="{local:T MainWindow_MenuAllSchedules}" Click="ViewSchedules_Click" InputGestureText="Ctrl+2" />
+                <MenuItem Header="{local:T MainWindow_MenuLibrary}" Click="ViewLibrary_Click" InputGestureText="Ctrl+3" />
+                <MenuItem Header="{local:T MainWindow_MenuPackages}" Click="ViewPackages_Click" InputGestureText="Ctrl+4" />
                 <Separator />
-                <MenuItem Header="Rechercher un paquet" Click="ViewFilter_Click" InputGestureText="Ctrl+F" />
-                <MenuItem Header="_Actualiser" Click="Refresh_Click" InputGestureText="F5" />
+                <MenuItem Header="{local:T MainWindow_MenuFindPackage}" Click="ViewFilter_Click" InputGestureText="Ctrl+F" />
+                <MenuItem Header="{local:T MainWindow_MenuRefresh}" Click="Refresh_Click" InputGestureText="F5" />
             </MenuItem>
-            <MenuItem Header="_Options" x:Name="MenuOptions">
-                <MenuItem Header="_Identifiants…" Click="Credentials_Click" />
-                <MenuItem Header="_Utilisateurs de la console…" Click="ConsoleUsers_Click" />
-                <MenuItem Header="_Service en arrière-plan…" Click="BackgroundService_Click" />
+            <MenuItem Header="{local:T MainWindow_MenuOptions}" x:Name="MenuOptions">
+                <MenuItem Header="{local:T MainWindow_MenuCredentials}" Click="Credentials_Click" />
+                <MenuItem Header="{local:T MainWindow_MenuConsoleUsers}" Click="ConsoleUsers_Click" />
+                <MenuItem Header="{local:T MainWindow_MenuBackgroundService}" Click="BackgroundService_Click" />
                 <Separator />
-                <MenuItem Header="_Préférences…" Click="Settings_Click" InputGestureText="Ctrl+," />
+                <MenuItem Header="{local:T MainWindow_MenuPreferences}" Click="Settings_Click" InputGestureText="Ctrl+," />
             </MenuItem>
-            <MenuItem Header="Ai_de">
-                <MenuItem Header="_Aide de DeployCraft" Click="Help_Click" InputGestureText="F1" />
+            <MenuItem Header="{local:T MainWindow_MenuHelp}">
+                <MenuItem Header="{local:T MainWindow_MenuHelpContents}" Click="Help_Click" InputGestureText="F1" />
                 <Separator />
-                <MenuItem Header="Ouvrir une _invite de commandes (admin)" Click="AdminCmd_Click" />
-                <MenuItem Header="Ouvrir _PowerShell (admin)" Click="AdminPowerShell_Click" />
+                <MenuItem Header="{local:T MainWindow_MenuAdminCmd}" Click="AdminCmd_Click" />
+                <MenuItem Header="{local:T MainWindow_MenuAdminPowerShell}" Click="AdminPowerShell_Click" />
                 <Separator />
-                <MenuItem Header="Assistant de _démarrage…" Click="Welcome_Click" />
+                <MenuItem Header="{local:T MainWindow_MenuWelcome}" Click="Welcome_Click" />
                 <Separator />
-                <MenuItem Header="Rechercher une _mise à jour" Click="CheckUpdate_Click" />
-                <MenuItem Header="_À propos de DeployCraft" Click="About_Click" />
+                <MenuItem Header="{local:T MainWindow_MenuCheckUpdate}" Click="CheckUpdate_Click" />
+                <MenuItem Header="{local:T MainWindow_MenuAbout}" Click="About_Click" />
             </MenuItem>
         </Menu>
 
         <!-- Toolbar -->
         <Border DockPanel.Dock="Top" Background="{DynamicResource ToolbarBackground}" BorderBrush="{DynamicResource PanelBorder}" BorderThickness="0,1,0,1">
             <StackPanel Orientation="Horizontal" Margin="4,3">
-                <Button Style="{StaticResource ToolButton}" Tag="&#xE710;" Click="NewPackage_Click" x:Name="NewPackageButton">Nouveau paquet</Button>
-                <Button Style="{StaticResource ToolButton}" Tag="&#xE70F;" Click="EditPackage_Click" x:Name="EditButton">Modifier</Button>
+                <Button Style="{StaticResource ToolButton}" Tag="&#xE710;" Click="NewPackage_Click" x:Name="NewPackageButton" Content="{local:T MainWindow_NewPackage}" />
+                <Button Style="{StaticResource ToolButton}" Tag="&#xE70F;" Click="EditPackage_Click" x:Name="EditButton" Content="{local:T MainWindow_ToolEdit}" />
                 <Border Style="{StaticResource ToolSeparator}" />
-                <Button Style="{StaticResource ToolButton}" Tag="&#xE724;" Click="DeployOnce_Click" x:Name="DeployButton">Déployer une fois</Button>
-                <Button Style="{StaticResource ToolButton}" Tag="&#xE787;" Click="NewSchedule_Click" x:Name="NewScheduleButton">Nouvelle planification</Button>
+                <Button Style="{StaticResource ToolButton}" Tag="&#xE724;" Click="DeployOnce_Click" x:Name="DeployButton" Content="{local:T MainWindow_DeployOnce}" />
+                <Button Style="{StaticResource ToolButton}" Tag="&#xE787;" Click="NewSchedule_Click" x:Name="NewScheduleButton" Content="{local:T MainWindow_NewSchedule}" />
                 <Border Style="{StaticResource ToolSeparator}" />
-                <Button Style="{StaticResource ToolButton}" Tag="&#xE72C;" Click="Refresh_Click">Actualiser</Button>
-                <Button Style="{StaticResource ToolButton}" Tag="&#xE74D;" Click="DeletePackage_Click" x:Name="DeleteButton">Supprimer</Button>
+                <Button Style="{StaticResource ToolButton}" Tag="&#xE72C;" Click="Refresh_Click" Content="{local:T MainWindow_Refresh}" />
+                <Button Style="{StaticResource ToolButton}" Tag="&#xE74D;" Click="DeletePackage_Click" x:Name="DeleteButton" Content="{local:T MainWindow_Delete}" />
                 <Border Style="{StaticResource ToolSeparator}" />
-                <Button Style="{StaticResource ToolButton}" Tag="&#xE713;" Click="Settings_Click" x:Name="SettingsButton">Réglages</Button>
+                <Button Style="{StaticResource ToolButton}" Tag="&#xE713;" Click="Settings_Click" x:Name="SettingsButton" Content="{local:T MainWindow_ToolPreferences}" />
             </StackPanel>
         </Border>
 
@@ -136,9 +136,9 @@
         <Border x:Name="UpdateBar" DockPanel.Dock="Top" Background="{DynamicResource BannerBackground}" Padding="12,7" Visibility="Collapsed">
             <WrapPanel>
                 <TextBlock x:Name="UpdateText" TextWrapping="Wrap" Margin="0,0,18,0" />
-                <TextBlock x:Name="UpdateInstall" Margin="0,0,18,0"><Hyperlink Click="UpdateInstall_Click">Installer maintenant</Hyperlink></TextBlock>
-                <TextBlock Margin="0,0,18,0"><Hyperlink Click="UpdateLink_Click">Voir la nouvelle version</Hyperlink></TextBlock>
-                <TextBlock><Hyperlink Click="UpdateHide_Click">Masquer</Hyperlink></TextBlock>
+                <TextBlock x:Name="UpdateInstall" Margin="0,0,18,0"><Hyperlink Click="UpdateInstall_Click"><Run Text="{local:T MainWindow_UpdateInstallNow}" /></Hyperlink></TextBlock>
+                <TextBlock Margin="0,0,18,0"><Hyperlink Click="UpdateLink_Click"><Run Text="{local:T MainWindow_UpdateSeeNew}" /></Hyperlink></TextBlock>
+                <TextBlock><Hyperlink Click="UpdateHide_Click"><Run Text="{local:T MainWindow_UpdateHide}" /></Hyperlink></TextBlock>
             </WrapPanel>
         </Border>
 
@@ -152,14 +152,14 @@
             <!-- Navigation tree -->
             <DockPanel Margin="6">
                 <TextBox x:Name="Filter" DockPanel.Dock="Top" Margin="0,0,0,6" TextChanged="Filter_TextChanged"
-                         ToolTip="Filtrer les paquets" />
+                         ToolTip="{local:T MainWindow_FilterTip}" />
                 <TreeView x:Name="Nav" SelectedItemChanged="Nav_SelectedItemChanged" BorderBrush="{DynamicResource PanelBorder}"
                           MouseDoubleClick="Nav_MouseDoubleClick" Padding="2,4" />
             </DockPanel>
 
             <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Style="{StaticResource NavSplitter}"
                           DragCompleted="NavSplitter_DragCompleted" MouseDoubleClick="NavSplitter_DoubleClick"
-                          ToolTip="Faire glisser pour élargir ou réduire l'arbre (double-clic : largeur d'origine)" />
+                          ToolTip="{local:T MainWindow_SplitterTip}" />
 
             <Grid Grid.Column="2" Margin="6,8,10,8">
 
@@ -168,56 +168,56 @@
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,14">
                         <TextBlock Style="{StaticResource ViewIcon}" Text="&#xE80F;" />
                         <StackPanel>
-                            <TextBlock Style="{StaticResource ViewTitle}" Text="Accueil" />
-                            <TextBlock Style="{StaticResource ViewSubtitle}" Text="L'essentiel en un coup d'œil : ce qui tourne, ce qui a échoué, ce qui arrive" />
+                            <TextBlock Style="{StaticResource ViewTitle}" Text="{local:T MainWindow_Home}" />
+                            <TextBlock Style="{StaticResource ViewSubtitle}" Text="{local:T MainWindow_HomeSubtitle}" />
                         </StackPanel>
                     </StackPanel>
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <WrapPanel>
                             <Border Style="{StaticResource HomeCard}">
                                 <StackPanel>
-                                    <TextBlock Style="{StaticResource HomeCardTitle}" Text="En ce moment" />
+                                    <TextBlock Style="{StaticResource HomeCardTitle}" Text="{local:T MainWindow_HomeNow}" />
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Style="{StaticResource HomeNumber}" x:Name="HomeRunning" Foreground="{DynamicResource RunBrush}" />
                                         <TextBlock x:Name="HomeRunningText" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="240" />
                                     </StackPanel>
                                     <TextBlock x:Name="HomeTargetsText" Foreground="{DynamicResource MutedBrush}" Margin="0,4,0,8" TextWrapping="Wrap" />
-                                    <TextBlock><Hyperlink Click="HomeDeployments_Click">Voir tous les déploiements</Hyperlink></TextBlock>
+                                    <TextBlock><Hyperlink Click="HomeDeployments_Click"><Run Text="{local:T MainWindow_HomeSeeDeployments}" /></Hyperlink></TextBlock>
                                 </StackPanel>
                             </Border>
                             <Border Style="{StaticResource HomeCard}">
                                 <StackPanel>
-                                    <TextBlock Style="{StaticResource HomeCardTitle}" Text="Dernières 24 heures" />
+                                    <TextBlock Style="{StaticResource HomeCardTitle}" Text="{local:T MainWindow_HomeLast24h}" />
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Style="{StaticResource HomeNumber}" x:Name="HomeSucceeded" Foreground="{DynamicResource OkBrush}" />
-                                        <TextBlock Text="réussis" VerticalAlignment="Center" Margin="0,0,18,0" />
+                                        <TextBlock Text="{local:T MainWindow_HomeSucceeded}" VerticalAlignment="Center" Margin="0,0,18,0" />
                                         <TextBlock Style="{StaticResource HomeNumber}" x:Name="HomeFailed" Foreground="{DynamicResource KoBrush}" />
-                                        <TextBlock Text="en échec" VerticalAlignment="Center" />
+                                        <TextBlock Text="{local:T MainWindow_HomeFailed}" VerticalAlignment="Center" />
                                     </StackPanel>
                                     <StackPanel x:Name="HomeFailures" Margin="0,8,0,0" />
                                 </StackPanel>
                             </Border>
                             <Border Style="{StaticResource HomeCard}">
                                 <StackPanel>
-                                    <TextBlock Style="{StaticResource HomeCardTitle}" Text="Prochaines planifications" />
+                                    <TextBlock Style="{StaticResource HomeCardTitle}" Text="{local:T MainWindow_HomeNextSchedules}" />
                                     <StackPanel x:Name="HomeSchedules" />
                                 </StackPanel>
                             </Border>
                             <Border Style="{StaticResource HomeCard}">
                                 <StackPanel>
-                                    <TextBlock Style="{StaticResource HomeCardTitle}" Text="Bibliothèque de paquets" />
+                                    <TextBlock Style="{StaticResource HomeCardTitle}" Text="{local:T MainWindow_Library}" />
                                     <TextBlock x:Name="HomeLibraryText" TextWrapping="Wrap" Margin="0,0,0,8" />
-                                    <TextBlock><Hyperlink Click="HomeLibrary_Click">Ouvrir la bibliothèque</Hyperlink></TextBlock>
+                                    <TextBlock><Hyperlink Click="HomeLibrary_Click"><Run Text="{local:T MainWindow_HomeOpenLibrary}" /></Hyperlink></TextBlock>
                                 </StackPanel>
                             </Border>
                             <Border Style="{StaticResource HomeCard}">
                                 <StackPanel>
-                                    <TextBlock Style="{StaticResource HomeCardTitle}" Text="Raccourcis" />
-                                    <TextBlock Margin="0,0,0,4"><Hyperlink Click="NewPackage_Click">Nouveau paquet</Hyperlink><Run Foreground="{DynamicResource MutedBrush}" Text="   Ctrl+N" /></TextBlock>
-                                    <TextBlock Margin="0,0,0,4"><Hyperlink Click="NewFolder_Click">Nouveau dossier</Hyperlink><Run Foreground="{DynamicResource MutedBrush}" Text="   Ctrl+Maj+F" /></TextBlock>
-                                    <TextBlock Margin="0,0,0,4"><Hyperlink Click="NewSchedule_Click">Nouvelle planification</Hyperlink><Run Foreground="{DynamicResource MutedBrush}" Text="   Ctrl+Maj+N" /></TextBlock>
-                                    <TextBlock Margin="0,0,0,4"><Hyperlink Click="Import_Click">Importer des paquets</Hyperlink></TextBlock>
-                                    <TextBlock><Hyperlink Click="Settings_Click">Préférences</Hyperlink><Run Foreground="{DynamicResource MutedBrush}" Text="   Ctrl+," /></TextBlock>
+                                    <TextBlock Style="{StaticResource HomeCardTitle}" Text="{local:T MainWindow_HomeShortcuts}" />
+                                    <TextBlock Margin="0,0,0,4"><Hyperlink Click="NewPackage_Click"><Run Text="{local:T MainWindow_NewPackage}" /></Hyperlink><Run Foreground="{DynamicResource MutedBrush}" Text="   Ctrl+N" /></TextBlock>
+                                    <TextBlock Margin="0,0,0,4"><Hyperlink Click="NewFolder_Click"><Run Text="{local:T MainWindow_NewFolder}" /></Hyperlink><Run Foreground="{DynamicResource MutedBrush}" Text="   " /><Run Foreground="{DynamicResource MutedBrush}" Text="{local:T MainWindow_KeyCtrlShiftF}" /></TextBlock>
+                                    <TextBlock Margin="0,0,0,4"><Hyperlink Click="NewSchedule_Click"><Run Text="{local:T MainWindow_NewSchedule}" /></Hyperlink><Run Foreground="{DynamicResource MutedBrush}" Text="   " /><Run Foreground="{DynamicResource MutedBrush}" Text="{local:T MainWindow_KeyCtrlShiftN}" /></TextBlock>
+                                    <TextBlock Margin="0,0,0,4"><Hyperlink Click="Import_Click"><Run Text="{local:T MainWindow_ImportPackages}" /></Hyperlink></TextBlock>
+                                    <TextBlock><Hyperlink Click="Settings_Click"><Run Text="{local:T MainWindow_HomePreferences}" /></Hyperlink><Run Foreground="{DynamicResource MutedBrush}" Text="   Ctrl+," /></TextBlock>
                                 </StackPanel>
                             </Border>
                         </WrapPanel>
@@ -229,8 +229,8 @@
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,12">
                         <TextBlock Style="{StaticResource ViewIcon}" Text="&#xE81C;" />
                         <StackPanel>
-                            <TextBlock Style="{StaticResource ViewTitle}" Text="Tous les déploiements" />
-                            <TextBlock Style="{StaticResource ViewSubtitle}" Text="Historique de tous les paquets, le plus récent en premier" />
+                            <TextBlock Style="{StaticResource ViewTitle}" Text="{local:T MainWindow_AllDeployments}" />
+                            <TextBlock Style="{StaticResource ViewSubtitle}" Text="{local:T MainWindow_DeploymentsSubtitle}" />
                         </StackPanel>
                     </StackPanel>
                     <local:DeploymentsPanel x:Name="AllDeployments" ShowPackageColumn="True" />
@@ -243,20 +243,20 @@
                             <Button Style="{StaticResource HeaderButton}" Click="RunSchedule_Click" x:Name="RunScheduleButton" FontWeight="SemiBold">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="&#xE768;" FontFamily="{StaticResource IconFont}" Foreground="{DynamicResource Accent}" Margin="0,0,8,0" VerticalAlignment="Center" />
-                                    <TextBlock Text="Démarrer maintenant" />
+                                    <TextBlock Text="{local:T MainWindow_StartNow}" />
                                 </StackPanel>
                             </Button>
                             <Button Style="{StaticResource HeaderButton}" Click="NewSchedule_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFont}" Foreground="{DynamicResource Accent}" Margin="0,0,8,0" VerticalAlignment="Center" />
-                                    <TextBlock Text="Nouvelle planification" />
+                                    <TextBlock Text="{local:T MainWindow_NewSchedule}" />
                                 </StackPanel>
                             </Button>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Style="{StaticResource ViewIcon}" Text="&#xE787;" />
                             <StackPanel>
-                                <TextBlock Style="{StaticResource ViewTitle}" Text="Toutes les planifications" />
+                                <TextBlock Style="{StaticResource ViewTitle}" Text="{local:T MainWindow_AllSchedules}" />
                                 <TextBlock x:Name="SchedulesSubtitle" Style="{StaticResource ViewSubtitle}" />
                             </StackPanel>
                         </StackPanel>
@@ -269,14 +269,14 @@
                         </Grid.RowDefinitions>
                         <DataGrid x:Name="SchedulesGrid" MinHeight="64" MaxHeight="190" MouseDoubleClick="EditSchedule_Click" SelectionChanged="SchedulesGrid_SelectionChanged">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="N°" Binding="{Binding Id}" Width="50" />
-                                <DataGridTextColumn Header="Nom" Binding="{Binding Name}" Width="190" />
-                                <DataGridTextColumn Header="Activée" Binding="{Binding Enabled}" Width="85" />
-                                <DataGridTextColumn Header="Déclencheurs" Binding="{Binding Triggers}" Width="*" />
-                                <DataGridTextColumn Header="Prochaine exécution" Binding="{Binding Next}" Width="165" SortMemberPath="NextUtc" />
-                                <DataGridTextColumn Header="Départ" Binding="{Binding Countdown}" Width="130" SortMemberPath="NextUtc" />
-                                <DataGridTextColumn Header="Dernière exécution" Binding="{Binding Last}" Width="165" SortMemberPath="LastUtc" />
-                                <DataGridTextColumn Header="Dernier résultat" Binding="{Binding Result}" Width="260" />
+                                <DataGridTextColumn Header="{local:T MainWindow_ColNumber}" Binding="{Binding Id}" Width="50" />
+                                <DataGridTextColumn Header="{local:T MainWindow_ColName}" Binding="{Binding Name}" Width="190" />
+                                <DataGridTextColumn Header="{local:T MainWindow_ColEnabled}" Binding="{Binding Enabled}" Width="85" />
+                                <DataGridTextColumn Header="{local:T MainWindow_ColTriggers}" Binding="{Binding Triggers}" Width="*" />
+                                <DataGridTextColumn Header="{local:T MainWindow_ColNextRun}" Binding="{Binding Next}" Width="165" SortMemberPath="NextUtc" />
+                                <DataGridTextColumn Header="{local:T MainWindow_ColStartsIn}" Binding="{Binding Countdown}" Width="130" SortMemberPath="NextUtc" />
+                                <DataGridTextColumn Header="{local:T MainWindow_ColLastRun}" Binding="{Binding Last}" Width="165" SortMemberPath="LastUtc" />
+                                <DataGridTextColumn Header="{local:T MainWindow_ColLastResult}" Binding="{Binding Result}" Width="260" />
                             </DataGrid.Columns>
                         </DataGrid>
                         <local:DeploymentsPanel Grid.Row="2" x:Name="ScheduleDeployments" ShowPackageColumn="True" />
@@ -290,26 +290,26 @@
                             <Button Style="{StaticResource HeaderButton}" Click="LibraryDownload_Click" x:Name="LibraryDownloadButton" FontWeight="SemiBold">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="&#xE896;" FontFamily="{StaticResource IconFont}" Foreground="{DynamicResource Accent}" Margin="0,0,8,0" VerticalAlignment="Center" />
-                                    <TextBlock x:Name="LibraryDownloadText" Text="Télécharger" />
+                                    <TextBlock x:Name="LibraryDownloadText" Text="{local:T MainWindow_Download}" />
                                 </StackPanel>
                             </Button>
                             <Button Style="{StaticResource HeaderButton}" Click="LibraryRefresh_Click" x:Name="LibraryRefreshButton">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="&#xE72C;" FontFamily="{StaticResource IconFont}" Foreground="{DynamicResource Accent}" Margin="0,0,8,0" VerticalAlignment="Center" />
-                                    <TextBlock Text="Actualiser le catalogue" />
+                                    <TextBlock Text="{local:T MainWindow_RefreshCatalog}" />
                                 </StackPanel>
                             </Button>
                             <Button Style="{StaticResource HeaderButton}" Click="LibraryFolder_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="&#xE8B7;" FontFamily="{StaticResource IconFont}" Foreground="{DynamicResource Accent}" Margin="0,0,8,0" VerticalAlignment="Center" />
-                                    <TextBlock Text="Dossier…" />
+                                    <TextBlock Text="{local:T MainWindow_FolderDots}" />
                                 </StackPanel>
                             </Button>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Style="{StaticResource ViewIcon}" Text="&#xE8F1;" />
                             <StackPanel>
-                                <TextBlock Style="{StaticResource ViewTitle}" Text="Bibliothèque de paquets" />
+                                <TextBlock Style="{StaticResource ViewTitle}" Text="{local:T MainWindow_Library}" />
                                 <TextBlock x:Name="LibrarySubtitle" Style="{StaticResource ViewSubtitle}" TextTrimming="CharacterEllipsis" />
                             </StackPanel>
                         </StackPanel>
@@ -318,29 +318,29 @@
                         <TextBlock DockPanel.Dock="Left" Text="&#xE721;" FontFamily="{StaticResource IconFont}" Foreground="{DynamicResource MutedBrush}"
                                    VerticalAlignment="Center" Margin="2,0,8,0" />
                         <TextBox x:Name="LibrarySearch" TextChanged="LibrarySearch_TextChanged"
-                                 ToolTip="Cherche dans tout le catalogue : nom, éditeur ou mot-clé (ex. vlc, adobe, java)" />
+                                 ToolTip="{local:T MainWindow_LibrarySearchTip}" />
                     </DockPanel>
                     <TextBlock x:Name="LibraryFolderText" DockPanel.Dock="Bottom" Margin="0,8,0,0" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" />
                     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,8,0,0">
-                        <TextBlock Text="Nouvelle version d'un paquet téléchargé :" VerticalAlignment="Center" Margin="0,0,8,0" />
+                        <TextBlock Text="{local:T MainWindow_LibraryNewVersionLabel}" VerticalAlignment="Center" Margin="0,0,8,0" />
                         <ComboBox x:Name="LibraryAutoUpdateBox" MinWidth="300" SelectionChanged="LibraryAutoUpdate_Changed"
-                                  ToolTip="Le catalogue est relu chaque jour par le service, même console fermée. Une mise à jour change le paquet, elle ne le déploie pas : les planifications qui l'utilisent installeront la nouvelle version.">
-                            <ComboBoxItem Tag="Manual" Content="Signaler seulement (vous cliquez sur Mettre à jour)" />
-                            <ComboBoxItem Tag="Immediate" Content="Mettre à jour automatiquement, tout de suite" />
-                            <ComboBoxItem Tag="Delayed" Content="Mettre à jour automatiquement, après un délai" />
+                                  ToolTip="{local:T MainWindow_LibraryAutoUpdateTip}">
+                            <ComboBoxItem Tag="Manual" Content="{local:T MainWindow_LibraryAutoManual}" />
+                            <ComboBoxItem Tag="Immediate" Content="{local:T MainWindow_LibraryAutoImmediate}" />
+                            <ComboBoxItem Tag="Delayed" Content="{local:T MainWindow_LibraryAutoDelayed}" />
                         </ComboBox>
                         <TextBox x:Name="LibraryAutoUpdateDays" Style="{StaticResource CompactBox}" Width="50" Margin="8,0,6,0" LostFocus="LibraryAutoUpdate_Changed"
-                                 ToolTip="Laisse le temps à l'éditeur de corriger une version défectueuse avant qu'elle arrive sur vos postes." />
-                        <TextBlock x:Name="LibraryAutoUpdateDaysText" Text="jours après sa sortie" VerticalAlignment="Center" />
+                                 ToolTip="{local:T MainWindow_LibraryDelayTip}" />
+                        <TextBlock x:Name="LibraryAutoUpdateDaysText" Text="{local:T MainWindow_LibraryDaysAfterRelease}" VerticalAlignment="Center" />
                     </StackPanel>
                     <DataGrid x:Name="LibraryGrid" SelectionMode="Extended" MouseDoubleClick="LibraryDownload_Click" SelectionChanged="LibraryGrid_SelectionChanged">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Logiciel" Binding="{Binding Name}" Width="220" />
-                            <DataGridTextColumn Header="Identifiant" Binding="{Binding Id}" Width="200" />
-                            <DataGridTextColumn Header="Version disponible" Binding="{Binding Latest}" Width="140" />
-                            <DataGridTextColumn Header="Dans DeployCraft" Binding="{Binding Downloaded}" Width="130" />
-                            <DataGridTextColumn Header="Installeur" Binding="{Binding Installer}" Width="110" />
-                            <DataGridTextColumn Header="État" Binding="{Binding State}" Width="*" />
+                            <DataGridTextColumn Header="{local:T MainWindow_ColSoftware}" Binding="{Binding Name}" Width="220" />
+                            <DataGridTextColumn Header="{local:T MainWindow_ColIdentifier}" Binding="{Binding Id}" Width="200" />
+                            <DataGridTextColumn Header="{local:T MainWindow_ColAvailableVersion}" Binding="{Binding Latest}" Width="140" />
+                            <DataGridTextColumn Header="{local:T MainWindow_ColInDeployCraft}" Binding="{Binding Downloaded}" Width="130" />
+                            <DataGridTextColumn Header="{local:T MainWindow_ColInstaller}" Binding="{Binding Installer}" Width="110" />
+                            <DataGridTextColumn Header="{local:T MainWindow_ColState}" Binding="{Binding State}" Width="*" />
                         </DataGrid.Columns>
                     </DataGrid>
                 </DockPanel>
@@ -352,13 +352,13 @@
                             <Button Style="{StaticResource HeaderButton}" Click="DeployOnce_Click" FontWeight="SemiBold">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="&#xE724;" FontFamily="{StaticResource IconFont}" Foreground="{DynamicResource Accent}" Margin="0,0,8,0" VerticalAlignment="Center" />
-                                    <TextBlock Text="Déployer une fois…" />
+                                    <TextBlock Text="{local:T MainWindow_DeployOnceDots}" />
                                 </StackPanel>
                             </Button>
                             <Button Style="{StaticResource HeaderButton}" Click="EditPackage_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="&#xE70F;" FontFamily="{StaticResource IconFont}" Foreground="{DynamicResource Accent}" Margin="0,0,8,0" VerticalAlignment="Center" />
-                                    <TextBlock Text="Modifier le paquet" />
+                                    <TextBlock Text="{local:T MainWindow_EditPackage}" />
                                 </StackPanel>
                             </Button>
                         </StackPanel>
@@ -376,7 +376,7 @@
                             <TabItem.Header>
                                 <StackPanel Orientation="Horizontal" Margin="4,2">
                                     <TextBlock Text="&#xE946;" FontFamily="{StaticResource IconFont}" Foreground="{DynamicResource Accent}" Margin="0,0,6,0" VerticalAlignment="Center" />
-                                    <TextBlock Text="Détails" />
+                                    <TextBlock Text="{local:T MainWindow_Details}" />
                                 </StackPanel>
                             </TabItem.Header>
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -387,7 +387,7 @@
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
                                     </Grid>
-                                    <TextBlock Margin="0,12,0,0"><Hyperlink Click="EditPackage_Click">Modifier ces réglages…</Hyperlink></TextBlock>
+                                    <TextBlock Margin="0,12,0,0"><Hyperlink Click="EditPackage_Click"><Run Text="{local:T MainWindow_EditSettingsLink}" /></Hyperlink></TextBlock>
                                 </StackPanel>
                             </ScrollViewer>
                         </TabItem>
@@ -395,7 +395,7 @@
                             <TabItem.Header>
                                 <StackPanel Orientation="Horizontal" Margin="4,2">
                                     <TextBlock Text="&#xE81C;" FontFamily="{StaticResource IconFont}" Foreground="{DynamicResource Accent}" Margin="0,0,6,0" VerticalAlignment="Center" />
-                                    <TextBlock Text="Déploiements" />
+                                    <TextBlock Text="{local:T MainWindow_Deployments}" />
                                 </StackPanel>
                             </TabItem.Header>
                             <local:DeploymentsPanel x:Name="PackageDeployments" ShowPackageColumn="False" />
@@ -404,16 +404,16 @@
                             <TabItem.Header>
                                 <StackPanel Orientation="Horizontal" Margin="4,2">
                                     <TextBlock Text="&#xE8FD;" FontFamily="{StaticResource IconFont}" Foreground="{DynamicResource Accent}" Margin="0,0,6,0" VerticalAlignment="Center" />
-                                    <TextBlock Text="Étapes" />
+                                    <TextBlock Text="{local:T MainWindow_Steps}" />
                                 </StackPanel>
                             </TabItem.Header>
                             <DataGrid x:Name="StepsGrid" MouseDoubleClick="EditPackage_Click">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="N°" Binding="{Binding Number}" Width="40" />
-                                    <DataGridTextColumn Header="Étape" Binding="{Binding Name}" Width="220" />
-                                    <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="100" />
-                                    <DataGridTextColumn Header="Conditions" Binding="{Binding Conditions}" Width="90" />
-                                    <DataGridTextColumn Header="Détails" Binding="{Binding Details}" Width="*" />
+                                    <DataGridTextColumn Header="{local:T MainWindow_ColNumber}" Binding="{Binding Number}" Width="40" />
+                                    <DataGridTextColumn Header="{local:T MainWindow_ColStep}" Binding="{Binding Name}" Width="220" />
+                                    <DataGridTextColumn Header="{local:T MainWindow_ColType}" Binding="{Binding Type}" Width="100" />
+                                    <DataGridTextColumn Header="{local:T MainWindow_ColConditions}" Binding="{Binding Conditions}" Width="90" />
+                                    <DataGridTextColumn Header="{local:T MainWindow_Details}" Binding="{Binding Details}" Width="*" />
                                 </DataGrid.Columns>
                             </DataGrid>
                         </TabItem>
@@ -421,22 +421,22 @@
                             <TabItem.Header>
                                 <StackPanel Orientation="Horizontal" Margin="4,2">
                                     <TextBlock Text="&#xE787;" FontFamily="{StaticResource IconFont}" Foreground="{DynamicResource Accent}" Margin="0,0,6,0" VerticalAlignment="Center" />
-                                    <TextBlock Text="Planifications" />
+                                    <TextBlock Text="{local:T MainWindow_Schedules}" />
                                 </StackPanel>
                             </TabItem.Header>
                             <DockPanel>
                                 <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
-                                    <Button DockPanel.Dock="Right" Style="{StaticResource DialogButton}" Click="NewScheduleForPackage_Click">Nouvelle planification…</Button>
+                                    <Button DockPanel.Dock="Right" Style="{StaticResource DialogButton}" Click="NewScheduleForPackage_Click" Content="{local:T MainWindow_NewScheduleDots}" />
                                     <TextBlock x:Name="PackageSchedulesCount" VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}" />
                                 </DockPanel>
                                 <DataGrid x:Name="PackageSchedulesGrid" MouseDoubleClick="EditPackageSchedule_Click">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="N°" Binding="{Binding Id}" Width="50" />
-                                        <DataGridTextColumn Header="Nom" Binding="{Binding Name}" Width="190" />
-                                        <DataGridTextColumn Header="Activée" Binding="{Binding Enabled}" Width="85" />
-                                        <DataGridTextColumn Header="Déclencheurs" Binding="{Binding Triggers}" Width="*" />
-                                        <DataGridTextColumn Header="Prochaine exécution" Binding="{Binding Next}" Width="165" />
-                                        <DataGridTextColumn Header="Départ" Binding="{Binding Countdown}" Width="130" />
+                                        <DataGridTextColumn Header="{local:T MainWindow_ColNumber}" Binding="{Binding Id}" Width="50" />
+                                        <DataGridTextColumn Header="{local:T MainWindow_ColName}" Binding="{Binding Name}" Width="190" />
+                                        <DataGridTextColumn Header="{local:T MainWindow_ColEnabled}" Binding="{Binding Enabled}" Width="85" />
+                                        <DataGridTextColumn Header="{local:T MainWindow_ColTriggers}" Binding="{Binding Triggers}" Width="*" />
+                                        <DataGridTextColumn Header="{local:T MainWindow_ColNextRun}" Binding="{Binding Next}" Width="165" />
+                                        <DataGridTextColumn Header="{local:T MainWindow_ColStartsIn}" Binding="{Binding Countdown}" Width="130" />
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </DockPanel>

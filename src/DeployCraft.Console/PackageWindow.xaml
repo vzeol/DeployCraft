@@ -2,37 +2,36 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:DeployCraft.Console"
-        Title="Paquet" Height="800" Width="1100" MinHeight="480" MinWidth="760"
+        Title="{local:T PackageWindow_Title}" Height="800" Width="1100" MinHeight="480" MinWidth="760"
         WindowStartupLocation="CenterOwner" Background="{DynamicResource WindowBackground}" Foreground="{DynamicResource TextBrush}" ShowInTaskbar="False">
     <DockPanel>
         <!-- Barre d'outils -->
         <Border DockPanel.Dock="Top" Background="{DynamicResource ToolbarBackground}" BorderBrush="{DynamicResource PanelBorder}" BorderThickness="0,0,0,1">
             <WrapPanel Orientation="Horizontal" Margin="4,3">
-                <Button Style="{StaticResource ToolButton}" Tag="&#xE74E;" Click="Save_Click" ToolTip="Enregistrer (Ctrl+S)">Enregistrer</Button>
+                <Button Style="{StaticResource ToolButton}" Tag="&#xE74E;" Click="Save_Click" ToolTip="{local:T PackageWindow_SaveTip}" Content="{local:T PackageWindow_Save}" />
                 <Border Style="{StaticResource ToolSeparator}" />
-                <Button Style="{StaticResource ToolButton}" Tag="&#xE710;" Click="NewStep_Click" x:Name="NewStepButton">
-                    Nouvelle étape ▾
+                <Button Style="{StaticResource ToolButton}" Tag="&#xE710;" Click="NewStep_Click" x:Name="NewStepButton" Content="{local:T PackageWindow_NewStep}">
                     <Button.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Header="Installer" Click="AddInstall_Click" />
-                            <MenuItem Header="Commande" Click="AddCommand_Click" />
+                            <MenuItem Header="{local:T StepSummary_TypeInstall}" Click="AddInstall_Click" />
+                            <MenuItem Header="{local:T StepSummary_TypeCommand}" Click="AddCommand_Click" />
                             <MenuItem Header="PowerShell" Click="AddPowerShell_Click" />
-                            <MenuItem Header="Copie de fichiers" Click="AddCopy_Click" />
-                            <MenuItem Header="Pause" Click="AddPause_Click" />
-                            <MenuItem Header="Redémarrer" Click="AddReboot_Click" />
-                            <MenuItem Header="Message" Click="AddMessage_Click" />
-                            <MenuItem Header="Paquet imbriqué" Click="AddNested_Click" />
+                            <MenuItem Header="{local:T StepSummary_TypeCopyFiles}" Click="AddCopy_Click" />
+                            <MenuItem Header="{local:T StepSummary_TypePause}" Click="AddPause_Click" />
+                            <MenuItem Header="{local:T StepSummary_TypeReboot}" Click="AddReboot_Click" />
+                            <MenuItem Header="{local:T StepSummary_TypeMessage}" Click="AddMessage_Click" />
+                            <MenuItem Header="{local:T StepSummary_TypeNested}" Click="AddNested_Click" />
                         </ContextMenu>
                     </Button.ContextMenu>
                 </Button>
-                <Button Style="{StaticResource ToolButton}" Tag="&#xE74A;" Click="MoveUp_Click" x:Name="UpButton">Monter</Button>
-                <Button Style="{StaticResource ToolButton}" Tag="&#xE74B;" Click="MoveDown_Click" x:Name="DownButton">Descendre</Button>
+                <Button Style="{StaticResource ToolButton}" Tag="&#xE74A;" Click="MoveUp_Click" x:Name="UpButton" Content="{local:T PackageWindow_MoveUp}" />
+                <Button Style="{StaticResource ToolButton}" Tag="&#xE74B;" Click="MoveDown_Click" x:Name="DownButton" Content="{local:T PackageWindow_MoveDown}" />
                 <Border Style="{StaticResource ToolSeparator}" />
-                <Button Style="{StaticResource ToolButton}" Tag="&#xE8C6;" Click="Cut_Click" x:Name="CutButton" ToolTip="Couper l'étape (Ctrl+X)">Couper</Button>
-                <Button Style="{StaticResource ToolButton}" Tag="&#xE8C8;" Click="Copy_Click" x:Name="CopyButton" ToolTip="Copier l'étape (Ctrl+C), pour la coller ici ou dans un autre paquet">Copier</Button>
-                <Button Style="{StaticResource ToolButton}" Tag="&#xE77F;" Click="Paste_Click" x:Name="PasteButton" ToolTip="Coller après l'étape choisie (Ctrl+V)">Coller</Button>
+                <Button Style="{StaticResource ToolButton}" Tag="&#xE8C6;" Click="Cut_Click" x:Name="CutButton" ToolTip="{local:T PackageWindow_CutTip}" Content="{local:T PackageWindow_Cut}" />
+                <Button Style="{StaticResource ToolButton}" Tag="&#xE8C8;" Click="Copy_Click" x:Name="CopyButton" ToolTip="{local:T PackageWindow_CopyTip}" Content="{local:T PackageWindow_Copy}" />
+                <Button Style="{StaticResource ToolButton}" Tag="&#xE77F;" Click="Paste_Click" x:Name="PasteButton" ToolTip="{local:T PackageWindow_PasteTip}" Content="{local:T PackageWindow_Paste}" />
                 <Border Style="{StaticResource ToolSeparator}" />
-                <Button Style="{StaticResource ToolButton}" Tag="&#xE74D;" Click="DeleteStep_Click" x:Name="DeleteButton">Supprimer</Button>
+                <Button Style="{StaticResource ToolButton}" Tag="&#xE74D;" Click="DeleteStep_Click" x:Name="DeleteButton" Content="{local:T PackageWindow_Delete}" />
             </WrapPanel>
         </Border>
 
@@ -48,9 +47,9 @@
 
             <!-- Package properties -->
             <DockPanel Grid.Column="2" x:Name="PropertiesView" Margin="8,4,4,4">
-                <TextBlock DockPanel.Dock="Top" Text="Propriétés du paquet" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,10" />
+                <TextBlock DockPanel.Dock="Top" Text="{local:T PackageWindow_PropertiesHeading}" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,10" />
                 <TabControl x:Name="PropertiesTabs">
-                    <TabItem Header="Détails">
+                    <TabItem Header="{local:T PackageWindow_TabDetails}">
                         <Grid Margin="10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="150" />
@@ -61,20 +60,20 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
-                            <TextBlock Style="{StaticResource FieldLabel}" Text="Nom" />
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{local:T PackageWindow_Name}" />
                             <TextBox Grid.Column="1" x:Name="NameBox" Margin="0,0,0,8" TextChanged="NameBox_TextChanged" />
-                            <TextBlock Grid.Row="1" Style="{StaticResource FieldLabel}" Text="Version" />
+                            <TextBlock Grid.Row="1" Style="{StaticResource FieldLabel}" Text="{local:T PackageWindow_Version}" />
                             <TextBox Grid.Row="1" Grid.Column="1" x:Name="VersionBox" Margin="0,0,0,8" HorizontalAlignment="Left" Width="160"
-                                     ToolTip="Version du logiciel installé par le paquet (facultatif)" />
-                            <TextBlock Grid.Row="2" Style="{StaticResource FieldLabel}" Text="Description" VerticalAlignment="Top" Margin="0,4,12,0" />
+                                     ToolTip="{local:T PackageWindow_VersionTip}" />
+                            <TextBlock Grid.Row="2" Style="{StaticResource FieldLabel}" Text="{local:T PackageWindow_Description}" VerticalAlignment="Top" Margin="0,4,12,0" />
                             <TextBox Grid.Row="2" Grid.Column="1" x:Name="DescriptionBox" MinHeight="80" TextWrapping="Wrap" AcceptsReturn="True"
                                      VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto" />
                         </Grid>
                     </TabItem>
-                    <TabItem Header="Conditions">
+                    <TabItem Header="{local:T PackageWindow_TabConditions}">
                         <local:ConditionsEditor x:Name="PackageConditions" />
                     </TabItem>
-                    <TabItem Header="Options">
+                    <TabItem Header="{local:T PackageWindow_TabOptions}">
                         <Grid Margin="10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="150" />
@@ -89,22 +88,22 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
-                            <TextBlock Style="{StaticResource FieldLabel}" Text="Exécuter en tant que" />
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{local:T PackageWindow_RunAs}" />
                             <ComboBox Grid.Column="1" x:Name="RunAsBox" HorizontalAlignment="Left" MinWidth="320"
                                       SelectionChanged="RunAsBox_SelectionChanged" />
                             <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource Hint}" x:Name="RunAsHint" />
-                            <TextBlock Grid.Row="2" Style="{StaticResource FieldLabel}" Text="Mode de copie" />
+                            <TextBlock Grid.Row="2" Style="{StaticResource FieldLabel}" Text="{local:T PackageWindow_CopyMode}" />
                             <ComboBox Grid.Row="2" Grid.Column="1" x:Name="CopyModeBox" HorizontalAlignment="Left" MinWidth="320"
                                       SelectionChanged="CopyModeBox_SelectionChanged" />
                             <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource Hint}"
-                                       Text="Pull : chaque poste lit lui-même le partage (chemins \\serveur\… seulement ; sinon push)." />
-                            <TextBlock Grid.Row="4" Style="{StaticResource FieldLabel}" Text="Délai max (minutes)" />
+                                       Text="{local:T PackageWindow_PullHint}" />
+                            <TextBlock Grid.Row="4" Style="{StaticResource FieldLabel}" Text="{local:T PackageWindow_TimeoutMinutes}" />
                             <TextBox Grid.Row="4" Grid.Column="1" x:Name="TimeoutBox" Style="{StaticResource CompactBox}" HorizontalAlignment="Left" Width="70"
                                      TextChanged="TimeoutBox_TextChanged" />
                             <TextBlock Grid.Row="5" Grid.Column="1" Style="{StaticResource Hint}" x:Name="TimeoutHint" />
                         </Grid>
                     </TabItem>
-                    <TabItem Header="Hors ligne">
+                    <TabItem Header="{local:T PackageWindow_TabOffline}">
                         <StackPanel Margin="10">
                             <CheckBox x:Name="OfflineDefaultBox" Click="OfflineDefault_Click" Margin="0,0,0,4" />
                             <local:OfflineEditor x:Name="PackageOffline" Margin="0,8,0,0" />
@@ -115,27 +114,27 @@
 
             <!-- Steps overview -->
             <DockPanel Grid.Column="2" x:Name="StepsOverview" Margin="8,4,4,4" Visibility="Collapsed">
-                <TextBlock DockPanel.Dock="Top" Text="Étapes" FontSize="16" FontWeight="SemiBold" />
+                <TextBlock DockPanel.Dock="Top" Text="{local:T PackageWindow_Steps}" FontSize="16" FontWeight="SemiBold" />
                 <TextBlock DockPanel.Dock="Top" Style="{StaticResource Hint}" Margin="0,2,0,10"
-                           Text="Les étapes s'exécutent dans l'ordre sur chaque poste. Double-cliquez sur une étape pour la modifier, clic droit pour plus d'actions." />
+                           Text="{local:T PackageWindow_StepsIntro}" />
                 <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,10,0,0">
-                    <TextBlock Text="Ajouter :" VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}" />
-                    <Button Style="{StaticResource DialogButton}" Click="AddInstall_Click">Installer</Button>
-                    <Button Style="{StaticResource DialogButton}" Click="AddCommand_Click">Commande</Button>
+                    <TextBlock Text="{local:T PackageWindow_AddLabel}" VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}" />
+                    <Button Style="{StaticResource DialogButton}" Click="AddInstall_Click" Content="{local:T StepSummary_TypeInstall}" />
+                    <Button Style="{StaticResource DialogButton}" Click="AddCommand_Click" Content="{local:T StepSummary_TypeCommand}" />
                     <Button Style="{StaticResource DialogButton}" Click="AddPowerShell_Click">PowerShell</Button>
-                    <Button Style="{StaticResource DialogButton}" Click="AddCopy_Click">Copie de fichiers</Button>
-                    <Button Style="{StaticResource DialogButton}" Click="AddPause_Click">Pause</Button>
-                    <Button Style="{StaticResource DialogButton}" Click="AddReboot_Click">Redémarrer</Button>
-                    <Button Style="{StaticResource DialogButton}" Click="AddMessage_Click">Message</Button>
-                    <Button Style="{StaticResource DialogButton}" Click="AddNested_Click">Paquet imbriqué</Button>
+                    <Button Style="{StaticResource DialogButton}" Click="AddCopy_Click" Content="{local:T StepSummary_TypeCopyFiles}" />
+                    <Button Style="{StaticResource DialogButton}" Click="AddPause_Click" Content="{local:T StepSummary_TypePause}" />
+                    <Button Style="{StaticResource DialogButton}" Click="AddReboot_Click" Content="{local:T StepSummary_TypeReboot}" />
+                    <Button Style="{StaticResource DialogButton}" Click="AddMessage_Click" Content="{local:T StepSummary_TypeMessage}" />
+                    <Button Style="{StaticResource DialogButton}" Click="AddNested_Click" Content="{local:T StepSummary_TypeNested}" />
                 </StackPanel>
                 <DataGrid x:Name="StepsGrid" MouseDoubleClick="StepsGrid_MouseDoubleClick">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="N°" Binding="{Binding Number}" Width="40" />
-                        <DataGridTextColumn Header="Étape" Binding="{Binding Name}" Width="200" />
-                        <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="100" />
-                        <DataGridTextColumn Header="Conditions" Binding="{Binding Conditions}" Width="90" />
-                        <DataGridTextColumn Header="Détails" Binding="{Binding Details}" Width="*" />
+                        <DataGridTextColumn Header="{local:T PackageWindow_ColNumber}" Binding="{Binding Number}" Width="40" />
+                        <DataGridTextColumn Header="{local:T PackageWindow_ColStep}" Binding="{Binding Name}" Width="200" />
+                        <DataGridTextColumn Header="{local:T PackageWindow_ColType}" Binding="{Binding Type}" Width="100" />
+                        <DataGridTextColumn Header="{local:T PackageWindow_TabConditions}" Binding="{Binding Conditions}" Width="90" />
+                        <DataGridTextColumn Header="{local:T PackageWindow_TabDetails}" Binding="{Binding Details}" Width="*" />
                     </DataGrid.Columns>
                 </DataGrid>
             </DockPanel>
@@ -152,18 +151,18 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <TextBlock Style="{StaticResource FieldLabel}" Text="Titre de l'étape" />
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{local:T PackageWindow_StepTitle}" />
                     <TextBox Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" TextChanged="StepName_TextChanged" />
-                    <CheckBox Grid.Row="1" Grid.Column="1" x:Name="StepEnabledBox" Margin="0,8,0,0" Content="Étape activée"
-                              AutomationProperties.Name="Étape activée"
-                              ToolTip="Décochée : l'étape reste dans le paquet mais n'est pas exécutée (« Ignoré » dans le suivi)."
+                    <CheckBox Grid.Row="1" Grid.Column="1" x:Name="StepEnabledBox" Margin="0,8,0,0" Content="{local:T PackageWindow_StepEnabled}"
+                              AutomationProperties.Name="{local:T PackageWindow_StepEnabled}"
+                              ToolTip="{local:T PackageWindow_StepEnabledTip}"
                               IsChecked="{Binding Enabled}" Click="StepEnabled_Click" />
                     <TextBlock Grid.Row="2" Grid.Column="1" x:Name="StepWarningsText" Margin="0,8,0,0" TextWrapping="Wrap"
                                Foreground="{DynamicResource KoBrush}" Visibility="Collapsed" />
                 </Grid>
 
                 <TabControl x:Name="StepTabs">
-                    <TabItem Header="Détails">
+                    <TabItem Header="{local:T PackageWindow_TabDetails}">
                         <Grid Margin="10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="130" />
@@ -182,13 +181,13 @@
                             </Grid.RowDefinitions>
 
                             <!-- Installer -->
-                            <TextBlock x:Name="FileLabel" Style="{StaticResource FieldLabel}" Text="Fichier d'installation" />
+                            <TextBlock x:Name="FileLabel" Style="{StaticResource FieldLabel}" Text="{local:T PackageWindow_InstallFile}" />
                             <TextBox x:Name="FileBox" Grid.Column="1" Text="{Binding File, UpdateSourceTrigger=PropertyChanged}" TextChanged="InstallFields_Changed" />
                             <Button x:Name="BrowseButton" Grid.Column="2" Content="…" Width="32" Margin="6,0,0,0" Click="Browse_Click" />
                             <TextBlock x:Name="FileHint" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}"
-                                       Text="Chemin vu depuis le serveur DeployCraft (un partage réseau est conseillé). .exe .msi .msp .msu .ps1 .bat .cmd .vbs .reg" />
+                                       Text="{local:T PackageWindow_InstallFileHint}" />
 
-                            <TextBlock x:Name="ArgsLabel" Grid.Row="2" Style="{StaticResource FieldLabel}" Text="Paramètres" />
+                            <TextBlock x:Name="ArgsLabel" Grid.Row="2" Style="{StaticResource FieldLabel}" Text="{local:T PackageWindow_Parameters}" />
                             <TextBox x:Name="ArgsBox" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Arguments, UpdateSourceTrigger=PropertyChanged}" TextChanged="InstallFields_Changed" />
                             <TextBlock x:Name="SilentHint" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}" />
 
@@ -204,18 +203,18 @@
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
-                                <TextBlock Style="{StaticResource FieldLabel}" Text="Fichiers additionnels" VerticalAlignment="Top" Margin="0,4,12,0" />
+                                <TextBlock Style="{StaticResource FieldLabel}" Text="{local:T PackageWindow_AdditionalFiles}" VerticalAlignment="Top" Margin="0,4,12,0" />
                                 <TextBox x:Name="AdditionalFilesBox" Grid.Column="1" MinHeight="26" MaxHeight="90" AcceptsReturn="True"
                                          VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto"
-                                         AutomationProperties.Name="Fichiers additionnels, un par ligne"
+                                         AutomationProperties.Name="{local:T PackageWindow_AdditionalFilesOnePerLine}"
                                          Text="{Binding AdditionalFiles, UpdateSourceTrigger=PropertyChanged}" TextChanged="WarningFields_Changed" />
                                 <Button Grid.Column="2" Content="…" Width="32" Margin="6,0,0,0" VerticalAlignment="Top"
                                         Height="{Binding ActualHeight, ElementName=FileBox}"
-                                        ToolTip="Ajouter des fichiers" Click="BrowseAdditional_Click" />
+                                        ToolTip="{local:T PackageWindow_AddFilesTip}" Click="BrowseAdditional_Click" />
                                 <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}"
-                                           Text="Facultatif, un chemin par ligne (vu depuis le serveur) : copiés à côté de la commande avant l'étape, par exemple un fichier de configuration." />
+                                           Text="{local:T PackageWindow_AdditionalFilesHint}" />
                                 <CheckBox x:Name="IncludeDirBox" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,0,10"
-                                          Content="Copier tout le dossier du fichier (installeurs en plusieurs fichiers)" IsChecked="{Binding IncludeDirectory}" />
+                                          Content="{local:T PackageWindow_IncludeFolder}" IsChecked="{Binding IncludeDirectory}" />
                             </Grid>
 
                             <!-- Install: Windows Installer options, command line, keep the file -->
@@ -233,43 +232,43 @@
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
-                                <TextBlock x:Name="MsiOperationLabel" Style="{StaticResource FieldLabel}" Text="Opération" />
+                                <TextBlock x:Name="MsiOperationLabel" Style="{StaticResource FieldLabel}" Text="{local:T PackageWindow_MsiOperation}" />
                                 <StackPanel x:Name="MsiOperationPanel" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,8">
-                                    <RadioButton x:Name="MsiInstallRadio" GroupName="MsiOperation" Content="Installer" Margin="0,0,16,0" Checked="MsiOption_Checked" />
-                                    <RadioButton x:Name="MsiRepairRadio" GroupName="MsiOperation" Content="Réparer" Margin="0,0,16,0" Checked="MsiOption_Checked" />
-                                    <RadioButton x:Name="MsiUninstallRadio" GroupName="MsiOperation" Content="Désinstaller" Checked="MsiOption_Checked" />
+                                    <RadioButton x:Name="MsiInstallRadio" GroupName="MsiOperation" Content="{local:T StepSummary_TypeInstall}" Margin="0,0,16,0" Checked="MsiOption_Checked" />
+                                    <RadioButton x:Name="MsiRepairRadio" GroupName="MsiOperation" Content="{local:T PackageWindow_MsiRepair}" Margin="0,0,16,0" Checked="MsiOption_Checked" />
+                                    <RadioButton x:Name="MsiUninstallRadio" GroupName="MsiOperation" Content="{local:T PackageWindow_MsiUninstall}" Checked="MsiOption_Checked" />
                                 </StackPanel>
 
-                                <TextBlock x:Name="MsiRestartLabel" Grid.Row="1" Style="{StaticResource FieldLabel}" Text="Redémarrage" />
+                                <TextBlock x:Name="MsiRestartLabel" Grid.Row="1" Style="{StaticResource FieldLabel}" Text="{local:T PackageWindow_MsiRestart}" />
                                 <StackPanel x:Name="MsiRestartPanel" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,8">
-                                    <RadioButton x:Name="RestartNeverRadio" GroupName="MsiRestart" Content="Jamais" Margin="0,0,16,0" Checked="MsiOption_Checked" />
-                                    <RadioButton x:Name="RestartAlwaysRadio" GroupName="MsiRestart" Content="Toujours" Margin="0,0,16,0" Checked="MsiOption_Checked" />
-                                    <RadioButton x:Name="RestartPromptRadio" GroupName="MsiRestart" Content="Demander" Margin="0,0,16,0" Checked="MsiOption_Checked"
-                                                 ToolTip="L'utilisateur connecté choisit de redémarrer ou non." />
-                                    <RadioButton x:Name="RestartNotSetRadio" GroupName="MsiRestart" Content="Non défini" Checked="MsiOption_Checked"
-                                                 ToolTip="Aucune consigne : le fichier d'installation décide." />
+                                    <RadioButton x:Name="RestartNeverRadio" GroupName="MsiRestart" Content="{local:T PackageWindow_RestartNever}" Margin="0,0,16,0" Checked="MsiOption_Checked" />
+                                    <RadioButton x:Name="RestartAlwaysRadio" GroupName="MsiRestart" Content="{local:T PackageWindow_RestartAlways}" Margin="0,0,16,0" Checked="MsiOption_Checked" />
+                                    <RadioButton x:Name="RestartPromptRadio" GroupName="MsiRestart" Content="{local:T PackageWindow_RestartPrompt}" Margin="0,0,16,0" Checked="MsiOption_Checked"
+                                                 ToolTip="{local:T PackageWindow_RestartPromptTip}" />
+                                    <RadioButton x:Name="RestartNotSetRadio" GroupName="MsiRestart" Content="{local:T PackageWindow_RestartNotSet}" Checked="MsiOption_Checked"
+                                                 ToolTip="{local:T PackageWindow_RestartNotSetTip}" />
                                 </StackPanel>
 
                                 <CheckBox x:Name="MsiQuietBox" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,0,10"
-                                          Content="Silencieux (aucune fenêtre)" IsChecked="{Binding MsiQuiet}" Click="MsiOption_Checked"
-                                          ToolTip="Décoché : l'installation attend des clics que personne ne fera, sauf si elle est lancée dans la session de l'utilisateur connecté." />
+                                          Content="{local:T PackageWindow_MsiQuiet}" IsChecked="{Binding MsiQuiet}" Click="MsiOption_Checked"
+                                          ToolTip="{local:T PackageWindow_MsiQuietTip}" />
 
-                                <TextBlock Grid.Row="3" Style="{StaticResource FieldLabel}" Text="Ligne de commande" />
+                                <TextBlock Grid.Row="3" Style="{StaticResource FieldLabel}" Text="{local:T PackageWindow_CommandLine}" />
                                 <TextBox x:Name="CommandLineBox" Grid.Row="3" Grid.Column="1" FontFamily="Consolas" TextWrapping="Wrap"
-                                         AutomationProperties.Name="Ligne de commande de l'installation" TextChanged="CommandLine_TextChanged" />
+                                         AutomationProperties.Name="{local:T PackageWindow_InstallCommandLine}" TextChanged="CommandLine_TextChanged" />
                                 <CheckBox x:Name="CustomCommandBox" Grid.Row="3" Grid.Column="2" Margin="8,0,0,0" VerticalAlignment="Center"
-                                          Content="Personnalisée" Click="CustomCommand_Click"
-                                          ToolTip="Cochée : la ligne est modifiable et lancée telle quelle. Décochée : elle suit le fichier, les paramètres et les options." />
+                                          Content="{local:T PackageWindow_CustomCommand}" Click="CustomCommand_Click"
+                                          ToolTip="{local:T PackageWindow_CustomCommandTip}" />
                                 <TextBlock Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}"
-                                           Text="Lancée sur le poste dans le dossier de travail, où sont copiés le fichier et les fichiers additionnels." />
+                                           Text="{local:T PackageWindow_CommandLineHint}" />
 
                                 <CheckBox Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,0,10" IsChecked="{Binding KeepInstallFile}"
-                                          Content="Garder le fichier d'installation sur le poste"
-                                          ToolTip="Copié après l'étape dans %ProgramData%\DeployCraft\Installeurs\(nom du paquet), avec les fichiers additionnels." />
+                                          Content="{local:T PackageWindow_KeepInstallFile}"
+                                          ToolTip="{local:T PackageWindow_KeepInstallFileTip}" />
                             </Grid>
 
                             <!-- Commande / PowerShell -->
-                            <TextBlock x:Name="CommandLabel" Grid.Row="5" Style="{StaticResource FieldLabel}" Text="Commande" VerticalAlignment="Top" Margin="0,4,12,0" />
+                            <TextBlock x:Name="CommandLabel" Grid.Row="5" Style="{StaticResource FieldLabel}" Text="{local:T StepSummary_TypeCommand}" VerticalAlignment="Top" Margin="0,4,12,0" />
                             <TextBox x:Name="CommandBox" Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" MinHeight="26"
                                      Text="{Binding Command, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas"
                                      AcceptsReturn="True" AcceptsTab="True" VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto" Margin="0,0,0,10" />
@@ -292,39 +291,39 @@
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
-                                <TextBlock Style="{StaticResource FieldLabel}" Text="Source" />
-                                <TextBox x:Name="CopySourceBox" Grid.Column="1" AutomationProperties.Name="Fichier ou dossier à copier"
+                                <TextBlock Style="{StaticResource FieldLabel}" Text="{local:T PackageWindow_CopySource}" />
+                                <TextBox x:Name="CopySourceBox" Grid.Column="1" AutomationProperties.Name="{local:T PackageWindow_CopySourceName}"
                                          Text="{Binding CopySource, UpdateSourceTrigger=PropertyChanged}" TextChanged="WarningFields_Changed" />
                                 <StackPanel Grid.Column="2" Orientation="Horizontal">
-                                    <Button Content="Fichier…" Margin="6,0,0,0" Padding="8,0" Click="BrowseCopyFile_Click"
+                                    <Button Content="{local:T PackageWindow_BrowseFile}" Margin="6,0,0,0" Padding="8,0" Click="BrowseCopyFile_Click"
                                             Height="{Binding ActualHeight, ElementName=CopySourceBox}" />
-                                    <Button Content="Dossier…" Margin="6,0,0,0" Padding="8,0" Click="BrowseCopyFolder_Click"
+                                    <Button Content="{local:T PackageWindow_BrowseFolder}" Margin="6,0,0,0" Padding="8,0" Click="BrowseCopyFolder_Click"
                                             Height="{Binding ActualHeight, ElementName=CopySourceBox}" />
                                 </StackPanel>
                                 <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}"
-                                           Text="Fichier ou dossier vu depuis le serveur DeployCraft (un partage réseau est conseillé)." />
+                                           Text="{local:T PackageWindow_CopySourceHint}" />
 
-                                <TextBlock Grid.Row="2" Style="{StaticResource FieldLabel}" Text="Destination" />
-                                <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" AutomationProperties.Name="Dossier de destination sur le poste"
+                                <TextBlock Grid.Row="2" Style="{StaticResource FieldLabel}" Text="{local:T PackageWindow_CopyDestination}" />
+                                <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" AutomationProperties.Name="{local:T PackageWindow_CopyDestinationName}"
                                          Text="{Binding CopyDestination, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}"
-                                           Text="Dossier du poste, créé s'il n'existe pas. Variables acceptées, par exemple %ProgramData%\Logiciel." />
+                                           Text="{local:T PackageWindow_CopyDestinationHint}" />
 
-                                <TextBlock Grid.Row="4" Style="{StaticResource FieldLabel}" Text="Fichiers" />
+                                <TextBlock Grid.Row="4" Style="{StaticResource FieldLabel}" Text="{local:T PackageWindow_CopyPatterns}" />
                                 <TextBox Grid.Row="4" Grid.Column="1" HorizontalAlignment="Left" Width="220"
-                                         AutomationProperties.Name="Motifs des fichiers à copier"
+                                         AutomationProperties.Name="{local:T PackageWindow_CopyPatternsName}"
                                          Text="{Binding CopyPatterns, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}"
-                                           Text="Pour une source dossier : motifs séparés par « ; », par exemple *.ini;*.cfg (* = tous les fichiers)." />
+                                           Text="{local:T PackageWindow_CopyPatternsHint}" />
 
                                 <CheckBox Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,0,6"
-                                          Content="Copier aussi les sous-dossiers" IsChecked="{Binding CopySubfolders}" />
+                                          Content="{local:T PackageWindow_CopySubfolders}" IsChecked="{Binding CopySubfolders}" />
                                 <CheckBox Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,0,6"
-                                          Content="Remplacer les fichiers déjà présents sur le poste" IsChecked="{Binding CopyOverwrite}"
-                                          ToolTip="Décochée : un fichier déjà présent sur le poste est gardé tel quel." />
+                                          Content="{local:T PackageWindow_CopyOverwrite}" IsChecked="{Binding CopyOverwrite}"
+                                          ToolTip="{local:T PackageWindow_CopyOverwriteTip}" />
                                 <CheckBox Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,0,6"
-                                          Content="Réussir même si des fichiers ne peuvent pas être remplacés" IsChecked="{Binding CopyIgnoreErrors}"
-                                          ToolTip="Par exemple un fichier en cours d'utilisation. Une source introuvable reste une erreur." />
+                                          Content="{local:T PackageWindow_CopyIgnoreErrors}" IsChecked="{Binding CopyIgnoreErrors}"
+                                          ToolTip="{local:T PackageWindow_CopyIgnoreErrorsTip}" />
                             </Grid>
 
                             <!-- Restart -->
@@ -341,24 +340,24 @@
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
-                                <TextBlock Style="{StaticResource FieldLabel}" Text="Délai (secondes)" />
+                                <TextBlock Style="{StaticResource FieldLabel}" Text="{local:T PackageWindow_RebootDelay}" />
                                 <TextBox Grid.Column="1" Style="{StaticResource CompactBox}" HorizontalAlignment="Left" Width="90"
-                                         AutomationProperties.Name="Délai avant le redémarrage (secondes)"
+                                         AutomationProperties.Name="{local:T PackageWindow_RebootDelayName}"
                                          Text="{Binding RebootDelaySeconds, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource Hint}"
-                                           Text="De 30 secondes à 1 heure : l'utilisateur connecté est prévenu et peut enregistrer son travail." />
+                                           Text="{local:T PackageWindow_RebootDelayHint}" />
 
-                                <TextBlock Grid.Row="2" Style="{StaticResource FieldLabel}" Text="Message" VerticalAlignment="Top" Margin="0,4,12,0" />
+                                <TextBlock Grid.Row="2" Style="{StaticResource FieldLabel}" Text="{local:T StepSummary_TypeMessage}" VerticalAlignment="Top" Margin="0,4,12,0" />
                                 <TextBox Grid.Row="2" Grid.Column="1" MinHeight="52" TextWrapping="Wrap" AcceptsReturn="True" MaxLength="500"
-                                         VerticalContentAlignment="Top" AutomationProperties.Name="Message à l'utilisateur connecté"
+                                         VerticalContentAlignment="Top" AutomationProperties.Name="{local:T PackageWindow_RebootMessageName}"
                                          Text="{Binding RebootMessage, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource Hint}"
-                                           Text="Facultatif : affiché à l'utilisateur connecté avec le compte à rebours." />
+                                           Text="{local:T PackageWindow_RebootMessageHint}" />
 
                                 <CheckBox Grid.Row="4" Grid.Column="1" Margin="0,6,0,6" x:Name="ShutdownOnlyBox"
-                                          Content="Éteindre le poste au lieu de le redémarrer" IsChecked="{Binding RebootShutdownOnly}" />
+                                          Content="{local:T PackageWindow_ShutdownOnly}" IsChecked="{Binding RebootShutdownOnly}" />
                                 <TextBlock Grid.Row="5" Grid.Column="1" Style="{StaticResource Hint}" TextWrapping="Wrap"
-                                           Text="Redémarrage : DeployCraft attend que le poste revienne (au plus le délai max de l'étape), puis passe à l'étape suivante. Arrêt : les étapes suivantes sont ignorées." />
+                                           Text="{local:T PackageWindow_RebootHint}" />
                             </Grid>
 
                             <!-- Message -->
@@ -375,54 +374,54 @@
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
-                                <TextBlock Style="{StaticResource FieldLabel}" Text="Titre" />
-                                <TextBox Grid.Column="1" Margin="0,0,0,8" MaxLength="100" AutomationProperties.Name="Titre du message"
+                                <TextBlock Style="{StaticResource FieldLabel}" Text="{local:T PackageWindow_MessageTitle}" />
+                                <TextBox Grid.Column="1" Margin="0,0,0,8" MaxLength="100" AutomationProperties.Name="{local:T PackageWindow_MessageTitleName}"
                                          Text="{Binding MessageTitle, UpdateSourceTrigger=PropertyChanged}" />
 
-                                <TextBlock Grid.Row="1" Style="{StaticResource FieldLabel}" Text="Message" VerticalAlignment="Top" Margin="0,4,12,0" />
+                                <TextBlock Grid.Row="1" Style="{StaticResource FieldLabel}" Text="{local:T StepSummary_TypeMessage}" VerticalAlignment="Top" Margin="0,4,12,0" />
                                 <TextBox Grid.Row="1" Grid.Column="1" MinHeight="90" TextWrapping="Wrap" AcceptsReturn="True" MaxLength="2000"
-                                         VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto" AutomationProperties.Name="Texte du message"
+                                         VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto" AutomationProperties.Name="{local:T PackageWindow_MessageTextName}"
                                          Text="{Binding MessageText, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource Hint}"
-                                           Text="Affiché dans chaque session ouverte sur le poste. Personne de connecté : l'étape réussit sans rien afficher." />
+                                           Text="{local:T PackageWindow_MessageHint}" />
 
-                                <TextBlock Grid.Row="3" Style="{StaticResource FieldLabel}" Text="Durée (secondes)" />
+                                <TextBlock Grid.Row="3" Style="{StaticResource FieldLabel}" Text="{local:T PackageWindow_DurationSeconds}" />
                                 <TextBox Grid.Row="3" Grid.Column="1" Style="{StaticResource CompactBox}" HorizontalAlignment="Left" Width="90"
-                                         AutomationProperties.Name="Durée d'affichage (secondes)"
+                                         AutomationProperties.Name="{local:T PackageWindow_DisplayDurationName}"
                                          Text="{Binding MessageSeconds, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock Grid.Row="4" Grid.Column="1" Style="{StaticResource Hint}"
-                                           Text="Fermeture automatique après ce délai ; 0 = le message reste jusqu'au clic sur OK." />
+                                           Text="{local:T PackageWindow_MessageDurationHint}" />
 
                                 <CheckBox Grid.Row="5" Grid.Column="1" Margin="0,6,0,6"
-                                          Content="Attendre que l'utilisateur clique sur OK avant l'étape suivante" IsChecked="{Binding MessageWait}"
-                                          ToolTip="Avec une durée : attente jusqu'au clic ou à la fin de l'affichage. Sans durée : un message toujours ouvert à la fin du délai max de l'étape la fait échouer." />
+                                          Content="{local:T PackageWindow_MessageWait}" IsChecked="{Binding MessageWait}"
+                                          ToolTip="{local:T PackageWindow_MessageWaitTip}" />
                             </Grid>
 
                             <!-- Pause -->
-                            <TextBlock x:Name="PauseLabel" Style="{StaticResource FieldLabel}" Text="Durée (secondes)" />
+                            <TextBlock x:Name="PauseLabel" Style="{StaticResource FieldLabel}" Text="{local:T PackageWindow_DurationSeconds}" />
                             <TextBox x:Name="PauseBox" Grid.Column="1" Style="{StaticResource CompactBox}" HorizontalAlignment="Left" Width="90"
-                                     AutomationProperties.Name="Durée (secondes)"
+                                     AutomationProperties.Name="{local:T PackageWindow_DurationSeconds}"
                                      Text="{Binding PauseSeconds, UpdateSourceTrigger=PropertyChanged}" />
                             <TextBlock x:Name="PauseHint" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}"
-                                       Text="Le poste attend avant l'étape suivante (1 seconde à 24 heures). Rien n'est lancé sur le poste." />
+                                       Text="{local:T PackageWindow_PauseHint}" />
 
                             <!-- Nested package -->
-                            <TextBlock x:Name="NestedLabel" Style="{StaticResource FieldLabel}" Text="Paquet" />
+                            <TextBlock x:Name="NestedLabel" Style="{StaticResource FieldLabel}" Text="{local:T PackageWindow_Title}" />
                             <ComboBox x:Name="NestedBox" Grid.Column="1" Grid.ColumnSpan="2" DisplayMemberPath="Name" SelectedValuePath="Id"
-                                      AutomationProperties.Name="Paquet imbriqué" SelectionChanged="Nested_Changed" />
+                                      AutomationProperties.Name="{local:T StepSummary_TypeNested}" SelectionChanged="Nested_Changed" />
                             <TextBlock x:Name="NestedHint" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}" TextWrapping="Wrap"
-                                       Text="Au lancement, ses étapes prennent la place de celle-ci (même section), avec les conditions de cette étape et du paquet choisi. Chaque étape garde son délai et son comportement en cas d'erreur." />
+                                       Text="{local:T PackageWindow_NestedHint}" />
 
-                            <TextBlock x:Name="CodesLabel" Grid.Row="6" Style="{StaticResource FieldLabel}" Text="Codes de succès" />
+                            <TextBlock x:Name="CodesLabel" Grid.Row="6" Style="{StaticResource FieldLabel}" Text="{local:T PackageWindow_SuccessCodes}" />
                             <TextBox x:Name="CodesBox" Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding SuccessCodes, UpdateSourceTrigger=PropertyChanged}" />
                             <TextBlock x:Name="CodesHint" Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}"
-                                       Text="Codes retour considérés comme une réussite, séparés par des virgules." />
+                                       Text="{local:T PackageWindow_SuccessCodesHint}" />
                         </Grid>
                     </TabItem>
-                    <TabItem Header="Conditions">
+                    <TabItem Header="{local:T PackageWindow_TabConditions}">
                         <local:ConditionsEditor x:Name="StepConditions" />
                     </TabItem>
-                    <TabItem Header="Options">
+                    <TabItem Header="{local:T PackageWindow_TabOptions}">
                         <Grid Margin="10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="130" />
@@ -437,23 +436,23 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
-                            <TextBlock Style="{StaticResource FieldLabel}" Text="Délai max (minutes)" />
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{local:T PackageWindow_TimeoutMinutes}" />
                             <TextBox Grid.Column="1" x:Name="StepTimeoutBox" Style="{StaticResource CompactBox}" HorizontalAlignment="Left" Width="70"
                                      Text="{Binding TimeoutMinutes, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" />
                             <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}" x:Name="StepTimeoutHint" />
-                            <TextBlock Grid.Row="2" Style="{StaticResource FieldLabel}" Text="En cas d'erreur" />
+                            <TextBlock Grid.Row="2" Style="{StaticResource FieldLabel}" Text="{local:T PackageWindow_OnError}" />
                             <ComboBox Grid.Row="2" Grid.Column="1" x:Name="ErrorModeBox" SelectionChanged="ErrorMode_Changed"
-                                      AutomationProperties.Name="En cas d'erreur">
-                                <ComboBoxItem Content="Arrêter en échec" />
-                                <ComboBoxItem Content="Continuer" />
-                                <ComboBoxItem Content="Arrêter en succès" />
+                                      AutomationProperties.Name="{local:T PackageWindow_OnError}">
+                                <ComboBoxItem Content="{local:T PackageWindow_ErrorStopFail}" />
+                                <ComboBoxItem Content="{local:T PackageWindow_ErrorContinue}" />
+                                <ComboBoxItem Content="{local:T PackageWindow_ErrorStopSuccess}" />
                             </ComboBox>
                             <TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}" x:Name="ErrorModeHint" />
-                            <TextBlock Grid.Row="4" Style="{StaticResource FieldLabel}" Text="Exécuter en tant que" />
+                            <TextBlock Grid.Row="4" Style="{StaticResource FieldLabel}" Text="{local:T PackageWindow_RunAs}" />
                             <ComboBox Grid.Row="4" Grid.Column="1" x:Name="StepRunAsBox" SelectionChanged="StepRunAs_Changed"
-                                      AutomationProperties.Name="Exécuter l'étape en tant que" />
+                                      AutomationProperties.Name="{local:T PackageWindow_StepRunAsName}" />
                             <TextBlock Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Hint}"
-                                       Text="« Paramètre du paquet » suit le paquet, ou le choix fait dans Déployer une fois ou la planification ; un autre choix reste celui de l'étape. Changer d'identité entre deux étapes relance le service sur le poste (quelques secondes)." />
+                                       Text="{local:T PackageWindow_StepRunAsHint}" />
                         </Grid>
                     </TabItem>
                 </TabControl>

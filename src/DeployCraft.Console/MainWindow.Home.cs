@@ -15,23 +15,23 @@ public partial class MainWindow
         HomeRunning.Text = summary.RunningDeployments.ToString();
         HomeRunningText.Text = summary.RunningDeployments switch
         {
-            0 => "aucun déploiement en cours",
-            1 => "déploiement en cours",
-            _ => "déploiements en cours",
+            0 => L.Get("MainWindow_HomeNoneRunning"),
+            1 => L.Get("MainWindow_HomeOneRunning"),
+            _ => L.Get("MainWindow_HomeManyRunning"),
         };
-        HomeTargetsText.Text = summary.RunningDeployments == 0 ? "Tout est calme."
-            : $"{Plural(summary.RunningTargets, "poste")} en cours, {Plural(summary.QueuedTargets, "poste")} en attente";
+        HomeTargetsText.Text = summary.RunningDeployments == 0 ? L.Get("MainWindow_HomeAllQuiet")
+            : L.Format("MainWindow_HomeTargets", Plural(summary.RunningTargets, "MainWindow_ComputerOne", "MainWindow_ComputerMany"), Plural(summary.QueuedTargets, "MainWindow_ComputerOne", "MainWindow_ComputerMany"));
 
         HomeSucceeded.Text = summary.SucceededToday.ToString();
         HomeFailed.Text = summary.FailedToday.ToString();
         HomeFailures.Children.Clear();
         foreach (var d in summary.RecentFailures)
             HomeFailures.Children.Add(Line(Ui.StatusIcon("Failed"), "KoBrush", $"{d.PackageName}",
-                $"n° {d.Id} · {Ui.LocalTime(d.EndedUtc)}", () => ShowDeployment(d.Id)));
+                L.Format("MainWindow_HomeDeploymentLine", d.Id, Ui.LocalTime(d.EndedUtc)), () => ShowDeployment(d.Id)));
 
         HomeSchedules.Children.Clear();
         if (summary.NextSchedules.Count == 0)
-            HomeSchedules.Children.Add(new TextBlock { Text = "Aucune planification à venir.", Foreground = (System.Windows.Media.Brush)FindResource("MutedBrush") });
+            HomeSchedules.Children.Add(new TextBlock { Text = L.Get("MainWindow_HomeNoUpcoming"), Foreground = (System.Windows.Media.Brush)FindResource("MutedBrush") });
         foreach (var s in summary.NextSchedules)
             HomeSchedules.Children.Add(Line(Ui.IconSchedule, "Accent", s.Name, Ui.LocalTime(s.NextRunUtc), () => _ = ShowSchedule(s.Id)));
 
@@ -41,17 +41,18 @@ public partial class MainWindow
             ShowLibraryUpdates(library);
             var updates = library.Items.Count(i => i.UpdateAvailable);
             var downloaded = library.Items.Count(i => i.PackageId != null);
-            HomeLibraryText.Text = downloaded == 0 ? "Aucun paquet téléchargé depuis la bibliothèque pour l'instant."
-                : updates == 0 ? $"{Plural(downloaded, "paquet")} de la bibliothèque, tous à jour."
-                : $"{Plural(updates, "mise")} à jour disponible{(updates > 1 ? "s" : "")} sur {Plural(downloaded, "paquet")} de la bibliothèque.";
+            HomeLibraryText.Text = downloaded == 0 ? L.Get("MainWindow_HomeLibraryNone")
+                : updates == 0 ? L.Format("MainWindow_HomeLibraryUpToDate", Plural(downloaded, "MainWindow_PackageOne", "MainWindow_PackageMany"))
+                : updates == 1 ? L.Format("MainWindow_HomeLibraryUpdateOne", updates, Plural(downloaded, "MainWindow_PackageOne", "MainWindow_PackageMany"))
+                : L.Format("MainWindow_HomeLibraryUpdateMany", updates, Plural(downloaded, "MainWindow_PackageOne", "MainWindow_PackageMany"));
         }
         catch (ApiException)
         {
-            HomeLibraryText.Text = "État de la bibliothèque indisponible.";
+            HomeLibraryText.Text = L.Get("MainWindow_HomeLibraryUnavailable");
         }
     }
 
-    private static string Plural(int count, string word) => $"{count} {word}{(count > 1 ? "s" : "")}";
+    private static string Plural(int count, string oneKey, string manyKey) => L.Format(count > 1 ? manyKey : oneKey, count);
 
     /// <summary>Clickable row of a card: icon, title (link), dimmed detail.</summary>
     private TextBlock Line(string icon, string brush, string title, string detail, Action open)

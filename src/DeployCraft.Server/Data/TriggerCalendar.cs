@@ -1,15 +1,12 @@
-using System.Globalization;
 
 namespace DeployCraft.Server.Data;
 
 /// <summary>
-/// Trigger calendar: next firing and summary in French.
+/// Trigger calendar: next firing (the texts describing a trigger are in the console, TriggerTexts).
 /// Shared by the service (which fires) and the console (which displays).
 /// </summary>
 public static class TriggerCalendar
 {
-    private static readonly CultureInfo Fr = CultureInfo.GetCultureInfo("fr-FR");
-
     /// <summary>First firing strictly after <paramref name="after"/> (local time), or null if there are none left.</summary>
     public static DateTime? Next(ScheduleTrigger t, DateTime after)
     {
@@ -86,45 +83,6 @@ public static class TriggerCalendar
         _ => false,
     };
 
-    // ---------- Summaries ----------
-
-    public static string Describe(ScheduleTrigger t)
-    {
-        var at = Time(t.Start.TimeOfDay);
-        var text = t.Type switch
-        {
-            TriggerType.Once => $"Une fois, le {t.Start:dd/MM/yyyy} à {at}",
-            TriggerType.Interval => $"Intervalle de {Interval(t.IntervalMinutes)}, à partir du {t.Start:dd/MM/yyyy} {at}"
-                                    + (t.UseTimeWindow ? $", entre {Time(t.WindowStart)} et {Time(t.WindowEnd)}" : ""),
-            TriggerType.Daily => $"Tous les jours à {at} à partir du {t.Start:dd/MM/yyyy}",
-            TriggerType.Weekly => $"Chaque semaine le {DaysText(t.Days)} à {at} à partir du {t.Start:dd/MM/yyyy}",
-            _ => $"Chaque mois {MonthText(t)} à {at} à partir du {t.Start:dd/MM/yyyy}",
-        };
-        if (t.Type != TriggerType.Once && t.End is { } end) text += $", jusqu'au {end:dd/MM/yyyy} {Time(end.TimeOfDay)}";
-        if (!t.Enabled) text += " (désactivé)";
-        return text;
-    }
-
+    /// <summary>Time as hh:mm (trigger editor).</summary>
     public static string Time(TimeSpan t) => $"{t.Hours:00}:{t.Minutes:00}";
-
-    public static string Interval(int minutes)
-    {
-        var parts = new List<string>();
-        if (minutes / 1440 > 0) parts.Add($"{minutes / 1440} j");
-        if (minutes % 1440 / 60 > 0) parts.Add($"{minutes % 1440 / 60} h");
-        if (minutes % 60 > 0 || parts.Count == 0) parts.Add($"{minutes % 60} min");
-        return string.Join(" ", parts);
-    }
-
-    public static string DayName(DayOfWeek d) => Fr.DateTimeFormat.GetDayName(d);
-
-    private static string DaysText(List<DayOfWeek> days) => days.Count == 0
-        ? "(aucun jour)"
-        : string.Join(", ", days.OrderBy(d => ((int)d + 6) % 7).Select(DayName));
-
-    public static readonly string[] WeekNames = ["premier", "deuxième", "troisième", "quatrième", "dernier"];
-
-    private static string MonthText(ScheduleTrigger t) => t.MonthWeek is { } w
-        ? $"le {WeekNames[Math.Clamp(w, 1, 5) - 1]} {DayName(t.MonthWeekDay)}"
-        : t.MonthDay <= 0 ? "le dernier jour" : $"le {t.MonthDay}";
 }

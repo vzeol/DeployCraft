@@ -18,17 +18,17 @@ public static class ScheduleEditing
 
     public static string TypeText(TriggerType t) => t switch
     {
-        TriggerType.Once => "Une fois",
-        TriggerType.Interval => "Intervalle",
-        TriggerType.Daily => "Quotidien",
-        TriggerType.Weekly => "Hebdomadaire",
-        _ => "Mensuel",
+        TriggerType.Once => L.Get("ScheduleEditing_Once"),
+        TriggerType.Interval => L.Get("ScheduleEditing_Interval"),
+        TriggerType.Daily => L.Get("ScheduleEditing_Daily"),
+        TriggerType.Weekly => L.Get("ScheduleEditing_Weekly"),
+        _ => L.Get("ScheduleEditing_Monthly"),
     };
 
     public static string NextText(ScheduleTrigger t, DateTime now) =>
-        !t.Enabled ? "Déclencheur désactivé."
-        : TriggerCalendar.Next(t, now) is { } n ? $"Prochain déclenchement : {n:dddd dd/MM/yyyy HH:mm}"
-        : "Plus aucun déclenchement à venir.";
+        !t.Enabled ? L.Get("ScheduleEditing_TriggerDisabled")
+        : TriggerCalendar.Next(t, now) is { } n ? L.Format("ScheduleEditing_NextRun", n)
+        : L.Get("ScheduleEditing_NoMoreRuns");
 
     /// <summary>Time typed as "8:30" or "8h30"; null when unreadable or not within a day.</summary>
     public static TimeSpan? ParseTime(string text) =>
@@ -43,12 +43,12 @@ public static class ScheduleEditing
         for (var i = 0; i < triggers.Count; i++)
         {
             var t = triggers[i];
-            if (t.Type == TriggerType.Weekly && t.Days.Count == 0) return (i, "Déclencheur hebdomadaire : cochez au moins un jour.");
-            if (t.Type != TriggerType.Once && t.End is { } end && end <= t.Start) return (i, "La fin d'un déclencheur doit être après son début.");
+            if (t.Type == TriggerType.Weekly && t.Days.Count == 0) return (i, L.Get("ScheduleEditing_WeeklyNeedsDay"));
+            if (t.Type != TriggerType.Once && t.End is { } end && end <= t.Start) return (i, L.Get("ScheduleEditing_EndAfterStart"));
         }
         return null;
     }
 
     public static string HistorySummary(IReadOnlyCollection<HistoryRow> rows) =>
-        rows.Count == 0 ? "Aucun déploiement terminé pour l'instant." : $"{rows.Count(r => r.Succeeded)} réussi(s) sur {rows.Count} poste(s) × paquet";
+        rows.Count == 0 ? L.Get("ScheduleEditing_NoDeploymentDone") : L.Format("ScheduleEditing_HistorySummary", rows.Count(r => r.Succeeded), rows.Count);
 }

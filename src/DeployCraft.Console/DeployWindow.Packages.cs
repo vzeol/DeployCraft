@@ -25,7 +25,7 @@ public partial class DeployWindow
         foreach (var item in items) _packages.Add(item);
         PackagesList.SelectedItem = _packages.FirstOrDefault(p => p.Package.Id == selected);
 
-        Title = _packages.Count == 1 ? $"Déployer une fois — {_packages[0].Package.Name}" : "Déployer une fois";
+        Title = _packages.Count == 1 ? L.Format("DeployWindow_TitleWithPackage", _packages[0].Package.Name) : L.Get("DeployWindow_Title");
         PackagesHint.Visibility = _packages.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
 
         // The start step applies to the first package, nested packages replaced by their steps (as at launch).
@@ -51,7 +51,7 @@ public partial class DeployWindow
             item.Click += (_, _) => AddPackage(p);
             menu.Items.Add(item);
         }
-        if (menu.Items.Count == 0) menu.Items.Add(new MenuItem { Header = "(aucun autre paquet)", IsEnabled = false });
+        if (menu.Items.Count == 0) menu.Items.Add(new MenuItem { Header = L.Get("DeployWindow_NoOtherPackage"), IsEnabled = false });
         menu.IsOpen = true;
     }
 

@@ -16,14 +16,14 @@ public partial class ScheduleWindow
     {
         foreach (var d in WeekOrder)
         {
-            var box = new CheckBox { Content = TriggerCalendar.DayName(d), Tag = d, Margin = new Thickness(0, 0, 12, 6), MinWidth = 90 };
+            var box = new CheckBox { Content = TriggerTexts.DayName(d), Tag = d, Margin = new Thickness(0, 0, 12, 6), MinWidth = 90 };
             box.Click += Editor_Changed;
             DaysPanel.Children.Add(box);
         }
         for (var i = 1; i <= 31; i++) MonthDayBox.Items.Add(new ComboBoxItem { Content = i.ToString(), Tag = i });
-        MonthDayBox.Items.Add(new ComboBoxItem { Content = "dernier jour", Tag = 0 });
-        for (var i = 1; i <= 5; i++) MonthWeekBox.Items.Add(new ComboBoxItem { Content = TriggerCalendar.WeekNames[i - 1], Tag = i });
-        foreach (var d in WeekOrder) MonthWeekDayBox.Items.Add(new ComboBoxItem { Content = TriggerCalendar.DayName(d), Tag = d });
+        MonthDayBox.Items.Add(new ComboBoxItem { Content = L.Get("ScheduleWindow_LastDay"), Tag = 0 });
+        for (var i = 1; i <= 5; i++) MonthWeekBox.Items.Add(new ComboBoxItem { Content = TriggerTexts.WeekName(i), Tag = i });
+        foreach (var d in WeekOrder) MonthWeekDayBox.Items.Add(new ComboBoxItem { Content = TriggerTexts.DayName(d), Tag = d });
     }
 
     private TriggerItem? Selected => TriggersList.SelectedItem as TriggerItem;
@@ -76,7 +76,7 @@ public partial class ScheduleWindow
         WeeklyPanel.Visibility = Show(t.Type == TriggerType.Weekly);
         MonthlyPanel.Visibility = Show(t.Type == TriggerType.Monthly);
         EndPanel.Visibility = Show(t.Type != TriggerType.Once);
-        StartLabel.Text = t.Type == TriggerType.Once ? "Le" : "Début";
+        StartLabel.Text = t.Type == TriggerType.Once ? L.Get("ScheduleWindow_The") : L.Get("ScheduleWindow_Begin");
 
         IntDays.Text = (t.IntervalMinutes / 1440).ToString();
         IntHours.Text = (t.IntervalMinutes % 1440 / 60).ToString();

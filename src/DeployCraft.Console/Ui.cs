@@ -32,14 +32,14 @@ public static class Ui
 
     public static string StatusText(string status) => status switch
     {
-        "Queued" => "En attente",
-        "Running" or "running" => "En cours",
-        "Successful" or "success" => "Réussi",
-        "Failed" or "failed" => "Échec",
-        "Partial" => "Partiel",
-        "Aborted" => "Annulé",
-        "skipped" => "Ignoré",
-        "stopped" => "Arrêt en succès",
+        "Queued" => L.Get("Ui_StatusQueued"),
+        "Running" or "running" => L.Get("Ui_StatusRunning"),
+        "Successful" or "success" => L.Get("Ui_StatusSucceeded"),
+        "Failed" or "failed" => L.Get("Ui_StatusFailed"),
+        "Partial" => L.Get("Ui_StatusPartial"),
+        "Aborted" => L.Get("Ui_StatusCancelled"),
+        "skipped" => L.Get("Ui_StatusSkipped"),
+        "stopped" => L.Get("Ui_StatusStopped"),
         _ => status,
     };
 
@@ -67,20 +67,20 @@ public static class Ui
 
     public static string RunAsText(Server.Data.RunAsMode mode) => mode switch
     {
-        Server.Data.RunAsMode.DeployUser => "Compte de déploiement",
-        Server.Data.RunAsMode.LocalSystem => "Système local",
-        _ => "Utilisateur connecté",
+        Server.Data.RunAsMode.DeployUser => L.Get("Ui_RunAsDeployAccount"),
+        Server.Data.RunAsMode.LocalSystem => L.Get("Ui_RunAsLocalSystem"),
+        _ => L.Get("Ui_RunAsLoggedOn"),
     };
 
     public static string RunAsHint(Server.Data.RunAsMode mode) => mode switch
     {
-        Server.Data.RunAsMode.DeployUser => "Le service temporaire tourne sous l'identifiant choisi (accès réseau avec ce compte).",
-        Server.Data.RunAsMode.LocalSystem => "Le service temporaire tourne en Système local (accès réseau avec le compte ordinateur du poste).",
-        _ => "Chaque étape s'ouvre dans la session de l'utilisateur connecté ; échec si personne n'est connecté.",
+        Server.Data.RunAsMode.DeployUser => L.Get("Ui_RunAsHintDeployUser"),
+        Server.Data.RunAsMode.LocalSystem => L.Get("Ui_RunAsHintLocalSystem"),
+        _ => L.Get("Ui_RunAsHintLoggedOn"),
     };
 
     public static string CopyModeText(Server.Data.CopyMode mode) =>
-        mode == Server.Data.CopyMode.Push ? "Push (le serveur copie)" : "Pull (le poste lit le partage)";
+        mode == Server.Data.CopyMode.Push ? L.Get("Ui_CopyModePush") : L.Get("Ui_CopyModePull");
 
     public static string Duration(DateTime? start, DateTime? end)
     {
@@ -126,7 +126,7 @@ public static class Ui
     /// </summary>
     public static string? PickLibraryFolder(Window owner, string current)
     {
-        var dialog = new Microsoft.Win32.OpenFolderDialog { Title = "Dossier de la bibliothèque (un partage réseau est conseillé)" };
+        var dialog = new Microsoft.Win32.OpenFolderDialog { Title = L.Get("Ui_PickLibraryFolderTitle") };
         if (System.IO.Directory.Exists(current)) dialog.InitialDirectory = current;
         return dialog.ShowDialog(owner) == true && !dialog.FolderName.Equals(current, StringComparison.OrdinalIgnoreCase)
             ? dialog.FolderName

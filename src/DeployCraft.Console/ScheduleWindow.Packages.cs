@@ -16,7 +16,7 @@ public partial class ScheduleWindow
         _packages.Clear();
         foreach (var item in items) _packages.Add(item);
         PackagesList.SelectedItem = _packages.FirstOrDefault(p => p.Package.Id == selected);
-        PackagesCount.Text = _packages.Count == 0 ? "Aucun paquet" : $"{_packages.Count} paquet(s)";
+        PackagesCount.Text = _packages.Count == 0 ? L.Get("ScheduleWindow_NoPackage") : L.Format("ScheduleWindow_PackageCount", _packages.Count);
         if (string.IsNullOrWhiteSpace(NameBox.Text) && _packages.Count > 0) NameBox.Text = _packages[0].Package.Name;
         FillOptions();
     }
@@ -34,7 +34,7 @@ public partial class ScheduleWindow
             };
             menu.Items.Add(item);
         }
-        if (menu.Items.Count == 0) menu.Items.Add(new MenuItem { Header = "(aucun autre paquet)", IsEnabled = false });
+        if (menu.Items.Count == 0) menu.Items.Add(new MenuItem { Header = L.Get("ScheduleWindow_NoOtherPackage"), IsEnabled = false });
         menu.IsOpen = true;
     }
 

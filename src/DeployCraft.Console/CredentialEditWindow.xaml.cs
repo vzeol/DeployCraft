@@ -18,13 +18,13 @@ public partial class CredentialEditWindow : Window
         _existing = existing;
         if (existing != null)
         {
-            Title = "Modifier l'identifiant";
+            Title = L.Get("CredentialEdit_EditTitle");
             DomainBox.Text = existing.IsLocal ? "" : existing.Domain;
             UserBox.Text = existing.User;
             DescriptionBox.Text = existing.Description;
             PasswordHint.Text = existing.PasswordUnreadable
-                ? "Le mot de passe enregistré ne peut pas être relu : saisissez-le de nouveau."
-                : "Laisser vide pour conserver le mot de passe actuel.";
+                ? L.Get("CredentialEdit_PasswordUnreadable")
+                : L.Get("CredentialEdit_PasswordKeepHint");
         }
         else
         {
@@ -49,8 +49,8 @@ public partial class CredentialEditWindow : Window
         TestButton.IsEnabled = UserBox.Text.Trim().Length > 0
                                && (PasswordBox.Password.Length > 0 || _existing is { PasswordUnreadable: false });
         TestButton.ToolTip = IsLocal
-            ? "Essaie le compte sur un poste (accès au partage ADMIN$, comme un déploiement)"
-            : "Vérifie le compte et le mot de passe auprès du domaine";
+            ? L.Get("CredentialEdit_TestLocalTip")
+            : L.Get("CredentialEdit_TestDomainTip");
     }
 
     private object Input(string? computer = null) => new
@@ -71,17 +71,17 @@ public partial class CredentialEditWindow : Window
         string? computer = null;
         if (IsLocal)
         {
-            computer = InputDialog.Ask(this, "Tester l'identifiant",
-                $"Poste sur lequel essayer le compte local « {UserBox.Text.Trim()} » :", _testComputer);
+            computer = InputDialog.Ask(this, L.Get("CredentialEdit_TestTitle"),
+                L.Format("CredentialEdit_TestComputerPrompt", UserBox.Text.Trim()), _testComputer);
             if (computer == null) return;
             _testComputer = computer;
         }
         TestButton.IsEnabled = false;
-        Show("Vérification…", "MutedBrush");
+        Show(L.Get("CredentialEdit_Checking"), "MutedBrush");
         try
         {
             await Api.TestCredential(Input(computer));
-            Show(computer == null ? "✓ Connexion au domaine réussie." : $"✓ Compte accepté par {computer}.", "OkBrush");
+            Show(computer == null ? L.Get("CredentialEdit_DomainOk") : L.Format("CredentialEdit_AccountAccepted", computer), "OkBrush");
         }
         catch (ApiException ex)
         {

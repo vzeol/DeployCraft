@@ -33,9 +33,9 @@ public partial class MessageDialog : Window
 
         (string Text, MessageBoxResult Result)[] choices = buttons switch
         {
-            MessageBoxButton.YesNo => [("Oui", MessageBoxResult.Yes), ("Non", MessageBoxResult.No)],
-            MessageBoxButton.YesNoCancel => [("Oui", MessageBoxResult.Yes), ("Non", MessageBoxResult.No), ("Annuler", MessageBoxResult.Cancel)],
-            MessageBoxButton.OKCancel => [("OK", MessageBoxResult.OK), ("Annuler", MessageBoxResult.Cancel)],
+            MessageBoxButton.YesNo => [(L.Get("Dialog_Yes"), MessageBoxResult.Yes), (L.Get("Dialog_No"), MessageBoxResult.No)],
+            MessageBoxButton.YesNoCancel => [(L.Get("Dialog_Yes"), MessageBoxResult.Yes), (L.Get("Dialog_No"), MessageBoxResult.No), (L.Get("Dialog_Cancel"), MessageBoxResult.Cancel)],
+            MessageBoxButton.OKCancel => [("OK", MessageBoxResult.OK), (L.Get("Dialog_Cancel"), MessageBoxResult.Cancel)],
             _ => [("OK", MessageBoxResult.OK)],
         };
         _cancelResult = choices.Any(c => c.Result == MessageBoxResult.Cancel) ? MessageBoxResult.Cancel

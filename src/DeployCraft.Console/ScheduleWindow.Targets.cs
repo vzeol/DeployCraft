@@ -17,7 +17,7 @@ public partial class ScheduleWindow
         UpdateTargets();
     }
 
-    private void UpdateTargets() => TargetsCount.Text = _targets.Count == 0 ? "Aucune cible" : $"{_targets.Count} poste(s)";
+    private void UpdateTargets() => TargetsCount.Text = _targets.Count == 0 ? L.Get("ScheduleWindow_NoTarget") : L.Format("ScheduleWindow_ComputerCount", _targets.Count);
 
     private void PasteNames()
     {
@@ -58,7 +58,7 @@ public partial class ScheduleWindow
 
     private void TextFile_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new OpenFileDialog { Title = "Liste de postes", Filter = "Fichiers texte (*.txt;*.csv)|*.txt;*.csv|Tous les fichiers|*.*" };
+        var dialog = new OpenFileDialog { Title = L.Get("ScheduleWindow_ComputerListTitle"), Filter = L.Get("ScheduleWindow_TextFilesFilter") };
         if (dialog.ShowDialog(this) != true) return;
         try
         {

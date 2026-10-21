@@ -8,8 +8,8 @@ public record CredentialRow(Credential Credential)
 {
     public string Account => Credential.Account;
     public string? Description => Credential.Description;
-    public string DefaultText => Credential.IsDefault ? "(par défaut)" : "";
-    public string UnreadableText => Credential.PasswordUnreadable ? "mot de passe à ressaisir" : "";
+    public string DefaultText => Credential.IsDefault ? L.Get("Credentials_DefaultText") : "";
+    public string UnreadableText => Credential.PasswordUnreadable ? L.Get("Credentials_PasswordUnreadable") : "";
     public override string ToString() => Credential.Display; // name read by accessibility tools
 }
 
@@ -23,11 +23,11 @@ public partial class CredentialsWindow : Window
         Ui.SelectOnRightClick(List);
         Ui.ContextMenu(List, () =>
         [
-            new("Modifier…", () => Edit_Click(this, new()), Selected != null),
-            new("Ajouter…", () => Add_Click(this, new())),
-            new("Définir par défaut", () => Default_Click(this, new()), Selected is { IsDefault: false }),
+            new(L.Get("Dialog_Edit"), () => Edit_Click(this, new()), Selected != null),
+            new(L.Get("Dialog_Add"), () => Add_Click(this, new())),
+            new(L.Get("Credentials_SetDefault"), () => Default_Click(this, new()), Selected is { IsDefault: false }),
             Ui.Separator,
-            new("Supprimer", () => Remove_Click(this, new()), Selected != null, "Suppr"),
+            new(L.Get("Dialog_Delete"), () => Remove_Click(this, new()), Selected != null, L.Get("Dialog_DeleteKey")),
         ]);
         List.KeyDown += (_, e) =>
         {
@@ -47,8 +47,8 @@ public partial class CredentialsWindow : Window
             List.SelectedItem = List.Items.Cast<CredentialRow>().FirstOrDefault(r => r.Credential.Id == keep)
                                 ?? List.Items.Cast<CredentialRow>().FirstOrDefault();
             Warning.Text = all.Any(c => c.PasswordUnreadable)
-                ? "Un ou plusieurs mots de passe ne peuvent pas être relus (base venue d'un autre serveur ?) : ressaisissez-les avec « Modifier »."
-                : all.Count == 0 ? "Aucun identifiant : les déploiements utiliseront le compte du service DeployCraft." : "";
+                ? L.Get("Credentials_WarnUnreadable")
+                : all.Count == 0 ? L.Get("Credentials_WarnNone") : "";
             UpdateButtons();
         }
         catch (ApiException ex) { Ui.Error(this, ex); }
@@ -94,7 +94,7 @@ public partial class CredentialsWindow : Window
     private async void Remove_Click(object sender, RoutedEventArgs e)
     {
         if (Selected is not { } c) return;
-        if (MessageDialog.Show(this, $"Supprimer l'identifiant {c.Display} ?", Title, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+        if (MessageDialog.Show(this, L.Format("Credentials_DeleteConfirm", c.Display), Title, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
             return;
         try
         {
@@ -117,10 +117,10 @@ public partial class CredentialsWindow : Window
         foreach (var c in all)
             box.Items.Add(new ComboBoxItem
             {
-                Content = c.Display + (c.IsDefault ? " (par défaut)" : "") + (c.PasswordUnreadable ? " — mot de passe à ressaisir" : ""),
+                Content = c.Display + (c.IsDefault ? " " + L.Get("Credentials_DefaultText") : "") + (c.PasswordUnreadable ? " — " + L.Get("Credentials_PasswordUnreadable") : ""),
                 Tag = c.Id,
             });
-        if (all.Count == 0) box.Items.Add(new ComboBoxItem { Content = "Aucun : compte du service DeployCraft", Tag = null });
+        if (all.Count == 0) box.Items.Add(new ComboBoxItem { Content = L.Get("Credentials_NoneService"), Tag = null });
         var wanted = selectedId ?? all.FirstOrDefault(c => c.IsDefault)?.Id;
         box.SelectedItem = box.Items.Cast<ComboBoxItem>().FirstOrDefault(i => Equals(i.Tag, wanted)) ?? box.Items[0];
         box.IsEnabled = all.Count > 0;

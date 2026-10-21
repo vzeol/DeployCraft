@@ -19,8 +19,10 @@ public partial class MainWindow
         _refreshingSchedules = false;
         var on = rows.Count(r => r.Schedule.Enabled);
         SchedulesSubtitle.Text = rows.Count == 0
-            ? "Aucune planification : créez-en une pour déployer automatiquement (ou réessayer jusqu'à réussite)"
-            : $"{rows.Count} planification(s), {on} activée(s) · en dessous, les déploiements {(SelectedSchedule is { } s ? $"de « {s.Name} »" : "de toutes les planifications")}";
+            ? L.Get("MainWindow_SchedulesEmpty")
+            : SelectedSchedule is { } s
+                ? L.Format("MainWindow_SchedulesSubtitleOne", rows.Count, on, s.Name)
+                : L.Format("MainWindow_SchedulesSubtitleAll", rows.Count, on);
         RunScheduleButton.IsEnabled = SelectedSchedule != null;
     }
 
@@ -54,8 +56,8 @@ public partial class MainWindow
             var candidates = (await Api.Schedules()).Where(s => !s.PackageIds.Contains(p.Id)).ToList();
             if (candidates.Count == 0)
             {
-                MessageDialog.Show(this, "Aucune planification où ajouter ce paquet (il fait déjà partie de toutes, ou il n'y en a aucune).",
-                    "Planifications", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageDialog.Show(this, L.Get("MainWindow_NoScheduleToAttach"),
+                    L.Get("MainWindow_SchedulesTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
             var picker = new SchedulePickerWindow(p.Name, candidates) { Owner = this };
@@ -75,11 +77,11 @@ public partial class MainWindow
             var schedule = await Api.Schedule(scheduleId);
             if (schedule.PackageIds.Count == 1 && schedule.PackageIds[0] == p.Id)
             {
-                MessageDialog.Show(this, $"« {p.Name} » est le seul paquet de « {schedule.Name} » : désactivez ou supprimez plutôt la planification.",
-                    "Planifications", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageDialog.Show(this, L.Format("MainWindow_OnlyPackageInSchedule", p.Name, schedule.Name),
+                    L.Get("MainWindow_SchedulesTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
-            if (MessageDialog.Show(this, $"Retirer « {p.Name} » de la planification « {schedule.Name} » ?", "Planifications",
+            if (MessageDialog.Show(this, L.Format("MainWindow_DetachConfirm", p.Name, schedule.Name), L.Get("MainWindow_SchedulesTitle"),
                     MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
             if (schedule.Detach(p.Id)) await Api.SaveSchedule(schedule);
             await RefreshAsync(packages: false);
@@ -127,7 +129,7 @@ public partial class MainWindow
         {
             var run = await Api.RunSchedule(s.Id);
             if (run.Deployments.Count == 0)
-                MessageDialog.Show(this, run.Result ?? "Rien à déployer.", s.Name, MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageDialog.Show(this, run.Result ?? L.Get("MainWindow_NothingToDeploy"), s.Name, MessageBoxButton.OK, MessageBoxImage.Information);
             await RefreshAsync(packages: false);
         }
         catch (ApiException ex) { Ui.Error(this, ex); }
@@ -151,7 +153,7 @@ public partial class MainWindow
         {
             var copy = await Api.Schedule(s.Id);
             copy.Id = 0;
-            copy.Name += " (copie)";
+            copy.Name += " " + L.Get("MainWindow_CopySuffix");
             copy.Enabled = false; // an active copy would double the deployments: it is enabled by hand
             await ShowSchedule((await Api.SaveSchedule(copy)).Id);
         }
@@ -160,8 +162,8 @@ public partial class MainWindow
 
     private async void DeleteSchedule(Schedule s)
     {
-        if (MessageDialog.Show(this, $"Supprimer la planification « {s.Name} » ?\nSes déploiements passés restent dans l'historique.",
-                "Supprimer", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+        if (MessageDialog.Show(this, L.Format("MainWindow_DeleteScheduleConfirm", s.Name),
+                L.Get("MainWindow_Delete"), MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         try
         {
             await Api.DeleteSchedule(s.Id);

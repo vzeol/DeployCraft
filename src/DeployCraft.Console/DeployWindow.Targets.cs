@@ -96,7 +96,7 @@ public partial class DeployWindow
 
     private void TextFile_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new OpenFileDialog { Title = "Liste de postes", Filter = "Fichiers texte (*.txt;*.csv)|*.txt;*.csv|Tous les fichiers|*.*" };
+        var dialog = new OpenFileDialog { Title = L.Get("DeployWindow_ComputerListTitle"), Filter = L.Get("DeployWindow_TextFilesFilter") };
         if (dialog.ShowDialog(this) != true) return;
         try
         {

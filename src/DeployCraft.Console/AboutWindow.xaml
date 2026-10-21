@@ -1,11 +1,12 @@
 <Window x:Class="DeployCraft.Console.AboutWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="À propos de DeployCraft" SizeToContent="Height" Width="500" ResizeMode="NoResize"
+        xmlns:local="clr-namespace:DeployCraft.Console"
+        Title="{local:T AboutWindow_Title}" SizeToContent="Height" Width="500" ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner" Background="{DynamicResource WindowBackground}" Foreground="{DynamicResource TextBrush}" ShowInTaskbar="False">
     <StackPanel Margin="20,18,20,14">
         <TextBlock Text="DeployCraft" FontSize="24" FontWeight="SemiBold" />
-        <TextBlock Text="Déploiement de logiciels sur un parc Windows, sans agent installé sur les postes." Foreground="{DynamicResource MutedBrush}"
+        <TextBlock Text="{local:T AboutWindow_Tagline}" Foreground="{DynamicResource MutedBrush}"
                    TextWrapping="Wrap" Margin="0,2,0,14" />
 
         <Grid>
@@ -18,25 +19,25 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <TextBlock Text="Console" Foreground="{DynamicResource MutedBrush}" Margin="0,0,16,4" />
+            <TextBlock Text="{local:T AboutWindow_Console}" Foreground="{DynamicResource MutedBrush}" Margin="0,0,16,4" />
             <TextBlock x:Name="ConsoleVersion" Grid.Column="1" Margin="0,0,0,4" />
-            <TextBlock Grid.Row="1" Text="Service" Foreground="{DynamicResource MutedBrush}" Margin="0,0,16,4" />
-            <TextBlock x:Name="ServiceVersion" Grid.Row="1" Grid.Column="1" TextWrapping="Wrap" Margin="0,0,0,4" Text="Interrogation du service…" />
-            <TextBlock Grid.Row="2" Text="Connecté en tant que" Foreground="{DynamicResource MutedBrush}" Margin="0,0,16,4" />
+            <TextBlock Grid.Row="1" Text="{local:T AboutWindow_Service}" Foreground="{DynamicResource MutedBrush}" Margin="0,0,16,4" />
+            <TextBlock x:Name="ServiceVersion" Grid.Row="1" Grid.Column="1" TextWrapping="Wrap" Margin="0,0,0,4" Text="{local:T AboutWindow_Querying}" />
+            <TextBlock Grid.Row="2" Text="{local:T AboutWindow_ConnectedAs}" Foreground="{DynamicResource MutedBrush}" Margin="0,0,16,4" />
             <TextBlock x:Name="ConnectedAs" Grid.Row="2" Grid.Column="1" TextWrapping="Wrap" Margin="0,0,0,4" />
         </Grid>
 
         <TextBlock x:Name="Notice" TextWrapping="Wrap" Margin="0,14,0,8" />
         <TextBlock>
-            <Hyperlink x:Name="ProjectLink" Click="Link_Click">Page du projet</Hyperlink>
+            <Hyperlink x:Name="ProjectLink" Click="Link_Click"><Run Text="{local:T AboutWindow_ProjectPage}" /></Hyperlink>
             <Run Text="   " />
-            <Hyperlink x:Name="LicenseLink" Click="Link_Click">Texte de la licence</Hyperlink>
+            <Hyperlink x:Name="LicenseLink" Click="Link_Click"><Run Text="{local:T AboutWindow_LicenseText}" /></Hyperlink>
         </TextBlock>
 
         <DockPanel Margin="0,20,0,0">
-            <Button DockPanel.Dock="Right" Style="{StaticResource DialogButton}" IsCancel="True" IsDefault="True">Fermer</Button>
+            <Button DockPanel.Dock="Right" Style="{StaticResource DialogButton}" IsCancel="True" IsDefault="True" Content="{local:T Dialog_Close}" />
             <Button DockPanel.Dock="Left" Style="{StaticResource DialogButton}" HorizontalAlignment="Left" Click="Copy_Click"
-                    ToolTip="Copie les versions et l'environnement, pratique pour signaler un problème.">Copier les informations</Button>
+                    ToolTip="{local:T AboutWindow_CopyTip}" Content="{local:T AboutWindow_Copy}" />
         </DockPanel>
     </StackPanel>
 </Window>

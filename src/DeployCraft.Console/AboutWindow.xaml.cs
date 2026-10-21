@@ -31,7 +31,7 @@ public partial class AboutWindow : Window
         }
         catch (ApiException ex)
         {
-            ServiceVersion.Text = AboutInfo.ServiceText(null, null, ex.AccessDenied ? "Accès refusé" : "Service injoignable");
+            ServiceVersion.Text = AboutInfo.ServiceText(null, null, ex.AccessDenied ? L.Get("AboutWindow_AccessDenied") : L.Get("Service_Unreachable"));
             ConnectedAs.Text = Environment.UserDomainName + "\\" + Environment.UserName;
         }
     }
