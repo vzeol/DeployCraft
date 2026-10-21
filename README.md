@@ -28,8 +28,8 @@ Nothing has to be installed on the computers beforehand.
 Its layout follows the habits of the deployment tools on the market; it is an independent work, written from
 scratch.
 
-> The console is in **French** for now. An English version of the console is planned after 1.0.0. Menu names below
-> are given in French, with their meaning in English.
+> The console is in **French** by default and also in **English**: Préférences › Interface › Langue (*Preferences ›
+> Interface › Language*), applied at the next start. Menu names below are given in French, with their English name.
 
 ## Features
 

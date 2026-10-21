@@ -14,7 +14,9 @@ contributors, and every Claude session.
   PRs and GitHub comments. `README.fr.md` is the only French page (a secondary translation of `README.md`).
 - Talk to the maintainer in **French** (chat only). Issues opened by others in French get an answer in English,
   or in both languages if that helps.
-- The console UI is French today; English UI is tracked in issue #120.
+- The console UI exists in French (default) and English: every new UI text goes into both
+  `src/DeployCraft.Console/Resources/Strings*.resx` (service messages: `src/DeployCraft.Server/Texts/Msg*.resx`,
+  runner: `RunnerTexts.cs`); the tests check both languages have the same keys.
 
 At the start of each session, check who you are (`gh api user --jq .login`) and read:
 1. `docs/STATUS.md`: current state and where to resume
