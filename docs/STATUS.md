@@ -18,7 +18,7 @@ starts once they have validated everything**.
 Information specific to the maintainer's environment (servers, test computers, accounts) stays in their notes
 **outside the repository**: never copy it here.
 
-## Current version: 1.0.0-rc.2, last test before 1.0.0
+## Current version: 1.0.0
 
 **The whole [`FEATURES.md`](FEATURES.md) list is covered**: 61 features done, 22 dropped by the maintainer, 6 set
 aside. Only 8.1 remains partial: LAPS is planned after v1 (issue #106).
@@ -26,11 +26,11 @@ aside. Only 8.1 remains partial: LAPS is planned after v1 (issue #106).
 **The code reorganization (#127) is finished**: the code follows the architecture rules (`CLAUDE.md` §
 "Architecture") and every build checks the code quality rules (#142). The refactoring PRs that touched the
 deployment path got a regression run on the domain test environment before merging; the whole release was run
-again there before 1.0.0-rc.2 (one package with every step type, including a restart).
+again there before 1.0.0-rc.2 (one package with every step type, including a restart), then pull mode end to
+end and the Message step shown to a logged-on user.
 
-**Next:** the maintainer tests **1.0.0-rc.2** on their fleet. If nothing blocks, the same code is published as
-**1.0.0**; the installed console then offers 1.0.0 at startup ("Yes" → install). Not yet tested on the domain:
-pull mode end to end, Message step shown to a logged-on user.
+**1.0.0 is the same code as 1.0.0-rc.2**, tested by the maintainer on their fleet. Still to check: updating
+from the console (the installed rc.2 console offers 1.0.0 at startup, "Yes" → install).
 
 New since 1.0.0-rc.1 (PRs #116 to #142):
 - Options › Background service: service account, active sessions per computer (#116); wider package tree (#117)

@@ -84,10 +84,10 @@ Options › **Utilisateurs de la console…** (*Console users*).
 3. **Déployer une fois** (*Deploy once*): pick a **test computer**, then follow the deployment live.
 4. Once it works on a test computer, deploy to the others or create a **planification** (*schedule*).
 
-## Try the release candidate
+## Try it
 
-**1.0.0** is on its way: the release candidate (`1.0.0-rc.2`) is available in the
-[Releases](https://github.com/vzeol/DeployCraft/releases). Thank you for trying it!
+**1.0.0** is available in the [Releases](https://github.com/vzeol/DeployCraft/releases). Thank you for trying
+it!
 
 - Install it on a test server or VM, and start with **test computers**.
 - A problem, a remark? [Open an issue](https://github.com/vzeol/DeployCraft/issues/new/choose): the form only asks

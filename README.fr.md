@@ -81,10 +81,10 @@ groupes : Options › **Utilisateurs de la console…**
 3. **Déployer une fois** : choisir un **poste de test**, puis suivre le déploiement en direct.
 4. Une fois validé sur un poste de test, déployer sur les autres ou créer une **planification**.
 
-## Tester la version candidate
+## L'essayer
 
-La **1.0.0** est en préparation : la version candidate (`1.0.0-rc.2`) est disponible dans les
-[Releases](https://github.com/vzeol/DeployCraft/releases). Merci de l'essayer !
+La **1.0.0** est disponible dans les [Releases](https://github.com/vzeol/DeployCraft/releases). Merci de
+l'essayer !
 
 - Installez-la sur un serveur ou une VM de test, et commencez par des **postes de test**.
 - Un problème, une remarque ? [Ouvrez une issue](https://github.com/vzeol/DeployCraft/issues/new/choose) : le
