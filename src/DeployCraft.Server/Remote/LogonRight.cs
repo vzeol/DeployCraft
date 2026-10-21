@@ -68,7 +68,7 @@ internal static class LogonRight
             }
             finally
             {
-                LsaClose(policy);
+                _ = LsaClose(policy); // closing a handle: nothing to do if it fails
             }
         }
         finally

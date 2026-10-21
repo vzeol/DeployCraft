@@ -6,6 +6,11 @@
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <!-- Le CI restaure en mode verrouillé : un lock file pas à jour fait échouer la compilation. -->
     <RestoreLockedMode Condition="'$(CI)' == 'true'">true</RestoreLockedMode>
+    <!-- Code quality rules of .editorconfig are checked by the build itself (and by CI, where warnings are errors).
+         The XML documentation file is needed for the unused-usings check; undocumented members are allowed. -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591;CS1573</NoWarn>
   </PropertyGroup>
 
 </Project>

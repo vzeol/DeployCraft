@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using DeployCraft.Server.Data;
 
 namespace DeployCraft.Console;
 

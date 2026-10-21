@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -9,7 +11,8 @@ namespace DeployCraft.Runner
     /// </summary>
     internal sealed class ProcessOutput
     {
-        private readonly MemoryStream _bytes = new MemoryStream();
+        // A plain list (not a stream): nothing to dispose, and a late write after a timeout cannot fail.
+        private readonly List<byte> _bytes = new List<byte>();
         private readonly int _maxBytes;
 
         public ProcessOutput(int maxBytes) => _maxBytes = maxBytes;
@@ -18,8 +21,8 @@ namespace DeployCraft.Runner
         {
             lock (_bytes)
             {
-                var room = _maxBytes - (int)_bytes.Length;
-                if (room > 0) _bytes.Write(buffer, 0, count < room ? count : room);
+                var room = _maxBytes - _bytes.Count;
+                if (room > 0) _bytes.AddRange(new ArraySegment<byte>(buffer, 0, count < room ? count : room));
             }
         }
 
