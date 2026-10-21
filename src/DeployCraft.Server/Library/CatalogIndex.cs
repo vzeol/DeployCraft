@@ -29,7 +29,7 @@ public class CatalogIndex(string path)
                 await input.CopyToAsync(output);
             using (var zip = ZipFile.OpenRead(archive))
             {
-                var entry = zip.GetEntry(Entry) ?? throw new InvalidDataException("Index du catalogue incomplet.");
+                var entry = zip.GetEntry(Entry) ?? throw new InvalidDataException(Msg.Get("CatalogIndex_Incomplete"));
                 entry.ExtractToFile(next, overwrite: true);
             }
             File.Move(next, path, overwrite: true);

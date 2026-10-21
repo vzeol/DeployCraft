@@ -18,7 +18,7 @@ public static class CatalogManifest
         var installers = (root.GetValueOrDefault("Installers") as List<object?> ?? []).OfType<Dictionary<string, object?>>().ToList();
         if (installers.Count == 0)
         {
-            problem = "fiche sans installeur.";
+            problem = Msg.Get("CatalogManifest_NoInstaller");
             return null;
         }
 
@@ -35,7 +35,7 @@ public static class CatalogManifest
         }
         if (candidates.Count == 0)
         {
-            problem = "aucun installeur silencieux pour tout le poste (Windows 64 ou 32 bits) dans le catalogue.";
+            problem = Msg.Get("CatalogManifest_NoSilentInstaller");
             return null;
         }
 

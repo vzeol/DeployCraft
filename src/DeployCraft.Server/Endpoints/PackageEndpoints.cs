@@ -35,8 +35,7 @@ internal static class PackageEndpoints
             if (Package.UsersOf(packageRepository.List(), id) is { Count: > 0 } users)
                 return Results.BadRequest(new
                 {
-                    error = "Ce paquet est utilisé comme paquet imbriqué par : " + string.Join(", ", users.Select(u => $"« {u.Name} »")) +
-                            ". Retirez-le de ces paquets avant de le supprimer.",
+                    error = Msg.Format("PackageEndpoints_UsedAsNested", string.Join(", ", users.Select(u => Msg.Format("PackageEndpoints_QuotedName", u.Name)))),
                 });
             packageRepository.Delete(id);
             return Results.NoContent();

@@ -45,7 +45,7 @@ internal static class RunAsPlan
 
     /// <summary>Reason given to the steps of the slices not started.</summary>
     public static string? StopReason(RunnerStatus finished) =>
-        finished.Halt ? finished.HaltReason : finished.Error != null ? "Tranche précédente interrompue : " + finished.Error : null;
+        finished.Halt ? finished.HaltReason : finished.Error != null ? Msg.Format("RunAsPlan_PreviousInterrupted", finished.Error) : null;
 
     /// <summary>Early end decided by the server (computer off): the following steps are skipped with <paramref name="reason"/>.</summary>
     public static RunnerStatus Finish(IReadOnlyList<RunnerStepResult> done, IReadOnlyList<string> later, string reason, List<RunnerNetworkCard>? network) => new()

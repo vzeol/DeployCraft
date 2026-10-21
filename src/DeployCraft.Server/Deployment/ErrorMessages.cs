@@ -7,37 +7,39 @@ namespace DeployCraft.Server.Deployment;
 /// <summary>Translates technical errors into understandable messages.</summary>
 public static class ErrorMessages
 {
+    // Message keys, translated when read.
+    // Message keys, translated when read.
     private static readonly Dictionary<int, string> ExitCodes = new()
     {
-        [1602] = "Installation annulée par l'utilisateur.",
-        [1603] = "Erreur fatale pendant l'installation MSI (voir le journal de l'installeur).",
-        [1605] = "Ce produit n'est pas installé (désinstallation impossible).",
-        [1618] = "Une autre installation est déjà en cours sur le poste. Réessayez plus tard.",
-        [1619] = "Impossible d'ouvrir le paquet MSI (fichier absent ou corrompu).",
-        [1620] = "Paquet MSI invalide.",
-        [1625] = "Installation bloquée par une stratégie de groupe.",
-        [1633] = "Plateforme non prise en charge (32/64 bits ?).",
-        [1638] = "Une autre version de ce produit est déjà installée.",
-        [1639] = "Paramètres de ligne de commande invalides.",
-        [unchecked((int)0x80240017)] = "Mise à jour non applicable à ce système.",
+        [1602] = "ErrorMessages_Exit1602",
+        [1603] = "ErrorMessages_Exit1603",
+        [1605] = "ErrorMessages_Exit1605",
+        [1618] = "ErrorMessages_Exit1618",
+        [1619] = "ErrorMessages_Exit1619",
+        [1620] = "ErrorMessages_Exit1620",
+        [1625] = "ErrorMessages_Exit1625",
+        [1633] = "ErrorMessages_Exit1633",
+        [1638] = "ErrorMessages_Exit1638",
+        [1639] = "ErrorMessages_Exit1639",
+        [unchecked((int)0x80240017)] = "ErrorMessages_ExitWuNotApplicable",
     };
 
     public static string ForStep(StepOutcome step)
     {
-        if (!string.IsNullOrEmpty(step.Error)) return $"Étape « {step.Name} » : {step.Error}";
-        var detail = step.ExitCode is int code && ExitCodes.TryGetValue(code, out var known) ? " — " + known : "";
-        return $"Étape « {step.Name} » : code retour {step.ExitCode}{detail}";
+        if (!string.IsNullOrEmpty(step.Error)) return Msg.Format("ErrorMessages_StepError", step.Name, step.Error);
+        var detail = step.ExitCode is int code && ExitCodes.TryGetValue(code, out var known) ? " — " + Msg.Get(known) : "";
+        return Msg.Format("ErrorMessages_StepExitCode", step.Name, step.ExitCode, detail);
     }
 
     public static string ForException(Exception ex) => ex switch
     {
         DeployException d => d.Message,
         Win32Exception { NativeErrorCode: 5 } =>
-            "Accès refusé au gestionnaire de services du poste : le compte de déploiement doit être administrateur.",
+            Msg.Get("ErrorMessages_ScmDenied"),
         Win32Exception { NativeErrorCode: 1722 or 1753 } =>
-            "Le gestionnaire de services du poste ne répond pas (pare-feu ? poste éteint ?).",
+            Msg.Get("ErrorMessages_ScmUnreachable"),
         Win32Exception { NativeErrorCode: 1326 } =>
-            "Identifiant ou mot de passe du compte de déploiement incorrect.",
+            Msg.Get("ErrorMessages_BadLogon"),
         Win32Exception w => w.Message,
         _ => ex.Message,
     };

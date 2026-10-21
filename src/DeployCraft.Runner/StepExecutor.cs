@@ -55,7 +55,7 @@ namespace DeployCraft.Runner
             {
                 var job = Json.Read<Job>(Path.Combine(_slotDir, "job.json"));
                 RunnerTexts.Language = job.Language == "en" ? "en" : "fr";
-                Log($"Job chargé : {job.Steps.Count} étape(s)");
+                Log(RunnerTexts.Format("StepExecutor_JobLoaded", job.Steps.Count));
                 status.Network = LocalFacts.NetworkCards();
                 Json.Write(_statusPath, status);
 
@@ -64,24 +64,24 @@ namespace DeployCraft.Runner
             catch (Exception ex)
             {
                 status.Error = ex.Message;
-                Log("Erreur : " + ex);
+                Log(RunnerTexts.Format("StepExecutor_Error", ex));
             }
 
             status.State = "done";
             Json.Write(_statusPath, status);
-            Log("Terminé.");
+            Log(RunnerTexts.Get("StepExecutor_Done"));
         }
 
         private void RunStep(int index, JobStep step, StepResult result)
         {
             if (step.Type == "pause")
             {
-                result.CommandLine = $"Pause de {step.Seconds} s";
+                result.CommandLine = RunnerTexts.Format("StepExecutor_Pause", step.Seconds);
                 if (StepSequence.Wait(step.Seconds, () => _aborted, Thread.Sleep)) result.State = "success";
                 else
                 {
                     result.State = "failed";
-                    result.Error = "Annulé.";
+                    result.Error = RunnerTexts.Get("StepExecutor_Cancelled");
                 }
                 return;
             }
@@ -126,7 +126,7 @@ namespace DeployCraft.Runner
                     using (var process = UserProcess.Start(psi.FileName, psi.Arguments, _execDir, output.Add))
                     {
                         _current = process.Id;
-                        Log($"Étape {index + 1} lancée dans la session de {process.User ?? "l'utilisateur connecté"}");
+                        Log(RunnerTexts.Format("StepExecutor_StepStartedInSession", index + 1, process.User ?? RunnerTexts.Get("StepExecutor_LoggedOnUser")));
                         if (!process.WaitForExit(step.TimeoutSeconds * 1000))
                         {
                             TimedOut(process.Id, step, result);
@@ -163,7 +163,7 @@ namespace DeployCraft.Runner
                 if (_aborted)
                 {
                     result.State = "failed";
-                    result.Error = "Annulé.";
+                    result.Error = RunnerTexts.Get("StepExecutor_Cancelled");
                     return;
                 }
                 result.ExitCode = exitCode;
@@ -198,7 +198,7 @@ namespace DeployCraft.Runner
             {
                 var sessions = UserProcess.ActiveSessions();
                 var untilClick = step.Seconds <= 0;
-                result.CommandLine = "Message pour " + (sessions.Count == 0 ? "personne" : string.Join(", ", sessions.Select(s => s.Value ?? "session " + s.Key)));
+                result.CommandLine = RunnerTexts.Format("StepExecutor_MessageFor", sessions.Count == 0 ? RunnerTexts.Get("StepExecutor_Nobody") : string.Join(", ", sessions.Select(s => s.Value ?? RunnerTexts.Format("StepExecutor_Session", s.Key))));
                 // Until the click: the wait is bounded by the step's maximum delay; with no wait, the window stays open.
                 var seconds = untilClick ? (step.WaitForUser ? step.TimeoutSeconds : 0) : step.Seconds;
                 var powershell = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), @"WindowsPowerShell\v1.0\powershell.exe");
@@ -217,7 +217,7 @@ namespace DeployCraft.Runner
                             if (!_aborted) continue;
                             foreach (var w in windows) KillTree(w.Id);
                             result.State = "failed";
-                            result.Error = "Annulé.";
+                            result.Error = RunnerTexts.Get("StepExecutor_Cancelled");
                             return;
                         }
                         codes.Add(window.ExitCode);
@@ -243,20 +243,20 @@ namespace DeployCraft.Runner
         {
             KillTree(pid);
             result.State = "failed";
-            result.Error = $"Délai dépassé ({step.TimeoutSeconds / 60} min). Paramètres silencieux manquants ?";
+            result.Error = RunnerTexts.Format("StepExecutor_TimedOut", step.TimeoutSeconds / 60);
         }
 
         /// <summary>Pull mode: an additional file copied into exec\ from the share, with the runner identity.</summary>
         private void PullFile(string path)
         {
-            Log($"Copie depuis {path}");
+            Log(RunnerTexts.Format("Launcher_CopyingFrom", path));
             try
             {
                 File.Copy(path, Path.Combine(_execDir, Path.GetFileName(path)), true);
             }
             catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException)
             {
-                throw new IOException($"Mode pull : fichier additionnel illisible ou introuvable : {path} ({ex.Message}).", ex);
+                throw new IOException(RunnerTexts.Format("StepExecutor_PullAdditionalFile", path, ex.Message), ex);
             }
         }
 
@@ -278,18 +278,18 @@ namespace DeployCraft.Runner
                         var file = Path.Combine(_execDir, name ?? "");
                         if (File.Exists(file)) File.Copy(file, Path.Combine(folder, Path.GetFileName(file)), true);
                     }
-                Log($"Fichier d'installation gardé dans {folder}");
+                Log(RunnerTexts.Format("StepExecutor_KeptIn", folder));
             }
             catch (Exception ex)
             {
-                Log("Fichier d'installation non gardé : " + ex.Message);
+                Log(RunnerTexts.Format("StepExecutor_NotKept", ex.Message));
             }
         }
 
         /// <summary>Pull mode: the computer itself copies the file (or its folder) from the share.</summary>
         private void Pull(JobStep step)
         {
-            Log($"Copie depuis {step.SourcePath}");
+            Log(RunnerTexts.Format("Launcher_CopyingFrom", step.SourcePath));
             try
             {
                 if (step.IncludeDirectory) CopyDirectory(Path.GetDirectoryName(step.SourcePath), _execDir);
@@ -297,19 +297,19 @@ namespace DeployCraft.Runner
             }
             catch (FileNotFoundException)
             {
-                throw new FileNotFoundException("Mode pull : fichier introuvable sur le partage : " + step.SourcePath);
+                throw new FileNotFoundException(RunnerTexts.Format("StepExecutor_PullFileNotFound", step.SourcePath));
             }
             catch (DirectoryNotFoundException)
             {
-                throw new DirectoryNotFoundException("Mode pull : dossier introuvable sur le partage : " + Path.GetDirectoryName(step.SourcePath));
+                throw new DirectoryNotFoundException(RunnerTexts.Format("StepExecutor_PullFolderNotFound", Path.GetDirectoryName(step.SourcePath)));
             }
             catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException)
             {
                 // As Local System, it is the computer account of the machine (DOMAIN\COMPUTER$) that reads the share.
                 string who;
                 using (var identity = System.Security.Principal.WindowsIdentity.GetCurrent())
-                    who = identity.IsSystem ? "le compte ordinateur du poste (" + Environment.MachineName + "$)" : identity.Name;
-                throw new IOException($"Mode pull : lecture de {step.SourcePath} impossible avec {who} ({ex.Message}).", ex);
+                    who = identity.IsSystem ? RunnerTexts.Format("StepExecutor_ComputerAccount", Environment.MachineName) : identity.Name;
+                throw new IOException(RunnerTexts.Format("StepExecutor_PullReadFailed", step.SourcePath, who, ex.Message), ex);
             }
         }
 

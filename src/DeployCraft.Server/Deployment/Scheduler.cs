@@ -74,10 +74,10 @@ public class Scheduler(IScheduleRepository scheduleRepository, IPackageRepositor
     private (List<Data.Deployment>, string) Plan(Schedule schedule, string? launchedBy)
     {
         var packages = schedule.PackageIds.Select(packageRepository.Get).OfType<Package>().Where(p => p.Steps.Count > 0).ToList();
-        if (packages.Count == 0) return ([], "Aucun paquet à déployer (paquets supprimés ou sans étape).");
+        if (packages.Count == 0) return ([], Msg.Get("Scheduler_NoPackage"));
         var computers = schedule.Targets.Select(c => c.Trim().TrimStart('\\')).Where(c => c.Length > 0)
             .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-        if (computers.Count == 0) return ([], "Aucune cible.");
+        if (computers.Count == 0) return ([], Msg.Get("Scheduler_NoTarget"));
 
         var history = scheduleRepository.GetHistory(schedule.Id)
             .ToDictionary(h => (h.Computer.ToUpperInvariant(), h.PackageId));
@@ -101,24 +101,24 @@ public class Scheduler(IScheduleRepository scheduleRepository, IPackageRepositor
 
         var count = plan.Sum(p => p.Item2.Count);
         var skipped = new List<string>();
-        if (done > 0) skipped.Add($"{done} déjà réussi(s)");
-        if (gaveUp > 0) skipped.Add($"{gaveUp} abandonné(s) après {schedule.StopAfterFailures} échec(s)");
-        if (busy.Count > 0) skipped.Add($"{busy.Count} poste(s) encore en cours");
+        if (done > 0) skipped.Add(Msg.Format("Scheduler_AlreadyDone", done));
+        if (gaveUp > 0) skipped.Add(Msg.Format("Scheduler_GaveUp", gaveUp, schedule.StopAfterFailures));
+        if (busy.Count > 0) skipped.Add(Msg.Format("Scheduler_StillRunning", busy.Count));
         var detail = skipped.Count > 0 ? $" ({string.Join(", ", skipped)})" : "";
 
-        if (count == 0) return ([], $"Rien à déployer{detail}.");
+        if (count == 0) return ([], Msg.Format("Scheduler_NothingToDeploy", detail));
         var options = new DeployOptions(schedule.RunAs, schedule.CopyMode, CredentialId: schedule.CredentialId);
         List<Data.Deployment> deployments;
         try
         {
-            deployments = engine.StartPlan(plan, launchedBy ?? $"Planification « {schedule.Name} »", options, schedule);
+            deployments = engine.StartPlan(plan, launchedBy ?? Msg.Format("Scheduler_LaunchedBy", schedule.Name), options, schedule);
         }
         catch (ArgumentException ex)
         {
             return ([], ex.Message);
         }
-        var ids = string.Join(", ", deployments.Select(d => $"n° {d.Id}"));
+        var ids = string.Join(", ", deployments.Select(d => Msg.Format("Scheduler_DeploymentNumber", d.Id)));
         var hosts = plan.SelectMany(p => p.Item2).Select(t => t.Computer).Distinct(StringComparer.OrdinalIgnoreCase).Count();
-        return (deployments, $"Lancé sur {hosts} poste(s){detail} : déploiement {ids}.");
+        return (deployments, Msg.Format("Scheduler_Launched", hosts, detail, ids));
     }
 }

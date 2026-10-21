@@ -14,13 +14,13 @@ public static class PackageDetails
             names.Insert(0, folder.Name);
             folderId = folder.ParentId;
         }
-        return string.Join(" › ", names.Prepend("Paquets"));
+        return string.Join(" › ", names.Prepend(Msg.Get("PackageDetails_RootFolder")));
     }
 
     /// <summary>Conditions on one readable line, or "Aucune".</summary>
     public static string ConditionsText(Conditions c)
     {
-        if (c.IsEmpty) return "Aucune : le paquet s'exécute sur tous les postes.";
+        if (c.IsEmpty) return Msg.Get("PackageDetails_NoConditions");
         var parts = new List<string>();
         if (c.Windows != WindowsVersions.None)
         {
@@ -28,39 +28,39 @@ public static class PackageDetails
             if (c.Windows.HasFlag(WindowsVersions.Windows11)) versions.Add("Windows 11");
             if (c.Windows.HasFlag(WindowsVersions.Windows10)) versions.Add("Windows 10");
             if (c.Windows.HasFlag(WindowsVersions.Server)) versions.Add("Windows Server");
-            if (c.Windows.HasFlag(WindowsVersions.Older)) versions.Add("Windows 8.1 ou plus ancien");
-            parts.Add(string.Join(" ou ", versions));
+            if (c.Windows.HasFlag(WindowsVersions.Older)) versions.Add(Msg.Get("PackageDetails_WindowsOlder"));
+            parts.Add(string.Join(Msg.Get("PackageDetails_Or"), versions));
         }
-        if (c.Architecture != ArchitectureCondition.Any) parts.Add(c.Architecture == ArchitectureCondition.X64 ? "64 bits" : "32 bits");
-        if (c.MinPowerShell is { } ps) parts.Add($"PowerShell {ps} ou plus");
-        if (c.LoggedOn != LoggedOnCondition.Any) parts.Add(c.LoggedOn == LoggedOnCondition.LoggedOn ? "un utilisateur connecté" : "personne de connecté");
-        if (c.File != PresenceCondition.None) parts.Add($"fichier {c.FilePath} {Presence(c.File)}");
+        if (c.Architecture != ArchitectureCondition.Any) parts.Add(c.Architecture == ArchitectureCondition.X64 ? Msg.Get("PackageDetails_Bits64") : Msg.Get("PackageDetails_Bits32"));
+        if (c.MinPowerShell is { } ps) parts.Add(Msg.Format("PackageDetails_PowerShellMin", ps));
+        if (c.LoggedOn != LoggedOnCondition.Any) parts.Add(c.LoggedOn == LoggedOnCondition.LoggedOn ? Msg.Get("PackageDetails_UserLoggedOn") : Msg.Get("PackageDetails_NobodyLoggedOn"));
+        if (c.File != PresenceCondition.None) parts.Add(Msg.Format("PackageDetails_FileCondition", c.FilePath, Presence(c.File)));
         if (c.Registry != PresenceCondition.None)
         {
             var key = string.IsNullOrWhiteSpace(c.RegistryValue) ? c.RegistryKey : $@"{c.RegistryKey}\{c.RegistryValue}";
-            parts.Add($"registre {key} {Presence(c.Registry)}");
+            parts.Add(Msg.Format("PackageDetails_RegistryCondition", key, Presence(c.Registry)));
         }
-        return string.Join(" ; ", parts);
+        return string.Join(Msg.Get("PackageDetails_ConditionSeparator"), parts);
     }
 
-    private static string Presence(PresenceCondition p) => p == PresenceCondition.Exists ? "présent" : "absent";
+    private static string Presence(PresenceCondition p) => p == PresenceCondition.Exists ? Msg.Get("PackageDetails_Present") : Msg.Get("PackageDetails_Absent");
 
     /// <summary>Offline settings on one line; <paramref name="fromDefaults"/>: those from Preferences.</summary>
     public static string OfflineText(OfflineSettings o, bool fromDefaults)
     {
         var parts = new List<string>
         {
-            o.WakeOnLan ? $"réveil du poste (attente {o.WakeWaitMinutes} min)" : "pas de réveil",
-            o.Retry ? $"{o.RetryAttempts} essais, toutes les {o.RetryIntervalMinutes} min" : "pas de nouvel essai",
+            o.WakeOnLan ? Msg.Format("PackageDetails_OfflineWake", o.WakeWaitMinutes) : Msg.Get("PackageDetails_OfflineNoWake"),
+            o.Retry ? Msg.Format("PackageDetails_OfflineRetry", o.RetryAttempts, o.RetryIntervalMinutes) : Msg.Get("PackageDetails_OfflineNoRetry"),
         };
         var text = string.Join(", ", parts);
-        return fromDefaults ? $"Préférences ({text})" : char.ToUpper(text[0]) + text[1..];
+        return fromDefaults ? Msg.Format("PackageDetails_OfflineFromDefaults", text) : char.ToUpper(text[0]) + text[1..];
     }
 
     /// <summary>Packages that contain this one as a nested package, by name.</summary>
     public static string UsedByText(long id, IEnumerable<Package> packages)
     {
         var users = Package.UsersOf(packages, id).Select(p => p.Name).OrderBy(n => n, StringComparer.CurrentCultureIgnoreCase).ToList();
-        return users.Count == 0 ? "Aucun paquet" : string.Join(", ", users);
+        return users.Count == 0 ? Msg.Get("PackageDetails_NoPackage") : string.Join(", ", users);
     }
 }

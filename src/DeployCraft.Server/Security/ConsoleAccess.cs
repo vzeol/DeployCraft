@@ -38,7 +38,7 @@ public class ConsoleAccess(ISettingsRepository settingsRepository)
     public (ConsoleUser? User, string? Error) AddUser(string? name)
     {
         name = name?.Trim();
-        if (string.IsNullOrEmpty(name)) return (null, "Saisissez un compte ou un groupe (DOMAINE\\nom).");
+        if (string.IsNullOrEmpty(name)) return (null, Msg.Get("ConsoleAccess_EnterAccount"));
         ConsoleUser user;
         try
         {
@@ -47,10 +47,10 @@ public class ConsoleAccess(ISettingsRepository settingsRepository)
         }
         catch (SystemException) // misspelled name, unknown, or directory unreachable
         {
-            return (null, $"Compte ou groupe « {name} » introuvable. Écrivez-le sous la forme DOMAINE\\nom.");
+            return (null, Msg.Format("ConsoleAccess_NotFound", name));
         }
         var users = ListUsers();
-        if (user.Sid == AdministratorsSid || users.Any(u => u.Sid == user.Sid)) return (null, $"« {user.Name} » a déjà accès.");
+        if (user.Sid == AdministratorsSid || users.Any(u => u.Sid == user.Sid)) return (null, Msg.Format("ConsoleAccess_AlreadyAllowed", user.Name));
         users.Add(user);
         Save(users);
         return (user, null);
@@ -127,8 +127,7 @@ public class ConsoleAccess(ISettingsRepository settingsRepository)
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
             await context.Response.WriteAsJsonAsync(new
             {
-                error = $"Votre compte {name} n'est pas autorisé à utiliser DeployCraft sur {Environment.MachineName}. " +
-                        "Un administrateur de ce serveur peut l'ajouter dans Options › Utilisateurs de la console.",
+                error = Msg.Format("ConsoleAccess_Refused", name, Environment.MachineName),
             });
             return;
         }

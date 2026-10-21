@@ -40,15 +40,18 @@ public sealed class CopyProgress(Func<DateTime>? clock = null)
         var seconds = (now - since).TotalSeconds;
         var percent = total == 0 ? 100 : (int)Math.Min(100, done * 100 / total);
         return seconds > 0
-            ? $"Copie des fichiers : {percent} % ({Rate((done - from) / seconds)})"
-            : $"Copie des fichiers : {percent} %";
+            ? Msg.Format("CopyProgress_WithRate", percent, Rate((done - from) / seconds))
+            : Msg.Format("CopyProgress_Percent", percent);
     }
+
+    /// <summary>Number format that goes with the message language (decimal comma in French).</summary>
+    private static CultureInfo NumberCulture => Msg.Supported(CultureInfo.CurrentUICulture.Name) == Msg.French ? French : CultureInfo.InvariantCulture;
 
     /// <summary>Readable throughput: "12,3 Mo/s" or "850 Ko/s" (1 Mo = 1 024 Ko).</summary>
     public static string Rate(double bytesPerSecond) =>
         bytesPerSecond >= 1024 * 1024
-            ? (bytesPerSecond / (1024 * 1024)).ToString("0.0", French) + " Mo/s"
-            : (bytesPerSecond / 1024).ToString("0", French) + " Ko/s";
+            ? Msg.Format("CopyProgress_RateMega", (bytesPerSecond / (1024 * 1024)).ToString("0.0", NumberCulture))
+            : Msg.Format("CopyProgress_RateKilo", (bytesPerSecond / 1024).ToString("0", NumberCulture));
 }
 
 /// <summary>Files to copy to a computer, gathered to know the total before starting.</summary>

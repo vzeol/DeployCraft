@@ -61,7 +61,7 @@ namespace DeployCraft.Runner
                 case "HKCU": case "HKEY_CURRENT_USER": hive = RegistryHive.CurrentUser; break;
                 case "HKCR": case "HKEY_CLASSES_ROOT": hive = RegistryHive.ClassesRoot; break;
                 case "HKU": case "HKEY_USERS": hive = RegistryHive.Users; break;
-                default: throw new ArgumentException("Clé de registre invalide (elle doit commencer par HKLM, HKCU, HKCR ou HKU) : " + key);
+                default: throw new ArgumentException(RunnerTexts.Format("LocalFacts_InvalidRegistryKey", key));
             }
             using (var root = RegistryKey.OpenBaseKey(hive, View))
             using (var k = subKey.Length == 0 ? null : root.OpenSubKey(subKey))

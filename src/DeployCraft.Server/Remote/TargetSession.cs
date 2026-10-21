@@ -31,10 +31,10 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
     public async Task RunAsync(Package package, int startStep, RunAsMode runAs, CopyMode copyMode,
         Action<string> stage, Action<RunnerStatus> progress, CancellationToken ct)
     {
-        stage("Résolution du nom");
+        stage(Msg.Get("TargetSession_ResolvingName"));
         await CheckReachableAsync(ct);
 
-        stage("Copie des fichiers");
+        stage(Msg.Get("TargetSession_CopyingFiles"));
         var done = new List<RunnerStepResult>();
         var restarted = false;
 
@@ -67,14 +67,14 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 var later = job.Steps.Skip(tranche.Start + tranche.Count).Select(s => s.Name).ToList();
                 _service = tranches.Count == 1 ? ServiceName : $"{ServiceName}-{t + 1}";
 
-                var identity = tranche.AsDeployUser && account != null ? "compte de déploiement" : "Système";
+                var identity = tranche.AsDeployUser && account != null ? Msg.Get("TargetSession_IdentityDeployAccount") : Msg.Get("TargetSession_IdentitySystem");
                 // Cancelled between two slices: no new one is started.
                 ct.ThrowIfCancellationRequested();
-                stage(tranches.Count == 1 ? "Démarrage du runner" : $"Démarrage du runner ({t + 1}/{tranches.Count}, {identity})");
+                stage(tranches.Count == 1 ? Msg.Get("TargetSession_StartingRunner") : Msg.Format("TargetSession_StartingRunnerSlice", t + 1, tranches.Count, identity));
                 if (restarted) await StartAfterRestartAsync(trancheJob, tranche.AsDeployUser, ct);
                 else credentials.RunAs(account, computer, () => StartTranche(trancheJob, tranche.AsDeployUser));
                 restarted = false;
-                var running = $"Exécution ({identity})";
+                var running = Msg.Format("TargetSession_Running", identity);
                 stage(running);
 
                 var final = await WaitAsync(trancheJob, stage, running, status => progress(RunAsPlan.Combine(done, status, later, last)), ct);
@@ -92,7 +92,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 if (reboot.Type != RebootType || final.Steps.Count != trancheJob.Steps.Count || final.Steps[^1].State != "success") continue;
                 if (reboot.ShutdownOnly)
                 {
-                    if (!last) progress(RunAsPlan.Finish(done, later, $"Poste éteint par l'étape {startStep + tranche.Start + tranche.Count - 1} « {reboot.Name} ».", final.Network));
+                    if (!last) progress(RunAsPlan.Finish(done, later, Msg.Format("TargetSession_ShutDownByStep", startStep + tranche.Start + tranche.Count - 1, reboot.Name), final.Network));
                     return;
                 }
                 await WaitForRestartAsync(reboot, stage, ct);
@@ -115,21 +115,21 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
     /// </summary>
     private async Task WaitForRestartAsync(RunnerJobStep reboot, Action<string> stage, CancellationToken ct)
     {
-        stage("Redémarrage du poste");
+        stage(Msg.Get("TargetSession_Restarting"));
         var downBy = DateTime.UtcNow.AddSeconds(reboot.Seconds + 300);
         while (await ProbeAsync(computer, ct) == null)
         {
             if (DateTime.UtcNow > downBy)
-                throw new DeployException("Le poste ne s'est pas arrêté après la demande de redémarrage (annulée sur le poste ?).");
+                throw new DeployException(Msg.Get("TargetSession_NotStopped"));
             await Task.Delay(3000, ct);
         }
 
-        stage("Attente du retour du poste");
+        stage(Msg.Get("TargetSession_WaitingBack"));
         var upBy = DateTime.UtcNow.AddSeconds(reboot.TimeoutSeconds);
         while (await ProbeAsync(computer, ct) != null)
         {
             if (DateTime.UtcNow > upBy)
-                throw new DeployException($"Le poste n'est pas revenu {reboot.TimeoutSeconds / 60} min après le redémarrage (délai max de l'étape « {reboot.Name} »).");
+                throw new DeployException(Msg.Format("TargetSession_NotBack", reboot.TimeoutSeconds / 60, reboot.Name));
             await Task.Delay(5000, ct);
         }
     }
@@ -183,7 +183,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         {
             await Task.Delay(1000, ct);
             if (DateTime.UtcNow > deadline)
-                throw new DeployException("Délai global dépassé : le runner ne répond plus.");
+                throw new DeployException(Msg.Get("TargetSession_GlobalTimeout"));
 
             RunnerStatus? status;
             bool running;
@@ -202,8 +202,8 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 lostSince ??= DateTime.UtcNow;
                 if (DateTime.UtcNow - lostSince > ReconnectGrace)
                     throw new DeployException(
-                        $"Poste injoignable depuis {ReconnectGrace.TotalMinutes:0} min pendant l'exécution : {ex.Message}", ex);
-                stage("Poste injoignable, nouvelle tentative…");
+                        Msg.Format("TargetSession_LostDuringRun", ReconnectGrace.TotalMinutes, ex.Message), ex);
+                stage(Msg.Get("TargetSession_Retrying"));
                 await Task.Delay(4000, ct);
                 continue;
             }
@@ -239,7 +239,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 }, delay => Task.Delay(delay, ct));
                 if (status != null) progress(status);
                 if (status?.State == "done") return status;
-                throw new DeployException("Le runner s'est arrêté sans rendre de résultat (voir runner.log sur la cible).");
+                throw new DeployException(Msg.Get("TargetSession_RunnerStopped"));
             }
         }
     }
@@ -302,7 +302,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         }
         catch (System.Net.Sockets.SocketException)
         {
-            return new DeployException($"Nom introuvable dans le DNS : « {computer} » (poste éteint depuis longtemps ?).") { Offline = true };
+            return new DeployException(Msg.Format("TargetSession_NotInDns", computer)) { Offline = true };
         }
 
         foreach (var address in addresses.Where(a => a.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).DefaultIfEmpty(addresses.FirstOrDefault()))
@@ -321,7 +321,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 // next address
             }
         }
-        return new DeployException($"{computer} est hors ligne (éteint, ou partage de fichiers bloqué par le pare-feu).") { Offline = true };
+        return new DeployException(Msg.Format("TargetSession_Offline", computer)) { Offline = true };
     }
 
     /// <summary>Copies the runner and the files, prepares the instructions of all steps and the identity of each.</summary>
@@ -333,7 +333,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         }
         catch (UnauthorizedAccessException ex) when (_isLocal)
         {
-            throw new DeployException("Accès refusé à C:\\Windows sur ce serveur : DeployCraft doit tourner en administrateur.", ex);
+            throw new DeployException(Msg.Get("TargetSession_WindowsDenied"), ex);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
@@ -362,7 +362,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
 
             if (step.Type == StepType.Install && step.Enabled)
             {
-                if (string.IsNullOrWhiteSpace(step.File)) throw new DeployException($"Étape « {jobStep.Name} » : aucun fichier d'installation.");
+                if (string.IsNullOrWhiteSpace(step.File)) throw new DeployException(Msg.Format("TargetSession_NoInstallFile", jobStep.Name));
                 jobStep.Command = Path.GetFileName(step.File);
                 jobStep.CommandLine = InstallCommand.For(step);
                 if (step.KeepInstallFile) jobStep.KeepFolder = KeepFolder(package.Name);
@@ -375,15 +375,15 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                     continue;
                 }
                 // Push: the file is read by the server (with the deployment account if it is on a share).
-                if (!File.Exists(step.File)) throw new DeployException($"Fichier d'installation introuvable : {step.File}");
+                if (!File.Exists(step.File)) throw new DeployException(Msg.Format("TargetSession_InstallFileMissing", step.File));
                 if (step.IncludeDirectory) CopyDirectory(Path.GetDirectoryName(step.File)!, exec, copies);
                 else copies.Add(step.File, Path.Combine(exec, Path.GetFileName(step.File)));
             }
             else if (step.Type == StepType.Reboot && step.Enabled && _isLocal)
-                throw new DeployException($"Étape « {jobStep.Name} » : DeployCraft ne redémarre pas le serveur sur lequel il tourne.");
+                throw new DeployException(Msg.Format("TargetSession_NoServerRestart", jobStep.Name));
             else if (step.Type == StepType.CopyFiles && step.Enabled)
             {
-                if (string.IsNullOrWhiteSpace(step.CopySource)) throw new DeployException($"Étape « {jobStep.Name} » : aucun fichier ou dossier à copier.");
+                if (string.IsNullOrWhiteSpace(step.CopySource)) throw new DeployException(Msg.Format("TargetSession_NothingToCopy", jobStep.Name));
                 if (copyMode == CopyMode.Pull && step.CopySource.StartsWith(@"\\"))
                     jobStep.SourcePath = step.CopySource;
                 else
@@ -418,7 +418,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
             if (batch == null) copies.Run(BandwidthLimiter.Copies, null);
             return;
         }
-        if (!Directory.Exists(source)) throw new DeployException($"Fichier ou dossier à copier introuvable : {source}");
+        if (!Directory.Exists(source)) throw new DeployException(Msg.Format("TargetSession_CopySourceMissing", source));
 
         var option = subfolders ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
         // As on the computer: subfolders are recreated even when empty.
@@ -449,7 +449,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 (jobStep.PullFiles ??= []).Add(file);
                 continue;
             }
-            if (!File.Exists(file)) throw new DeployException($"Étape « {jobStep.Name} » : fichier additionnel introuvable : {file}");
+            if (!File.Exists(file)) throw new DeployException(Msg.Format("TargetSession_ExtraFileMissing", jobStep.Name, file));
             copies.Add(file, Path.Combine(exec, Path.GetFileName(file)));
         }
         if (batch == null) copies.Run(BandwidthLimiter.Copies, null);
@@ -470,7 +470,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
     internal static RunnerJobStep ToJobStep(PackageStep step, Package package, RunAsMode runAs)
     {
         if (step.Type == StepType.Nested)
-            throw new DeployException($"Étape « {step.Name} » : paquet imbriqué non remplacé par ses étapes.");
+            throw new DeployException(Msg.Format("TargetSession_NestedNotExpanded", step.Name));
         return new()
         {
             Name = string.IsNullOrWhiteSpace(step.Name) ? step.Type.ToString() : step.Name,
@@ -550,7 +550,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
             if (Directory.Exists(SlotDir)) Directory.Delete(SlotDir, recursive: true); // left over from a crash
             return;
         }
-        throw new DeployException($"Trop de déploiements simultanés sur ce poste ({MaxSlots}).");
+        throw new DeployException(Msg.Format("TargetSession_TooManySlots", MaxSlots));
     }
 
     /// <summary>Two deployments of this server never take the same lock at the same time.</summary>
@@ -707,11 +707,11 @@ public class DeployException(string message, Exception? inner = null) : Exceptio
     public static DeployException FromShareAccess(string computer, Exception ex) => ex switch
     {
         UnauthorizedAccessException =>
-            new($"Accès refusé au partage ADMIN$ de {computer} : le compte de déploiement est-il admin de ce poste ?", ex),
+            new(Msg.Format("TargetSession_AdminShareDenied", computer), ex),
         IOException io when io.HResult is unchecked((int)0x80070035) or unchecked((int)0x80070079) or unchecked((int)0x80070040) =>
-            new($"{computer} est injoignable (éteint, pare-feu ou partage de fichiers désactivé).", ex) { Offline = true },
+            new(Msg.Format("TargetSession_Unreachable", computer), ex) { Offline = true },
         IOException io when io.HResult == unchecked((int)0x8007052E) =>
-            new("Nom d'utilisateur ou mot de passe de l'identifiant incorrect.", ex),
-        _ => new($"Impossible d'accéder à {computer} : {ex.Message}", ex),
+            new(Msg.Get("TargetSession_BadCredential"), ex),
+        _ => new(Msg.Format("TargetSession_CannotAccess", computer, ex.Message), ex),
     };
 }

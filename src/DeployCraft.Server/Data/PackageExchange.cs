@@ -19,7 +19,7 @@ public static class PackageExchange
         while (pending.TryDequeue(out var id))
         {
             if (!seen.Add(id)) continue;
-            var p = lookup(id) ?? throw new ArgumentException($"Paquet introuvable (n° {id}).");
+            var p = lookup(id) ?? throw new ArgumentException(Msg.Format("PackageExchange_PackageNotFound", id));
             p.FolderId = null; // the folders of this server mean nothing elsewhere
             result.Add(p);
             foreach (var s in p.Steps)
@@ -39,7 +39,7 @@ public static class PackageExchange
         var text = content.TrimStart('﻿', ' ', '\t', '\r', '\n');
         if (text.StartsWith('<')) return XmlPackageImport.Read(text, repository);
         if (text.StartsWith('{')) return ReadDeployCraft(text);
-        throw new FormatException("Ce fichier n'est ni un export DeployCraft (.json) ni un export de paquets XML (.xml).");
+        throw new FormatException(Msg.Get("PackageExchange_UnknownFile"));
     }
 
     private static ImportReport ReadDeployCraft(string json)
@@ -51,11 +51,11 @@ public static class PackageExchange
         }
         catch (JsonException ex)
         {
-            throw new FormatException($"Fichier DeployCraft illisible : {ex.Message}");
+            throw new FormatException(Msg.Format("PackageExchange_UnreadableFile", ex.Message));
         }
-        if (export?.Format != PackageExport.FormatName) throw new FormatException("Ce fichier JSON n'est pas un export de paquets DeployCraft.");
+        if (export?.Format != PackageExport.FormatName) throw new FormatException(Msg.Get("PackageExchange_NotAnExport"));
         if (export.Version > PackageExport.CurrentVersion)
-            throw new FormatException("Ce fichier vient d'une version plus récente de DeployCraft : mettez à jour le service avant de l'importer.");
+            throw new FormatException(Msg.Get("PackageExchange_NewerVersion"));
 
         var report = new ImportReport { Source = ImportReport.SourceDeployCraft };
         foreach (var p in export.Packages)
@@ -111,7 +111,7 @@ public static class PackageExchange
             if (r.Package == null || done.Contains(r)) return;
             if (!inProgress.Add(r))
             {
-                r.Skip("Boucle de paquets imbriqués dans le fichier : paquet non repris.");
+                r.Skip(Msg.Get("PackageExchange_NestedLoop"));
                 return;
             }
 
@@ -132,10 +132,10 @@ public static class PackageExchange
                 if (report.Source != ImportReport.SourceDeployCraft && existing.FirstOrDefault(e => e.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) is { } found)
                 {
                     step.NestedPackageId = found.Id;
-                    r.StepResults[step].Warn($"Relié au paquet « {found.Name} » déjà présent dans DeployCraft.");
+                    r.StepResults[step].Warn(Msg.Format("PackageExchange_LinkedToExisting", found.Name));
                     continue;
                 }
-                r.StepResults[step].Skip("Paquet imbriqué absent du fichier et de DeployCraft : étape non reprise.");
+                r.StepResults[step].Skip(Msg.Get("PackageExchange_NestedMissing"));
                 p.Steps.Remove(step);
             }
 
@@ -143,7 +143,7 @@ public static class PackageExchange
             if (r.Package == null) return; // loop detected further down the chain
 
             p.Name = UniqueName(p.Name.Trim(), usedNames);
-            if (!p.Name.Equals(r.Name.Trim(), StringComparison.Ordinal)) r.Warn($"Nom déjà pris : importé sous le nom « {p.Name} ».");
+            if (!p.Name.Equals(r.Name.Trim(), StringComparison.Ordinal)) r.Warn(Msg.Format("PackageExchange_NameTaken", p.Name));
             p.Id = 0;
             p.FolderId = null;
 
@@ -151,7 +151,7 @@ public static class PackageExchange
             if (error != null)
             {
                 usedNames.Remove(p.Name);
-                r.Skip($"Non repris : {error}");
+                r.Skip(Msg.Format("PackageExchange_NotImported", error));
                 done.Add(r);
                 return;
             }

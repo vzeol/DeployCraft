@@ -26,9 +26,9 @@ internal static class CredentialEndpoints
 
         api.MapDelete("/credentials/{id:long}", (long id, DeployCredentials cred, IScheduleRepository scheduleRepository) =>
         {
-            var users = scheduleRepository.List().Where(s => s.CredentialId == id).Select(s => $"« {s.Name} »").ToList();
+            var users = scheduleRepository.List().Where(s => s.CredentialId == id).Select(s => Msg.Format("CredentialEndpoints_QuotedName", s.Name)).ToList();
             if (users.Count > 0)
-                return Results.BadRequest(new { error = $"Cet identifiant est utilisé par la planification {string.Join(", ", users)} : choisissez-en un autre dans ses options avant de le supprimer." });
+                return Results.BadRequest(new { error = Msg.Format("CredentialEndpoints_UsedBySchedule", string.Join(", ", users)) });
             cred.Delete(id);
             return Results.NoContent();
         });
@@ -47,12 +47,12 @@ internal static class CredentialEndpoints
             var account = input.ToCredential(input.Id ?? 0);
             var computer = input.Computer?.Trim();
             if (account.IsLocal && string.IsNullOrEmpty(computer))
-                return Results.BadRequest(new { error = "Indiquez le poste sur lequel essayer ce compte local." });
+                return Results.BadRequest(new { error = Msg.Get("CredentialEndpoints_ComputerRequired") });
             try
             {
                 var password = input.Password;
                 if (string.IsNullOrEmpty(password) && input.Id is { } id && cred.Get(id) is { } stored) password = cred.Password(stored);
-                if (string.IsNullOrEmpty(password)) return Results.BadRequest(new { error = "Saisissez le mot de passe." });
+                if (string.IsNullOrEmpty(password)) return Results.BadRequest(new { error = Msg.Get("CredentialValidation_PasswordRequired") });
                 if (account.IsLocal) DeployCredentials.TestOnComputer(account, password, computer!);
                 else ActiveDirectory.TestConnection(account, password);
                 return Results.Ok(new { ok = true });

@@ -16,7 +16,7 @@ namespace DeployCraft.Runner.Steps
         };
 
         public static IStepLauncher For(string type) =>
-            ByType.TryGetValue(type ?? "", out var launcher) ? launcher : throw new NotSupportedException("Type d'étape inconnu : " + type);
+            ByType.TryGetValue(type ?? "", out var launcher) ? launcher : throw new NotSupportedException(RunnerTexts.Format("Launcher_UnknownType", type));
 
         public static string System32 => Environment.GetFolderPath(Environment.SpecialFolder.System);
     }

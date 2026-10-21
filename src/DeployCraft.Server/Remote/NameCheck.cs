@@ -21,7 +21,7 @@ public sealed class NameCheck(Func<string, CancellationToken, Task<string>>? loo
     public async Task<NameCheckResult> CheckAsync(string name, CancellationToken ct)
     {
         var clean = (name ?? "").Trim();
-        if (clean.Length == 0) return new(clean, false, null, "Nom vide.");
+        if (clean.Length == 0) return new(clean, false, null, Msg.Get("NameCheck_Empty"));
         if (IPAddress.TryParse(clean, out _)) return new(clean, true, clean, null); // an IP address is kept as is
         if (_cache.TryGetValue(clean, out var hit) && DateTime.UtcNow - hit.Utc < CacheLifetime) return hit.Result;
 
@@ -42,11 +42,11 @@ public sealed class NameCheck(Func<string, CancellationToken, Task<string>>? loo
         }
         catch (SocketException ex) when (ex.SocketErrorCode is SocketError.HostNotFound or SocketError.NoData or SocketError.TryAgain)
         {
-            return new(name, false, null, "Introuvable dans le DNS (nom mal écrit, ou poste éteint depuis longtemps).");
+            return new(name, false, null, Msg.Get("NameCheck_NotInDns"));
         }
         catch (Exception ex) when (ex is SocketException or ArgumentException)
         {
-            return new(name, false, null, $"Vérification impossible : {ex.Message}");
+            return new(name, false, null, Msg.Format("NameCheck_Failed", ex.Message));
         }
     }
 

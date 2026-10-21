@@ -192,8 +192,8 @@ public class PerformanceSettings
 
     /// <summary>Error message if a setting is out of range, otherwise null.</summary>
     public static string? Validate(PerformanceSettings p) =>
-        p.ParallelTargets is < 1 or > MaxParallel ? $"le nombre de postes en parallèle doit être compris entre 1 et {MaxParallel}."
-        : p.CopyLimitMbps is < 0 or > MaxCopyLimit ? $"la limite de copie doit être comprise entre 0 (sans limite) et {MaxCopyLimit} Mbit/s."
+        p.ParallelTargets is < 1 or > MaxParallel ? Msg.Format("PerformanceSettings_ParallelRange", MaxParallel)
+        : p.CopyLimitMbps is < 0 or > MaxCopyLimit ? Msg.Format("PerformanceSettings_CopyLimitRange", MaxCopyLimit)
         : null;
 }
 
@@ -209,7 +209,7 @@ public class HistorySettings
 
     /// <summary>Error message if the number of days is out of range, otherwise null.</summary>
     public static string? Validate(int keepDays) =>
-        keepDays is < MinDays or > MaxDays ? $"le nombre de jours doit être compris entre {MinDays} et {MaxDays}." : null;
+        keepDays is < MinDays or > MaxDays ? Msg.Format("HistorySettings_DaysRange", MinDays, MaxDays) : null;
 }
 
 /// <summary>Network card of a computer: MAC address and broadcast address of its subnet (to wake it up).</summary>
@@ -302,8 +302,8 @@ public class Package
                 s.RunAs ??= step.RunAs;
                 s.TimeoutMinutes ??= nested.TimeoutMinutes ?? defaultTimeout;
                 var extras = new List<ConditionGroup>();
-                if (!step.Conditions.IsEmpty) extras.Add(new() { Label = $"Conditions de l'étape « {label} »", Conditions = step.Conditions });
-                if (!nested.Conditions.IsEmpty) extras.Add(new() { Label = $"Conditions du paquet imbriqué « {nested.Name} »", Conditions = nested.Conditions });
+                if (!step.Conditions.IsEmpty) extras.Add(new() { Label = Msg.Format("Package_StepConditions", label), Conditions = step.Conditions });
+                if (!nested.Conditions.IsEmpty) extras.Add(new() { Label = Msg.Format("Package_NestedConditions", nested.Name), Conditions = nested.Conditions });
                 extras.AddRange(s.ExtraConditions ?? []);
                 s.ExtraConditions = extras.Count > 0 ? extras : null;
                 result.Add(s);
@@ -314,15 +314,15 @@ public class Package
 
     private static Package NestedPackage(PackageStep step, Func<long, Package?> lookup, List<long> path, int depth)
     {
-        var title = string.IsNullOrWhiteSpace(step.Name) ? "paquet imbriqué" : $"« {step.Name} »";
-        if (step.NestedPackageId is not { } id) throw new ArgumentException($"Étape {title} : choisissez le paquet à imbriquer.");
-        var nested = lookup(id) ?? throw new ArgumentException($"Étape {title} : paquet imbriqué introuvable (n° {id}, supprimé ?).");
+        var title = string.IsNullOrWhiteSpace(step.Name) ? Msg.Get("Package_NestedUntitled") : Msg.Format("Package_QuotedName", step.Name);
+        if (step.NestedPackageId is not { } id) throw new ArgumentException(Msg.Format("Package_NestedChoose", title));
+        var nested = lookup(id) ?? throw new ArgumentException(Msg.Format("Package_NestedNotFound", title, id));
         if (path.Contains(id))
         {
-            var loop = path.Skip(path.IndexOf(id)).Append(id).Select(i => lookup(i)?.Name ?? $"n° {i}");
-            throw new ArgumentException($"Étape {title} : boucle de paquets imbriqués ({string.Join(" › ", loop)}).");
+            var loop = path.Skip(path.IndexOf(id)).Append(id).Select(i => lookup(i)?.Name ?? Msg.Format("Package_NumberedId", i));
+            throw new ArgumentException(Msg.Format("Package_NestedLoop", title, string.Join(" › ", loop)));
         }
-        if (depth >= MaxNestingDepth) throw new ArgumentException($"Étape {title} : trop de niveaux de paquets imbriqués ({MaxNestingDepth} au plus).");
+        if (depth >= MaxNestingDepth) throw new ArgumentException(Msg.Format("Package_NestedTooDeep", title, MaxNestingDepth));
         return nested;
     }
 
@@ -408,14 +408,14 @@ public class StepOutcome
     [System.Text.Json.Serialization.JsonIgnore]
     public string Note => State switch
     {
-        "skipped" => Short(Error) ?? "Ignorée.",
-        "failed" => Short(Error) ?? (ExitCode is { } code ? $"Code {code} hors des codes de succès." : "Échec."),
-        "stopped" => "Paquet arrêté en succès" + (Short(Error) is { } error ? " : " + error : "."),
+        "skipped" => Short(Error) ?? Msg.Get("StepOutcome_Skipped"),
+        "failed" => Short(Error) ?? (ExitCode is { } code ? Msg.Format("StepOutcome_NotSuccessCode", code) : Msg.Get("StepOutcome_Failed")),
+        "stopped" => Short(Error) is { } error ? Msg.Format("StepOutcome_StoppedWithError", error) : Msg.Get("StepOutcome_Stopped"),
         "success" => ExitCode switch
         {
-            3010 => "Réussie : redémarrage nécessaire (code 3010).",
-            1641 => "Réussie : redémarrage lancé (code 1641).",
-            2359302 => "Déjà installée (code 2359302).",
+            3010 => Msg.Get("StepOutcome_RestartNeeded"),
+            1641 => Msg.Get("StepOutcome_RestartStarted"),
+            2359302 => Msg.Get("StepOutcome_AlreadyInstalled"),
             _ => "",
         },
         _ => "",
@@ -503,10 +503,10 @@ public class PackageFolder
     /// <summary>Error to show if the folder cannot be saved as is (name, parent, loop).</summary>
     public static string? Check(PackageFolder folder, IReadOnlyCollection<PackageFolder> all)
     {
-        if (string.IsNullOrWhiteSpace(folder.Name)) return "Donnez un nom au dossier.";
-        if (folder.ParentId is { } parent && all.All(f => f.Id != parent)) return "Dossier parent introuvable.";
+        if (string.IsNullOrWhiteSpace(folder.Name)) return Msg.Get("PackageFolder_NameRequired");
+        if (folder.ParentId is { } parent && all.All(f => f.Id != parent)) return Msg.Get("PackageFolder_ParentNotFound");
         if (folder.Id != 0 && IsWithin(all, folder.ParentId, folder.Id))
-            return "Un dossier ne peut pas être déplacé dans lui-même ni dans l'un de ses sous-dossiers.";
+            return Msg.Get("PackageFolder_MoveIntoItself");
         return null;
     }
 
@@ -517,7 +517,7 @@ public class PackageFolder
         if (!taken.Contains(name)) return name;
         for (var n = 1; ; n++)
         {
-            var candidate = n == 1 ? $"{name} (copie)" : $"{name} (copie {n})";
+            var candidate = n == 1 ? Msg.Format("PackageFolder_CopyName", name) : Msg.Format("PackageFolder_CopyNameN", name, n);
             if (!taken.Contains(candidate)) return candidate;
         }
     }
@@ -525,7 +525,7 @@ public class PackageFolder
     /// <summary>Error to show if the folder is not empty (only an empty folder can be deleted).</summary>
     public static string? CheckDelete(long id, IEnumerable<PackageFolder> all, IEnumerable<Package> packages) =>
         all.Any(f => f.ParentId == id) || packages.Any(p => p.FolderId == id)
-            ? "Ce dossier n'est pas vide : déplacez ou supprimez d'abord ce qu'il contient."
+            ? Msg.Get("PackageFolder_NotEmpty")
             : null;
 }
 

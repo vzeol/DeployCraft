@@ -25,18 +25,18 @@ public static partial class XmlPackageImport
         }
         catch (XmlException ex)
         {
-            throw new FormatException($"Fichier XML illisible : {ex.Message}");
+            throw new FormatException(Msg.Format("XmlPackageImport_UnreadableXml", ex.Message));
         }
 
         // A single package or folder, or a file that contains some at the first level.
         IEnumerable<XElement> items = root.Name.LocalName is "Package" or "Folder" ? [root] : root.Elements();
         if (!items.Any(e => e.Name.LocalName is "Package" or "Folder" or "Installer"))
-            throw new FormatException("Ce fichier XML n'est pas un export de paquets pris en charge.");
+            throw new FormatException(Msg.Get("XmlPackageImport_UnsupportedXml"));
 
         var report = new ImportReport { Source = ImportReport.SourceXml };
         var repo = string.IsNullOrWhiteSpace(repository) ? null : repository.Trim().TrimEnd('\\');
         ReadChildren(items, report, repo);
-        if (report.Packages.Count == 0 && report.Notes.Count == 0) report.Notes.Add("Aucun paquet dans ce fichier.");
+        if (report.Packages.Count == 0 && report.Notes.Count == 0) report.Notes.Add(Msg.Get("XmlPackageImport_NoPackage"));
         return report;
     }
 
@@ -50,17 +50,17 @@ public static partial class XmlPackageImport
                     report.Packages.Add(ReadPackage(e, repo));
                     break;
                 case "Folder":
-                    report.Notes.Add($"Dossier « {Text(e, "Name")} » : DeployCraft n'a pas de dossiers de paquets, ses paquets sont importés à la racine.");
+                    report.Notes.Add(Msg.Format("XmlPackageImport_FolderNote", Text(e, "Name")));
                     ReadChildren((e.Element("Children") ?? e).Elements(), report, repo);
                     break;
                 case "Installer":
-                    report.Notes.Add($"« {Text(e, "Name")} » : paquet dans un format trop ancien, non repris.");
+                    report.Notes.Add(Msg.Format("XmlPackageImport_OldFormat", Text(e, "Name")));
                     break;
                 case "Schedule":
-                    report.Notes.Add($"Planification « {Text(e, "Name")} » : non reprise (seuls les paquets sont importés).");
+                    report.Notes.Add(Msg.Format("XmlPackageImport_ScheduleSkipped", Text(e, "Name")));
                     break;
                 case "Target" or "TargetList":
-                    report.Notes.Add("Liste de postes : non reprise (seuls les paquets sont importés).");
+                    report.Notes.Add(Msg.Get("XmlPackageImport_TargetListSkipped"));
                     break;
             }
         }
@@ -75,8 +75,8 @@ public static partial class XmlPackageImport
         result.Keys.Add(name);
         if (name.Length == 0)
         {
-            result.Name = "(sans nom)";
-            result.Skip("Paquet sans nom : non repris.");
+            result.Name = Msg.Get("XmlPackageImport_NoName");
+            result.Skip(Msg.Get("XmlPackageImport_NoNameSkipped"));
             return result;
         }
 
@@ -86,15 +86,15 @@ public static partial class XmlPackageImport
             Name = name,
             Version = NullIfEmpty(Text(e, "Version")),
             Description = NullIfEmpty(Text(e, "Description")),
-            RunAs = RunAs(Text(def, "RunAs"), result.Warn, "Paquet"),
+            RunAs = RunAs(Text(def, "RunAs"), result.Warn, Msg.Get("XmlPackageImport_WhatPackage")),
             CopyMode = Text(def, "CopyMode") switch { "Push" => CopyMode.Push, "Pull" => CopyMode.Pull, _ => null },
             TimeoutMinutes = Bool(def, "UseCustomTimeout") && Int(def, "Timeout") is > 0 and var t ? t : null,
         };
         result.Package = p;
 
-        p.Conditions = ReadConditions(def.Element("Conditions"), note => result.Warn($"Conditions du paquet : {note}"), out var packageConditionsLost);
+        p.Conditions = ReadConditions(def.Element("Conditions"), note => result.Warn(Msg.Format("XmlPackageImport_PackageConditions", note)), out var packageConditionsLost);
         if (Raw(e, "LibraryPackageId") is { Length: > 0 } lib && lib != "null")
-            result.Warn("Paquet issu d'une bibliothèque en ligne : il ne sera plus mis à jour automatiquement.");
+            result.Warn(Msg.Get("XmlPackageImport_OnlineLibrary"));
 
         // The "before" and "after" sections do not exist in DeployCraft: the steps are put end to end, in execution order.
         var stepElements = (def.Element("Steps")?.Elements() ?? []).ToList();
@@ -103,7 +103,7 @@ public static partial class XmlPackageImport
             .Concat(stepElements.Where(s => Bool(s, "IsPostStep") && !Bool(s, "IsPreStep")))
             .ToList();
         if (stepElements.Any(s => Bool(s, "IsPreStep") || Bool(s, "IsPostStep")))
-            result.Warn("Étapes « avant » et « après » : mises à la suite des étapes principales (DeployCraft n'a pas de sections).");
+            result.Warn(Msg.Get("XmlPackageImport_Sections"));
 
         foreach (var s in ordered)
         {
@@ -113,12 +113,12 @@ public static partial class XmlPackageImport
             if (packageConditionsLost && step.Enabled)
             {
                 step.Enabled = false;
-                line.Warn("Désactivée : les conditions du paquet n'ont pas pu être reprises exactement.");
+                line.Warn(Msg.Get("XmlPackageImport_DisabledPackageConditions"));
             }
             p.Steps.Add(step);
             result.StepResults[step] = line;
         }
-        if (p.Steps.Count == 0 && ordered.Count > 0) result.Warn("Aucune étape reprise.");
+        if (p.Steps.Count == 0 && ordered.Count > 0) result.Warn(Msg.Get("XmlPackageImport_NoStep"));
         return result;
     }
 
@@ -132,7 +132,7 @@ public static partial class XmlPackageImport
             Name = title,
             Enabled = !e.Elements("IsEnabled").Any() || Bool(e, "IsEnabled"),
             ErrorMode = ErrorModeOf(Text(e, "ErrorMode")),
-            RunAs = RunAs(Text(e, "RunAs"), line.Warn, "Étape"),
+            RunAs = RunAs(Text(e, "RunAs"), line.Warn, Msg.Get("XmlPackageImport_WhatStep")),
         };
 
         switch (type)
@@ -153,7 +153,7 @@ public static partial class XmlPackageImport
                 step.Command = Text(e, "Script");
                 step.SuccessCodes = SuccessCodes(e);
                 if (Text(e, "CustomCommandLine").Trim().Length > 0)
-                    line.Warn("Ligne de commande personnalisée ignorée : DeployCraft lance le script avec ses propres réglages.");
+                    line.Warn(Msg.Get("XmlPackageImport_CustomCommandLine"));
                 step.AdditionalFiles = AdditionalFiles(e);
                 break;
 
@@ -165,7 +165,7 @@ public static partial class XmlPackageImport
                 step.Type = StepType.Pause;
                 var seconds = Int(e, "Seconds") ?? 30;
                 step.PauseSeconds = Math.Clamp(seconds, 1, 86400);
-                if (step.PauseSeconds != seconds) line.Warn($"Durée ramenée à {step.PauseSeconds} s (de 1 seconde à 24 heures).");
+                if (step.PauseSeconds != seconds) line.Warn(Msg.Format("XmlPackageImport_DurationClamped", step.PauseSeconds));
                 break;
 
             case "NestedPackage":
@@ -173,36 +173,36 @@ public static partial class XmlPackageImport
                 var target = Text(e, "TargetPackagePath").Trim() is { Length: > 0 } targetPath ? targetPath : Text(e, "TargetPackageName").Trim();
                 if (target.Length == 0)
                 {
-                    line.Skip("Paquet imbriqué non précisé dans le fichier : étape non reprise.");
+                    line.Skip(Msg.Get("XmlPackageImport_NestedUnspecified"));
                     return (null, line);
                 }
                 package.NestedRefs[step] = target;
                 if (e.Elements("UseNestedPackageConditions").Any() && !Bool(e, "UseNestedPackageConditions"))
-                    line.Warn("« Ignorer les conditions du paquet imbriqué » : DeployCraft les applique toujours.");
+                    line.Warn(Msg.Get("XmlPackageImport_NestedConditions"));
                 break;
 
             case "Reboot":
                 ReadReboot(e, step, line);
                 break;
             case "Message":
-                line.Skip("Étape « Message » : pas encore disponible dans DeployCraft.");
+                line.Skip(Msg.Get("XmlPackageImport_MessageStep"));
                 return (null, line);
             case "Logoff":
-                line.Skip("Étape « Déconnexion » : pas encore disponible dans DeployCraft.");
+                line.Skip(Msg.Get("XmlPackageImport_LogoffStep"));
                 return (null, line);
             case "ScanStep" or "Scan":
-                line.Skip("Scan d'inventaire : pas disponible dans DeployCraft, non repris.");
+                line.Skip(Msg.Get("XmlPackageImport_InventoryScan"));
                 return (null, line);
             default:
-                line.Skip($"Type d'étape inconnu ({(type.Length > 0 ? type : e.Name.LocalName)}) : non repris.");
+                line.Skip(Msg.Format("XmlPackageImport_UnknownStep", (type.Length > 0 ? type : e.Name.LocalName)));
                 return (null, line);
         }
 
-        step.Conditions = ReadConditions(e.Element("Conditions"), note => line.Warn($"Conditions : {note}"), out var lost);
+        step.Conditions = ReadConditions(e.Element("Conditions"), note => line.Warn(Msg.Format("XmlPackageImport_StepConditions", note)), out var lost);
         if (lost && step.Enabled)
         {
             step.Enabled = false;
-            line.Warn("Désactivée : ses conditions n'ont pas pu être reprises exactement. Vérifiez-les puis réactivez-la.");
+            line.Warn(Msg.Get("XmlPackageImport_DisabledStepConditions"));
         }
         ReplaceVariables(step, line, repo);
         return (step, line);
@@ -223,12 +223,12 @@ public static partial class XmlPackageImport
         step.RebootShutdownOnly = Bool(e, "ShutdownOnly");
         var delay = Int(e, "Timeout") ?? 60;
         step.RebootDelaySeconds = Math.Clamp(delay, 30, 3600);
-        if (step.RebootDelaySeconds != delay) line.Warn($"Délai avant le redémarrage ramené à {step.RebootDelaySeconds} s (de 30 secondes à 1 heure).");
+        if (step.RebootDelaySeconds != delay) line.Warn(Msg.Format("XmlPackageImport_RebootDelayClamped", step.RebootDelaySeconds));
         var message = Text(e, "Message").Trim();
         if (message.Length > 500)
         {
             message = message[..500];
-            line.Warn("Message raccourci à 500 caractères.");
+            line.Warn(Msg.Get("XmlPackageImport_MessageShortened"));
         }
         step.RebootMessage = NullIfEmpty(message);
     }
@@ -249,11 +249,11 @@ public static partial class XmlPackageImport
             if (Text(e, "MsiOperation").Trim() is { Length: > 0 } operation)
             {
                 if (!Enum.TryParse<MsiOperation>(operation, true, out var op))
-                    line.Warn($"Opération MSI inconnue ({operation}) : installation.");
+                    line.Warn(Msg.Format("XmlPackageImport_UnknownMsiOperation", operation));
                 else if (extension == ".msp" && op != MsiOperation.Install)
-                    line.Warn("Opération MSI ignorée : un correctif .msp s'installe toujours.");
+                    line.Warn(Msg.Get("XmlPackageImport_MspOperation"));
                 else if (extension == ".msu" && op == MsiOperation.Repair)
-                    line.Warn("Réparation impossible pour une mise à jour .msu : installation.");
+                    line.Warn(Msg.Get("XmlPackageImport_MsuRepair"));
                 else
                     step.MsiOperation = op;
             }
@@ -262,7 +262,7 @@ public static partial class XmlPackageImport
                 if (Enum.TryParse<MsiRestart>(restart, true, out var r))
                     step.MsiRestart = r;
                 else
-                    line.Warn($"Redémarrage MSI inconnu ({restart}) : jamais.");
+                    line.Warn(Msg.Format("XmlPackageImport_UnknownMsiRestart", restart));
             }
         }
         step.AdditionalFiles = AdditionalFiles(e);
@@ -319,7 +319,7 @@ public static partial class XmlPackageImport
                     break;
                 case "Collection":
                     if (Text(e, "ConditionMode") is "IsMember" or "IsNotMember")
-                        Lose($"collection d'inventaire « {Text(e, "InventoryCollectionName")} » : pas disponible dans DeployCraft.");
+                        Lose(Msg.Format("XmlPackageImport_InventoryCollection", Text(e, "InventoryCollectionName")));
                     break;
                 case "File":
                     ReadFile(e, c, Lose);
@@ -328,7 +328,7 @@ public static partial class XmlPackageImport
                     ReadRegistry(e, c, Lose);
                     break;
                 default:
-                    Lose($"condition inconnue ({Text(e, "TypeName")}).");
+                    Lose(Msg.Format("XmlPackageImport_UnknownCondition", Text(e, "TypeName")));
                     break;
             }
         }
@@ -361,9 +361,9 @@ public static partial class XmlPackageImport
                 var older = OlderWorkstations.Count(versions.Contains) + Legacy.Count(versions.Contains);
                 if (older > 0) c.Windows |= WindowsVersions.Older;
                 if (servers is > 0 && servers < Servers.Length)
-                    lose("versions de Windows Server choisies une à une : DeployCraft ne distingue pas les versions serveur.");
+                    lose(Msg.Get("XmlPackageImport_ServerVersions"));
                 if (older > 0 && OlderWorkstations.Any(v => !versions.Contains(v)))
-                    lose("anciennes versions de Windows choisies une à une : DeployCraft les regroupe (8.1 et avant).");
+                    lose(Msg.Get("XmlPackageImport_OlderVersions"));
             }
         }
 
@@ -375,7 +375,7 @@ public static partial class XmlPackageImport
         var x64 = arch.Contains("Bits64");
         if (x64 && !x86) c.Architecture = ArchitectureCondition.X64;
         else if (x86 && !x64) c.Architecture = ArchitectureCondition.X86;
-        else if (!x86 && !x64) lose("architecture ARM seule : pas de condition équivalente dans DeployCraft.");
+        else if (!x86 && !x64) lose(Msg.Get("XmlPackageImport_ArmOnly"));
     }
 
     private static void ReadPowerShell(string value, Conditions c, Action<string> lose)
@@ -388,7 +388,7 @@ public static partial class XmlPackageImport
         // DeployCraft only has a minimum version: all versions from the oldest chosen one are required.
         if (order.Skip(first).Any(v => !versions.Contains(v)))
         {
-            lose("versions de PowerShell choisies une à une : DeployCraft ne gère qu'une version minimale.");
+            lose(Msg.Get("XmlPackageImport_PowerShellVersions"));
             return;
         }
         c.MinPowerShell = first switch { 2 => 3, 3 => 4, 4 => 5, _ => null };
@@ -400,7 +400,7 @@ public static partial class XmlPackageImport
         if (mode is not ("Exists" or "DoesNotExist")) return;
         if (c.File != PresenceCondition.None)
         {
-            lose("plusieurs conditions de fichier : DeployCraft n'en garde qu'une.");
+            lose(Msg.Get("XmlPackageImport_SeveralFileConditions"));
             return;
         }
         var directory = Text(e, "Directory").Trim().TrimEnd('\\');
@@ -408,11 +408,11 @@ public static partial class XmlPackageImport
         c.File = mode == "Exists" ? PresenceCondition.Exists : PresenceCondition.NotExists;
         c.FilePath = file.Length == 0 ? directory : directory.Length == 0 ? file : $@"{directory}\{file}";
         if (Text(e, "FileVersionCompare") is { Length: > 0 } fv && fv != "NoMatch" || Text(e, "ProductVersionCompare") is { Length: > 0 } pv && pv != "NoMatch")
-            lose("comparaison de version de fichier : DeployCraft vérifie seulement la présence du fichier.");
+            lose(Msg.Get("XmlPackageImport_FileVersionCompare"));
         if (Text(e, "CompanyName").Length > 0 || Text(e, "ProductName").Length > 0 || Text(e, "Description").Length > 0)
-            lose("éditeur, produit ou description du fichier : DeployCraft vérifie seulement la présence du fichier.");
-        if (Bool(e, "IncludeSubDirectories")) lose("recherche du fichier dans les sous-dossiers : pas disponible dans DeployCraft.");
-        if (Bool(e, "MatchToAlternateVariable")) lose("chemin 32 bits de remplacement : pas disponible dans DeployCraft.");
+            lose(Msg.Get("XmlPackageImport_FileProperties"));
+        if (Bool(e, "IncludeSubDirectories")) lose(Msg.Get("XmlPackageImport_FileSubfolders"));
+        if (Bool(e, "MatchToAlternateVariable")) lose(Msg.Get("XmlPackageImport_File32bitPath"));
     }
 
     private static void ReadRegistry(XElement e, Conditions c, Action<string> lose)
@@ -421,7 +421,7 @@ public static partial class XmlPackageImport
         if (mode is not ("Exists" or "DoesNotExist")) return;
         if (c.Registry != PresenceCondition.None)
         {
-            lose("plusieurs conditions de registre : DeployCraft n'en garde qu'une.");
+            lose(Msg.Get("XmlPackageImport_SeveralRegistryConditions"));
             return;
         }
         var hive = Text(e, "Hive") switch
@@ -436,9 +436,9 @@ public static partial class XmlPackageImport
         c.RegistryKey = $@"{hive}\{Text(e, "Key").Trim().Trim('\\')}";
         c.RegistryValue = NullIfEmpty(Text(e, "ValueName").Trim());
         if (Text(e, "ValueCompare") is { Length: > 0 } vc && vc != "NoMatch")
-            lose("comparaison de la valeur de registre : DeployCraft vérifie seulement sa présence.");
-        if (Bool(e, "IncludeSubKeys")) lose("recherche dans les sous-clés : pas disponible dans DeployCraft.");
-        if (Bool(e, "MatchToWow6432")) lose("vue 32 bits du registre : pas disponible dans DeployCraft.");
+            lose(Msg.Get("XmlPackageImport_RegistryValueCompare"));
+        if (Bool(e, "IncludeSubKeys")) lose(Msg.Get("XmlPackageImport_RegistrySubkeys"));
+        if (Bool(e, "MatchToWow6432")) lose(Msg.Get("XmlPackageImport_Registry32bit"));
     }
 
     /// <summary>
@@ -457,8 +457,8 @@ public static partial class XmlPackageImport
         step.CopySource = Replace(step.CopySource);
         step.CopyDestination = Replace(step.CopyDestination);
         step.Conditions.FilePath = Replace(step.Conditions.FilePath);
-        if (missingRepository) line.Warn("Utilise $(Repository) : indiquez le dossier du dépôt à l'import pour le remplacer.");
-        if (others.Count > 0) line.Warn($"Variables laissées telles quelles : {string.Join(", ", others)}.");
+        if (missingRepository) line.Warn(Msg.Get("XmlPackageImport_RepositoryVariable"));
+        if (others.Count > 0) line.Warn(Msg.Format("XmlPackageImport_OtherVariables", string.Join(", ", others)));
 
         string? Replace(string? text)
         {
@@ -493,7 +493,7 @@ public static partial class XmlPackageImport
             case "LoggedOnUser":
                 return RunAsMode.LoggedOnUser;
             case "AdminOnDesktop":
-                warn($"{what} : « compte de déploiement sur le bureau » dans le fichier ; DeployCraft utilise le compte de déploiement, sans bureau.");
+                warn(Msg.Format("XmlPackageImport_DesktopAccount", what));
                 return RunAsMode.DeployUser;
             default:
                 return null;

@@ -36,7 +36,7 @@ public class ServiceAccount(ILogger<ServiceAccount> log)
     /// </summary>
     public string? Restart()
     {
-        if (!IsService) return "Ce serveur ne tourne pas en service Windows (instance lancée à la main) : redémarrez-le vous-même.";
+        if (!IsService) return Msg.Get("ServiceAccount_NotServiceRestart");
         log.LogInformation("Redémarrage du service demandé depuis la console");
         Process.Start(new ProcessStartInfo("cmd.exe", $"/c timeout /t 2 /nobreak >nul & net stop {ServiceName} & net start {ServiceName}")
         {
@@ -53,11 +53,11 @@ public class ServiceAccount(ILogger<ServiceAccount> log)
     public static (string? Domain, string User, string ServiceName, string? Error) Parse(string? account)
     {
         var text = (account ?? "").Trim();
-        if (text.Length == 0) return (null, "", "", "Indiquez un compte (DOMAINE\\nom, ou .\\nom pour un compte local).");
+        if (text.Length == 0) return (null, "", "", Msg.Get("ServiceAccount_AccountRequired"));
         if (text.Contains('@') && !text.Contains('\\')) return (null, text, text, null);
         var parts = text.Split('\\');
         if (parts.Length != 2 || parts[0].Length == 0 || parts[1].Length == 0)
-            return (null, "", "", "Écrivez le compte sous la forme DOMAINE\\nom (ou .\\nom pour un compte local du serveur).");
+            return (null, "", "", Msg.Get("ServiceAccount_AccountFormat"));
         var domain = parts[0] == "." ? Environment.MachineName : parts[0];
         return (domain, parts[1], $"{parts[0]}\\{parts[1]}", null);
     }
@@ -68,7 +68,7 @@ public class ServiceAccount(ILogger<ServiceAccount> log)
     /// </summary>
     public string? Change(string? account, string? password)
     {
-        if (!IsService) return "Ce serveur ne tourne pas en service Windows (instance lancée à la main) : son compte ne se change pas ici.";
+        if (!IsService) return Msg.Get("ServiceAccount_NotServiceChange");
 
         string serviceName;
         if (string.Equals(account?.Trim(), LocalSystem, StringComparison.OrdinalIgnoreCase))
@@ -80,41 +80,41 @@ public class ServiceAccount(ILogger<ServiceAccount> log)
         {
             var (domain, user, name, error) = Parse(account);
             if (error != null) return error;
-            if (string.IsNullOrEmpty(password)) return "Indiquez le mot de passe du compte.";
+            if (string.IsNullOrEmpty(password)) return Msg.Get("ServiceAccount_PasswordRequired");
             if (!Win32.LogonUser(user, domain, password, Win32.LOGON32_LOGON_NETWORK, Win32.LOGON32_PROVIDER_DEFAULT, out var check))
-                return $"Compte ou mot de passe refusé : {Win32.LastError("ouverture de session").Message}";
+                return Msg.Format("ServiceAccount_LogonRefused", Win32.LastError(Msg.Get("ServiceAccount_LogonAction")).Message);
             check.Dispose();
             // Check before any change: a refused account gets no right on the server. The "scheduled task"
             // logon type gives the full token (without User Account Control filtering)
             // and is allowed by default only to administrators.
             if (!Win32.LogonUser(user, domain, password, Win32.LOGON32_LOGON_BATCH, Win32.LOGON32_PROVIDER_DEFAULT, out var token))
-                return $"{name} n'est pas administrateur de ce serveur : le service ne pourrait ni lire ses données ni déployer.";
+                return Msg.Format("ServiceAccount_NotAdmin", name);
             using (token)
             using (var identity = new WindowsIdentity(token.DangerousGetHandle()))
                 if (!new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator))
-                    return $"{name} n'est pas administrateur de ce serveur : le service ne pourrait ni lire ses données ni déployer.";
+                    return Msg.Format("ServiceAccount_NotAdmin", name);
             try
             {
                 GrantServiceLogon(new NTAccount(domain ?? "", user));
             }
             catch (Exception ex) when (ex is IdentityNotMappedException or Win32Exception)
             {
-                return $"Droit « ouvrir une session en tant que service » non accordé : {ex.Message}";
+                return Msg.Format("ServiceAccount_LogonRightDenied", ex.Message);
             }
             serviceName = name;
         }
 
         var scm = Win32.OpenSCManager(null, null, Win32.SC_MANAGER_CONNECT);
-        if (scm == IntPtr.Zero) return Win32.LastError("Gestionnaire de services").Message;
+        if (scm == IntPtr.Zero) return Win32.LastError(Msg.Get("ServiceAccount_ServiceManager")).Message;
         try
         {
             var service = Win32.OpenService(scm, ServiceName, Win32.SERVICE_CHANGE_CONFIG);
-            if (service == IntPtr.Zero) return Win32.LastError("Service DeployCraft").Message;
+            if (service == IntPtr.Zero) return Win32.LastError(Msg.Get("ServiceAccount_ServiceLabel")).Message;
             try
             {
                 if (!Win32.ChangeServiceConfig(service, Win32.SERVICE_NO_CHANGE, Win32.SERVICE_NO_CHANGE, Win32.SERVICE_NO_CHANGE,
                         null, null, IntPtr.Zero, null, serviceName, password, null))
-                    return Win32.LastError("Changement du compte du service").Message;
+                    return Win32.LastError(Msg.Get("ServiceAccount_ChangingAccount")).Message;
             }
             finally
             {

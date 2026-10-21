@@ -23,10 +23,10 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
 
     private static readonly HttpClient Http = CreateClient();
 
-    private const string StageDownload = "Téléchargement";
-    private const string StageCheck = "Vérification du fichier";
-    private const string StageCopy = "Copie dans le dossier";
-    private const string StagePackage = "Création du paquet";
+    private static string StageDownload => Msg.Get("PackageLibrary_StageDownload");
+    private static string StageCheck => Msg.Get("PackageLibrary_StageCheck");
+    private static string StageCopy => Msg.Get("PackageLibrary_StageCopy");
+    private static string StagePackage => Msg.Get("PackageLibrary_StagePackage");
 
     private readonly object _lock = new();
     private readonly Dictionary<string, (string Stage, int Percent)> _progress = [];
@@ -133,7 +133,7 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
     {
         folder = folder?.Trim().TrimEnd('\\');
         if (!string.IsNullOrEmpty(folder) && !Path.IsPathFullyQualified(folder))
-            return "Indiquez un chemin complet : un partage (\\\\SERVEUR\\Partage\\Bibliotheque) ou un dossier du serveur (D:\\Bibliotheque).";
+            return Msg.Get("PackageLibrary_FullPath");
         lock (_lock)
         {
             var state = Load();
@@ -149,9 +149,9 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
     /// <summary>Update of the library packages: manual, as soon as the new version appears, or after a few days.</summary>
     public string? SetAutoUpdate(LibraryAutoUpdate mode, int days)
     {
-        if (!Enum.IsDefined(mode)) return "Mode de mise à jour inconnu.";
+        if (!Enum.IsDefined(mode)) return Msg.Get("PackageLibrary_UnknownUpdateMode");
         if (days is < MinAutoUpdateDays or > MaxAutoUpdateDays)
-            return $"Le délai doit être compris entre {MinAutoUpdateDays} et {MaxAutoUpdateDays} jours.";
+            return Msg.Format("PackageLibrary_DelayRange", MinAutoUpdateDays, MaxAutoUpdateDays);
         lock (_lock)
         {
             var state = Load();
@@ -216,12 +216,12 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
         {
-            error = $"Catalogue injoignable ({ex.Message}). Vérifiez l'accès à Internet du serveur.";
+            error = Msg.Format("PackageLibrary_CatalogUnreachable", ex.Message);
         }
         catch (Exception ex)
         {
             log.LogError(ex, "Lecture du catalogue de la bibliothèque");
-            error = $"Lecture du catalogue impossible : {ex.Message}";
+            error = Msg.Format("PackageLibrary_CatalogReadFailed", ex.Message);
         }
         lock (_lock)
         {
@@ -272,7 +272,7 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
         var url = $"{CatalogRaw}{Escape(LibraryCatalog.ManifestFolder(e.Id))}/{Escape(e.Version)}/{Escape(e.Id)}.installer.yaml";
         using var response = await Http.GetAsync(url);
         if (response.StatusCode == HttpStatusCode.NotFound)
-            return new LibraryEntry { Version = e.Version, Problem = "fiche d'installation introuvable dans le catalogue.", SeenUtc = DateTime.UtcNow };
+            return new LibraryEntry { Version = e.Version, Problem = Msg.Get("PackageLibrary_SheetNotFound"), SeenUtc = DateTime.UtcNow };
         response.EnsureSuccessStatusCode();
         var installer = CatalogManifest.Choose(await response.Content.ReadAsStringAsync(), out var problem);
         return new LibraryEntry { Version = e.Version, Installer = installer, Problem = problem, SeenUtc = DateTime.UtcNow };
@@ -288,8 +288,8 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
     /// </summary>
     public async Task<string?> StartDownloadAsync(string id)
     {
-        if (!_index.Exists) return "Le catalogue n'a pas encore été lu : patientez quelques secondes.";
-        if (_index.Get([id]).GetValueOrDefault(id) is not { } e) return "Logiciel introuvable dans le catalogue.";
+        if (!_index.Exists) return Msg.Get("PackageLibrary_CatalogNotRead");
+        if (_index.Get([id]).GetValueOrDefault(id) is not { } e) return Msg.Get("PackageLibrary_SoftwareNotFound");
         lock (_lock)
             if (_progress.ContainsKey(e.Id)) return null;
 
@@ -302,7 +302,7 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
             {
-                return $"Catalogue injoignable ({ex.Message}). Vérifiez l'accès à Internet du serveur.";
+                return Msg.Format("PackageLibrary_CatalogUnreachable", ex.Message);
             }
             lock (_lock)
             {
@@ -311,7 +311,7 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
                 Save(state);
             }
         }
-        if (entry.Installer is not { } installer) return $"{e.Name} : {entry.Problem}";
+        if (entry.Installer is not { } installer) return Msg.Format("PackageLibrary_AppProblem", e.Name, entry.Problem);
 
         lock (_lock)
         {
@@ -355,7 +355,7 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
         catch (Exception ex)
         {
             log.LogWarning(ex, "Téléchargement de {App} depuis la bibliothèque", app.Name);
-            error = ex is DeployException or InvalidDataException ? ex.Message : $"Téléchargement impossible : {ex.Message}";
+            error = ex is DeployException or InvalidDataException ? ex.Message : Msg.Format("PackageLibrary_DownloadFailed", ex.Message);
         }
         finally
         {
@@ -407,7 +407,7 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
         }
         var hash = Convert.ToHexString(sha.GetHashAndReset());
         if (!hash.Equals(installer.Sha256, StringComparison.OrdinalIgnoreCase))
-            throw new InvalidDataException("Le fichier téléchargé ne correspond pas à l'empreinte du catalogue : il n'a pas été gardé. Réessayez plus tard.");
+            throw new InvalidDataException(Msg.Get("PackageLibrary_HashMismatch"));
     }
 
     /// <summary>Copies into the library folder, following the progress.</summary>
@@ -452,13 +452,13 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
         {
             Name = app.Name,
             Version = version,
-            Description = $"Bibliothèque de paquets (winget : {app.Id})",
+            Description = Msg.Format("PackageLibrary_Description", app.Id),
             Steps =
             [
                 new PackageStep
                 {
                     Type = StepType.Install,
-                    Name = $"Installer {app.Name}",
+                    Name = Msg.Format("PackageLibrary_InstallStep", app.Name),
                     File = file,
                     Arguments = NullIfEmpty(installer.Arguments),
                 },

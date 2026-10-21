@@ -4,4 +4,310 @@
   <resheader name="version"><value>2.0</value></resheader>
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AboutInfo_ConnectedAs" xml:space="preserve"><value>Signed in as: {0}</value></data>
+  <data name="AboutInfo_ConsoleLine" xml:space="preserve"><value>Console: {0}</value></data>
+  <data name="AboutInfo_Notice" xml:space="preserve"><value>Free software under the GNU GPL version 3 license: you may use, study, modify and redistribute it under its terms. It is provided as is, without any warranty.</value></data>
+  <data name="AboutInfo_RuntimeLine" xml:space="preserve"><value>.NET: {0}</value></data>
+  <data name="AboutInfo_ServiceLine" xml:space="preserve"><value>Service: {0}</value></data>
+  <data name="AboutInfo_UnknownVersion" xml:space="preserve"><value>unknown version</value></data>
+  <data name="AboutInfo_VersionOnMachine" xml:space="preserve"><value>{0} on {1}</value></data>
+  <data name="AboutInfo_WindowsLine" xml:space="preserve"><value>Windows: {0}</value></data>
+  <data name="AccessEndpoints_OnlyAdmins" xml:space="preserve"><value>Only administrators of this server can change the list of console users.</value></data>
+  <data name="ActiveDirectory_ConnectDenied" xml:space="preserve"><value>Connection to domain "{0}" refused: {1}</value></data>
+  <data name="ActiveDirectory_DomainUnreachable" xml:space="preserve"><value>Domain "{0}" unreachable or credentials refused: {1}</value></data>
+  <data name="ActiveDirectory_ReadFailed" xml:space="preserve"><value>Cannot read Active Directory: {0}</value></data>
+  <data name="CatalogIndex_Incomplete" xml:space="preserve"><value>Catalog index incomplete.</value></data>
+  <data name="CatalogManifest_NoInstaller" xml:space="preserve"><value>sheet without an installer.</value></data>
+  <data name="CatalogManifest_NoSilentInstaller" xml:space="preserve"><value>no silent installer for the whole computer (64-bit or 32-bit Windows) in the catalog.</value></data>
+  <data name="ConsoleAccess_AlreadyAllowed" xml:space="preserve"><value>“{0}” already has access.</value></data>
+  <data name="ConsoleAccess_EnterAccount" xml:space="preserve"><value>Enter an account or a group (DOMAIN\name).</value></data>
+  <data name="ConsoleAccess_NotFound" xml:space="preserve"><value>Account or group “{0}” not found. Write it as DOMAIN\name.</value></data>
+  <data name="ConsoleAccess_Refused" xml:space="preserve"><value>Your account {0} is not allowed to use DeployCraft on {1}. An administrator of this server can add it in Options › Console users.</value></data>
+  <data name="CopyProgress_Percent" xml:space="preserve"><value>Copying files: {0}%</value></data>
+  <data name="CopyProgress_RateKilo" xml:space="preserve"><value>{0} KB/s</value></data>
+  <data name="CopyProgress_RateMega" xml:space="preserve"><value>{0} MB/s</value></data>
+  <data name="CopyProgress_WithRate" xml:space="preserve"><value>Copying files: {0}% ({1})</value></data>
+  <data name="CredentialEndpoints_ComputerRequired" xml:space="preserve"><value>Enter the computer on which to try this local account.</value></data>
+  <data name="CredentialEndpoints_QuotedName" xml:space="preserve"><value>“{0}”</value></data>
+  <data name="CredentialEndpoints_UsedBySchedule" xml:space="preserve"><value>This credential is used by schedule {0}: choose another one in its options before deleting it.</value></data>
+  <data name="CredentialValidation_DomainSeparate" xml:space="preserve"><value>Enter the domain in its own box, and the user alone.</value></data>
+  <data name="CredentialValidation_PasswordRequired" xml:space="preserve"><value>Enter the password.</value></data>
+  <data name="CredentialValidation_UserRequired" xml:space="preserve"><value>Enter the user name.</value></data>
+  <data name="DeployCredentials_Logon" xml:space="preserve"><value>Logon of {0}</value></data>
+  <data name="DeployCredentials_NeedDomainCredential" xml:space="preserve"><value>Add a domain credential (Options › Credentials) to read Active Directory.</value></data>
+  <data name="DeployCredentials_NoAdminShare" xml:space="preserve"><value>{0} has no access to ADMIN$ on {1}: wrong password or not an administrator of the computer.</value></data>
+  <data name="DeployCredentials_PasswordUnreadable" xml:space="preserve"><value>The password of {0} cannot be read back: enter it again (Options › Credentials).</value></data>
+  <data name="DeployCredentials_RefusedByComputer" xml:space="preserve"><value>{0} refused by {1}: {2}</value></data>
+  <data name="DeployCredentials_RefusedByServer" xml:space="preserve"><value>{0} refused by this server: {1}</value></data>
+  <data name="DeploymentEndpoints_PackageNotFound" xml:space="preserve"><value>Package not found (ID {0}).</value></data>
+  <data name="DeploymentEndpoints_StillRunning" xml:space="preserve"><value>This deployment is running: wait for it to finish.</value></data>
+  <data name="DeploymentEngine_Aborted" xml:space="preserve"><value>{0}.</value></data>
+  <data name="DeploymentEngine_AbortedBy" xml:space="preserve"><value>{0} by {1}.</value></data>
+  <data name="DeploymentEngine_BadStartStep" xml:space="preserve"><value>{0}: invalid start step ({1}); the package has {2} step(s).</value></data>
+  <data name="DeploymentEngine_CredentialDeleted" xml:space="preserve"><value>Credential {0} was deleted after the deployment started.</value></data>
+  <data name="DeploymentEngine_CredentialNotFound" xml:space="preserve"><value>Credential not found (deleted?).</value></data>
+  <data name="DeploymentEngine_ManySkipped" xml:space="preserve"><value>{0} steps skipped, including "{1}"{2}</value></data>
+  <data name="DeploymentEngine_NoPackage" xml:space="preserve"><value>No package.</value></data>
+  <data name="DeploymentEngine_NoTarget" xml:space="preserve"><value>No target.</value></data>
+  <data name="DeploymentEngine_OfflineRetry" xml:space="preserve"><value>Offline: retrying at {0:HH:mm} (attempt {1} of {2})</value></data>
+  <data name="DeploymentEngine_OneSkipped" xml:space="preserve"><value>1 step skipped: "{0}"{1}</value></data>
+  <data name="DeploymentEngine_PackageNoSteps" xml:space="preserve"><value>Package "{0}" has no steps.</value></data>
+  <data name="DeploymentEngine_QueueTimeout" xml:space="preserve"><value>Not started: still waiting after {0} min (schedule timeout).</value></data>
+  <data name="DeploymentEngine_ServiceAccount" xml:space="preserve"><value>Service account</value></data>
+  <data name="DeploymentEngine_Starting" xml:space="preserve"><value>Starting</value></data>
+  <data name="DeploymentEngine_StoppedAsSuccess" xml:space="preserve"><value>Stop as success requested on error.</value></data>
+  <data name="DeploymentEngine_WaitingPrevious" xml:space="preserve"><value>Waiting for the previous package</value></data>
+  <data name="DeploymentEngine_WaitingSlot" xml:space="preserve"><value>Waiting for a free slot</value></data>
+  <data name="DeploymentEngine_WakeNoMac" xml:space="preserve"><value>Wake-up impossible: MAC address unknown (it is learned at the first successful deployment on this computer).</value></data>
+  <data name="DeploymentEngine_WakeTimeout" xml:space="preserve"><value>{0} still does not answer {1} min after the wake-up (Wake-on-LAN disabled on the computer, or unplugged?).</value></data>
+  <data name="DeploymentEngine_Waking" xml:space="preserve"><value>Waking the computer (Wake-on-LAN)</value></data>
+  <data name="DeploymentSummary_Aborted" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="ErrorMessages_BadLogon" xml:space="preserve"><value>Wrong user name or password for the deployment account.</value></data>
+  <data name="ErrorMessages_Exit1602" xml:space="preserve"><value>Installation cancelled by the user.</value></data>
+  <data name="ErrorMessages_Exit1603" xml:space="preserve"><value>Fatal error during the MSI installation (see the installer log).</value></data>
+  <data name="ErrorMessages_Exit1605" xml:space="preserve"><value>This product is not installed (cannot uninstall).</value></data>
+  <data name="ErrorMessages_Exit1618" xml:space="preserve"><value>Another installation is already running on the computer. Try again later.</value></data>
+  <data name="ErrorMessages_Exit1619" xml:space="preserve"><value>Cannot open the MSI package (file missing or corrupted).</value></data>
+  <data name="ErrorMessages_Exit1620" xml:space="preserve"><value>Invalid MSI package.</value></data>
+  <data name="ErrorMessages_Exit1625" xml:space="preserve"><value>Installation blocked by a group policy.</value></data>
+  <data name="ErrorMessages_Exit1633" xml:space="preserve"><value>Unsupported platform (32/64-bit?).</value></data>
+  <data name="ErrorMessages_Exit1638" xml:space="preserve"><value>Another version of this product is already installed.</value></data>
+  <data name="ErrorMessages_Exit1639" xml:space="preserve"><value>Invalid command-line parameters.</value></data>
+  <data name="ErrorMessages_ExitWuNotApplicable" xml:space="preserve"><value>Update not applicable to this system.</value></data>
+  <data name="ErrorMessages_ScmDenied" xml:space="preserve"><value>Access denied to the computer's service manager: the deployment account must be an administrator.</value></data>
+  <data name="ErrorMessages_ScmUnreachable" xml:space="preserve"><value>The computer's service manager does not answer (firewall? computer off?).</value></data>
+  <data name="ErrorMessages_StepError" xml:space="preserve"><value>Step "{0}": {1}</value></data>
+  <data name="ErrorMessages_StepExitCode" xml:space="preserve"><value>Step "{0}": exit code {1}{2}</value></data>
+  <data name="HistorySettings_DaysRange" xml:space="preserve"><value>the number of days must be between {0} and {1}.</value></data>
+  <data name="LogonRight_AccountNotFound" xml:space="preserve"><value>Deployment account "{0}" not found from {1}.</value></data>
+  <data name="LogonRight_Failed" xml:space="preserve"><value>{0}: {1} (code {2})</value></data>
+  <data name="LogonRight_Grant" xml:space="preserve"><value>Granting the "Log on as a service" right</value></data>
+  <data name="LogonRight_OpenPolicy" xml:space="preserve"><value>Opening the computer's security policy</value></data>
+  <data name="LogonRight_ThisServer" xml:space="preserve"><value>this server</value></data>
+  <data name="NameCheck_Empty" xml:space="preserve"><value>Empty name.</value></data>
+  <data name="NameCheck_Failed" xml:space="preserve"><value>Check impossible: {0}</value></data>
+  <data name="NameCheck_NotInDns" xml:space="preserve"><value>Not found in DNS (misspelled name, or computer off for a long time).</value></data>
+  <data name="PackageDetails_Absent" xml:space="preserve"><value>absent</value></data>
+  <data name="PackageDetails_Bits32" xml:space="preserve"><value>32-bit</value></data>
+  <data name="PackageDetails_Bits64" xml:space="preserve"><value>64-bit</value></data>
+  <data name="PackageDetails_ConditionSeparator" xml:space="preserve"><value>; </value></data>
+  <data name="PackageDetails_FileCondition" xml:space="preserve"><value>file {0} {1}</value></data>
+  <data name="PackageDetails_NoConditions" xml:space="preserve"><value>None: the package runs on all computers.</value></data>
+  <data name="PackageDetails_NoPackage" xml:space="preserve"><value>No package</value></data>
+  <data name="PackageDetails_NobodyLoggedOn" xml:space="preserve"><value>nobody logged on</value></data>
+  <data name="PackageDetails_OfflineFromDefaults" xml:space="preserve"><value>Preferences ({0})</value></data>
+  <data name="PackageDetails_OfflineNoRetry" xml:space="preserve"><value>no retry</value></data>
+  <data name="PackageDetails_OfflineNoWake" xml:space="preserve"><value>no wake-up</value></data>
+  <data name="PackageDetails_OfflineRetry" xml:space="preserve"><value>{0} attempts, every {1} min</value></data>
+  <data name="PackageDetails_OfflineWake" xml:space="preserve"><value>wake the computer (wait {0} min)</value></data>
+  <data name="PackageDetails_Or" xml:space="preserve"><value> or </value></data>
+  <data name="PackageDetails_PowerShellMin" xml:space="preserve"><value>PowerShell {0} or later</value></data>
+  <data name="PackageDetails_Present" xml:space="preserve"><value>present</value></data>
+  <data name="PackageDetails_RegistryCondition" xml:space="preserve"><value>registry {0} {1}</value></data>
+  <data name="PackageDetails_RootFolder" xml:space="preserve"><value>Packages</value></data>
+  <data name="PackageDetails_UserLoggedOn" xml:space="preserve"><value>a user logged on</value></data>
+  <data name="PackageDetails_WindowsOlder" xml:space="preserve"><value>Windows 8.1 or older</value></data>
+  <data name="PackageEndpoints_QuotedName" xml:space="preserve"><value>“{0}”</value></data>
+  <data name="PackageEndpoints_UsedAsNested" xml:space="preserve"><value>This package is used as a nested package by: {0}. Remove it from those packages before deleting it.</value></data>
+  <data name="PackageExchange_LinkedToExisting" xml:space="preserve"><value>Linked to the package "{0}" already in DeployCraft.</value></data>
+  <data name="PackageExchange_NameTaken" xml:space="preserve"><value>Name already taken: imported as "{0}".</value></data>
+  <data name="PackageExchange_NestedLoop" xml:space="preserve"><value>Loop of nested packages in the file: package not imported.</value></data>
+  <data name="PackageExchange_NestedMissing" xml:space="preserve"><value>Nested package missing from the file and from DeployCraft: step not imported.</value></data>
+  <data name="PackageExchange_NewerVersion" xml:space="preserve"><value>This file comes from a newer version of DeployCraft: update the service before importing it.</value></data>
+  <data name="PackageExchange_NotAnExport" xml:space="preserve"><value>This JSON file is not a DeployCraft package export.</value></data>
+  <data name="PackageExchange_NotImported" xml:space="preserve"><value>Not imported: {0}</value></data>
+  <data name="PackageExchange_PackageNotFound" xml:space="preserve"><value>Package not found (no. {0}).</value></data>
+  <data name="PackageExchange_UnknownFile" xml:space="preserve"><value>This file is neither a DeployCraft export (.json) nor a package XML export (.xml).</value></data>
+  <data name="PackageExchange_UnreadableFile" xml:space="preserve"><value>Unreadable DeployCraft file: {0}</value></data>
+  <data name="PackageFolder_CopyName" xml:space="preserve"><value>{0} (copy)</value></data>
+  <data name="PackageFolder_CopyNameN" xml:space="preserve"><value>{0} (copy {1})</value></data>
+  <data name="PackageFolder_MoveIntoItself" xml:space="preserve"><value>A folder cannot be moved into itself or into one of its subfolders.</value></data>
+  <data name="PackageFolder_NameRequired" xml:space="preserve"><value>Give the folder a name.</value></data>
+  <data name="PackageFolder_NotEmpty" xml:space="preserve"><value>This folder is not empty: first move or delete what it contains.</value></data>
+  <data name="PackageFolder_ParentNotFound" xml:space="preserve"><value>Parent folder not found.</value></data>
+  <data name="PackageLibrary_AppProblem" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="PackageLibrary_CatalogNotRead" xml:space="preserve"><value>The catalog has not been read yet: wait a few seconds.</value></data>
+  <data name="PackageLibrary_CatalogReadFailed" xml:space="preserve"><value>Cannot read the catalog: {0}</value></data>
+  <data name="PackageLibrary_CatalogUnreachable" xml:space="preserve"><value>Catalog unreachable ({0}). Check the server's Internet access.</value></data>
+  <data name="PackageLibrary_DelayRange" xml:space="preserve"><value>The delay must be between {0} and {1} days.</value></data>
+  <data name="PackageLibrary_Description" xml:space="preserve"><value>Package library (winget: {0})</value></data>
+  <data name="PackageLibrary_DownloadFailed" xml:space="preserve"><value>Download failed: {0}</value></data>
+  <data name="PackageLibrary_FullPath" xml:space="preserve"><value>Give a full path: a share (\\SERVER\Share\Library) or a folder on the server (D:\Library).</value></data>
+  <data name="PackageLibrary_HashMismatch" xml:space="preserve"><value>The downloaded file does not match the catalog hash: it was not kept. Try again later.</value></data>
+  <data name="PackageLibrary_InstallStep" xml:space="preserve"><value>Install {0}</value></data>
+  <data name="PackageLibrary_SheetNotFound" xml:space="preserve"><value>installation sheet not found in the catalog.</value></data>
+  <data name="PackageLibrary_SoftwareNotFound" xml:space="preserve"><value>Software not found in the catalog.</value></data>
+  <data name="PackageLibrary_StageCheck" xml:space="preserve"><value>Checking the file</value></data>
+  <data name="PackageLibrary_StageCopy" xml:space="preserve"><value>Copying to the folder</value></data>
+  <data name="PackageLibrary_StageDownload" xml:space="preserve"><value>Downloading</value></data>
+  <data name="PackageLibrary_StagePackage" xml:space="preserve"><value>Creating the package</value></data>
+  <data name="PackageLibrary_UnknownUpdateMode" xml:space="preserve"><value>Unknown update mode.</value></data>
+  <data name="PackageValidation_CommandEmpty" xml:space="preserve"><value>{0}: the command is empty.</value></data>
+  <data name="PackageValidation_CopyDestination" xml:space="preserve"><value>{0}: enter the destination folder on the computer.</value></data>
+  <data name="PackageValidation_CopySource" xml:space="preserve"><value>{0}: choose the file or folder to copy.</value></data>
+  <data name="PackageValidation_FilePath" xml:space="preserve"><value>enter the file path.</value></data>
+  <data name="PackageValidation_InstallFile" xml:space="preserve"><value>{0}: choose the installer file.</value></data>
+  <data name="PackageValidation_MessageDuration" xml:space="preserve"><value>{0}: the display time must be from 0 (until clicked) to 24 hours (86,400 seconds).</value></data>
+  <data name="PackageValidation_MessageEmpty" xml:space="preserve"><value>{0}: the message is empty.</value></data>
+  <data name="PackageValidation_MessageLength" xml:space="preserve"><value>{0}: at most 2,000 characters for the message, 100 for the title.</value></data>
+  <data name="PackageValidation_NameRequired" xml:space="preserve"><value>The package must have a name.</value></data>
+  <data name="PackageValidation_Offline" xml:space="preserve"><value>Offline: {0}</value></data>
+  <data name="PackageValidation_PackageConditions" xml:space="preserve"><value>Package conditions: {0}</value></data>
+  <data name="PackageValidation_PauseRange" xml:space="preserve"><value>{0}: the pause must last from 1 second to 24 hours (86,400 seconds).</value></data>
+  <data name="PackageValidation_RebootDelay" xml:space="preserve"><value>{0}: the delay before the restart must be from 30 seconds to 1 hour (3,600 seconds).</value></data>
+  <data name="PackageValidation_RebootMessageLength" xml:space="preserve"><value>{0}: the message must not exceed 500 characters.</value></data>
+  <data name="PackageValidation_RegistryHive" xml:space="preserve"><value>the registry key must start with HKLM, HKCU, HKCR or HKU.</value></data>
+  <data name="PackageValidation_RegistryKey" xml:space="preserve"><value>enter the registry key.</value></data>
+  <data name="PackageValidation_RetryAttempts" xml:space="preserve"><value>at least 2 attempts are needed to retry.</value></data>
+  <data name="PackageValidation_RetryInterval" xml:space="preserve"><value>the interval between two attempts must be at least 1 minute.</value></data>
+  <data name="PackageValidation_StepConditions" xml:space="preserve"><value>{0}, conditions: {1}</value></data>
+  <data name="PackageValidation_StepLabel" xml:space="preserve"><value>Step {0}</value></data>
+  <data name="PackageValidation_StepTimeout" xml:space="preserve"><value>{0}: the max timeout must be at least 1 minute.</value></data>
+  <data name="PackageValidation_TimeoutMin" xml:space="preserve"><value>Options: the max timeout must be at least 1 minute.</value></data>
+  <data name="PackageValidation_WakeWait" xml:space="preserve"><value>the wait after wake-up must be at least 1 minute.</value></data>
+  <data name="Package_NestedChoose" xml:space="preserve"><value>Step {0}: choose the package to nest.</value></data>
+  <data name="Package_NestedConditions" xml:space="preserve"><value>Conditions of nested package “{0}”</value></data>
+  <data name="Package_NestedLoop" xml:space="preserve"><value>Step {0}: loop of nested packages ({1}).</value></data>
+  <data name="Package_NestedNotFound" xml:space="preserve"><value>Step {0}: nested package not found (ID {1}, deleted?).</value></data>
+  <data name="Package_NestedTooDeep" xml:space="preserve"><value>Step {0}: too many levels of nested packages ({1} at most).</value></data>
+  <data name="Package_NestedUntitled" xml:space="preserve"><value>nested package</value></data>
+  <data name="Package_NumberedId" xml:space="preserve"><value>ID {0}</value></data>
+  <data name="Package_QuotedName" xml:space="preserve"><value>“{0}”</value></data>
+  <data name="Package_StepConditions" xml:space="preserve"><value>Conditions of step “{0}”</value></data>
+  <data name="PerformanceSettings_CopyLimitRange" xml:space="preserve"><value>the copy limit must be between 0 (unlimited) and {0} Mbit/s.</value></data>
+  <data name="PerformanceSettings_ParallelRange" xml:space="preserve"><value>the number of computers in parallel must be between 1 and {0}.</value></data>
+  <data name="RunAsPlan_PreviousInterrupted" xml:space="preserve"><value>Previous slice interrupted: {0}</value></data>
+  <data name="ScheduleValidation_CredentialGone" xml:space="preserve"><value>The chosen credential no longer exists.</value></data>
+  <data name="ScheduleValidation_EndAfterStart" xml:space="preserve"><value>The end date of a trigger must come after its start.</value></data>
+  <data name="ScheduleValidation_FailuresMin" xml:space="preserve"><value>The number of failures must be at least 1.</value></data>
+  <data name="ScheduleValidation_IntervalMin" xml:space="preserve"><value>The interval must be at least 1 minute.</value></data>
+  <data name="ScheduleValidation_NameRequired" xml:space="preserve"><value>The schedule must have a name.</value></data>
+  <data name="ScheduleValidation_QueueTimeoutMin" xml:space="preserve"><value>The waiting time must be at least 1 minute.</value></data>
+  <data name="ScheduleValidation_WeeklyDay" xml:space="preserve"><value>Weekly trigger: tick at least one day.</value></data>
+  <data name="Scheduler_AlreadyDone" xml:space="preserve"><value>{0} already succeeded</value></data>
+  <data name="Scheduler_DeploymentNumber" xml:space="preserve"><value>#{0}</value></data>
+  <data name="Scheduler_GaveUp" xml:space="preserve"><value>{0} given up after {1} failure(s)</value></data>
+  <data name="Scheduler_Launched" xml:space="preserve"><value>Started on {0} computer(s){1}: deployment {2}.</value></data>
+  <data name="Scheduler_LaunchedBy" xml:space="preserve"><value>Schedule "{0}"</value></data>
+  <data name="Scheduler_NoPackage" xml:space="preserve"><value>No package to deploy (packages deleted or without steps).</value></data>
+  <data name="Scheduler_NoTarget" xml:space="preserve"><value>No target.</value></data>
+  <data name="Scheduler_NothingToDeploy" xml:space="preserve"><value>Nothing to deploy{0}.</value></data>
+  <data name="Scheduler_StillRunning" xml:space="preserve"><value>{0} computer(s) still running</value></data>
+  <data name="ServiceAccount_AccountFormat" xml:space="preserve"><value>Write the account as DOMAIN\name (or .\name for a local account of the server).</value></data>
+  <data name="ServiceAccount_AccountRequired" xml:space="preserve"><value>Enter an account (DOMAIN\name, or .\name for a local account).</value></data>
+  <data name="ServiceAccount_ChangingAccount" xml:space="preserve"><value>Changing the service account</value></data>
+  <data name="ServiceAccount_LogonAction" xml:space="preserve"><value>sign-in</value></data>
+  <data name="ServiceAccount_LogonRefused" xml:space="preserve"><value>Account or password refused: {0}</value></data>
+  <data name="ServiceAccount_LogonRightDenied" xml:space="preserve"><value>The “Log on as a service” right was not granted: {0}</value></data>
+  <data name="ServiceAccount_NotAdmin" xml:space="preserve"><value>{0} is not an administrator of this server: the service could neither read its data nor deploy.</value></data>
+  <data name="ServiceAccount_NotServiceChange" xml:space="preserve"><value>This server is not running as a Windows service (instance started by hand): its account cannot be changed here.</value></data>
+  <data name="ServiceAccount_NotServiceRestart" xml:space="preserve"><value>This server is not running as a Windows service (instance started by hand): restart it yourself.</value></data>
+  <data name="ServiceAccount_PasswordRequired" xml:space="preserve"><value>Enter the account password.</value></data>
+  <data name="ServiceAccount_ServiceLabel" xml:space="preserve"><value>DeployCraft service</value></data>
+  <data name="ServiceAccount_ServiceManager" xml:space="preserve"><value>Service manager</value></data>
+  <data name="ServiceControl_AccountRefused" xml:space="preserve"><value>The computer refuses deployment account "{0}" for the temporary service (unknown account?).</value></data>
+  <data name="ServiceControl_Create" xml:space="preserve"><value>Creating the service</value></data>
+  <data name="ServiceControl_Delete" xml:space="preserve"><value>Deleting the service</value></data>
+  <data name="ServiceControl_LogonFailed" xml:space="preserve"><value>The temporary service could not log on with account "{0}" on this computer (password changed since it was saved, or the "Log on as a service" right removed by a group policy). Try "Run as: Local System".</value></data>
+  <data name="ServiceControl_OpenManager" xml:space="preserve"><value>Opening the service manager</value></data>
+  <data name="ServiceControl_ReadState" xml:space="preserve"><value>Reading the service state</value></data>
+  <data name="ServiceControl_Start" xml:space="preserve"><value>Starting the service</value></data>
+  <data name="ServiceEndpoints_LocalOnly" xml:space="preserve"><value>The service account is changed from the server's console (the password does not travel over the network).</value></data>
+  <data name="SettingsEndpoints_History" xml:space="preserve"><value>History: {0}</value></data>
+  <data name="SettingsEndpoints_Offline" xml:space="preserve"><value>Offline: {0}</value></data>
+  <data name="SettingsEndpoints_Performance" xml:space="preserve"><value>Performance: {0}</value></data>
+  <data name="SettingsEndpoints_TimeoutMin" xml:space="preserve"><value>The max timeout must be at least 1 minute.</value></data>
+  <data name="StepOutcome_AlreadyInstalled" xml:space="preserve"><value>Already installed (code 2359302).</value></data>
+  <data name="StepOutcome_Failed" xml:space="preserve"><value>Failed.</value></data>
+  <data name="StepOutcome_NotSuccessCode" xml:space="preserve"><value>Code {0} is not a success code.</value></data>
+  <data name="StepOutcome_RestartNeeded" xml:space="preserve"><value>Succeeded: restart required (code 3010).</value></data>
+  <data name="StepOutcome_RestartStarted" xml:space="preserve"><value>Succeeded: restart started (code 1641).</value></data>
+  <data name="StepOutcome_Skipped" xml:space="preserve"><value>Skipped.</value></data>
+  <data name="StepOutcome_Stopped" xml:space="preserve"><value>Package stopped as a success.</value></data>
+  <data name="StepOutcome_StoppedWithError" xml:space="preserve"><value>Package stopped as a success: {0}</value></data>
+  <data name="StepWarnings_NoSilentArgs" xml:space="preserve"><value>No silent switch: the installation may wait for a click until the max timeout.</value></data>
+  <data name="StepWarnings_NotFound" xml:space="preserve"><value>Not found from the server: {0}</value></data>
+  <data name="StepWarnings_PullNotShare" xml:space="preserve"><value>Pull mode, but “{0}” is not on a share: the server will send it itself (as in push).</value></data>
+  <data name="TargetSession_AdminShareDenied" xml:space="preserve"><value>Access denied to the ADMIN$ share of {0}: is the deployment account an administrator of this computer?</value></data>
+  <data name="TargetSession_BadCredential" xml:space="preserve"><value>Wrong user name or password for the credential.</value></data>
+  <data name="TargetSession_CannotAccess" xml:space="preserve"><value>Cannot access {0}: {1}</value></data>
+  <data name="TargetSession_CopySourceMissing" xml:space="preserve"><value>File or folder to copy not found: {0}</value></data>
+  <data name="TargetSession_CopyingFiles" xml:space="preserve"><value>Copying files</value></data>
+  <data name="TargetSession_ExtraFileMissing" xml:space="preserve"><value>Step "{0}": additional file not found: {1}</value></data>
+  <data name="TargetSession_GlobalTimeout" xml:space="preserve"><value>Overall timeout exceeded: the runner no longer answers.</value></data>
+  <data name="TargetSession_IdentityDeployAccount" xml:space="preserve"><value>deployment account</value></data>
+  <data name="TargetSession_IdentitySystem" xml:space="preserve"><value>System</value></data>
+  <data name="TargetSession_InstallFileMissing" xml:space="preserve"><value>Installation file not found: {0}</value></data>
+  <data name="TargetSession_LostDuringRun" xml:space="preserve"><value>Computer unreachable for {0:0} min during the run: {1}</value></data>
+  <data name="TargetSession_NestedNotExpanded" xml:space="preserve"><value>Step "{0}": nested package not replaced by its steps.</value></data>
+  <data name="TargetSession_NoInstallFile" xml:space="preserve"><value>Step "{0}": no installation file.</value></data>
+  <data name="TargetSession_NoServerRestart" xml:space="preserve"><value>Step "{0}": DeployCraft does not restart the server it runs on.</value></data>
+  <data name="TargetSession_NotBack" xml:space="preserve"><value>The computer did not come back {0} min after the restart (maximum delay of step "{1}").</value></data>
+  <data name="TargetSession_NotInDns" xml:space="preserve"><value>Name not found in DNS: "{0}" (computer off for a long time?).</value></data>
+  <data name="TargetSession_NotStopped" xml:space="preserve"><value>The computer did not shut down after the restart request (cancelled on the computer?).</value></data>
+  <data name="TargetSession_NothingToCopy" xml:space="preserve"><value>Step "{0}": no file or folder to copy.</value></data>
+  <data name="TargetSession_Offline" xml:space="preserve"><value>{0} is offline (turned off, or file sharing blocked by the firewall).</value></data>
+  <data name="TargetSession_ResolvingName" xml:space="preserve"><value>Resolving the name</value></data>
+  <data name="TargetSession_Restarting" xml:space="preserve"><value>Restarting the computer</value></data>
+  <data name="TargetSession_Retrying" xml:space="preserve"><value>Computer unreachable, trying again…</value></data>
+  <data name="TargetSession_RunnerStopped" xml:space="preserve"><value>The runner stopped without returning a result (see runner.log on the target).</value></data>
+  <data name="TargetSession_Running" xml:space="preserve"><value>Running ({0})</value></data>
+  <data name="TargetSession_ShutDownByStep" xml:space="preserve"><value>Computer shut down by step {0} "{1}".</value></data>
+  <data name="TargetSession_StartingRunner" xml:space="preserve"><value>Starting the runner</value></data>
+  <data name="TargetSession_StartingRunnerSlice" xml:space="preserve"><value>Starting the runner ({0}/{1}, {2})</value></data>
+  <data name="TargetSession_TooManySlots" xml:space="preserve"><value>Too many simultaneous deployments on this computer ({0}).</value></data>
+  <data name="TargetSession_Unreachable" xml:space="preserve"><value>{0} is unreachable (turned off, firewall, or file sharing disabled).</value></data>
+  <data name="TargetSession_WaitingBack" xml:space="preserve"><value>Waiting for the computer to come back</value></data>
+  <data name="TargetSession_WindowsDenied" xml:space="preserve"><value>Access denied to C:\Windows on this server: DeployCraft must run as administrator.</value></data>
+  <data name="Win32_Error" xml:space="preserve"><value>{0}: {1} (code {2})</value></data>
+  <data name="XmlPackageImport_ArmOnly" xml:space="preserve"><value>ARM architecture only: no equivalent condition in DeployCraft.</value></data>
+  <data name="XmlPackageImport_CustomCommandLine" xml:space="preserve"><value>Custom command line ignored: DeployCraft runs the script with its own settings.</value></data>
+  <data name="XmlPackageImport_DesktopAccount" xml:space="preserve"><value>{0}: "deployment account on the desktop" in the file; DeployCraft uses the deployment account, without a desktop.</value></data>
+  <data name="XmlPackageImport_DisabledPackageConditions" xml:space="preserve"><value>Disabled: the package conditions could not be imported exactly.</value></data>
+  <data name="XmlPackageImport_DisabledStepConditions" xml:space="preserve"><value>Disabled: its conditions could not be imported exactly. Check them, then enable the step again.</value></data>
+  <data name="XmlPackageImport_DurationClamped" xml:space="preserve"><value>Duration set to {0} s (from 1 second to 24 hours).</value></data>
+  <data name="XmlPackageImport_File32bitPath" xml:space="preserve"><value>alternate 32-bit path: not available in DeployCraft.</value></data>
+  <data name="XmlPackageImport_FileProperties" xml:space="preserve"><value>file publisher, product or description: DeployCraft only checks that the file exists.</value></data>
+  <data name="XmlPackageImport_FileSubfolders" xml:space="preserve"><value>searching for the file in subfolders: not available in DeployCraft.</value></data>
+  <data name="XmlPackageImport_FileVersionCompare" xml:space="preserve"><value>file version comparison: DeployCraft only checks that the file exists.</value></data>
+  <data name="XmlPackageImport_FolderNote" xml:space="preserve"><value>Folder "{0}": DeployCraft has no package folders, its packages are imported at the root.</value></data>
+  <data name="XmlPackageImport_InventoryCollection" xml:space="preserve"><value>inventory collection "{0}": not available in DeployCraft.</value></data>
+  <data name="XmlPackageImport_InventoryScan" xml:space="preserve"><value>Inventory scan: not available in DeployCraft, not imported.</value></data>
+  <data name="XmlPackageImport_LogoffStep" xml:space="preserve"><value>"Log off" step: not yet available in DeployCraft.</value></data>
+  <data name="XmlPackageImport_MessageShortened" xml:space="preserve"><value>Message shortened to 500 characters.</value></data>
+  <data name="XmlPackageImport_MessageStep" xml:space="preserve"><value>"Message" step: not yet available in DeployCraft.</value></data>
+  <data name="XmlPackageImport_MspOperation" xml:space="preserve"><value>MSI operation ignored: an .msp patch is always installed.</value></data>
+  <data name="XmlPackageImport_MsuRepair" xml:space="preserve"><value>Repair is not possible for an .msu update: install.</value></data>
+  <data name="XmlPackageImport_NestedConditions" xml:space="preserve"><value>"Ignore the nested package conditions": DeployCraft always applies them.</value></data>
+  <data name="XmlPackageImport_NestedUnspecified" xml:space="preserve"><value>Nested package not specified in the file: step not imported.</value></data>
+  <data name="XmlPackageImport_NoName" xml:space="preserve"><value>(no name)</value></data>
+  <data name="XmlPackageImport_NoNameSkipped" xml:space="preserve"><value>Package without a name: not imported.</value></data>
+  <data name="XmlPackageImport_NoPackage" xml:space="preserve"><value>No package in this file.</value></data>
+  <data name="XmlPackageImport_NoStep" xml:space="preserve"><value>No step imported.</value></data>
+  <data name="XmlPackageImport_OldFormat" xml:space="preserve"><value>"{0}": package in a format that is too old, not imported.</value></data>
+  <data name="XmlPackageImport_OlderVersions" xml:space="preserve"><value>older Windows versions chosen one by one: DeployCraft groups them (8.1 and earlier).</value></data>
+  <data name="XmlPackageImport_OnlineLibrary" xml:space="preserve"><value>Package from an online library: it will no longer be updated automatically.</value></data>
+  <data name="XmlPackageImport_OtherVariables" xml:space="preserve"><value>Variables left as they are: {0}.</value></data>
+  <data name="XmlPackageImport_PackageConditions" xml:space="preserve"><value>Package conditions: {0}</value></data>
+  <data name="XmlPackageImport_PowerShellVersions" xml:space="preserve"><value>PowerShell versions chosen one by one: DeployCraft only handles a minimum version.</value></data>
+  <data name="XmlPackageImport_RebootDelayClamped" xml:space="preserve"><value>Delay before the restart set to {0} s (from 30 seconds to 1 hour).</value></data>
+  <data name="XmlPackageImport_Registry32bit" xml:space="preserve"><value>32-bit registry view: not available in DeployCraft.</value></data>
+  <data name="XmlPackageImport_RegistrySubkeys" xml:space="preserve"><value>searching in subkeys: not available in DeployCraft.</value></data>
+  <data name="XmlPackageImport_RegistryValueCompare" xml:space="preserve"><value>registry value comparison: DeployCraft only checks that it exists.</value></data>
+  <data name="XmlPackageImport_RepositoryVariable" xml:space="preserve"><value>Uses $(Repository): give the repository folder at import to replace it.</value></data>
+  <data name="XmlPackageImport_ScheduleSkipped" xml:space="preserve"><value>Schedule "{0}": not imported (only packages are imported).</value></data>
+  <data name="XmlPackageImport_Sections" xml:space="preserve"><value>"Before" and "after" steps: placed after the main steps (DeployCraft has no sections).</value></data>
+  <data name="XmlPackageImport_ServerVersions" xml:space="preserve"><value>Windows Server versions chosen one by one: DeployCraft does not tell server versions apart.</value></data>
+  <data name="XmlPackageImport_SeveralFileConditions" xml:space="preserve"><value>several file conditions: DeployCraft keeps only one.</value></data>
+  <data name="XmlPackageImport_SeveralRegistryConditions" xml:space="preserve"><value>several registry conditions: DeployCraft keeps only one.</value></data>
+  <data name="XmlPackageImport_StepConditions" xml:space="preserve"><value>Conditions: {0}</value></data>
+  <data name="XmlPackageImport_TargetListSkipped" xml:space="preserve"><value>Computer list: not imported (only packages are imported).</value></data>
+  <data name="XmlPackageImport_UnknownCondition" xml:space="preserve"><value>unknown condition ({0}).</value></data>
+  <data name="XmlPackageImport_UnknownMsiOperation" xml:space="preserve"><value>Unknown MSI operation ({0}): install.</value></data>
+  <data name="XmlPackageImport_UnknownMsiRestart" xml:space="preserve"><value>Unknown MSI restart ({0}): never.</value></data>
+  <data name="XmlPackageImport_UnknownStep" xml:space="preserve"><value>Unknown step type ({0}): not imported.</value></data>
+  <data name="XmlPackageImport_UnreadableXml" xml:space="preserve"><value>Unreadable XML file: {0}</value></data>
+  <data name="XmlPackageImport_UnsupportedXml" xml:space="preserve"><value>This XML file is not a supported package export.</value></data>
+  <data name="XmlPackageImport_WhatPackage" xml:space="preserve"><value>Package</value></data>
+  <data name="XmlPackageImport_WhatStep" xml:space="preserve"><value>Step</value></data>
 </root>
