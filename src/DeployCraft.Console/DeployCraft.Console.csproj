@@ -35,9 +35,10 @@
     <NeutralLanguage>fr</NeutralLanguage>
   </PropertyGroup>
 
-  <!-- Built-in help (Help › Aide de DeployCraft, F1). -->
+  <!-- Built-in help (Help › DeployCraft help, F1), in French and English. -->
   <ItemGroup>
     <Resource Include="Help\aide.txt" />
+    <Resource Include="Help\aide.en.txt" />
   </ItemGroup>
 
 </Project>
