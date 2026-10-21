@@ -33,7 +33,7 @@ public class SlotQueueTests
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => cancelled);
 
         slots.Release();
-        // Le créneau rendu est de nouveau libre : un nouveau venu passe tout de suite.
+        // The returned slot is free again: a newcomer gets through right away.
         await slots.WaitAsync(prioritized: false, CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(5));
     }
 
@@ -61,7 +61,7 @@ public class SlotQueueTests
 
         slots.Resize(1);
         slots.Release();
-        // Encore un poste en cours pour un seul créneau : celui qui attend reste en attente.
+        // One computer still running for a single slot: the one waiting stays waiting.
         await Task.Delay(100);
         Assert.False(waiting.IsCompleted);
 

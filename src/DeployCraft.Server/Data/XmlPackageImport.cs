@@ -5,9 +5,9 @@ using System.Xml.Linq;
 namespace DeployCraft.Server.Data;
 
 /// <summary>
-/// Lecture des fichiers XML de paquets (paquets et dossiers de paquets).
-/// Chaque réglage sans équivalent dans DeployCraft est signalé ; une étape dont les conditions ne peuvent pas être
-/// reprises exactement est importée désactivée, pour qu'elle ne s'exécute jamais sur plus de postes que prévu.
+/// Reading of XML package files (packages and package folders).
+/// Each setting with no DeployCraft equivalent is reported; a step whose conditions cannot be carried
+/// over exactly is imported disabled, so it never runs on more computers than intended.
 /// </summary>
 public static partial class XmlPackageImport
 {
@@ -28,7 +28,7 @@ public static partial class XmlPackageImport
             throw new FormatException($"Fichier XML illisible : {ex.Message}");
         }
 
-        // Un paquet ou un dossier seul, ou un fichier qui en contient au premier niveau.
+        // A single package or folder, or a file that contains some at the first level.
         IEnumerable<XElement> items = root.Name.LocalName is "Package" or "Folder" ? [root] : root.Elements();
         if (!items.Any(e => e.Name.LocalName is "Package" or "Folder" or "Installer"))
             throw new FormatException("Ce fichier XML n'est pas un export de paquets pris en charge.");
@@ -96,7 +96,7 @@ public static partial class XmlPackageImport
         if (Raw(e, "LibraryPackageId") is { Length: > 0 } lib && lib != "null")
             result.Warn("Paquet issu d'une bibliothèque en ligne : il ne sera plus mis à jour automatiquement.");
 
-        // Les sections « avant » et « après » n'existent pas dans DeployCraft : les étapes sont mises bout à bout, dans l'ordre d'exécution.
+        // The "before" and "after" sections do not exist in DeployCraft: the steps are put end to end, in execution order.
         var stepElements = (def.Element("Steps")?.Elements() ?? []).ToList();
         var ordered = stepElements.Where(s => Bool(s, "IsPreStep"))
             .Concat(stepElements.Where(s => !Bool(s, "IsPreStep") && !Bool(s, "IsPostStep")))
@@ -208,7 +208,7 @@ public static partial class XmlPackageImport
         return (step, line);
     }
 
-    /// <summary>Fichiers additionnels, un chemin par ligne (aucun = null).</summary>
+    /// <summary>Additional files, one path per line (none = null).</summary>
 
     private static ErrorMode ErrorModeOf(string text) => text switch
     {
@@ -292,8 +292,8 @@ public static partial class XmlPackageImport
         PackageStep.SplitLines(Text(e, "Files")) is { Count: > 0 } files ? string.Join("\n", files) : null;
 
     /// <summary>
-    /// Conditions du fichier → conditions DeployCraft. <paramref name="lost"/> : une condition n'a pas d'équivalent exact
-    /// (elle est alors signalée par <paramref name="warn"/>).
+    /// File conditions → DeployCraft conditions. <paramref name="lost"/>: a condition has no exact equivalent
+    /// (it is then reported through <paramref name="warn"/>).
     /// </summary>
     private static Conditions ReadConditions(XElement? list, Action<string> warn, out bool lost)
     {
@@ -385,7 +385,7 @@ public static partial class XmlPackageImport
         string[] order = ["V1", "V2", "V3", "V4", "V5"];
         var first = Array.FindIndex(order, versions.Contains);
         if (first < 0) return;
-        // Seule une version minimale existe dans DeployCraft : il faut toutes les versions à partir de la plus ancienne choisie.
+        // DeployCraft only has a minimum version: all versions from the oldest chosen one are required.
         if (order.Skip(first).Any(v => !versions.Contains(v)))
         {
             lose("versions de PowerShell choisies une à une : DeployCraft ne gère qu'une version minimale.");
@@ -442,8 +442,8 @@ public static partial class XmlPackageImport
     }
 
     /// <summary>
-    /// <c>$(Repository)</c> est remplacé par le dossier du dépôt indiqué à l'import ; les autres variables
-    /// (DeployCraft n'en a pas) restent telles quelles et sont signalées.
+    /// <c>$(Repository)</c> is replaced by the repository folder given at import; the other variables
+    /// (DeployCraft has none) are left as they are and reported.
     /// </summary>
     private static void ReplaceVariables(PackageStep step, ImportStepResult line, string? repo)
     {
@@ -503,22 +503,22 @@ public static partial class XmlPackageImport
     private static string SuccessCodes(XElement e) =>
         Text(e, "SuccessCodes").Trim() is { Length: > 0 } codes ? codes : Defaults.SuccessCodes;
 
-    /// <summary>Texte d'un élément enfant ; « » s'il manque.</summary>
+    /// <summary>Text of a child element; "" if missing.</summary>
     private static string Text(XElement e, string name) => e.Element(name)?.Value ?? "";
 
-    /// <summary>Booléen écrit <c>&lt;X value="true" /&gt;</c> (ou en texte) ; faux s'il manque.</summary>
+    /// <summary>Boolean written as <c>&lt;X value="true" /&gt;</c> (or as text); false if missing.</summary>
     private static bool Bool(XElement e, string name) => bool.TryParse(Raw(e, name), out var b) && b;
 
     private static int? Int(XElement e, string name) => int.TryParse(Raw(e, name), out var i) ? i : null;
 
-    /// <summary>Valeur écrite en attribut <c>value</c> (nombres, booléens, numéros) ou en texte.</summary>
+    /// <summary>Value written as a <c>value</c> attribute (numbers, booleans, numerals) or as text.</summary>
     private static string Raw(XElement e, string name)
     {
         var x = e.Element(name);
         return (string?)x?.Attribute("value") ?? x?.Value ?? "";
     }
 
-    /// <summary>Indicateurs écrits « A, B, C ».</summary>
+    /// <summary>Flags written as "A, B, C".</summary>
     private static HashSet<string> Flags(string value) =>
         new(value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries), StringComparer.OrdinalIgnoreCase);
 

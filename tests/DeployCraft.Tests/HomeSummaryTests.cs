@@ -2,7 +2,7 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Chiffres de la page d'accueil.</summary>
+/// <summary>Figures of the home page.</summary>
 public class HomeSummaryTests
 {
     private static readonly DateTime Now = new(2026, 10, 16, 12, 0, 0, DateTimeKind.Utc);

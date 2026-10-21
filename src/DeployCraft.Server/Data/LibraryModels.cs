@@ -1,56 +1,56 @@
 namespace DeployCraft.Server.Data;
 
-/// <summary>Un logiciel proposé par la bibliothèque de paquets, et ce que DeployCraft en a fait.</summary>
+/// <summary>A software offered by the package library, and what DeployCraft made of it.</summary>
 public class LibraryItem
 {
-    /// <summary>Identifiant du logiciel dans le catalogue public winget (ex. VideoLAN.VLC).</summary>
+    /// <summary>Identifier of the software in the public winget catalog (e.g. VideoLAN.VLC).</summary>
     public string Id { get; set; } = "";
     public string Name { get; set; } = "";
-    /// <summary>Dernière version connue du catalogue (null tant qu'il n'a pas été lu).</summary>
+    /// <summary>Latest version known from the catalog (null until it has been read).</summary>
     public string? LatestVersion { get; set; }
-    /// <summary>Type d'installeur retenu (msi, nullsoft, inno…) et architecture.</summary>
+    /// <summary>Chosen installer type (msi, nullsoft, inno...) and architecture.</summary>
     public string? Installer { get; set; }
-    /// <summary>Raison pour laquelle ce logiciel ne peut pas être téléchargé (aucun installeur silencieux pour tout le poste…).</summary>
+    /// <summary>Reason why this software cannot be downloaded (no silent installer for the whole computer...).</summary>
     public string? Problem { get; set; }
-    /// <summary>Paquet DeployCraft créé à partir de ce logiciel (null s'il n'a jamais été téléchargé ou a été supprimé).</summary>
+    /// <summary>DeployCraft package created from this software (null if never downloaded or if deleted).</summary>
     public long? PackageId { get; set; }
-    /// <summary>Version téléchargée dans ce paquet.</summary>
+    /// <summary>Version downloaded into this package.</summary>
     public string? PackageVersion { get; set; }
-    /// <summary>Étape en cours (téléchargement, vérification, copie, création du paquet), null s'il n'y en a pas.</summary>
+    /// <summary>Current step (download, verification, copy, package creation), null if there is none.</summary>
     public string? Stage { get; set; }
-    /// <summary>Avancement de l'étape en cours, de 0 à 100.</summary>
+    /// <summary>Progress of the current step, from 0 to 100.</summary>
     public int? Progress { get; set; }
-    /// <summary>Erreur du dernier téléchargement de ce logiciel.</summary>
+    /// <summary>Error of the last download of this software.</summary>
     public string? Error { get; set; }
     public bool UpdateAvailable { get; set; }
 }
 
-/// <summary>Mise à jour des paquets créés depuis la bibliothèque quand le catalogue publie une nouvelle version.</summary>
+/// <summary>Update of the packages created from the library when the catalog publishes a new version.</summary>
 public enum LibraryAutoUpdate
 {
-    /// <summary>Signalée seulement : l'utilisateur clique sur « Mettre à jour ».</summary>
+    /// <summary>Only reported: the user clicks "Mettre à jour".</summary>
     Manual,
-    /// <summary>Faite par le service dès que la nouvelle version est vue.</summary>
+    /// <summary>Done by the service as soon as the new version is seen.</summary>
     Immediate,
-    /// <summary>Faite par le service quelques jours après que la version est apparue dans le catalogue.</summary>
+    /// <summary>Done by the service a few days after the version appeared in the catalog.</summary>
     Delayed,
 }
 
-/// <summary>État de la bibliothèque renvoyé à la console.</summary>
+/// <summary>Library state returned to the console.</summary>
 public class LibraryInfo
 {
-    /// <summary>Dossier où les installeurs sont rangés.</summary>
+    /// <summary>Folder where the installers are stored.</summary>
     public string Folder { get; set; } = "";
-    /// <summary>Le dossier est celui proposé par défaut (sur le serveur, lisible en mode push seulement).</summary>
+    /// <summary>The folder is the default one (on the server, readable in push mode only).</summary>
     public bool DefaultFolder { get; set; }
     public DateTime? LastRefreshUtc { get; set; }
     public bool Refreshing { get; set; }
-    /// <summary>Erreur de la dernière lecture du catalogue.</summary>
+    /// <summary>Error of the last catalog read.</summary>
     public string? RefreshError { get; set; }
     public LibraryAutoUpdate AutoUpdate { get; set; }
-    /// <summary>Délai avant une mise à jour automatique (mode <see cref="LibraryAutoUpdate.Delayed"/>).</summary>
+    /// <summary>Delay before an automatic update (<see cref="LibraryAutoUpdate.Delayed"/> mode).</summary>
     public int AutoUpdateDays { get; set; }
-    /// <summary>Nombre de logiciels dans le catalogue.</summary>
+    /// <summary>Number of software items in the catalog.</summary>
     public int CatalogCount { get; set; }
     public List<LibraryItem> Items { get; set; } = [];
 }

@@ -6,7 +6,7 @@ using System.Windows.Input;
 
 namespace DeployCraft.Console;
 
-/// <summary>Nœud de l'arbre AD : une OU (sous-OU puis postes) ou un poste.</summary>
+/// <summary>Node of the AD tree: an OU (sub-OUs then computers) or a computer.</summary>
 public class AdNode : INotifyPropertyChanged
 {
     private bool? _isChecked = false;
@@ -27,7 +27,7 @@ public class AdNode : INotifyPropertyChanged
             if (_isChecked == value) return;
             _isChecked = value;
             OnPropertyChanged();
-            // Cocher une OU coche tous ses postes.
+            // Checking an OU checks all its computers.
             if (value.HasValue) foreach (var c in Children) c.IsChecked = value;
             Parent?.SyncFromChildren();
         }
@@ -53,7 +53,7 @@ public class AdNode : INotifyPropertyChanged
         Parent?.SyncFromChildren();
     }
 
-    /// <summary>Nombre de postes sous ce nœud (sous-OU comprises).</summary>
+    /// <summary>Number of computers under this node (sub-OUs included).</summary>
     public int CountComputers() => ComputerName != null ? 1 : Children.Sum(c => c.CountComputers());
 
     public void ExpandAll()
@@ -73,7 +73,7 @@ public partial class AdPickerWindow : Window
     private readonly List<AdNode> _computers = [];
 
     public List<string> Selected { get; } = [];
-    /// <summary>Postes affichés et décochés : à retirer des cibles.</summary>
+    /// <summary>Computers shown and unchecked: to remove from the targets.</summary>
     public List<string> Unchecked { get; } = [];
 
     public AdPickerWindow(IEnumerable<string> current)
@@ -94,7 +94,7 @@ public partial class AdPickerWindow : Window
             var search = SearchBox.Text.Trim();
             var list = await Api.AdComputers(search);
 
-            // Arborescence réelle : « Ordinateurs / Postes_Clients / B101 » → Ordinateurs › Postes_Clients › B101.
+            // Real tree: "Ordinateurs / Postes_Clients / B101" -> Ordinateurs > Postes_Clients > B101.
             var roots = new List<AdNode>();
             var folders = new Dictionary<string, AdNode>(StringComparer.OrdinalIgnoreCase);
             AdNode Folder(string path)
@@ -108,7 +108,7 @@ public partial class AdPickerWindow : Window
                 return node;
             }
 
-            // Sous-OU d'abord (ordre alphabétique), puis les postes de l'OU.
+            // Sub-OUs first (alphabetical order), then the computers of the OU.
             foreach (var path in list.Select(c => c.Ou).Distinct().OrderBy(p => p, StringComparer.OrdinalIgnoreCase))
                 Folder(path);
             foreach (var c in list.OrderBy(c => c.Name, StringComparer.OrdinalIgnoreCase))
@@ -128,7 +128,7 @@ public partial class AdPickerWindow : Window
             foreach (var f in folders.Values) f.Detail = $"({f.CountComputers()})";
             foreach (var node in _computers.Where(n => _initial.Contains(n.ComputerName!))) node.IsChecked = true;
 
-            // Une recherche ouvre tout pour montrer les postes trouvés ; sinon tout reste replié.
+            // A search opens everything to show the computers found; otherwise everything stays collapsed.
             if (search.Length > 0) foreach (var r in roots) r.ExpandAll();
 
             Tree.ItemsSource = roots;

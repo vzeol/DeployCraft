@@ -4,8 +4,8 @@ using System.Security.Principal;
 namespace DeployCraft.Server.Remote;
 
 /// <summary>
-/// Le dossier de données (base, mots de passe chiffrés) est réservé à Système et aux Administrateurs :
-/// un simple utilisateur du serveur ne peut ni lire la base ni déchiffrer les identifiants.
+/// The data folder (database, encrypted passwords) is reserved for System and Administrators:
+/// a plain user of the server can neither read the database nor decrypt the credentials.
 /// </summary>
 public static class DataFolder
 {
@@ -22,7 +22,7 @@ public static class DataFolder
                     InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow));
             dir.SetAccessControl(security);
 
-            // Les fichiers déjà présents héritaient des droits de ProgramData (Utilisateurs en lecture) : on les aligne.
+            // Files already present inherited the ProgramData rights (Users with read access): they are aligned.
             foreach (var file in dir.EnumerateFiles("*", SearchOption.AllDirectories))
             {
                 var fs = file.GetAccessControl();

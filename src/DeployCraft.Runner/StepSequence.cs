@@ -4,8 +4,8 @@ using System;
 namespace DeployCraft.Runner
 {
     /// <summary>
-    /// Enchaînement des étapes d'un job : conditions, étapes désactivées, arrêt en échec ou en succès.
-    /// Le lancement d'une étape est confié à <c>runStep</c> (testable sans poste).
+    /// Sequencing of a job's steps: conditions, disabled steps, stop as failed or as succeeded.
+    /// Launching a step is delegated to <c>runStep</c> (testable without a computer).
     /// </summary>
     internal static class StepSequence
     {
@@ -13,13 +13,13 @@ namespace DeployCraft.Runner
         public const string Success = "success";
         public const string Failed = "failed";
         public const string Skipped = "skipped";
-        /// <summary>L'étape a échoué et demandait d'arrêter le paquet en succès.</summary>
+        /// <summary>The step failed and asked to stop the package as succeeded.</summary>
         public const string Stopped = "stopped";
 
         public static void Run(Job job, ITargetFacts facts, RunStatus status,
             Action<int, JobStep, StepResult> runStep, Action save, Func<bool> aborted, Action<string> log)
         {
-            // Un avancement non enregistré se rattrape au prochain : il ne doit jamais interrompre les étapes.
+            // A progress update that is not saved is caught up at the next one: it must never interrupt the steps.
             void Save()
             {
                 try
@@ -32,7 +32,7 @@ namespace DeployCraft.Runner
                 }
             }
 
-            // Conditions du paquet non remplies : toutes les étapes sont sautées, sans échec.
+            // Package conditions not met: all steps are skipped, without failure.
             var packageSkip = Unmet(job.Conditions, facts, out var packageError);
             if (packageSkip != null) log("Conditions du paquet non remplies : " + packageSkip);
 
@@ -110,12 +110,12 @@ namespace DeployCraft.Runner
                 Save();
             }
 
-            // Pour le serveur, qui enchaîne d'éventuelles autres identités : faut-il s'arrêter là ?
+            // For the server, which chains any other identities: should it stop here?
             status.Halt = stop || packageSkip != null;
             status.HaltReason = stop ? stopReason : packageSkip != null ? "Conditions du paquet non remplies. " + packageSkip : null;
         }
 
-        /// <summary>Attend <paramref name="seconds"/> secondes par tranches courtes ; false si le déploiement est annulé entre-temps.</summary>
+        /// <summary>Waits <paramref name="seconds"/> seconds in short slices; false if the deployment is cancelled in the meantime.</summary>
         public static bool Wait(int seconds, Func<bool> aborted, Action<int> sleep)
         {
             for (var left = Math.Max(0, seconds) * 1000; left > 0; left -= 500)
@@ -126,7 +126,7 @@ namespace DeployCraft.Runner
             return !aborted();
         }
 
-        /// <summary>Première condition supplémentaire non remplie, avec son origine (null = toutes remplies).</summary>
+        /// <summary>First additional condition not met, with its origin (null = all met).</summary>
         private static string UnmetExtra(System.Collections.Generic.List<JobConditionGroup> groups, ITargetFacts facts, out string error)
         {
             error = null;
@@ -141,8 +141,8 @@ namespace DeployCraft.Runner
         }
 
         /// <summary>
-        /// Raison pour laquelle les conditions ne sont pas remplies (null = remplies).
-        /// Une condition impossible à vérifier (clé de registre mal écrite…) est une erreur, rendue dans <paramref name="error"/>.
+        /// Reason why the conditions are not met (null = met).
+        /// A condition that cannot be checked (misspelled registry key...) is an error, returned in <paramref name="error"/>.
         /// </summary>
         private static string Unmet(JobConditions conditions, ITargetFacts facts, out string error)
         {

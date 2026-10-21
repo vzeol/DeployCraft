@@ -3,8 +3,8 @@ using DeployCraft.Server.Data;
 namespace DeployCraft.Server.Deployment;
 
 /// <summary>
-/// Nettoyage de l'historique (Préférences › Déploiement) : au démarrage puis une fois par jour, supprime les
-/// déploiements terminés depuis plus de N jours, si le réglage est activé.
+/// History cleanup (Preferences › Déploiement): at startup then once a day, deletes deployments
+/// finished more than N days ago, if the setting is enabled.
 /// </summary>
 public class HistoryCleaner(IDeploymentRepository deploymentRepository, ISettingsRepository settingsRepository, ILogger<HistoryCleaner> log) : BackgroundService
 {
@@ -26,13 +26,13 @@ public class HistoryCleaner(IDeploymentRepository deploymentRepository, ISetting
         } while (await timer.WaitForNextTickAsync(ct));
     }
 
-    /// <summary>Un passage : renvoie le nombre de déploiements supprimés (0 si le réglage est désactivé).</summary>
+    /// <summary>One pass: returns the number of deployments deleted (0 if the setting is disabled).</summary>
     internal int Run(DateTime nowUtc)
     {
         var history = settingsRepository.GetDefaults().History ?? new();
         if (!history.Cleanup) return 0;
 
-        // Une valeur hors limites (base modifiée à la main) ne doit jamais effacer plus que prévu.
+        // An out-of-range value (database edited by hand) must never delete more than intended.
         var days = Math.Clamp(history.KeepDays, HistorySettings.MinDays, HistorySettings.MaxDays);
         var deleted = deploymentRepository.PurgeFinished(nowUtc.AddDays(-days));
         log.LogInformation("Nettoyage de l'historique : {Count} déploiement(s) terminé(s) depuis plus de {Days} jour(s) supprimé(s)", deleted, days);

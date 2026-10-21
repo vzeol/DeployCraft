@@ -5,7 +5,7 @@ using DeployCraft.Server.Remote;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Étapes désactivées, « arrêter en succès » et pause : consignes du serveur, enchaînement par le runner, résultat du poste.</summary>
+/// <summary>Disabled steps, "stop on success" and pause: server instructions, chaining by the runner, computer result.</summary>
 public sealed class StepFlowTests : IDisposable
 {
     private readonly string _dir = Directory.CreateTempSubdirectory("dc-tests-").FullName;
@@ -26,7 +26,7 @@ public sealed class StepFlowTests : IDisposable
         public bool RegistryExists(string key, string value) => false;
     }
 
-    /// <summary>Exécute le job sur un poste simulé : les étapes dont le nom commence par « ko » échouent.</summary>
+    /// <summary>Runs the job on a simulated computer: steps whose name starts with "ko" fail.</summary>
     private static (RunStatus Status, List<string> Ran) Run(params JobStep[] steps)
     {
         var ran = new List<string>();
@@ -145,7 +145,7 @@ public sealed class StepFlowTests : IDisposable
         Assert.Equal("pause", pause.Type);
         Assert.Equal(45, pause.Seconds);
 
-        // Pause plus longue que le délai de l'étape : le serveur ne doit pas abandonner le poste pendant l'attente.
+        // Pause longer than the step timeout: the server must not abandon the computer during the wait.
         var longPause = TargetSession.ToJobStep(new PackageStep { Type = StepType.Pause, PauseSeconds = 7200, TimeoutMinutes = 60 }, package, RunAsMode.DeployUser);
         Assert.True(longPause.TimeoutSeconds > 7200);
 
@@ -155,7 +155,7 @@ public sealed class StepFlowTests : IDisposable
     [Fact]
     public void PackageSavedWithSections_IsReadAsIs_AndRunsInItsStoredOrder_WithASingleStop()
     {
-        // Paquet enregistré en 0.11.0, quand les étapes avaient une section (déjà triées Avant, Principales, Après).
+        // Package saved in 0.11.0, when steps had a section (already sorted Before, Main, After).
         var package = System.Text.Json.JsonSerializer.Deserialize<Package>("""
             {"name":"Ancien","steps":[
               {"name":"avant","type":"Command","command":"echo 1","section":"Before"},
@@ -176,7 +176,7 @@ public sealed class StepFlowTests : IDisposable
             (_, s, r) => { ran.Add(s.Name); r.State = s.Name == "ko" ? StepSequence.Failed : StepSequence.Success; },
             () => { }, () => false, _ => { });
 
-        Assert.Equal(["avant", "ko"], ran); // l'ancienne étape « Après » est une étape ordinaire : l'échec l'arrête
+        Assert.Equal(["avant", "ko"], ran); // the old "Après" step is an ordinary step: the failure stops it
         Assert.Equal(["success", "failed", "skipped"], States(status));
     }
 
@@ -246,7 +246,7 @@ public sealed class StepFlowTests : IDisposable
         Assert.False(step.Enabled);
         Assert.Equal(ErrorMode.StopSuccess, step.ErrorMode);
 
-        // Étapes enregistrées avant cette version : pas de champ « enabled ».
+        // Steps saved before this version: no "enabled" field.
         var old = System.Text.Json.JsonSerializer.Deserialize<PackageStep>("""{"name":"a","errorMode":"Continue"}""", Database.Json)!;
         Assert.True(old.Enabled);
         Assert.Equal(ErrorMode.Continue, old.ErrorMode);

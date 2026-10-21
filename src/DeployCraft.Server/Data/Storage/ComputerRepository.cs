@@ -12,7 +12,7 @@ public interface IComputerRepository
 /// <summary>SQLite storage of <see cref="IComputerRepository"/>.</summary>
 public sealed class ComputerRepository(Database database) : IComputerRepository
 {
-    /// <summary>Retient les cartes réseau d'un poste (adresse MAC et diffusion de son sous-réseau).</summary>
+    /// <summary>Remembers the network cards of a computer (MAC address and broadcast of its subnet).</summary>
     public void SaveNetwork(string computer, IReadOnlyCollection<NetworkCard> cards)
     {
         if (cards.Count == 0) return;

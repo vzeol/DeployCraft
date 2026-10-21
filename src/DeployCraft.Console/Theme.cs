@@ -4,22 +4,22 @@ using Microsoft.Win32;
 namespace DeployCraft.Console;
 
 /// <summary>
-/// Thème clair / sombre de la console (Préférences › Interface).
-/// Les contrôles standard suivent le thème Fluent de WPF ; nos couleurs viennent de Themes\Clair.xaml
-/// ou Themes\Sombre.xaml, échangés à chaud (toujours les utiliser en DynamicResource).
-/// Le choix est propre à chaque utilisateur Windows : %APPDATA%\DeployCraft\console.json.
+/// Light / dark theme of the console (Préférences › Interface).
+/// Standard controls follow WPF's Fluent theme; our colors come from Themes\Clair.xaml
+/// or Themes\Sombre.xaml, swapped at run time (always use them as DynamicResource).
+/// The choice is per Windows user: %APPDATA%\DeployCraft\console.json.
 /// </summary>
-#pragma warning disable WPF0001 // ThemeMode est encore marqué « expérimental » dans .NET 10
+#pragma warning disable WPF0001 // ThemeMode is still marked "experimental" in .NET 10
 public static class Theme
 {
     public const string Light = "Clair", Dark = "Sombre", System = "Windows";
 
     private static ResourceDictionary? palette;
 
-    /// <summary>Choix enregistré : Clair, Sombre ou Windows (suit le réglage de Windows).</summary>
+    /// <summary>Saved choice: Clair, Sombre or Windows (follows the Windows setting).</summary>
     public static string Current { get; private set; } = Light;
 
-    /// <summary>Au démarrage, avant la première fenêtre.</summary>
+    /// <summary>At startup, before the first window.</summary>
     public static void Init(Application app)
     {
         Current = Load();
@@ -32,7 +32,7 @@ public static class Theme
         };
     }
 
-    /// <summary>Change le thème tout de suite et l'enregistre.</summary>
+    /// <summary>Changes the theme right away and saves it.</summary>
     public static void Set(string choice)
     {
         Current = choice;
@@ -57,6 +57,6 @@ public static class Theme
         return key?.GetValue("AppsUseLightTheme") is int light && light == 0;
     }
 
-    /// <summary>Thème enregistré ; clair si aucun (ou illisible).</summary>
+    /// <summary>Saved theme; light if none (or unreadable).</summary>
     private static string Load() => ConsolePrefs.Get<string>("Theme") is { } theme && theme is Dark or System ? theme : Light;
 }

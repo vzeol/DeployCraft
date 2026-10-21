@@ -10,7 +10,7 @@ using DeployCraft.Runner.Steps;
 
 namespace DeployCraft.Runner
 {
-    /// <summary>Exécute les étapes d'un job dans le dossier exec\ et tient status.json à jour.</summary>
+    /// <summary>Runs the steps of a job in the exec\ folder and keeps status.json up to date.</summary>
     internal class StepExecutor : IStepHost
     {
         private const int MaxOutputChars = 64 * 1024;
@@ -19,7 +19,7 @@ namespace DeployCraft.Runner
         private readonly string _execDir;
         private readonly string _statusPath;
         private volatile bool _aborted;
-        /// <summary>PID de l'étape en cours (0 = aucune).</summary>
+        /// <summary>PID of the current step (0 = none).</summary>
         private volatile int _current;
 
         public StepExecutor(string slotDir)
@@ -29,7 +29,7 @@ namespace DeployCraft.Runner
             _statusPath = Path.Combine(slotDir, "status.json");
         }
 
-        /// <summary>Annulation demandée par le serveur (arrêt du service) : tue l'étape en cours et saute les suivantes.</summary>
+        /// <summary>Cancellation requested by the server (service stop): kills the current step and skips the following ones.</summary>
         public void Abort()
         {
             _aborted = true;
@@ -41,11 +41,11 @@ namespace DeployCraft.Runner
             if (pid == 0) return;
             try
             {
-                // Les installeurs lancent souvent des sous-processus (msiexec…) : on tue tout l'arbre.
+                // Installers often start child processes (msiexec...): the whole tree is killed.
                 using (var kill = Process.Start(new ProcessStartInfo("taskkill.exe", $"/T /F /PID {pid}") { CreateNoWindow = true, UseShellExecute = false }))
                     kill?.WaitForExit(10000);
             }
-            catch { /* déjà terminé */ }
+            catch { /* already finished */ }
         }
 
         public void Run()
@@ -111,8 +111,8 @@ namespace DeployCraft.Runner
             psi.RedirectStandardOutput = true;
             psi.RedirectStandardError = true;
             psi.RedirectStandardInput = true;
-            // La plupart des outils console écrivent dans la page de code OEM (850 en français), d'autres en UTF-16 :
-            // la sortie est gardée en octets et décodée à la fin (ProcessOutput).
+            // Most console tools write in the OEM code page (850 on French systems), others in UTF-16:
+            // the output is kept as bytes and decoded at the end (ProcessOutput).
             var oem = Encoding.GetEncoding(CultureInfo.CurrentCulture.TextInfo.OEMCodePage);
             psi.EnvironmentVariables["cd"] = _execDir;
             var output = new ProcessOutput(MaxOutputChars * 2);
@@ -141,7 +141,7 @@ namespace DeployCraft.Runner
                     {
                         process.Start();
                         _current = process.Id;
-                        // Aucune saisie possible : un installeur qui attend une réponse échoue au lieu de bloquer.
+                        // No input possible: an installer waiting for an answer fails instead of blocking.
                         process.StandardInput.Close();
                         var readers = new[] { process.StandardOutput.BaseStream, process.StandardError.BaseStream }
                             .Select(stream => new Thread(() => output.ReadAll(stream)) { IsBackground = true, Name = "ProcessOutput" })
@@ -153,7 +153,7 @@ namespace DeployCraft.Runner
                             TimedOut(process.Id, step, result);
                             return;
                         }
-                        // Les flux se ferment avec le programme (ou avec le dernier enfant qui les a hérités).
+                        // The streams close with the program (or with the last child that inherited them).
                         readers.ForEach(r => r.Join(10000));
                         exitCode = process.ExitCode;
                     }
@@ -187,8 +187,8 @@ namespace DeployCraft.Runner
         }
 
         /// <summary>
-        /// Message aux utilisateurs connectés : une fenêtre par session, lancée dans la session (le runner tourne en
-        /// Système). Sans clic attendu, l'étape réussit dès l'affichage.
+        /// Message to the logged-on users: one window per session, started in the session (the runner runs as
+        /// System). With no click expected, the step succeeds as soon as the window is shown.
         /// </summary>
         private void ShowMessage(JobStep step, StepResult result)
         {
@@ -198,7 +198,7 @@ namespace DeployCraft.Runner
                 var sessions = UserProcess.ActiveSessions();
                 var untilClick = step.Seconds <= 0;
                 result.CommandLine = "Message pour " + (sessions.Count == 0 ? "personne" : string.Join(", ", sessions.Select(s => s.Value ?? "session " + s.Key)));
-                // Jusqu'au clic : l'attente est bornée par le délai max de l'étape ; sans attente, la fenêtre reste ouverte.
+                // Until the click: the wait is bounded by the step's maximum delay; with no wait, the window stays open.
                 var seconds = untilClick ? (step.WaitForUser ? step.TimeoutSeconds : 0) : step.Seconds;
                 var powershell = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), @"WindowsPowerShell\v1.0\powershell.exe");
                 var args = MessageOutcome.Arguments(step.Arguments, step.Command, seconds);
@@ -245,7 +245,7 @@ namespace DeployCraft.Runner
             result.Error = $"Délai dépassé ({step.TimeoutSeconds / 60} min). Paramètres silencieux manquants ?";
         }
 
-        /// <summary>Mode pull : un fichier additionnel copié dans exec\ depuis le partage, avec l'identité du runner.</summary>
+        /// <summary>Pull mode: an additional file copied into exec\ from the share, with the runner identity.</summary>
         private void PullFile(string path)
         {
             Log($"Copie depuis {path}");
@@ -260,8 +260,8 @@ namespace DeployCraft.Runner
         }
 
         /// <summary>
-        /// « Garder le fichier sur le poste » : le fichier d'installation et ses fichiers additionnels sont copiés dans
-        /// le dossier demandé (avec tout exec\ si l'étape copie le dossier entier). Un échec est noté sans changer le résultat.
+        /// "Keep the file on the computer": the install file and its additional files are copied into
+        /// the requested folder (with all of exec\ if the step copies the whole folder). A failure is noted without changing the result.
         /// </summary>
         private void Keep(JobStep step)
         {
@@ -285,7 +285,7 @@ namespace DeployCraft.Runner
             }
         }
 
-        /// <summary>Mode pull : le poste copie lui-même le fichier (ou son dossier) depuis le partage.</summary>
+        /// <summary>Pull mode: the computer itself copies the file (or its folder) from the share.</summary>
         private void Pull(JobStep step)
         {
             Log($"Copie depuis {step.SourcePath}");
@@ -304,7 +304,7 @@ namespace DeployCraft.Runner
             }
             catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException)
             {
-                // En Système local, c'est le compte ordinateur du poste (DOMAINE\POSTE$) qui lit le partage.
+                // As Local System, it is the computer account of the machine (DOMAIN\COMPUTER$) that reads the share.
                 string who;
                 using (var identity = System.Security.Principal.WindowsIdentity.GetCurrent())
                     who = identity.IsSystem ? "le compte ordinateur du poste (" + Environment.MachineName + "$)" : identity.Name;
@@ -339,7 +339,7 @@ namespace DeployCraft.Runner
             {
                 File.AppendAllText(Path.Combine(_slotDir, "runner.log"), $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}\t{message}{Environment.NewLine}");
             }
-            catch { /* le log ne doit jamais faire échouer un déploiement */ }
+            catch { /* the log must never make a deployment fail */ }
         }
     }
 }

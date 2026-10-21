@@ -1,18 +1,18 @@
 namespace DeployCraft.Server.Data;
 
 /// <summary>
-/// Nouvelle version de DeployCraft publiée dans les Releases du dépôt (hors pré-versions), avec son installeur et
-/// l'empreinte SHA-256 que GitHub en donne (null si la release n'en a pas : installation manuelle seulement).
+/// New DeployCraft version published in the repository's Releases (excluding pre-releases), with its installer and
+/// the SHA-256 hash GitHub gives for it (null if the release has none: manual installation only).
 /// </summary>
 public record UpdateInfo(string Version, string Url, string? SetupUrl = null, string? SetupSha256 = null)
 {
-    /// <summary>Dernière version stable publiée (les pré-versions n'y figurent pas).</summary>
+    /// <summary>Latest stable version published (pre-releases are not included).</summary>
     public const string LatestReleaseApi = "https://api.github.com/repos/vzeol/DeployCraft/releases/latest";
 
     /// <summary>
-    /// Vrai si l'étiquette de la release (« v0.16.0 ») désigne une version plus récente que <paramref name="current"/>
-    /// (« 0.15.0 »). À numéros égaux, la version finale passe devant une pré-version (« 1.0.0-rc.1 » → « v1.0.0 »).
-    /// Une étiquette illisible n'est jamais une mise à jour.
+    /// True if the release tag ("v0.16.0") designates a newer version than <paramref name="current"/>
+    /// ("0.15.0"). With equal numbers, the final version comes before a pre-release ("1.0.0-rc.1" → "v1.0.0").
+    /// An unreadable tag is never an update.
     /// </summary>
     public static bool IsNewer(string? tag, string? current)
     {
@@ -20,13 +20,13 @@ public record UpdateInfo(string Version, string Url, string? SetupUrl = null, st
         return latest > installed || latest == installed && IsPrerelease(current) && !IsPrerelease(tag);
     }
 
-    /// <summary>« 1.0.0-rc.1 » (suffixe après un tiret) ; ce qui suit un « + » (n° de compilation) ne compte pas.</summary>
+    /// <summary>"1.0.0-rc.1" (suffix after a dash); what follows a "+" (build number) does not count.</summary>
     private static bool IsPrerelease(string? text) => (text ?? "").Split('+')[0].Contains('-');
 
-    /// <summary>Fichier joint à la release : nom, adresse de téléchargement, empreinte (« sha256:… »).</summary>
+    /// <summary>File attached to the release: name, download address, hash ("sha256:...").</summary>
     public record Asset(string Name, string Url, string? Digest);
 
-    /// <summary>Installeur de la version (« DeployCraft-Setup-0.16.0.exe ») avec son empreinte SHA-256 ; null s'il manque l'un ou l'autre.</summary>
+    /// <summary>Installer of the version ("DeployCraft-Setup-0.16.0.exe") with its SHA-256 hash; null if either is missing.</summary>
     public static (string Url, string Sha256)? FindSetup(IEnumerable<Asset> assets, string version)
     {
         var setup = assets.FirstOrDefault(a => a.Name.Equals($"DeployCraft-Setup-{version}.exe", StringComparison.OrdinalIgnoreCase));
@@ -36,7 +36,7 @@ public record UpdateInfo(string Version, string Url, string? SetupUrl = null, st
         return sha.Length == 64 && sha.All(Uri.IsHexDigit) ? (setup.Url, sha.ToUpperInvariant()) : null;
     }
 
-    /// <summary>« v0.15.0 », « 0.15.0-beta.1 » → 0.15.0 ; null si illisible.</summary>
+    /// <summary>"v0.15.0", "0.15.0-beta.1" → 0.15.0; null if unreadable.</summary>
     public static Version? Parse(string? text)
     {
         var core = (text ?? "").Trim().TrimStart('v', 'V').Split('-', '+')[0];

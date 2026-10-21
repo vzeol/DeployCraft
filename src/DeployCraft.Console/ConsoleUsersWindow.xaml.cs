@@ -3,7 +3,7 @@ using System.Windows.Controls;
 
 namespace DeployCraft.Console;
 
-/// <summary>Comptes et groupes autorisés à utiliser la console, en plus des administrateurs du serveur ; sessions actives.</summary>
+/// <summary>Accounts and groups allowed to use the console, in addition to the server administrators; active sessions.</summary>
 public partial class ConsoleUsersWindow : Window
 {
     private bool _canEdit;

@@ -5,7 +5,7 @@
         Title="DeployCraft" Height="820" Width="1360" MinHeight="520" MinWidth="980"
         WindowStartupLocation="CenterScreen" Background="{DynamicResource WindowBackground}" Foreground="{DynamicResource TextBrush}">
     <Window.Resources>
-        <!-- En-tête de vue : grosse icône + titre + sous-titre -->
+        <!-- View header: big icon + title + subtitle -->
         <Style x:Key="ViewIcon" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="{StaticResource IconFont}" />
             <Setter Property="FontSize" Value="30" />
@@ -23,7 +23,7 @@
         <Style x:Key="HeaderButton" TargetType="Button" BasedOn="{StaticResource DialogButton}">
             <Setter Property="Padding" Value="12,6" />
         </Style>
-        <!-- Page d'accueil : cartes -->
+        <!-- Home page: cards -->
         <Style x:Key="HomeCard" TargetType="Border">
             <Setter Property="Background" Value="{DynamicResource ContentBackground}" />
             <Setter Property="BorderBrush" Value="{DynamicResource PanelBorder}" />
@@ -104,7 +104,7 @@
             </MenuItem>
         </Menu>
 
-        <!-- Barre d'outils -->
+        <!-- Toolbar -->
         <Border DockPanel.Dock="Top" Background="{DynamicResource ToolbarBackground}" BorderBrush="{DynamicResource PanelBorder}" BorderThickness="0,1,0,1">
             <StackPanel Orientation="Horizontal" Margin="4,3">
                 <Button Style="{StaticResource ToolButton}" Tag="&#xE710;" Click="NewPackage_Click" x:Name="NewPackageButton">Nouveau paquet</Button>
@@ -120,7 +120,7 @@
             </StackPanel>
         </Border>
 
-        <!-- Barre d'état -->
+        <!-- Status bar -->
         <StatusBar DockPanel.Dock="Bottom" Background="{DynamicResource ToolbarBackground}" BorderBrush="{DynamicResource PanelBorder}" BorderThickness="0,1,0,0">
             <StatusBarItem><TextBlock x:Name="StatusServer" /></StatusBarItem>
             <Separator />
@@ -128,7 +128,7 @@
             <StatusBarItem HorizontalAlignment="Right"><TextBlock x:Name="StatusRunning" Margin="0,0,8,0" /></StatusBarItem>
         </StatusBar>
 
-        <!-- Bandeau d'alerte -->
+        <!-- Alert banner -->
         <Border x:Name="Banner" DockPanel.Dock="Top" Background="{DynamicResource BannerBackground}" Padding="12,7" Visibility="Collapsed">
             <TextBlock x:Name="BannerText" Foreground="{DynamicResource KoBrush}" TextWrapping="Wrap" />
         </Border>
@@ -149,7 +149,7 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <!-- Arbre de navigation -->
+            <!-- Navigation tree -->
             <DockPanel Margin="6">
                 <TextBox x:Name="Filter" DockPanel.Dock="Top" Margin="0,0,0,6" TextChanged="Filter_TextChanged"
                          ToolTip="Filtrer les paquets" />
@@ -163,7 +163,7 @@
 
             <Grid Grid.Column="2" Margin="6,8,10,8">
 
-                <!-- Accueil -->
+                <!-- Home -->
                 <DockPanel x:Name="HomeView" Visibility="Collapsed">
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,14">
                         <TextBlock Style="{StaticResource ViewIcon}" Text="&#xE80F;" />
@@ -224,7 +224,7 @@
                     </ScrollViewer>
                 </DockPanel>
 
-                <!-- Tous les déploiements -->
+                <!-- All deployments -->
                 <DockPanel x:Name="DeploymentsView" Visibility="Collapsed">
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,12">
                         <TextBlock Style="{StaticResource ViewIcon}" Text="&#xE81C;" />
@@ -236,7 +236,7 @@
                     <local:DeploymentsPanel x:Name="AllDeployments" ShowPackageColumn="True" />
                 </DockPanel>
 
-                <!-- Toutes les planifications -->
+                <!-- All schedules -->
                 <DockPanel x:Name="SchedulesView" Visibility="Collapsed">
                     <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
                         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
@@ -283,7 +283,7 @@
                     </Grid>
                 </DockPanel>
 
-                <!-- Bibliothèque de paquets -->
+                <!-- Package library -->
                 <DockPanel x:Name="LibraryView" Visibility="Collapsed">
                     <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
                         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
@@ -345,7 +345,7 @@
                     </DataGrid>
                 </DockPanel>
 
-                <!-- Paquet -->
+                <!-- Package -->
                 <DockPanel x:Name="PackageView" Visibility="Collapsed">
                     <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
                         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">

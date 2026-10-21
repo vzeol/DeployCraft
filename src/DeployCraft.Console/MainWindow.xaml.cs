@@ -19,7 +19,7 @@ public partial class MainWindow : Window
     private readonly TreeViewItem _packagesNode;
     private List<Package> _packages = [];
     private View _view = View.Home;
-    // Faux tant que le service refuse l'accès ou ne répond pas : les commandes sont alors grisées.
+    // False while the service refuses access or does not respond: commands are then greyed out.
     private bool _connected;
     private readonly RefreshQueue _refresh;
 
@@ -57,7 +57,7 @@ public partial class MainWindow : Window
         SetupContextMenus();
 
         _timer.Tick += async (_, _) => await RefreshAsync(packages: false);
-        // Compte à rebours des planifications : chaque seconde, sans recharger les données.
+        // Schedule countdown: every second, without reloading the data.
         var countdown = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         countdown.Tick += (_, _) =>
         {
@@ -81,7 +81,7 @@ public partial class MainWindow : Window
 
     private Package? SelectedPackage => (Nav.SelectedItem as TreeViewItem)?.Tag as Package;
 
-    // Largeur de l'arbre choisie à la souris, retrouvée à la prochaine ouverture.
+    // Tree width chosen with the mouse, restored at the next opening.
     private const string NavWidthPref = "NavWidth";
     private const double NavDefaultWidth = 250;
 
@@ -94,7 +94,7 @@ public partial class MainWindow : Window
         ConsolePrefs.Set(NavWidthPref, NavDefaultWidth);
     }
 
-    /// <summary>Panneau des déploiements visible (celui sur lequel agit le menu Édition).</summary>
+    /// <summary>Deployments panel visible (the one the Edit menu acts on).</summary>
     private DeploymentsPanel CurrentPanel => _view switch
     {
         View.Package => PackageDeployments,
@@ -104,10 +104,10 @@ public partial class MainWindow : Window
 
     private Schedule? SelectedSchedule => (SchedulesGrid.SelectedItem as ScheduleRow)?.Schedule;
 
-    /// <summary>Les commandes du menu Édition visent l'arbre (paquet) ou le panneau des déploiements selon le focus.</summary>
+    /// <summary>The Edit menu commands target the tree (package) or the deployments panel depending on focus.</summary>
     private bool TreeHasFocus => Nav.IsKeyboardFocusWithin;
 
-    // ---------- Rafraîchissement ----------
+    // ---------- Refresh ----------
 
     private Task RefreshAsync(bool packages) => _refresh.RunAsync(packages);
 
@@ -173,13 +173,13 @@ public partial class MainWindow : Window
         RebuildPackageNodes(selectedId, selectedFolderId);
     }
 
-    // Préférences du serveur : valeurs des réglages laissés « par défaut » dans l'onglet Détails.
+    // Server Preferences: values of the settings left on "default" in the Details tab.
     private DeploymentDefaults? _defaults;
 
-    // Paquets dont la bibliothèque a une nouvelle version : repérés dans l'arbre.
+    // Packages whose library has a new version: marked in the tree.
     private HashSet<long> _libraryUpdates = [];
 
-    /// <summary>Met à jour les repères de l'arbre si la liste des mises à jour disponibles a changé.</summary>
+    /// <summary>Updates the tree markers if the list of available updates changed.</summary>
     private void ShowLibraryUpdates(LibraryInfo status)
     {
         var updates = LibraryList.PackagesWithUpdate(status);
@@ -215,7 +215,7 @@ public partial class MainWindow : Window
         }
     }
 
-    // ---------- Vues ----------
+    // ---------- Views ----------
 
     private void SwitchTo(View view)
     {
@@ -253,7 +253,7 @@ public partial class MainWindow : Window
         SwitchTo(View.Package);
     }
 
-    /// <summary>Onglet Détails : ce que fait le paquet et d'où viennent ses réglages (paquet ou Préférences).</summary>
+    /// <summary>Details tab: what the package does and where its settings come from (package or Preferences).</summary>
     private void ShowPackageDetails(Package p)
     {
         var rows = PackageDetailRows.For(p, _defaults, _folders, _packages);
@@ -298,7 +298,7 @@ public partial class MainWindow : Window
 
     private async void Refresh_Click(object sender, RoutedEventArgs e) => await RefreshAsync(packages: true);
 
-    // ---------- Menu Affichage ----------
+    // ---------- View menu ----------
 
     private void ShowNode(TreeViewItem node)
     {
@@ -321,7 +321,7 @@ public partial class MainWindow : Window
         ShowNode(_packagesNode);
     }
 
-    /// <summary>Ctrl+F : place le curseur dans le filtre des paquets.</summary>
+    /// <summary>Ctrl+F: puts the cursor in the package filter.</summary>
     private void ViewFilter_Click(object sender, RoutedEventArgs e)
     {
         Filter.Focus();

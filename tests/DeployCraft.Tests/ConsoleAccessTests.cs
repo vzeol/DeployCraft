@@ -14,10 +14,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Accès à l'API du service (8.10) : règle d'autorisation, liste des utilisateurs, authentification Windows.</summary>
+/// <summary>Access to the service API (8.10): authorization rule, user list, Windows authentication.</summary>
 public sealed class ConsoleAccessTests : IDisposable
 {
-    private const string UsersSid = "S-1-5-32-545"; // groupe local intégré « Utilisateurs »
+    private const string UsersSid = "S-1-5-32-545"; // built-in local group "Utilisateurs"
     private const string SomeUserSid = "S-1-5-21-1-2-3-1001";
     private const string SomeGroupSid = "S-1-5-21-1-2-3-2001";
 
@@ -52,7 +52,7 @@ public sealed class ConsoleAccessTests : IDisposable
     [Fact]
     public void Sids_IncludeGroupsKeptDenyOnlyByUac()
     {
-        // Console ouverte sans élévation : le groupe Administrateurs est présent, mais « en refus seul ».
+        // Console opened without elevation: the Administrators group is present, but "deny only".
         var user = new ClaimsPrincipal(new ClaimsIdentity(
         [
             new Claim(ClaimTypes.PrimarySid, SomeUserSid),
@@ -70,7 +70,7 @@ public sealed class ConsoleAccessTests : IDisposable
     [Fact]
     public void AddUser_StoresTheSid_AndRefusesUnknownOrDuplicates()
     {
-        // Nom traduit selon la langue de Windows : on part du SID.
+        // Name translated according to the Windows language: start from the SID.
         var usersName = new SecurityIdentifier(UsersSid).Translate(typeof(NTAccount)).Value;
 
         var (added, error) = _access.AddUser(usersName);
@@ -108,7 +108,7 @@ public sealed class ConsoleAccessTests : IDisposable
         Assert.All(sessions, s => Assert.Equal(@"DOMAINE\admin", s.User));
     }
 
-    /// <summary>Vraie authentification Windows en boucle locale, comme entre la console et le service.</summary>
+    /// <summary>Real Windows authentication over loopback, as between the console and the service.</summary>
     [Fact]
     public async Task Api_RequiresWindowsAuthentication_AndAnAllowedAccount()
     {
@@ -126,11 +126,11 @@ public sealed class ConsoleAccessTests : IDisposable
         Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync(url)).StatusCode);
 
         using var current = WindowsIdentity.GetCurrent();
-        Assert.Null(_access.AddUser(current.Name).Error); // indépendant des droits du compte qui lance les tests
+        Assert.Null(_access.AddUser(current.Name).Error); // independent of the rights of the account running the tests
         using var console = new HttpClient(new HttpClientHandler { UseDefaultCredentials = true });
         var answer = await console.GetFromJsonAsync<Dictionary<string, string>>(url);
         Assert.Equal(current.Name, answer!["name"], ignoreCase: true);
-        // Le service voit le même statut d'administrateur que la session (même sans élévation, groupe en refus seul).
+        // The service sees the same administrator status as the session (even without elevation, group deny-only).
         Assert.Equal(ConsoleAccess.IsServerAdmin(ConsoleAccess.Sids(new WindowsPrincipal(current))).ToString(), answer["admin"]);
         Assert.Contains(_access.ActiveSessions(), s => string.Equals(s.User, current.Name, StringComparison.OrdinalIgnoreCase));
 

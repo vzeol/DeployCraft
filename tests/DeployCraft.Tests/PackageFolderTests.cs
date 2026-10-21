@@ -2,7 +2,7 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Dossiers de l'arbre des paquets : enregistrement, déplacements, règles, export.</summary>
+/// <summary>Folders of the package tree: saving, moves, rules, export.</summary>
 public sealed class PackageFolderTests : IDisposable
 {
     private readonly string _dir = Directory.CreateTempSubdirectory("dc-tests-").FullName;
@@ -82,7 +82,7 @@ public sealed class PackageFolderTests : IDisposable
         var package = _store.Packages.Save(new Package { Name = "Lecteur PDF", FolderId = a.Id });
         Assert.Equal(a.Id, _store.Packages.Get(package.Id)!.FolderId);
 
-        // Fenêtre ouverte avant un déplacement : l'enregistrer ne remet pas le paquet dans son ancien dossier.
+        // Window opened before a move: saving it does not put the package back into its old folder.
         _store.Packages.Move(package.Id, b.Id);
         package.Description = "modifié";
         _store.Packages.Save(package);

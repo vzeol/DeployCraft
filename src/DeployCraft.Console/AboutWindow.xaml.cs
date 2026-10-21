@@ -6,7 +6,7 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Console;
 
-/// <summary>Aide › À propos : versions de la console et du service, licence, page du projet.</summary>
+/// <summary>Aide › À propos: console and service versions, license, project page.</summary>
 public partial class AboutWindow : Window
 {
     private static readonly string? Version = typeof(AboutWindow).Assembly.GetName().Version?.ToString(3);

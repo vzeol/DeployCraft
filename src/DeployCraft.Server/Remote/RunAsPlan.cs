@@ -3,24 +3,24 @@ using DeployCraft.Server.Data;
 namespace DeployCraft.Server.Remote;
 
 /// <summary>
-/// Identité de chaque étape et « tranches » lancées sur le poste. Un service runner n'a qu'une identité : compte de
-/// déploiement, ou Système local (qui sert aussi à lancer dans la session de l'utilisateur connecté). Les étapes
-/// consécutives de même service forment une tranche ; le serveur lance les tranches l'une après l'autre. Le mot de
-/// passe du compte ne quitte jamais le serveur (il ne sert qu'à créer le service).
+/// Identity of each step and the "slices" started on the computer. A runner service has only one identity: the
+/// deployment account, or Local System (which is also used to launch into the logged-on user's session).
+/// Consecutive steps with the same service form a slice; the server starts the slices one after the other. The
+/// account password never leaves the server (it is only used to create the service).
 /// </summary>
 internal static class RunAsPlan
 {
-    /// <param name="Start">Position de la première étape dans la liste envoyée (0 = la première).</param>
-    /// <param name="AsDeployUser">Service sous le compte de déploiement ; sinon Système local.</param>
+    /// <param name="Start">Position of the first step in the list sent (0 = the first).</param>
+    /// <param name="AsDeployUser">Service under the deployment account; otherwise Local System.</param>
     public sealed record Tranche(int Start, int Count, bool AsDeployUser);
 
-    /// <summary>Identité réelle d'une étape : la sienne, sinon celle du déploiement ; sans identifiant, Système local.</summary>
-    /// <remarks>Un message s'affiche par un processus lancé dans chaque session : il lui faut un service en Système.</remarks>
+    /// <summary>Actual identity of a step: its own, otherwise the deployment's; with no credential, Local System.</summary>
+    /// <remarks>A message is shown by a process started in each session: it needs a service running as System.</remarks>
     public static RunAsMode Effective(PackageStep step, RunAsMode deployment, bool hasAccount) =>
         step.Type == StepType.Message ? RunAsMode.LocalSystem
         : (step.RunAs ?? deployment) is var mode && mode == RunAsMode.DeployUser && !hasAccount ? RunAsMode.LocalSystem : mode;
 
-    /// <param name="cutAfter">Étapes qui terminent leur tranche (redémarrage) : la suivante démarre après le retour du poste.</param>
+    /// <param name="cutAfter">Steps that end their slice (restart): the next one starts after the computer is back.</param>
     public static List<Tranche> Split(IReadOnlyList<RunAsMode> modes, IReadOnlyList<bool>? cutAfter = null)
     {
         var tranches = new List<Tranche>();
@@ -40,14 +40,14 @@ internal static class RunAsPlan
         return tranches;
     }
 
-    /// <summary>Une tranche finie arrête le paquet : arrêt demandé par le runner, ou runner interrompu par une erreur.</summary>
+    /// <summary>A finished slice stops the package: stop requested by the runner, or runner interrupted by an error.</summary>
     public static bool Stops(RunnerStatus finished) => finished.Halt || finished.Error != null;
 
-    /// <summary>Raison donnée aux étapes des tranches non lancées.</summary>
+    /// <summary>Reason given to the steps of the slices not started.</summary>
     public static string? StopReason(RunnerStatus finished) =>
         finished.Halt ? finished.HaltReason : finished.Error != null ? "Tranche précédente interrompue : " + finished.Error : null;
 
-    /// <summary>Fin anticipée décidée par le serveur (poste éteint) : les étapes suivantes sont ignorées avec <paramref name="reason"/>.</summary>
+    /// <summary>Early end decided by the server (computer off): the following steps are skipped with <paramref name="reason"/>.</summary>
     public static RunnerStatus Finish(IReadOnlyList<RunnerStepResult> done, IReadOnlyList<string> later, string reason, List<RunnerNetworkCard>? network) => new()
     {
         State = "done",
@@ -58,8 +58,8 @@ internal static class RunAsPlan
     };
 
     /// <summary>
-    /// Avancement complet : résultats des tranches finies, puis ceux de la tranche en cours. Si la tranche en cours
-    /// arrête le paquet, les étapes des tranches suivantes y sont ajoutées « ignorées » avec sa raison.
+    /// Complete progress: results of the finished slices, then those of the current slice. If the current slice
+    /// stops the package, the steps of the following slices are added to it as "skipped" with its reason.
     /// </summary>
     public static RunnerStatus Combine(IReadOnlyList<RunnerStepResult> done, RunnerStatus current, IReadOnlyList<string> later, bool last)
     {

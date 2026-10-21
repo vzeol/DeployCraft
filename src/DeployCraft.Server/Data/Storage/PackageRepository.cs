@@ -63,8 +63,8 @@ public sealed class PackageRepository(Database database, ISettingsRepository set
         }
         else
         {
-            // Le dossier n'est pas modifié ici (seulement par Move) : enregistrer un paquet ouvert avant un
-            // déplacement ne le remet pas à son ancienne place.
+            // The folder is not changed here (only by Move): saving a package opened before a
+            // move does not put it back in its old place.
             using var cmd = Database.Command(connection, """
                 UPDATE packages SET name=$name, description=$desc, steps=$steps, modified_utc=$mod, run_as=$runas, copy_mode=$copy,
                     version=$version, timeout=$timeout, conditions=$conditions, offline=$offline
@@ -106,10 +106,10 @@ public sealed class PackageRepository(Database database, ISettingsRepository set
         cmd.ExecuteNonQuery();
     }
 
-    /// <summary>Valeur rangée dans run_as / copy_mode quand le paquet suit les Préférences.</summary>
+    /// <summary>Value stored in run_as / copy_mode when the package follows the Preferences.</summary>
     private const string DefaultValue = "Default";
 
-    /// <summary>Cibles mémorisées pour un paquet (« Mémoriser ces cibles » de la fenêtre Déployer une fois).</summary>
+    /// <summary>Targets remembered for a package ("Mémoriser ces cibles" in the Deploy once window).</summary>
     public List<string> GetTargets(long packageId) =>
         settings.Get($"package.{packageId}.targets") is { } json
             ? JsonSerializer.Deserialize<List<string>>(json, Database.Json) ?? []

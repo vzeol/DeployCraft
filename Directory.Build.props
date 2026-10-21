@@ -1,10 +1,10 @@
 <Project>
 
-  <!-- Réglages communs à tous les projets. -->
+  <!-- Settings shared by all projects. -->
   <PropertyGroup>
-    <!-- Versions des dépendances figées dans packages.lock.json (commité) : même build partout. -->
+    <!-- Dependency versions pinned in packages.lock.json (committed): same build everywhere. -->
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-    <!-- Le CI restaure en mode verrouillé : un lock file pas à jour fait échouer la compilation. -->
+    <!-- CI restores in locked mode: an outdated lock file makes the build fail. -->
     <RestoreLockedMode Condition="'$(CI)' == 'true'">true</RestoreLockedMode>
     <!-- Code quality rules of .editorconfig are checked by the build itself (and by CI, where warnings are errors).
          The XML documentation file is needed for the unused-usings check; undocumented members are allowed. -->

@@ -1,26 +1,26 @@
 namespace DeployCraft.Server.Remote;
 
 /// <summary>
-/// Limite de débit partagée par toutes les copies de fichiers du serveur vers les postes : seau à jetons avec une
-/// seconde de réserve. Chaque morceau copié réserve sa part et attend si le seau est à découvert ; le total des copies
-/// en cours ne dépasse donc pas la limite, quel que soit le nombre de postes.
+/// Rate limit shared by all file copies from the server to the computers: token bucket with one
+/// second of reserve. Each copied chunk reserves its share and waits if the bucket is overdrawn; the total of
+/// running copies therefore never exceeds the limit, whatever the number of computers.
 /// </summary>
 public sealed class BandwidthLimiter(Func<DateTime>? clock = null, Action<TimeSpan, CancellationToken>? sleep = null)
 {
-    /// <summary>Limite des copies vers les postes, réglée par les Préférences.</summary>
+    /// <summary>Limit of the copies to the computers, set in Preferences.</summary>
     public static BandwidthLimiter Copies { get; } = new();
 
     private const int BufferSize = 256 * 1024;
 
     private readonly Func<DateTime> _clock = clock ?? (() => DateTime.UtcNow);
-    /// <summary>Attente interrompue dès l'annulation.</summary>
+    /// <summary>Wait interrupted as soon as cancelled.</summary>
     private readonly Action<TimeSpan, CancellationToken> _sleep = sleep ?? ((wait, ct) => ct.WaitHandle.WaitOne(wait));
     private readonly object _lock = new();
     private double _tokens;
     private DateTime? _last;
     private long _rate;
 
-    /// <summary>Débit maximal en octets par seconde (0 = sans limite).</summary>
+    /// <summary>Maximum rate in bytes per second (0 = unlimited).</summary>
     public long BytesPerSecond
     {
         get => Interlocked.Read(ref _rate);
@@ -29,7 +29,7 @@ public sealed class BandwidthLimiter(Func<DateTime>? clock = null, Action<TimeSp
 
     public static long FromMbps(int mbps) => mbps * 125_000L;
 
-    /// <summary>Réserve <paramref name="bytes"/> octets ; attend le temps nécessaire si la limite est atteinte.</summary>
+    /// <summary>Reserves <paramref name="bytes"/> bytes; waits as long as needed if the limit is reached.</summary>
     public void Take(int bytes, CancellationToken ct = default)
     {
         var rate = BytesPerSecond;
@@ -47,8 +47,8 @@ public sealed class BandwidthLimiter(Func<DateTime>? clock = null, Action<TimeSp
         ct.ThrowIfCancellationRequested();
     }
 
-    /// <param name="copied">Appelé après chaque morceau écrit, avec sa taille (suivi de l'avancement).</param>
-    /// <param name="ct">Annulation vérifiée entre deux morceaux et pendant les attentes : la copie s'arrête en route.</param>
+    /// <param name="copied">Called after each chunk written, with its size (progress tracking).</param>
+    /// <param name="ct">Cancellation checked between chunks and during waits: the copy stops midway.</param>
     public void Copy(Stream source, Stream destination, Action<int>? copied = null, CancellationToken ct = default)
     {
         var buffer = new byte[BufferSize];
@@ -62,8 +62,8 @@ public sealed class BandwidthLimiter(Func<DateTime>? clock = null, Action<TimeSp
     }
 
     /// <summary>
-    /// Copie un fichier (écrase la destination). Sans limite ni suivi de l'avancement, par la copie du système, plus
-    /// rapide ; sinon par morceaux.
+    /// Copies a file (overwrites the destination). With no limit and no progress tracking, uses the system copy, which is
+    /// faster; otherwise copies by chunks.
     /// </summary>
     public void CopyFile(string source, string destination, Action<int>? copied = null, CancellationToken ct = default)
     {
@@ -76,7 +76,7 @@ public sealed class BandwidthLimiter(Func<DateTime>? clock = null, Action<TimeSp
         using (var input = new FileStream(source, FileMode.Open, FileAccess.Read, FileShare.Read, BufferSize, FileOptions.SequentialScan))
         using (var output = new FileStream(destination, FileMode.Create, FileAccess.Write, FileShare.None, BufferSize))
             Copy(input, output, copied, ct);
-        // Même date que la source, comme la copie du système (la copie de fichiers sur le poste s'en sert).
+        // Same date as the source, like the system copy (the file copy on the computer relies on it).
         File.SetLastWriteTimeUtc(destination, File.GetLastWriteTimeUtc(source));
     }
 }

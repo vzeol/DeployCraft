@@ -4,10 +4,10 @@ using DeployCraft.Server.Data;
 namespace DeployCraft.Server.Remote;
 
 /// <summary>
-/// Un déploiement sur un PC : copie du runner et des fichiers dans un « slot »,
-/// service temporaire, attente du résultat, nettoyage.
+/// A deployment on one PC: copy of the runner and files into a "slot",
+/// temporary service, wait for the result, cleanup.
 ///
-/// Sur la cible :
+/// On the target:
 ///   C:\Windows\DeployCraft\slot-N.lock
 ///   C:\Windows\DeployCraft\slot-N\DeployCraftRunner-N.exe, job.json, status.json, runner.log, exec\
 /// </summary>
@@ -19,12 +19,12 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
     private readonly bool _isLocal = IsLocalComputer(computer);
     private int _slot;
 
-    /// <summary>Dossier racine vu depuis le serveur (local ou via le partage ADMIN$).</summary>
+    /// <summary>Root folder as seen from the server (local, or through the ADMIN$ share).</summary>
     private string Root => _isLocal ? RemoteRoot : $@"\\{computer}\ADMIN$\DeployCraft";
     private string SlotDir => Path.Combine(Root, $"slot-{_slot}");
     private string LockFile => Path.Combine(Root, $"slot-{_slot}.lock");
     private string ServiceName => $"DeployCraftRunner-{_slot}";
-    /// <summary>Service de la tranche en cours (suffixé -1, -2… quand il y a plusieurs identités).</summary>
+    /// <summary>Service of the current slice (suffixed -1, -2... when there are several identities).</summary>
     private string? _service;
     private string RunnerName => $"{ServiceName}.exe";
 
@@ -40,19 +40,19 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
 
         try
         {
-            // Dans le try : une préparation ratée (fichier introuvable…) libère aussi le slot qu'elle a réservé.
-            // Pendant la copie, l'avancement est affiché une fois par seconde (rien n'est écrit à chaque morceau).
+            // Inside the try: a failed preparation (file not found...) also releases the slot it reserved.
+            // During the copy, progress is shown once per second (nothing is written for every chunk).
             var copying = new CopyProgress();
-            // Une annulation coupe la copie entre deux morceaux ; on attend qu'elle soit arrêtée avant le nettoyage du slot.
+            // A cancellation stops the copy between two chunks; we wait until it has stopped before cleaning up the slot.
             var preparing = Task.Run(() => credentials.RunAs(account, computer, () => Prepare(package, startStep, runAs, copyMode, copying, ct)), CancellationToken.None);
             while (await Task.WhenAny(preparing, Task.Delay(1000, CancellationToken.None)) != preparing)
                 if (copying.Text() is { } text) stage(text);
             var (job, modes) = await preparing;
             ct.ThrowIfCancellationRequested();
-            // Un redémarrage termine sa tranche : la suivante est lancée une fois le poste revenu.
+            // A reboot ends its slice: the next one is started once the computer is back.
             var tranches = RunAsPlan.Split(modes, [.. job.Steps.Select(s => s.Type == RebootType)]);
 
-            // Une tranche par identité ; la suivante ne démarre qu'une fois le service de la précédente supprimé.
+            // One slice per identity; the next one only starts once the previous one's service is deleted.
             for (var t = 0; t < tranches.Count; t++)
             {
                 var tranche = tranches[t];
@@ -67,7 +67,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 _service = tranches.Count == 1 ? ServiceName : $"{ServiceName}-{t + 1}";
 
                 var identity = tranche.AsDeployUser && account != null ? "compte de déploiement" : "Système";
-                // Annulé entre deux tranches : aucune nouvelle n'est lancée.
+                // Cancelled between two slices: no new one is started.
                 ct.ThrowIfCancellationRequested();
                 stage(tranches.Count == 1 ? "Démarrage du runner" : $"Démarrage du runner ({t + 1}/{tranches.Count}, {identity})");
                 if (restarted) await StartAfterRestartAsync(trancheJob, tranche.AsDeployUser, ct);
@@ -86,7 +86,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 done.AddRange(final.Steps);
                 if (RunAsPlan.Stops(final)) return;
 
-                // Redémarrage programmé par la dernière étape de la tranche (pas ignorée, pas en échec).
+                // Reboot scheduled by the last step of the slice (not skipped, not failed).
                 var reboot = trancheJob.Steps[^1];
                 if (reboot.Type != RebootType || final.Steps.Count != trancheJob.Steps.Count || final.Steps[^1].State != "success") continue;
                 if (reboot.ShutdownOnly)
@@ -109,8 +109,8 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
     private const string RebootType = "reboot";
 
     /// <summary>
-    /// Attend que le poste s'arrête (après le délai annoncé à l'utilisateur), puis qu'il réponde de nouveau, au plus le
-    /// délai max de l'étape. Le slot (fichiers et verrou) reste sur le disque du poste pendant le redémarrage.
+    /// Waits for the computer to shut down (after the delay announced to the user), then to answer again, at most the
+    /// step's maximum delay. The slot (files and lock) stays on the computer's disk during the reboot.
     /// </summary>
     private async Task WaitForRestartAsync(RunnerJobStep reboot, Action<string> stage, CancellationToken ct)
     {
@@ -133,7 +133,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         }
     }
 
-    /// <summary>Juste après le démarrage, le partage peut répondre avant le gestionnaire de services : quelques essais.</summary>
+    /// <summary>Right after startup, the share may answer before the service manager does: a few attempts.</summary>
     private async Task StartAfterRestartAsync(RunnerJob job, bool asDeployUser, CancellationToken ct)
     {
         for (var attempt = 1; ; attempt++)
@@ -150,7 +150,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         }
     }
 
-    /// <summary>Écrit les consignes de la tranche et crée son service, sous le compte de déploiement ou en Système.</summary>
+    /// <summary>Writes the slice's instructions and creates its service, under the deployment account or as System.</summary>
     private void StartTranche(RunnerJob job, bool asDeployUser)
     {
         File.WriteAllText(Path.Combine(SlotDir, "job.json"), JsonSerializer.Serialize(job));
@@ -159,7 +159,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         string? serviceAccount = null, password = null;
         if (asDeployUser && account != null)
         {
-            // Le compte local « .\utilisateur » se cherche sous le nom du poste.
+            // The local account ".\user" is looked up under the computer's name.
             serviceAccount = account.Account;
             LogonRight.GrantServiceLogon(_isLocal ? null : computer, DeployCredentials.LogonDomain(account, computer) + "\\" + account.User);
             password = credentials.Password(account);
@@ -168,10 +168,10 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         scm.CreateAndStart(_service!, Path.Combine(RemoteRoot, $"slot-{_slot}", RunnerName), serviceAccount, password);
     }
 
-    /// <summary>Durée pendant laquelle le suivi supporte un poste injoignable (le runner, lui, continue sur le poste).</summary>
+    /// <summary>How long the monitoring tolerates an unreachable computer (the runner keeps going on the computer).</summary>
     internal static readonly TimeSpan ReconnectGrace = TimeSpan.FromMinutes(10);
 
-    /// <summary>Suit status.json jusqu'à la fin de la tranche ; renvoie son dernier état.</summary>
+    /// <summary>Follows status.json until the slice ends; returns its last state.</summary>
     private async Task<RunnerStatus> WaitAsync(RunnerJob job, Action<string> stage, string runningStage, Action<RunnerStatus> progress,
         CancellationToken ct)
     {
@@ -197,7 +197,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
             }
             catch (Exception ex) when (IsNetworkError(ex))
             {
-                // Coupure réseau : on réessaie un moment au lieu d'abandonner un poste qui continue son travail.
+                // Network outage: retry for a while instead of giving up on a computer that is still working.
                 lostSince ??= DateTime.UtcNow;
                 if (DateTime.UtcNow - lostSince > ReconnectGrace)
                     throw new DeployException(
@@ -219,8 +219,8 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
             }
             if (!running)
             {
-                // Le service a pu finir entre les deux appels : dernières lectures, le temps que le partage montre le
-                // status.json final (il peut sembler absent ou ancien quelques secondes juste après son remplacement).
+                // The service may have finished between the two calls: last reads, while the share catches up with the
+                // final status.json (it may look absent or old for a few seconds right after being replaced).
                 status = await FinalStatusAsync(() =>
                 {
                     try
@@ -243,13 +243,13 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         }
     }
 
-    /// <summary>Erreur d'accès au poste qui peut passer d'elle-même (réseau, partage, gestionnaire de services distant).</summary>
+    /// <summary>Computer access error that may go away by itself (network, share, remote service manager).</summary>
     internal static bool IsNetworkError(Exception ex) =>
         ex is IOException or System.ComponentModel.Win32Exception;
 
     /// <summary>
-    /// Relit l'état jusqu'à trouver « done », au plus <paramref name="attempts"/> fois à une seconde d'intervalle ;
-    /// renvoie le dernier état lu (ou null).
+    /// Re-reads the state until it finds "done", at most <paramref name="attempts"/> times one second apart;
+    /// returns the last state read (or null).
     /// </summary>
     internal static async Task<RunnerStatus?> FinalStatusAsync(Func<RunnerStatus?> read, Func<TimeSpan, Task> delay, int attempts = 12)
     {
@@ -263,8 +263,8 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
     }
 
     /// <summary>
-    /// Windows garde quelques secondes en mémoire le contenu d'un dossier lu à travers un partage (et l'absence d'un
-    /// fichier). Créer puis supprimer un fichier vide dans le dossier oblige à le relire pour de bon.
+    /// Windows keeps the content of a folder read through a share (and the absence of a
+    /// file) in memory for a few seconds. Creating then deleting an empty file in the folder forces a real re-read.
     /// </summary>
     private void RefreshShareCache(string directory)
     {
@@ -277,7 +277,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            // Sans effet sur la lecture : on lit quand même.
+            // No effect on reading: we read anyway.
         }
     }
 
@@ -288,8 +288,8 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
     }
 
     /// <summary>
-    /// Test rapide : le nom se résout-il et le partage de fichiers (port 445) répond-il ?
-    /// Renvoie l'erreur « hors ligne » correspondante, ou null si le poste est joignable.
+    /// Quick test: does the name resolve and does file sharing (port 445) answer?
+    /// Returns the matching "offline" error, or null if the computer is reachable.
     /// </summary>
     public static async Task<DeployException?> ProbeAsync(string computer, CancellationToken ct)
     {
@@ -317,13 +317,13 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
             }
             catch (Exception ex) when (ex is System.Net.Sockets.SocketException or OperationCanceledException && !ct.IsCancellationRequested)
             {
-                // adresse suivante
+                // next address
             }
         }
         return new DeployException($"{computer} est hors ligne (éteint, ou partage de fichiers bloqué par le pare-feu).") { Offline = true };
     }
 
-    /// <summary>Copie le runner et les fichiers, prépare les consignes de toutes les étapes et l'identité de chacune.</summary>
+    /// <summary>Copies the runner and the files, prepares the instructions of all steps and the identity of each.</summary>
     private (RunnerJob Job, List<RunAsMode> Modes) Prepare(Package package, int startStep, RunAsMode runAs, CopyMode copyMode, CopyProgress progress, CancellationToken ct)
     {
         try
@@ -341,7 +341,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
 
         AcquireSlot();
         var exec = Directory.CreateDirectory(Path.Combine(SlotDir, "exec")).FullName;
-        // Les fichiers sont d'abord listés (et vérifiés), puis copiés d'un bloc : le total est connu pour l'avancement.
+        // Files are first listed (and checked), then copied in one go: the total is known for progress.
         var copies = new CopyBatch();
         copies.Add(runnerExe, Path.Combine(SlotDir, RunnerName));
         var config = runnerExe + ".config";
@@ -355,7 +355,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
             modes.Add(mode);
             var jobStep = ToJobStep(step, package, mode);
 
-            // Étape désactivée : transmise pour apparaître « Ignoré », mais aucun fichier n'est copié ni vérifié.
+            // Disabled step: sent so it shows as "Ignoré" (skipped), but no file is copied or checked.
             if (step.Enabled && step.Type is StepType.Install or StepType.Command or StepType.PowerShell)
                 StageAdditionalFiles(step, jobStep, copyMode, exec, copies);
 
@@ -365,7 +365,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 jobStep.Command = Path.GetFileName(step.File);
                 jobStep.CommandLine = InstallCommand.For(step);
                 if (step.KeepInstallFile) jobStep.KeepFolder = KeepFolder(package.Name);
-                // Pull : le poste lit lui-même le partage, avec l'identité du runner. Un chemin local reste en push.
+                // Pull: the computer reads the share itself, with the runner's identity. A local path stays push.
                 if (copyMode == CopyMode.Pull && step.File.StartsWith(@"\\"))
                 {
                     jobStep.SourcePath = step.File;
@@ -373,7 +373,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                     job.Steps.Add(jobStep);
                     continue;
                 }
-                // Push : le fichier est lu par le serveur (avec le compte de déploiement s'il est sur un partage).
+                // Push: the file is read by the server (with the deployment account if it is on a share).
                 if (!File.Exists(step.File)) throw new DeployException($"Fichier d'installation introuvable : {step.File}");
                 if (step.IncludeDirectory) CopyDirectory(Path.GetDirectoryName(step.File)!, exec, copies);
                 else copies.Add(step.File, Path.Combine(exec, Path.GetFileName(step.File)));
@@ -387,7 +387,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                     jobStep.SourcePath = step.CopySource;
                 else
                 {
-                    // Push : le serveur dépose les fichiers retenus dans exec\copie-N, que le poste copie ensuite tels quels.
+                    // Push: the server drops the selected files into exec\copie-N, which the computer then copies as they are.
                     jobStep.Command = $"copie-{startStep + job.Steps.Count}";
                     StageCopy(step.CopySource, step.CopyPatterns, step.CopySubfolders, Path.Combine(exec, jobStep.Command), copies);
                     jobStep.CopyPatterns = ["*"];
@@ -403,10 +403,10 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
     }
 
     /// <summary>
-    /// Copie de fichiers en push : dépose dans <paramref name="target"/> le fichier <paramref name="source"/>, ou les
-    /// fichiers du dossier qui suivent les motifs (avec les sous-dossiers si demandé), en gardant leur arborescence.
+    /// File copy in push mode: drops file <paramref name="source"/> into <paramref name="target"/>, or the
+    /// files of the folder that match the patterns (with subfolders if requested), keeping their tree structure.
     /// </summary>
-    /// <param name="batch">Liste où ajouter les copies (null = copier tout de suite).</param>
+    /// <param name="batch">List to add the copies to (null = copy right away).</param>
     internal static void StageCopy(string source, string? patterns, bool subfolders, string target, CopyBatch? batch = null)
     {
         var copies = batch ?? new CopyBatch();
@@ -420,7 +420,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         if (!Directory.Exists(source)) throw new DeployException($"Fichier ou dossier à copier introuvable : {source}");
 
         var option = subfolders ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-        // Comme sur le poste : les sous-dossiers sont recréés même vides.
+        // As on the computer: subfolders are recreated even when empty.
         if (subfolders)
             foreach (var dir in Directory.EnumerateDirectories(source, "*", option))
                 Directory.CreateDirectory(Path.Combine(target, Path.GetRelativePath(source, dir)));
@@ -431,10 +431,10 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
     }
 
     /// <summary>
-    /// Fichiers additionnels : déposés par le serveur à côté de la commande (exec\), ou, en mode pull, lus par le poste
-    /// lui-même sur le partage. Un fichier introuvable arrête la préparation du poste.
+    /// Additional files: dropped by the server next to the command (exec\), or, in pull mode, read by the computer
+    /// itself from the share. A missing file stops the computer's preparation.
     /// </summary>
-    /// <param name="batch">Liste où ajouter les copies (null = copier tout de suite).</param>
+    /// <param name="batch">List to add the copies to (null = copy right away).</param>
     internal static void StageAdditionalFiles(PackageStep step, RunnerJobStep jobStep, CopyMode copyMode, string exec, CopyBatch? batch = null)
     {
         var copies = batch ?? new CopyBatch();
@@ -454,18 +454,18 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         if (batch == null) copies.Run(BandwidthLimiter.Copies, null);
     }
 
-    /// <summary>Dossier du poste où sont gardés les fichiers d'installation d'un paquet (option de l'étape « Installer »).</summary>
+    /// <summary>Folder on the computer where a package's installation files are kept (option of the "Installer" step).</summary>
     internal static string KeepFolder(string packageName)
     {
         var safe = string.Concat(packageName.Split(Path.GetInvalidFileNameChars())).Trim().TrimEnd('.');
         return $@"%ProgramData%\DeployCraft\Installeurs\{(safe.Length > 0 ? safe : "Paquet")}";
     }
 
-    /// <summary>Étapes envoyées au poste quand on (re)commence à l'étape N.</summary>
+    /// <summary>Steps sent to the computer when (re)starting at step N.</summary>
     internal static IEnumerable<PackageStep> StepsFrom(Package package, int startStep) =>
         package.Steps.Skip(Math.Max(0, startStep - 1));
 
-    /// <summary>Consignes d'une étape pour le runner (hors fichiers à copier), lancée sous l'identité <paramref name="runAs"/>.</summary>
+    /// <summary>Instructions of one step for the runner (apart from files to copy), run under identity <paramref name="runAs"/>.</summary>
     internal static RunnerJobStep ToJobStep(PackageStep step, Package package, RunAsMode runAs)
     {
         if (step.Type == StepType.Nested)
@@ -483,10 +483,10 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
                 StepType.Message => step.MessageSeconds,
                 _ => 0,
             },
-            // Copie : robocopy réussit de 0 à 7 ; 8 à 15 = des fichiers n'ont pas pu être copiés ; 16 = erreur grave.
+            // Copy: robocopy succeeds with 0 to 7; 8 to 15 = some files could not be copied; 16 = serious error.
             SuccessCodes = step.Type == StepType.CopyFiles ? [.. Enumerable.Range(0, step.CopyIgnoreErrors ? 16 : 8)] : ParseCodes(step.SuccessCodes),
-            // Une pause dure ce qu'elle dure : son délai (qui compte dans l'attente du serveur) suit sa durée, comme celui
-            // d'un message attendu plus longtemps que le délai de l'étape.
+            // A pause lasts as long as it lasts: its timeout (which counts in the server's wait) follows its duration, like that
+            // of a message waited for longer than the step timeout.
             TimeoutSeconds = step.Type == StepType.Pause
                 ? Math.Max(1, step.PauseSeconds) + 60
                 : Math.Max(Math.Max(1, step.TimeoutMinutes ?? package.TimeoutMinutes ?? 60) * 60,
@@ -498,7 +498,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
             CopyPatterns = step.Type == StepType.CopyFiles ? PackageStep.SplitPatterns(step.CopyPatterns) : null,
             CopySubfolders = step.Type == StepType.CopyFiles && step.CopySubfolders,
             CopyOverwrite = step.Type == StepType.CopyFiles && step.CopyOverwrite,
-            // Redémarrage et message passent par le service, jamais par l'utilisateur connecté (qui n'en a souvent pas le droit).
+            // Reboot and message go through the service, never through the logged-on user (who often lacks the right).
             RunAsLoggedOnUser = runAs == RunAsMode.LoggedOnUser && step.Type is not (StepType.Reboot or StepType.Message),
             ShutdownOnly = step.Type == StepType.Reboot && step.RebootShutdownOnly,
             WaitForUser = step.Type == StepType.Message && step.MessageWait,
@@ -510,15 +510,15 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
     }
 
     /// <summary>
-    /// Ce serveur (machine, processus et heure de démarrage), écrit dans les verrous de slot : un verrou laissé par un
-    /// serveur arrêté en plein déploiement peut ainsi être repris au lieu de bloquer son slot pour toujours.
+    /// This server (machine, process and start time), written in slot locks: a lock left by a
+    /// server stopped mid-deployment can then be taken over instead of blocking its slot forever.
     /// </summary>
     private static readonly string Instance = OwnerOf(System.Diagnostics.Process.GetCurrentProcess());
 
     private static string OwnerOf(System.Diagnostics.Process process) =>
         $"{Environment.MachineName}|{process.Id}|{process.StartTime.ToUniversalTime().Ticks}";
 
-    /// <summary>Le serveur qui a posé ce verrou tourne-t-il encore sur cette machine ?</summary>
+    /// <summary>Is the server that placed this lock still running on this machine?</summary>
     private static bool OwnerAlive(string owner)
     {
         var parts = owner.Split('|');
@@ -526,19 +526,19 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         try
         {
             using var process = System.Diagnostics.Process.GetProcessById(pid);
-            return OwnerOf(process) == owner; // même numéro mais autre démarrage : numéro réutilisé
+            return OwnerOf(process) == owner; // same number but another start: number reused
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
         {
-            return false; // plus de processus avec ce numéro
+            return false; // no more process with this number
         }
         catch (System.ComponentModel.Win32Exception)
         {
-            return true; // impossible de vérifier : dans le doute, le verrou est gardé
+            return true; // cannot check: when in doubt, the lock is kept
         }
     }
 
-    /// <summary>Réserve un slot libre grâce à un fichier verrou créé de façon exclusive.</summary>
+    /// <summary>Reserves a free slot using a lock file created exclusively.</summary>
     private void AcquireSlot()
     {
         for (var i = 1; i <= MaxSlots; i++)
@@ -546,13 +546,13 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
             var lockPath = Path.Combine(Root, $"slot-{i}.lock");
             if (!TryCreateLock(lockPath) && !TryReclaim(lockPath, Path.Combine(Root, $"slot-{i}"))) continue;
             _slot = i;
-            if (Directory.Exists(SlotDir)) Directory.Delete(SlotDir, recursive: true); // reste d'un crash
+            if (Directory.Exists(SlotDir)) Directory.Delete(SlotDir, recursive: true); // left over from a crash
             return;
         }
         throw new DeployException($"Trop de déploiements simultanés sur ce poste ({MaxSlots}).");
     }
 
-    /// <summary>Deux déploiements de ce serveur ne reprennent jamais le même verrou en même temps.</summary>
+    /// <summary>Two deployments of this server never take the same lock at the same time.</summary>
     private static readonly Lock ReclaimGate = new();
 
     private static bool TryReclaim(string lockPath, string slotDir)
@@ -576,14 +576,14 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         }
         catch (IOException)
         {
-            return false; // slot occupé
+            return false; // slot taken
         }
     }
 
     /// <summary>
-    /// Un verrou peut être repris s'il a été posé, sur la machine de ce serveur, par un serveur qui ne tourne plus (ou,
-    /// sans auteur, par une ancienne version il y a plus d'un jour) et qu'aucun runner ne tourne encore dans son slot.
-    /// Un autre serveur encore en marche sur la même machine (instance de test) garde ses verrous.
+    /// A lock can be taken over if it was placed, on this server's machine, by a server that is no longer running (or,
+    /// with no author, by an old version more than a day ago) and no runner is still running in its slot.
+    /// Another server still running on the same machine (test instance) keeps its locks.
     /// </summary>
     internal static bool CanReclaim(string lockPath, string slotDir, string instance, DateTime nowUtc, Func<string, bool> ownerAlive)
     {
@@ -602,7 +602,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         }
     }
 
-    /// <summary>Un programme en cours d'exécution ne peut pas être ouvert en écriture exclusive.</summary>
+    /// <summary>A running program cannot be opened for exclusive writing.</summary>
     private static bool IsInUse(string file)
     {
         try
@@ -617,8 +617,8 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
     }
 
     /// <summary>
-    /// Lit status.json sans bloquer le runner (qui le remplace à chaque changement) ; réessaie un peu si le fichier
-    /// est verrouillé ou à moitié écrit, sinon null : on relira au prochain tour.
+    /// Reads status.json without blocking the runner (which replaces it on every change); retries a little if the file
+    /// is locked or half written, otherwise null: it will be re-read next round.
     /// </summary>
     internal static RunnerStatus? ReadStatus(string path)
     {
@@ -626,7 +626,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         {
             try
             {
-                // Pas de File.Exists : à travers un partage, il peut répondre « absent » d'après un cache périmé.
+                // No File.Exists: through a share, it may answer "absent" from a stale cache.
                 using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
                 using var reader = new StreamReader(stream);
                 return JsonSerializer.Deserialize<RunnerStatus>(reader.ReadToEnd());
@@ -651,7 +651,7 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         if (_slot == 0) return;
         using (var scm = new ServiceControl(_isLocal ? null : computer)) scm.Remove(_service ?? ServiceName);
 
-        // L'exe du service peut rester verrouillé quelques instants après l'arrêt.
+        // The service exe may stay locked for a few moments after stopping.
         for (var attempt = 0; attempt < 10; attempt++)
         {
             try
@@ -697,10 +697,10 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
     }
 }
 
-/// <summary>Erreur de déploiement avec un message lisible par un humain.</summary>
+/// <summary>Deployment error with a message readable by a human.</summary>
 public class DeployException(string message, Exception? inner = null) : Exception(message, inner)
 {
-    /// <summary>Le poste n'a pas pu être joint : candidat à la file de réessai.</summary>
+    /// <summary>The computer could not be reached: candidate for the retry queue.</summary>
     public bool Offline { get; init; }
 
     public static DeployException FromShareAccess(string computer, Exception ex) => ex switch

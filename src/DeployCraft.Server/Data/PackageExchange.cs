@@ -2,14 +2,14 @@ using System.Text.Json;
 
 namespace DeployCraft.Server.Data;
 
-/// <summary>Export et import de paquets (fichiers JSON DeployCraft, ou fichiers XML de paquets).</summary>
+/// <summary>Export and import of packages (DeployCraft JSON files, or package XML files).</summary>
 public static class PackageExchange
 {
     private static readonly JsonSerializerOptions WriteOptions = new(Database.Json) { WriteIndented = true };
 
     /// <summary>
-    /// Paquets à exporter : ceux demandés puis les paquets imbriqués qu'ils utilisent (à tous les niveaux),
-    /// pour que le fichier se suffise à lui-même. Numéro inconnu : <see cref="ArgumentException"/>.
+    /// Packages to export: the requested ones then the nested packages they use (at all levels),
+    /// so that the file is self-sufficient. Unknown number: <see cref="ArgumentException"/>.
     /// </summary>
     public static PackageExport Export(IEnumerable<long> ids, Func<long, Package?> lookup)
     {
@@ -20,7 +20,7 @@ public static class PackageExchange
         {
             if (!seen.Add(id)) continue;
             var p = lookup(id) ?? throw new ArgumentException($"Paquet introuvable (n° {id}).");
-            p.FolderId = null; // les dossiers de ce serveur ne veulent rien dire ailleurs
+            p.FolderId = null; // the folders of this server mean nothing elsewhere
             result.Add(p);
             foreach (var s in p.Steps)
                 if (s.Type == StepType.Nested && s.NestedPackageId is { } nested) pending.Enqueue(nested);
@@ -31,8 +31,8 @@ public static class PackageExchange
     public static string Serialize(PackageExport export) => JsonSerializer.Serialize(export, WriteOptions);
 
     /// <summary>
-    /// Lit un fichier d'import : export DeployCraft (JSON) ou fichier XML de paquets.
-    /// <paramref name="repository"/> remplace <c>$(Repository)</c> dans les paquets XML.
+    /// Reads an import file: DeployCraft export (JSON) or package XML file.
+    /// <paramref name="repository"/> replaces <c>$(Repository)</c> in the XML packages.
     /// </summary>
     public static ImportReport Read(string content, string? repository = null)
     {
@@ -80,10 +80,10 @@ public static class PackageExchange
     }
 
     /// <summary>
-    /// Termine l'import : relie les paquets imbriqués, rend les noms uniques, vérifie chaque paquet
-    /// (<paramref name="validate"/> renvoie un message d'erreur ou null) et, si <paramref name="save"/> est donné,
-    /// l'enregistre. Sans <paramref name="save"/>, c'est un aperçu : rien n'est créé.
-    /// Un paquet imbriqué est traité avant le paquet qui l'utilise.
+    /// Finishes the import: links the nested packages, makes the names unique, checks each package
+    /// (<paramref name="validate"/> returns an error message or null) and, if <paramref name="save"/> is given,
+    /// saves it. Without <paramref name="save"/>, it is a preview: nothing is created.
+    /// A nested package is handled before the package that uses it.
     /// </summary>
     public static void Complete(ImportReport report, IReadOnlyCollection<Package> existing,
         Func<Package, Func<long, Package?>, string?> validate, Func<Package, Package>? save)
@@ -127,7 +127,7 @@ public static class PackageExchange
                         continue;
                     }
                 }
-                // Export XML sans le paquet imbriqué : un paquet du même nom déjà dans DeployCraft fait l'affaire.
+                // XML export without the nested package: a package with the same name already in DeployCraft will do.
                 var name = key.Split('\\')[^1];
                 if (report.Source != ImportReport.SourceDeployCraft && existing.FirstOrDefault(e => e.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) is { } found)
                 {
@@ -140,7 +140,7 @@ public static class PackageExchange
             }
 
             inProgress.Remove(r);
-            if (r.Package == null) return; // boucle détectée plus bas dans la chaîne
+            if (r.Package == null) return; // loop detected further down the chain
 
             p.Name = UniqueName(p.Name.Trim(), usedNames);
             if (!p.Name.Equals(r.Name.Trim(), StringComparison.Ordinal)) r.Warn($"Nom déjà pris : importé sous le nom « {p.Name} ».");
@@ -183,7 +183,7 @@ public static class PackageExchange
         r.State = r.Notes.Count > 0 || r.Steps.Any(s => s.State != ImportState.Ok) ? ImportState.Warning : ImportState.Ok;
     }
 
-    /// <summary>« Nom », sinon « Nom (2) », « Nom (3) »… ; le nom retenu est ajouté à <paramref name="used"/>.</summary>
+    /// <summary>"Name", otherwise "Name (2)", "Name (3)"...; the chosen name is added to <paramref name="used"/>.</summary>
     public static string UniqueName(string name, ISet<string> used)
     {
         var candidate = name;

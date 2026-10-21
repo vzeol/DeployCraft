@@ -9,27 +9,27 @@ Set-Location $PSScriptRoot
 
 Remove-Item publish -Recurse -Force -ErrorAction SilentlyContinue
 
-# Runner (.NET Framework 4.8) puis serveur autonome (.NET embarqué : rien à installer sur la VM).
+# Runner (.NET Framework 4.8) then self-contained server (embedded .NET: nothing to install on the VM).
 dotnet build src\DeployCraft.Runner -c Release -v q
-if ($LASTEXITCODE) { throw "Échec de la compilation du runner" }
+if ($LASTEXITCODE) { throw "Runner build failed" }
 
 dotnet publish src\DeployCraft.Server -c Release -r win-x64 --self-contained true `
     -p:Version=$Version -p:PublishDir="$PSScriptRoot\publish\" -v q
-if ($LASTEXITCODE) { throw "Échec de la publication du serveur" }
+if ($LASTEXITCODE) { throw "Server publish failed" }
 
-# Console Windows, publiée dans le même dossier (les fichiers du runtime .NET sont partagés).
+# Windows console, published in the same folder (the .NET runtime files are shared).
 dotnet publish src\DeployCraft.Console -c Release -r win-x64 --self-contained true `
     -p:Version=$Version -p:PublishDir="$PSScriptRoot\publish\" -v q
-if ($LASTEXITCODE) { throw "Échec de la publication de la console" }
+if ($LASTEXITCODE) { throw "Console publish failed" }
 
 $iscc = @(
     "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe",
     "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
     "$env:ProgramFiles\Inno Setup 6\ISCC.exe"
 ) | Where-Object { Test-Path $_ } | Select-Object -First 1
-if (-not $iscc) { throw "Inno Setup 6 introuvable (winget install JRSoftware.InnoSetup)" }
+if (-not $iscc) { throw "Inno Setup 6 not found (winget install JRSoftware.InnoSetup)" }
 
 & $iscc /Q "/DAppVersion=$Version" installer\DeployCraft.iss
-if ($LASTEXITCODE) { throw "Échec de la création de l'installeur" }
+if ($LASTEXITCODE) { throw "Installer creation failed" }
 
 Get-Item "dist\DeployCraft-Setup-$Version.exe" | Select-Object FullName, @{n = "Mo"; e = { [math]::Round($_.Length / 1MB, 1) } }

@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Nettoyage automatique de l'historique, sur une base SQLite jetable.</summary>
+/// <summary>Automatic history cleanup, on a throwaway SQLite database.</summary>
 public sealed class HistoryCleanupTests : IDisposable
 {
     private static readonly DateTime Now = new(2026, 10, 15, 12, 0, 0, DateTimeKind.Utc);
@@ -35,7 +35,7 @@ public sealed class HistoryCleanupTests : IDisposable
         _store.Settings.SaveDefaults(defaults);
     }
 
-    /// <summary>Un déploiement d'un poste, dans l'état voulu ; <paramref name="endedDaysAgo"/> null = jamais terminé.</summary>
+    /// <summary>A deployment of one computer, in the wanted state; <paramref name="endedDaysAgo"/> null = never ended.</summary>
     private long Deployment(DeploymentStatus status, double? endedDaysAgo, string computer = "PC01")
     {
         var d = _store.Deployments.Create(new Package { Id = 1, Name = "Essai" }, [new TargetRequest(computer)], "tester", "Compte du service",
@@ -45,7 +45,7 @@ public sealed class HistoryCleanupTests : IDisposable
         return d.Id;
     }
 
-    /// <summary>La date de fin est écrite par le service à l'instant T : on la recule directement en base.</summary>
+    /// <summary>The end date is written by the service at time T: we move it back directly in the database.</summary>
     private void SetEnded(long id, DeploymentStatus status, DateTime endedUtc)
     {
         using var db = new SqliteConnection($"Data Source={_db}");
@@ -111,7 +111,7 @@ public sealed class HistoryCleanupTests : IDisposable
     [Fact]
     public void RunningDeployment_IsKept_EvenIfItWasCreatedLongAgo()
     {
-        // Un déploiement toujours en cours après des semaines n'a pas de date de fin : jamais supprimé.
+        // A deployment still running after weeks has no end date: never deleted.
         var running = Deployment(DeploymentStatus.Running, endedDaysAgo: null);
         SetEnded(running, DeploymentStatus.Running, Now.AddDays(-500));
         Enable(1);

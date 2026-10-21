@@ -8,8 +8,8 @@ namespace DeployCraft.Runner
     internal static class Program
     {
         /// <summary>
-        /// Lancé par le gestionnaire de services : le dossier de travail est celui de l'exe.
-        /// Pour tester à la main : DeployCraft.Runner.exe --console [dossier]
+        /// Started by the service manager: the working folder is the exe's.
+        /// To test by hand: DeployCraft.Runner.exe --console [folder]
         /// </summary>
         private static int Main(string[] args)
         {
@@ -43,19 +43,19 @@ namespace DeployCraft.Runner
 
         protected override void OnStart(string[] args)
         {
-            // OnStart doit rendre la main vite : le travail se fait dans un thread.
+            // OnStart must return quickly: the work is done in a thread.
             _worker = new Thread(() =>
             {
                 _executor.Run();
                 _finished = true;
-                // Le service s'arrête tout seul ; le serveur s'occupe ensuite de le supprimer.
+                // The service stops by itself; the server then takes care of removing it.
                 Stop();
             })
             { IsBackground = true, Name = "DeployCraftWorker" };
             _worker.Start();
         }
 
-        /// <summary>Arrêt demandé par le serveur avant la fin = annulation du déploiement sur ce poste.</summary>
+        /// <summary>Stop requested by the server before the end = cancellation of the deployment on this computer.</summary>
         protected override void OnStop()
         {
             if (_finished) return;

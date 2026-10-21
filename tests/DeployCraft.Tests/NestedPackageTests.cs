@@ -4,7 +4,7 @@ using DeployCraft.Server.Remote;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Paquet imbriqué : remplacé par ses étapes au lancement (noms, sections, conditions, délais), boucles refusées.</summary>
+/// <summary>Nested package: replaced by its steps at launch (names, sections, conditions, delays), loops refused.</summary>
 public class NestedPackageTests
 {
     private readonly Dictionary<long, Package> _library = [];
@@ -33,7 +33,7 @@ public class NestedPackageTests
         var flat = parent.Flatten(Find);
 
         Assert.Equal(["début", "Outils › a", "Outils › b", "fin"], flat.Steps.Select(s => s.Name));
-        Assert.Equal(StepType.Nested, parent.Steps[1].Type); // l'original n'est pas modifié
+        Assert.Equal(StepType.Nested, parent.Steps[1].Type); // the original is not modified
     }
 
     [Fact]
@@ -136,7 +136,7 @@ public class NestedPackageTests
         Add(3, "C", Nested(2));
         var message = Assert.Throws<ArgumentException>(() => _library[2].Flatten(Find)).Message;
         Assert.Contains("boucle", message);
-        Assert.Contains("B › C › B", message); // le chemin de la boucle
+        Assert.Contains("B › C › B", message); // the loop path
     }
 
     [Fact]
@@ -145,7 +145,7 @@ public class NestedPackageTests
         Add(10, "Feuille", Cmd("x"));
         for (var id = 11; id <= 16; id++) Add(id, $"N{id}", Nested(id - 1));
 
-        Assert.Single(_library[15].Flatten(Find).Steps); // 5 niveaux d'imbrication
+        Assert.Single(_library[15].Flatten(Find).Steps); // 5 levels of nesting
         Assert.Contains("niveaux", Assert.Throws<ArgumentException>(() => _library[16].Flatten(Find)).Message);
     }
 

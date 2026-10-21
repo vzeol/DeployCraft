@@ -1,109 +1,109 @@
 namespace DeployCraft.Server.Data;
 
-/// <summary>Nested : paquet imbriqué, remplacé par ses étapes au lancement (jamais envoyé tel quel au poste).</summary>
+/// <summary>Nested: nested package, replaced by its steps at launch (never sent as is to the computer).</summary>
 public enum StepType { Install, Command, PowerShell, Pause, Nested, CopyFiles, Reboot, Message }
 
-/// <summary>En cas d'erreur d'une étape : arrêter en échec, continuer, ou arrêter le paquet en comptant le poste réussi.</summary>
+/// <summary>When a step fails: stop as failed, continue, or stop the package while counting the computer as succeeded.</summary>
 public enum ErrorMode { Stop, Continue, StopSuccess }
 
-/// <summary>Identité sous laquelle les étapes s'exécutent sur le poste.</summary>
+/// <summary>Identity under which the steps run on the computer.</summary>
 public enum RunAsMode
 {
-    /// <summary>Le service temporaire tourne sous le compte de déploiement.</summary>
+    /// <summary>The temporary service runs under the deployment account.</summary>
     DeployUser,
-    /// <summary>Le service temporaire tourne en Système local.</summary>
+    /// <summary>The temporary service runs as Local System.</summary>
     LocalSystem,
-    /// <summary>Les étapes sont lancées dans la session de l'utilisateur connecté.</summary>
+    /// <summary>The steps are launched in the logged-on user's session.</summary>
     LoggedOnUser,
 }
 
-/// <summary>Installer : opération faite sur un fichier .msi (.msu : installer ou désinstaller seulement).</summary>
+/// <summary>Install: operation done on an .msi file (.msu: install or uninstall only).</summary>
 public enum MsiOperation { Install, Repair, Uninstall }
 
-/// <summary>Installer : redémarrage demandé à Windows Installer après un .msi, .msp ou .msu (« non défini » : rien d'imposé).</summary>
+/// <summary>Install: restart requested from Windows Installer after an .msi, .msp or .msu ("non défini": nothing imposed).</summary>
 public enum MsiRestart { Never, Always, Prompt, NotSet }
 
-/// <summary>Push : le serveur copie les fichiers sur le poste. Pull : le poste les lit lui-même sur le partage.</summary>
+/// <summary>Push: the server copies the files to the computer. Pull: the computer reads them itself from the share.</summary>
 public enum CopyMode { Push, Pull }
 
 public class PackageStep
 {
     public string Name { get; set; } = "";
-    /// <summary>Désactivée : gardée dans le paquet mais jamais exécutée (« Ignoré » dans le suivi).</summary>
+    /// <summary>Disabled: kept in the package but never run ("Ignoré" in the tracking view).</summary>
     public bool Enabled { get; set; } = true;
     public StepType Type { get; set; } = StepType.Install;
-    /// <summary>Install : chemin du fichier (local ou UNC) côté serveur.</summary>
+    /// <summary>Install: file path (local or UNC) on the server side.</summary>
     public string? File { get; set; }
-    /// <summary>Install : copier tout le dossier du fichier (installeurs en plusieurs fichiers).</summary>
+    /// <summary>Install: copy the whole folder of the file (multi-file installers).</summary>
     public bool IncludeDirectory { get; set; }
-    /// <summary>Install : paramètres (silencieux). PowerShell : arguments du script.</summary>
+    /// <summary>Install: parameters (silent). PowerShell: script arguments.</summary>
     public string? Arguments { get; set; }
-    /// <summary>Install (.msi, .msu) : installer, réparer ou désinstaller.</summary>
+    /// <summary>Install (.msi, .msu): install, repair or uninstall.</summary>
     public MsiOperation MsiOperation { get; set; }
-    /// <summary>Install (.msi, .msp, .msu) : redémarrage après l'installation.</summary>
+    /// <summary>Install (.msi, .msp, .msu): restart after the installation.</summary>
     public MsiRestart MsiRestart { get; set; }
-    /// <summary>Install (.msi, .msp, .msu) : sans aucune fenêtre (fortement conseillé : personne ne peut cliquer).</summary>
+    /// <summary>Install (.msi, .msp, .msu): no window at all (strongly advised: nobody can click).</summary>
     public bool MsiQuiet { get; set; } = true;
-    /// <summary>Install : ligne de commande écrite à la main, lancée telle quelle dans le dossier de travail (vide = générée).</summary>
+    /// <summary>Install: hand-written command line, run as is in the working folder (empty = generated).</summary>
     public string? CustomCommandLine { get; set; }
-    /// <summary>Install : garder le fichier d'installation sur le poste après l'étape.</summary>
+    /// <summary>Install: keep the installation file on the computer after the step.</summary>
     public bool KeepInstallFile { get; set; }
-    /// <summary>Install, Command, PowerShell : fichiers copiés à côté de la commande avant l'étape (un chemin par ligne).</summary>
+    /// <summary>Install, Command, PowerShell: files copied next to the command before the step (one path per line).</summary>
     public string? AdditionalFiles { get; set; }
-    /// <summary>Command : ligne cmd. PowerShell : contenu du script.</summary>
+    /// <summary>Command: cmd line. PowerShell: script content.</summary>
     public string? Command { get; set; }
     public string SuccessCodes { get; set; } = Defaults.SuccessCodes;
-    /// <summary>Pause : durée d'attente sur le poste, en secondes.</summary>
+    /// <summary>Pause: wait time on the computer, in seconds.</summary>
     public int PauseSeconds { get; set; } = 30;
-    /// <summary>Paquet imbriqué : paquet dont les étapes prennent la place de celle-ci au lancement.</summary>
+    /// <summary>Nested package: package whose steps take the place of this one at launch.</summary>
     public long? NestedPackageId { get; set; }
-    /// <summary>Copie de fichiers : fichier ou dossier à copier (chemin local ou UNC) côté serveur.</summary>
+    /// <summary>File copy: file or folder to copy (local or UNC path) on the server side.</summary>
     public string? CopySource { get; set; }
-    /// <summary>Copie de fichiers : dossier du poste (variables d'environnement acceptées), créé s'il manque.</summary>
+    /// <summary>File copy: folder on the computer (environment variables accepted), created if missing.</summary>
     public string? CopyDestination { get; set; }
-    /// <summary>Copie de fichiers : motifs séparés par « ; » (source dossier seulement).</summary>
+    /// <summary>File copy: patterns separated by ";" (folder source only).</summary>
     public string CopyPatterns { get; set; } = "*";
-    /// <summary>Copie de fichiers : copier aussi les sous-dossiers de la source.</summary>
+    /// <summary>File copy: also copy the subfolders of the source.</summary>
     public bool CopySubfolders { get; set; } = true;
-    /// <summary>Copie de fichiers : remplacer les fichiers déjà présents (sinon ils sont gardés).</summary>
+    /// <summary>File copy: replace files already present (otherwise they are kept).</summary>
     public bool CopyOverwrite { get; set; } = true;
-    /// <summary>Copie de fichiers : un fichier impossible à remplacer (en cours d'utilisation…) n'est pas une erreur.</summary>
+    /// <summary>File copy: a file that cannot be replaced (in use...) is not an error.</summary>
     public bool CopyIgnoreErrors { get; set; }
-    /// <summary>Redémarrer : message affiché à l'utilisateur connecté (facultatif).</summary>
+    /// <summary>Restart: message shown to the logged-on user (optional).</summary>
     public string? RebootMessage { get; set; }
-    /// <summary>Redémarrer : délai avant le redémarrage, en secondes (l'utilisateur connecté est prévenu).</summary>
+    /// <summary>Restart: delay before the restart, in seconds (the logged-on user is warned).</summary>
     public int RebootDelaySeconds { get; set; } = 60;
-    /// <summary>Redémarrer : éteindre le poste au lieu de le redémarrer (les étapes suivantes sont ignorées).</summary>
+    /// <summary>Restart: shut the computer down instead of restarting it (the following steps are skipped).</summary>
     public bool RebootShutdownOnly { get; set; }
-    /// <summary>Message : titre de la fenêtre affichée à l'utilisateur connecté.</summary>
+    /// <summary>Message: title of the window shown to the logged-on user.</summary>
     public string MessageTitle { get; set; } = "Information";
-    /// <summary>Message : texte affiché à l'utilisateur connecté.</summary>
+    /// <summary>Message: text shown to the logged-on user.</summary>
     public string? MessageText { get; set; }
-    /// <summary>Message : durée d'affichage en secondes (0 = jusqu'au clic sur OK).</summary>
+    /// <summary>Message: display duration in seconds (0 = until OK is clicked).</summary>
     public int MessageSeconds { get; set; }
-    /// <summary>Message : attendre que l'utilisateur clique sur OK (ou la fin de l'affichage) avant l'étape suivante.</summary>
+    /// <summary>Message: wait for the user to click OK (or for the display to end) before the next step.</summary>
     public bool MessageWait { get; set; }
     /// <summary>
-    /// Conditions à remplir en plus de celles de l'étape : posées au lancement sur les étapes d'un paquet imbriqué
-    /// (conditions de l'étape « paquet imbriqué » et du paquet imbriqué lui-même).
+    /// Conditions to meet in addition to the step's own: set at launch on the steps of a nested package
+    /// (conditions of the "nested package" step and of the nested package itself).
     /// </summary>
     public List<ConditionGroup>? ExtraConditions { get; set; }
-    /// <summary>Délai max de l'étape (null = celui du paquet, sinon celui des Préférences).</summary>
+    /// <summary>Max time for the step (null = the package's, otherwise the Preferences').</summary>
     public int? TimeoutMinutes { get; set; }
     /// <summary>
-    /// Identité de l'étape (null = celle du déploiement : paquet, ou choix de Déployer une fois / planification).
-    /// Les étapes consécutives de même identité sont lancées ensemble sur le poste.
+    /// Identity of the step (null = the deployment's: package, or choice from Déployer une fois / schedule).
+    /// Consecutive steps with the same identity are launched together on the computer.
     /// </summary>
     public RunAsMode? RunAs { get; set; }
     public ErrorMode ErrorMode { get; set; } = ErrorMode.Stop;
-    /// <summary>Conditions de l'étape : non remplies sur un poste, l'étape y est sautée.</summary>
+    /// <summary>Conditions of the step: if not met on a computer, the step is skipped there.</summary>
     public Conditions Conditions { get; set; } = new();
 
-    /// <summary>Fichiers additionnels, un par ligne (lignes vides ignorées).</summary>
+    /// <summary>Additional files, one per line (empty lines ignored).</summary>
     public static List<string> SplitLines(string? text) =>
         [.. (text ?? "").Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
 
-    /// <summary>Motifs de la copie de fichiers, séparés par « ; » ou « , » (aucun = tous les fichiers).</summary>
+    /// <summary>File copy patterns, separated by ";" or "," (none = all files).</summary>
     public static List<string> SplitPatterns(string? text)
     {
         var patterns = (text ?? "").Split([';', ','], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -112,15 +112,15 @@ public class PackageStep
     }
 }
 
-/// <summary>Conditions héritées, avec leur origine pour expliquer une étape ignorée.</summary>
+/// <summary>Inherited conditions, with their origin to explain a skipped step.</summary>
 public class ConditionGroup
 {
-    /// <summary>Par exemple « Conditions du paquet imbriqué « Outils » » ; suivi de « non remplies » dans le suivi.</summary>
+    /// <summary>For example "Conditions du paquet imbriqué "Outils""; followed by "non remplies" in the tracking view.</summary>
     public string Label { get; set; } = "";
     public Conditions Conditions { get; set; } = new();
 }
 
-/// <summary>Versions de Windows acceptées par une condition (aucune cochée = toutes).</summary>
+/// <summary>Windows versions accepted by a condition (none checked = all).</summary>
 [Flags]
 public enum WindowsVersions
 {
@@ -128,7 +128,7 @@ public enum WindowsVersions
     Windows10 = 1,
     Windows11 = 2,
     Server = 4,
-    /// <summary>Windows 8.1 et versions antérieures.</summary>
+    /// <summary>Windows 8.1 and earlier versions.</summary>
     Older = 8,
 }
 
@@ -136,27 +136,27 @@ public enum ArchitectureCondition { Any, X64, X86 }
 
 public enum LoggedOnCondition { Any, LoggedOn, NotLoggedOn }
 
-/// <summary>Condition sur un fichier ou une clé de registre.</summary>
+/// <summary>Condition on a file or a registry key.</summary>
 public enum PresenceCondition { None, Exists, NotExists }
 
 /// <summary>
-/// Conditions d'un paquet ou d'une étape, vérifiées sur le poste juste avant l'exécution.
-/// Toutes doivent être remplies ; sinon l'étape (ou tout le paquet) est sautée, sans échec.
+/// Conditions of a package or a step, checked on the computer just before running.
+/// All must be met; otherwise the step (or the whole package) is skipped, without failure.
 /// </summary>
 public class Conditions
 {
     public WindowsVersions Windows { get; set; }
     public ArchitectureCondition Architecture { get; set; }
-    /// <summary>Version minimale de PowerShell (3, 4, 5 ou 7 ; null = aucune).</summary>
+    /// <summary>Minimum PowerShell version (3, 4, 5 or 7; null = none).</summary>
     public int? MinPowerShell { get; set; }
     public LoggedOnCondition LoggedOn { get; set; }
     public PresenceCondition File { get; set; }
-    /// <summary>Fichier ou dossier sur le poste (variables d'environnement acceptées).</summary>
+    /// <summary>File or folder on the computer (environment variables accepted).</summary>
     public string? FilePath { get; set; }
     public PresenceCondition Registry { get; set; }
-    /// <summary>Clé de registre, par exemple HKLM\SOFTWARE\Éditeur\Logiciel.</summary>
+    /// <summary>Registry key, for example HKLM\SOFTWARE\Publisher\Software.</summary>
     public string? RegistryKey { get; set; }
-    /// <summary>Nom d'une valeur de la clé (vide = la clé elle-même).</summary>
+    /// <summary>Name of a value of the key (empty = the key itself).</summary>
     public string? RegistryValue { get; set; }
 
     public bool IsEmpty => Windows == WindowsVersions.None && Architecture == ArchitectureCondition.Any && MinPowerShell == null
@@ -164,58 +164,58 @@ public class Conditions
 }
 
 /// <summary>
-/// Postes hors ligne : réveil (Wake-on-LAN) et nouveaux essais. Un poste est toujours testé
-/// (nom DNS et partage de fichiers) avant la copie ; ces réglages disent quoi faire s'il ne répond pas.
+/// Offline computers: wake-up (Wake-on-LAN) and retries. A computer is always tested
+/// (DNS name and file share) before the copy; these settings say what to do if it does not answer.
 /// </summary>
 public class OfflineSettings
 {
-    /// <summary>Envoyer un paquet de réveil Wake-on-LAN, puis attendre que le poste réponde.</summary>
+    /// <summary>Send a Wake-on-LAN wake-up packet, then wait for the computer to answer.</summary>
     public bool WakeOnLan { get; set; }
     public int WakeWaitMinutes { get; set; } = 3;
-    /// <summary>Réessayer plus tard un poste hors ligne au lieu de le marquer en échec.</summary>
+    /// <summary>Retry an offline computer later instead of marking it as failed.</summary>
     public bool Retry { get; set; }
-    /// <summary>Nombre total d'essais, le premier compris.</summary>
+    /// <summary>Total number of attempts, the first included.</summary>
     public int RetryAttempts { get; set; } = 5;
     public int RetryIntervalMinutes { get; set; } = 30;
 }
 
-/// <summary>Charge du serveur : postes traités en même temps et débit des copies de fichiers vers les postes.</summary>
+/// <summary>Server load: computers processed at the same time and throughput of file copies to the computers.</summary>
 public class PerformanceSettings
 {
     public const int MaxParallel = 100;
     public const int MaxCopyLimit = 10000;
 
-    /// <summary>Postes déployés en même temps, tous déploiements confondus.</summary>
+    /// <summary>Computers deployed at the same time, across all deployments.</summary>
     public int ParallelTargets { get; set; } = 8;
-    /// <summary>Débit total des copies du serveur vers les postes, en Mbit/s (0 = sans limite).</summary>
+    /// <summary>Total throughput of copies from the server to the computers, in Mbit/s (0 = unlimited).</summary>
     public int CopyLimitMbps { get; set; }
 
-    /// <summary>Message d'erreur si un réglage est hors limites, sinon null.</summary>
+    /// <summary>Error message if a setting is out of range, otherwise null.</summary>
     public static string? Validate(PerformanceSettings p) =>
         p.ParallelTargets is < 1 or > MaxParallel ? $"le nombre de postes en parallèle doit être compris entre 1 et {MaxParallel}."
         : p.CopyLimitMbps is < 0 or > MaxCopyLimit ? $"la limite de copie doit être comprise entre 0 (sans limite) et {MaxCopyLimit} Mbit/s."
         : null;
 }
 
-/// <summary>Nettoyage automatique de l'historique des déploiements (Préférences › Déploiement).</summary>
+/// <summary>Automatic cleanup of the deployment history (Préférences › Déploiement).</summary>
 public class HistorySettings
 {
     public const int MinDays = 1;
     public const int MaxDays = 3650;
 
-    /// <summary>Supprimer les déploiements terminés depuis plus de <see cref="KeepDays"/> jours (désactivé d'usine).</summary>
+    /// <summary>Delete deployments finished more than <see cref="KeepDays"/> days ago (off by default).</summary>
     public bool Cleanup { get; set; }
     public int KeepDays { get; set; } = 30;
 
-    /// <summary>Message d'erreur si le nombre de jours est hors limites, sinon null.</summary>
+    /// <summary>Error message if the number of days is out of range, otherwise null.</summary>
     public static string? Validate(int keepDays) =>
         keepDays is < MinDays or > MaxDays ? $"le nombre de jours doit être compris entre {MinDays} et {MaxDays}." : null;
 }
 
-/// <summary>Carte réseau d'un poste : adresse MAC et adresse de diffusion de son sous-réseau (pour le réveiller).</summary>
+/// <summary>Network card of a computer: MAC address and broadcast address of its subnet (to wake it up).</summary>
 public record NetworkCard(string Mac, string? Broadcast);
 
-/// <summary>Réglages par défaut des paquets (Préférences › Déploiement et Hors ligne).</summary>
+/// <summary>Default package settings (Préférences › Déploiement and Hors ligne).</summary>
 public class DeploymentDefaults
 {
     public RunAsMode RunAs { get; set; } = RunAsMode.DeployUser;
@@ -233,23 +233,23 @@ public class Package
     public string? Version { get; set; }
     public string? Description { get; set; }
     public List<PackageStep> Steps { get; set; } = [];
-    /// <summary>null = valeur des Préférences.</summary>
+    /// <summary>null = the Preferences value.</summary>
     public RunAsMode? RunAs { get; set; }
-    /// <summary>null = valeur des Préférences.</summary>
+    /// <summary>null = the Preferences value.</summary>
     public CopyMode? CopyMode { get; set; }
-    /// <summary>Délai max des étapes qui n'en fixent pas (null = valeur des Préférences).</summary>
+    /// <summary>Max time of steps that do not set one (null = the Preferences value).</summary>
     public int? TimeoutMinutes { get; set; }
-    /// <summary>Conditions du paquet : non remplies sur un poste, aucune étape n'y est exécutée.</summary>
+    /// <summary>Conditions of the package: if not met on a computer, none of its steps runs there.</summary>
     public Conditions Conditions { get; set; } = new();
-    /// <summary>null = réglages hors ligne des Préférences.</summary>
+    /// <summary>null = the Preferences' offline settings.</summary>
     public OfflineSettings? Offline { get; set; }
-    /// <summary>Dossier de l'arbre des paquets (null = à la racine). Changé seulement par un déplacement.</summary>
+    /// <summary>Folder in the package tree (null = at the root). Changed only by a move.</summary>
     public long? FolderId { get; set; }
     public DateTime ModifiedUtc { get; set; }
 
     /// <summary>
-    /// Copie prête à déployer : chaque réglage laissé « par défaut » prend sa valeur (étape → paquet → Préférences).
-    /// L'historique du déploiement garde ainsi les valeurs réellement utilisées.
+    /// Ready-to-deploy copy: each setting left on "default" takes its value (step → package → Preferences).
+    /// The deployment history thus keeps the values actually used.
     /// </summary>
     public Package Resolve(DeploymentDefaults defaults, Func<long, Package?>? lookup = null)
     {
@@ -262,14 +262,14 @@ public class Package
         return copy;
     }
 
-    /// <summary>Niveaux de paquets imbriqués acceptés (un paquet qui en contient un qui en contient un…).</summary>
+    /// <summary>Accepted nested package levels (a package containing one that contains one...).</summary>
     public const int MaxNestingDepth = 5;
 
     /// <summary>
-    /// Copie où chaque étape « paquet imbriqué » est remplacée par les étapes de ce paquet : nommées « Étape › Sous-étape »,
-    /// à la place de l'étape remplacée (dans leur ordre), désactivées si elle l'est, avec ses conditions et celles du paquet imbriqué
-    /// en conditions supplémentaires. Délai : celui de la sous-étape, sinon celui du paquet imbriqué, sinon
-    /// <paramref name="defaultTimeout"/>. Paquet introuvable, boucle ou trop de niveaux : <see cref="ArgumentException"/>.
+    /// Copy where each "nested package" step is replaced by the steps of that package: named "Step › Sub-step",
+    /// in place of the replaced step (in their order), disabled if it is, with its conditions and those of the nested package
+    /// as additional conditions. Timeout: the sub-step's, otherwise the nested package's, otherwise
+    /// <paramref name="defaultTimeout"/>. Package not found, loop or too many levels: <see cref="ArgumentException"/>.
     /// </summary>
     public Package Flatten(Func<long, Package?> lookup, int? defaultTimeout = null)
     {
@@ -326,7 +326,7 @@ public class Package
         return nested;
     }
 
-    /// <summary>Paquets qui utilisent <paramref name="id"/> comme paquet imbriqué (il ne peut pas être supprimé).</summary>
+    /// <summary>Packages that use <paramref name="id"/> as a nested package (it cannot be deleted).</summary>
     public static List<Package> UsersOf(IEnumerable<Package> packages, long id) =>
         [.. packages.Where(p => p.Id != id && p.Steps.Any(s => s.Type == StepType.Nested && s.NestedPackageId == id))];
 
@@ -343,25 +343,25 @@ public class Deployment
     public long Id { get; set; }
     public long PackageId { get; set; }
     public string PackageName { get; set; } = "";
-    /// <summary>Copie du paquet au moment du lancement : modifier le paquet ensuite n'affecte pas l'historique.</summary>
+    /// <summary>Copy of the package at launch time: changing the package afterwards does not affect the history.</summary>
     public Package Snapshot { get; set; } = new();
     public DeploymentStatus Status { get; set; }
-    /// <summary>Utilisateur Windows de la console qui a lancé le déploiement.</summary>
+    /// <summary>Windows user of the console who launched the deployment.</summary>
     public string? LaunchedBy { get; set; }
-    /// <summary>Compte de déploiement utilisé (au moment du lancement).</summary>
+    /// <summary>Deployment account used (at launch time).</summary>
     public string? RunAs { get; set; }
-    /// <summary>Identifiant utilisé (null = aucun : identité du service).</summary>
+    /// <summary>Credential used (null = none: the service's identity).</summary>
     public long? CredentialId { get; set; }
-    /// <summary>Plus petite étape de départ parmi les postes (affichage) ; chaque poste a la sienne.</summary>
+    /// <summary>Lowest start step among the computers (display); each computer has its own.</summary>
     public int StartStep { get; set; } = 1;
     public RunAsMode RunAsMode { get; set; } = RunAsMode.DeployUser;
     public CopyMode CopyMode { get; set; } = CopyMode.Push;
     public DateTime CreatedUtc { get; set; }
     public DateTime? EndedUtc { get; set; }
-    /// <summary>Planification qui a lancé ce déploiement (null = lancé à la main).</summary>
+    /// <summary>Schedule that launched this deployment (null = launched by hand).</summary>
     public long? ScheduleId { get; set; }
     public string? ScheduleName { get; set; }
-    /// <summary>Les postes encore en attente d'un créneau après ce délai sont abandonnés (null = jamais).</summary>
+    /// <summary>Computers still waiting for a slot after this delay are abandoned (null = never).</summary>
     public int? QueueTimeoutMinutes { get; set; }
     public List<DeploymentTarget> Targets { get; set; } = [];
 }
@@ -371,12 +371,12 @@ public class DeploymentTarget
     public long Id { get; set; }
     public long DeploymentId { get; set; }
     public string Computer { get; set; } = "";
-    /// <summary>Première étape exécutée sur ce poste (1 = tout le paquet ; plus pour reprendre à l'étape en échec).</summary>
+    /// <summary>First step run on this computer (1 = the whole package; higher to resume at the failed step).</summary>
     public int StartStep { get; set; } = 1;
-    /// <summary>Passe devant les postes non prioritaires en attente d'un créneau.</summary>
+    /// <summary>Goes ahead of non-priority computers waiting for a slot.</summary>
     public bool Prioritized { get; set; }
     public TargetStatus Status { get; set; }
-    /// <summary>Étape en cours, pour l'affichage (« Copie des fichiers », « Étape 2/3 »…).</summary>
+    /// <summary>Current step, for display ("Copie des fichiers", "Étape 2/3"...).</summary>
     public string? Stage { get; set; }
     public string? Error { get; set; }
     public List<StepOutcome> Steps { get; set; } = [];
@@ -394,16 +394,16 @@ public class StepOutcome
     public string? Error { get; set; }
     public DateTime? StartedUtc { get; set; }
     public DateTime? EndedUtc { get; set; }
-    /// <summary>Nombre de fois où l'étape a tourné sur ce poste dans ce déploiement (nouveaux essais compris).</summary>
+    /// <summary>Number of times the step ran on this computer in this deployment (retries included).</summary>
     public int Runs { get; set; }
 
-    /// <summary>L'étape a tourné (ou tourne) : ni ignorée, ni pas encore commencée.</summary>
+    /// <summary>The step ran (or is running): neither skipped nor not yet started.</summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool Ran => StartedUtc != null && State is "success" or "failed" or "stopped" or "running";
 
     /// <summary>
-    /// Court message sur le résultat : raison d'une étape ignorée, erreur, réussite qui demande un redémarrage. Les autres
-    /// codes de succès (par exemple ceux d'une copie de fichiers) n'ont pas de note, pour ne pas inquiéter.
+    /// Short message about the result: reason for a skipped step, error, success that requires a restart. Other
+    /// success codes (for example those of a file copy) have no note, so as not to worry.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public string Note => State switch
@@ -421,7 +421,7 @@ public class StepOutcome
         _ => "",
     };
 
-    /// <summary>Première ligne d'un message, raccourcie pour une colonne.</summary>
+    /// <summary>First line of a message, shortened for a column.</summary>
     private static string? Short(string? text)
     {
         var line = text?.Split('\n')[0].Trim();
@@ -430,15 +430,15 @@ public class StepOutcome
     }
 }
 
-/// <summary>Un poste cible et l'étape à laquelle commencer.</summary>
+/// <summary>A target computer and the step to start at.</summary>
 public record TargetRequest(string Computer, int StartStep = 1);
 
-/// <summary>Options d'un « Déployer une fois » ; null = paramètre du paquet (identifiant : celui par défaut).</summary>
+/// <summary>Options of a "Déployer une fois"; null = package setting (credential: the default one).</summary>
 public record DeployOptions(RunAsMode? RunAs = null, CopyMode? CopyMode = null, bool Prioritize = false, long? CredentialId = null);
 
 /// <summary>
-/// Identifiant enregistré : un compte administrateur des postes. Le mot de passe, chiffré,
-/// ne quitte jamais le service. Sans domaine (ou « . ») : le compte local de chaque poste.
+/// Saved credential: an administrator account on the computers. The encrypted password
+/// never leaves the service. Without a domain (or "."): the local account of each computer.
 /// </summary>
 public class Credential
 {
@@ -446,21 +446,21 @@ public class Credential
     public string? Domain { get; set; }
     public string User { get; set; } = "";
     public string? Description { get; set; }
-    /// <summary>Utilisé quand un déploiement ou une planification n'en désigne pas.</summary>
+    /// <summary>Used when a deployment or a schedule does not designate one.</summary>
     public bool IsDefault { get; set; }
-    /// <summary>Mot de passe impossible à déchiffrer (base copiée d'un autre serveur…) : à ressaisir.</summary>
+    /// <summary>Password that cannot be decrypted (database copied from another server...): to be re-entered.</summary>
     public bool PasswordUnreadable { get; set; }
 
     public bool IsLocal => NormalizeDomain(Domain) == null;
 
-    /// <summary>« », « . », « .\ » et « ./ » désignent le compte local de chaque poste (null) ; sinon le domaine, sans barre finale.</summary>
+    /// <summary>"", ".", ".\" and "./" designate the local account of each computer (null); otherwise the domain, without trailing slash.</summary>
     public static string? NormalizeDomain(string? domain)
     {
         var d = domain?.Trim().TrimEnd('\\', '/').Trim();
         return string.IsNullOrEmpty(d) || d == "." ? null : d;
     }
 
-    /// <summary>Remet la saisie en forme, y compris « DOMAINE\utilisateur » ou « .\utilisateur » tapé en entier dans Utilisateur.</summary>
+    /// <summary>Cleans up the input, including "DOMAINE\utilisateur" or ".\utilisateur" typed in full in Utilisateur.</summary>
     public Credential Normalize()
     {
         User = User.Trim();
@@ -472,22 +472,22 @@ public class Credential
         Domain = NormalizeDomain(Domain);
         return this;
     }
-    /// <summary>« DOMAINE\utilisateur », ou « .\utilisateur » pour un compte local.</summary>
+    /// <summary>"DOMAINE\utilisateur", or ".\utilisateur" for a local account.</summary>
     public string Account => (IsLocal ? "." : Domain) + "\\" + User;
     public string Display => Account + (string.IsNullOrWhiteSpace(Description) ? "" : $" — {Description}");
 }
 
-/// <summary>Dossier de l'arbre des paquets ; peut contenir des paquets et d'autres dossiers.</summary>
+/// <summary>Folder in the package tree; can contain packages and other folders.</summary>
 public class PackageFolder
 {
     public long Id { get; set; }
     public string Name { get; set; } = "";
-    /// <summary>null = à la racine.</summary>
+    /// <summary>null = at the root.</summary>
     public long? ParentId { get; set; }
 
     /// <summary>
-    /// Vrai si <paramref name="folderId"/> est <paramref name="ancestorId"/> lui-même ou l'un de ses sous-dossiers :
-    /// déplacer <paramref name="ancestorId"/> dedans ferait une boucle.
+    /// True if <paramref name="folderId"/> is <paramref name="ancestorId"/> itself or one of its subfolders:
+    /// moving <paramref name="ancestorId"/> into it would create a loop.
     /// </summary>
     public static bool IsWithin(IReadOnlyCollection<PackageFolder> folders, long? folderId, long ancestorId)
     {
@@ -500,7 +500,7 @@ public class PackageFolder
         return false;
     }
 
-    /// <summary>Erreur à afficher si le dossier ne peut pas être enregistré tel quel (nom, parent, boucle).</summary>
+    /// <summary>Error to show if the folder cannot be saved as is (name, parent, loop).</summary>
     public static string? Check(PackageFolder folder, IReadOnlyCollection<PackageFolder> all)
     {
         if (string.IsNullOrWhiteSpace(folder.Name)) return "Donnez un nom au dossier.";
@@ -510,7 +510,7 @@ public class PackageFolder
         return null;
     }
 
-    /// <summary>Nom d'une copie collée dans un dossier : le même s'il est libre, sinon « Nom (copie) », « Nom (copie 2) »…</summary>
+    /// <summary>Name of a copy pasted into a folder: the same if free, otherwise "Nom (copie)", "Nom (copie 2)"...</summary>
     public static string CopyName(string name, IEnumerable<string> namesInFolder)
     {
         var taken = namesInFolder.ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -522,7 +522,7 @@ public class PackageFolder
         }
     }
 
-    /// <summary>Erreur à afficher si le dossier n'est pas vide (seul un dossier vide se supprime).</summary>
+    /// <summary>Error to show if the folder is not empty (only an empty folder can be deleted).</summary>
     public static string? CheckDelete(long id, IEnumerable<PackageFolder> all, IEnumerable<Package> packages) =>
         all.Any(f => f.ParentId == id) || packages.Any(p => p.FolderId == id)
             ? "Ce dossier n'est pas vide : déplacez ou supprimez d'abord ce qu'il contient."
@@ -530,9 +530,9 @@ public class PackageFolder
 }
 
 /// <summary>
-/// Planification : des paquets (dans l'ordre) déployés sur des postes à chaque déclenchement.
-/// Avec <see cref="StopOnSuccess"/>, un poste qui a réussi un paquet ne le reçoit plus :
-/// un déclencheur à intervalle réessaie ainsi les postes jusqu'à ce que tous aient réussi.
+/// Schedule: packages (in order) deployed to computers at each trigger.
+/// With <see cref="StopOnSuccess"/>, a computer that succeeded on a package no longer receives it:
+/// an interval trigger thus retries the computers until all have succeeded.
 /// </summary>
 public class Schedule
 {
@@ -542,25 +542,25 @@ public class Schedule
     public List<ScheduleTrigger> Triggers { get; set; } = [];
     public List<long> PackageIds { get; set; } = [];
     public List<string> Targets { get; set; } = [];
-    /// <summary>null = paramètre de chaque paquet.</summary>
+    /// <summary>null = each package's setting.</summary>
     public RunAsMode? RunAs { get; set; }
     public CopyMode? CopyMode { get; set; }
-    /// <summary>Identifiant à utiliser (null = celui par défaut au moment du déclenchement).</summary>
+    /// <summary>Credential to use (null = the default one at trigger time).</summary>
     public long? CredentialId { get; set; }
-    /// <summary>Ne plus déployer un paquet sur un poste qui l'a déjà réussi avec cette planification.</summary>
+    /// <summary>No longer deploy a package to a computer that already succeeded with this schedule.</summary>
     public bool StopOnSuccess { get; set; } = true;
-    /// <summary>Ne plus déployer un paquet sur un poste après ce nombre d'échecs (null = sans limite).</summary>
+    /// <summary>No longer deploy a package to a computer after this number of failures (null = no limit).</summary>
     public int? StopAfterFailures { get; set; }
-    /// <summary>Abandonner les postes qui attendent encore un créneau après ce délai (null = jamais).</summary>
+    /// <summary>Abandon computers still waiting for a slot after this delay (null = never).</summary>
     public int? QueueTimeoutMinutes { get; set; }
 
-    // Renseignés par le service.
+    // Filled in by the service.
     public DateTime? LastRunUtc { get; set; }
     public string? LastResult { get; set; }
     public DateTime? NextRunUtc { get; set; }
     public DateTime ModifiedUtc { get; set; }
 
-    /// <summary>Ajoute le paquet à la fin de la liste ; faux s'il y était déjà.</summary>
+    /// <summary>Adds the package at the end of the list; false if it was already there.</summary>
     public bool Attach(long packageId)
     {
         if (PackageIds.Contains(packageId)) return false;
@@ -568,10 +568,10 @@ public class Schedule
         return true;
     }
 
-    /// <summary>Retire le paquet ; faux s'il n'y était pas ou si c'était le seul (une planification garde au moins un paquet).</summary>
+    /// <summary>Removes the package; false if it was not there or was the only one (a schedule keeps at least one package).</summary>
     public bool Detach(long packageId) => PackageIds.Count > 1 && PackageIds.Remove(packageId);
 
-    /// <summary>Planification qui refait ce déploiement (même paquet, mêmes postes, mêmes options), sans déclencheur.</summary>
+    /// <summary>Schedule that redoes this deployment (same package, same computers, same options), without a trigger.</summary>
     public static Schedule From(Deployment deployment) => new()
     {
         Name = deployment.PackageName,
@@ -586,34 +586,34 @@ public class Schedule
 public enum TriggerType { Once, Interval, Daily, Weekly, Monthly }
 
 /// <summary>
-/// Déclencheur d'une planification. Les dates et heures sont celles de l'horloge du serveur
-/// (heure locale, sans fuseau) : « tous les jours à 8 h » reste 8 h après un changement d'heure.
+/// Trigger of a schedule. Dates and times are those of the server clock
+/// (local time, no time zone): "every day at 8 am" stays 8 am after a clock change.
 /// </summary>
 public class ScheduleTrigger
 {
     public TriggerType Type { get; set; } = TriggerType.Interval;
     public bool Enabled { get; set; } = true;
-    /// <summary>Premier déclenchement possible (date et heure). Pour « une fois » : le moment du déclenchement.</summary>
+    /// <summary>First possible trigger (date and time). For "once": the trigger moment.</summary>
     public DateTime Start { get; set; }
-    /// <summary>Plus aucun déclenchement après ce moment (null = sans fin). Ignoré pour « une fois ».</summary>
+    /// <summary>No trigger after this moment (null = no end). Ignored for "once".</summary>
     public DateTime? End { get; set; }
-    /// <summary>Intervalle : durée entre deux déclenchements.</summary>
+    /// <summary>Interval: time between two triggers.</summary>
     public int IntervalMinutes { get; set; } = 60;
-    /// <summary>Intervalle : ne se déclencher qu'entre <see cref="WindowStart"/> et <see cref="WindowEnd"/>.</summary>
+    /// <summary>Interval: trigger only between <see cref="WindowStart"/> and <see cref="WindowEnd"/>.</summary>
     public bool UseTimeWindow { get; set; }
     public TimeSpan WindowStart { get; set; } = new(8, 0, 0);
     public TimeSpan WindowEnd { get; set; } = new(18, 0, 0);
-    /// <summary>Hebdomadaire : jours de la semaine.</summary>
+    /// <summary>Weekly: days of the week.</summary>
     public List<DayOfWeek> Days { get; set; } = [];
-    /// <summary>Mensuel : jour du mois (1 à 31, 0 = dernier jour). Utilisé si <see cref="MonthWeek"/> est null.</summary>
+    /// <summary>Monthly: day of the month (1 to 31, 0 = last day). Used if <see cref="MonthWeek"/> is null.</summary>
     public int MonthDay { get; set; } = 1;
-    /// <summary>Mensuel : « le Ne [jour] du mois » (1 à 4, 5 = dernier).</summary>
+    /// <summary>Monthly: "the Nth [day] of the month" (1 to 4, 5 = last).</summary>
     public int? MonthWeek { get; set; }
     public DayOfWeek MonthWeekDay { get; set; } = DayOfWeek.Monday;
     public string? Description { get; set; }
 }
 
-/// <summary>Résultat cumulé d'un paquet sur un poste, pour une planification.</summary>
+/// <summary>Accumulated result of a package on a computer, for a schedule.</summary>
 public class ScheduleTargetHistory
 {
     public string Computer { get; set; } = "";
@@ -624,14 +624,14 @@ public class ScheduleTargetHistory
     public DateTime? LastUtc { get; set; }
 }
 
-/// <summary>Ligne d'historique à effacer (le poste recevra de nouveau le paquet).</summary>
+/// <summary>History row to erase (the computer will receive the package again).</summary>
 public record ScheduleHistoryKey(string Computer, long PackageId);
 
 public static class Defaults
 {
-    /// <summary>OK, OK + redémarrage lancé, OK + redémarrage requis, mise à jour MSU déjà installée.</summary>
+    /// <summary>OK, OK + restart launched, OK + restart required, MSU update already installed.</summary>
     public const string SuccessCodes = "0,1641,3010,2359302";
 }
 
-/// <summary>Résultat de la vérification d'un nom de poste dans le DNS (fenêtre Déployer une fois).</summary>
+/// <summary>Result of checking a computer name in DNS (Déployer une fois window).</summary>
 public record NameCheckResult(string Name, bool Found, string? DnsName, string? Error);

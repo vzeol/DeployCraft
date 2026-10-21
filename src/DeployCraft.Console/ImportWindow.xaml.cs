@@ -7,8 +7,8 @@ using DeployCraft.Server.Data;
 namespace DeployCraft.Console;
 
 /// <summary>
-/// Import d'un fichier de paquets (.json ou .xml) : aperçu de ce qui est repris tel quel,
-/// avec des réserves ou pas du tout, puis création des paquets.
+/// Import of a package file (.json or .xml): preview of what is carried over as is,
+/// with reservations or not at all, then creation of the packages.
 /// </summary>
 public partial class ImportWindow : Window
 {
@@ -19,7 +19,7 @@ public partial class ImportWindow : Window
     private readonly string _content;
     private ImportReport? _report;
 
-    /// <summary>Paquets créés (après « Importer »).</summary>
+    /// <summary>Packages created (after "Importer").</summary>
     public ImportReport? Result { get; private set; }
 
     public ImportWindow(string fileName, string content)
@@ -79,7 +79,7 @@ public partial class ImportWindow : Window
         ImportButton.IsEnabled = imported > 0;
     }
 
-    /// <summary>Remarque sous un paquet ou une étape (texte sur plusieurs lignes).</summary>
+    /// <summary>Note under a package or a step (multi-line text).</summary>
     private static TextBlock Wrapped(string text) =>
         new() { Text = text, TextWrapping = TextWrapping.Wrap, MaxWidth = 620, Margin = new Thickness(0, 1, 0, 1), Foreground = Brush("MutedBrush") };
 
@@ -125,7 +125,7 @@ public partial class ImportWindow : Window
         }
     }
 
-    /// <summary>Lit le fichier choisi ; null (avec un message) s'il est illisible.</summary>
+    /// <summary>Reads the chosen file; null (with a message) if it is unreadable.</summary>
     public static string? ReadFile(Window owner, string path)
     {
         try

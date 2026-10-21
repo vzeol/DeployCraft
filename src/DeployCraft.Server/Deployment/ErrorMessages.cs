@@ -4,7 +4,7 @@ using DeployCraft.Server.Remote;
 
 namespace DeployCraft.Server.Deployment;
 
-/// <summary>Traduit les erreurs techniques en messages compréhensibles.</summary>
+/// <summary>Translates technical errors into understandable messages.</summary>
 public static class ErrorMessages
 {
     private static readonly Dictionary<int, string> ExitCodes = new()

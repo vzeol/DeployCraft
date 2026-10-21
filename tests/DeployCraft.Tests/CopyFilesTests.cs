@@ -4,7 +4,7 @@ using DeployCraft.Server.Remote;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Étape « copie de fichiers » : motifs, consignes du runner, ligne robocopy et fichiers déposés en push.</summary>
+/// <summary>"File copy" step: patterns, runner instructions, robocopy line and files dropped in push.</summary>
 public sealed class CopyFilesTests : IDisposable
 {
     private readonly string _dir = Directory.CreateTempSubdirectory("deploycraft-copie-").FullName;
@@ -39,7 +39,7 @@ public sealed class CopyFilesTests : IDisposable
         Assert.Equal(["*.ini", "*.cfg"], job.CopyPatterns);
         Assert.False(job.CopySubfolders);
         Assert.False(job.CopyOverwrite);
-        // Codes de robocopy, quels que soient les codes de succès saisis : 8 et plus = des fichiers non copiés.
+        // Robocopy codes, whatever success codes were entered: 8 and above = files not copied.
         Assert.Equal(Enumerable.Range(0, 8), job.SuccessCodes);
 
         step.CopyIgnoreErrors = true;
@@ -54,7 +54,7 @@ public sealed class CopyFilesTests : IDisposable
         Assert.Equal("\"C:\\Windows\\DeployCraft\\slot-1\\exec\\copie-2\" \"%ProgramData%\\Outil\" \"*\" /E /R:1 /W:1 /NP",
             FileCopy.Arguments(@"C:\Windows\DeployCraft\slot-1\exec\copie-2", @"%ProgramData%\Outil\", ["*"], subfolders: true, overwrite: true));
 
-        // Sans écraser : les fichiers présents sur le poste sont gardés ; racine d'un disque : « C:\. » (un « \" » final serait mal lu).
+        // Without overwriting: files present on the computer are kept; drive root: "C:\." (a trailing "\"" would be misread).
         Assert.Equal("\"\\\\SERVEUR-01\\Logiciels\" \"C:\\.\" \"*.ini\" \"*.cfg\" /XC /XN /XO /R:1 /W:1 /NP",
             FileCopy.Arguments(@"\\SERVEUR-01\Logiciels", @"C:\", ["*.ini", "*.cfg"], subfolders: false, overwrite: false));
     }
@@ -62,7 +62,7 @@ public sealed class CopyFilesTests : IDisposable
     [Fact]
     public void PullArguments_FileSource_CopiesOnlyThatFile_WithoutSubfolders()
     {
-        // Source fichier : son dossier et son nom, jamais /E (sinon l'arborescence du dossier serait recréée sur le poste).
+        // File source: its folder and its name, never /E (otherwise the folder tree would be recreated on the computer).
         Assert.Equal("\"\\\\SERVEUR-01\\Logiciels\\Outil\" \"C:\\Outil\" \"outil.ini\" /R:1 /W:1 /NP",
             FileCopy.PullArguments(@"\\SERVEUR-01\Logiciels\Outil\outil.ini", isFile: true, @"C:\Outil", ["*.txt"], subfolders: true, overwrite: true));
 

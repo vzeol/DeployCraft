@@ -40,8 +40,8 @@ internal static class CredentialEndpoints
             return Results.NoContent();
         });
 
-        // Teste un compte du domaine auprès de l'annuaire (mot de passe vide + id = celui enregistré).
-        // Un compte local est propre à chaque poste : on l'essaie sur le poste indiqué.
+        // Tests a domain account against the directory (empty password + id = the saved one).
+        // A local account is specific to each computer: it is tried on the given computer.
         api.MapPost("/credentials/test", (CredentialInput input, DeployCredentials cred) =>
         {
             var account = input.ToCredential(input.Id ?? 0);

@@ -8,33 +8,33 @@ using Microsoft.AspNetCore.Authentication;
 
 namespace DeployCraft.Server.Security;
 
-/// <summary>Compte ou groupe Windows autorisé à utiliser la console, retenu par son SID (insensible aux renommages).</summary>
+/// <summary>Windows account or group allowed to use the console, kept by its SID (unaffected by renames).</summary>
 public record ConsoleUser(string Sid, string Name);
 
-/// <summary>Console connectée au service : compte, poste d'où elle se connecte, heure de sa dernière demande.</summary>
+/// <summary>Console connected to the service: account, computer it connects from, time of its last request.</summary>
 public record ConsoleSession(string User, string Computer, DateTime LastSeenUtc);
 
 /// <summary>
-/// Qui a le droit d'utiliser le service : les administrateurs locaux du serveur (toujours, pour qu'on ne puisse pas
-/// se fermer la porte), plus les comptes et groupes de la liste « Utilisateurs de la console ».
+/// Who may use the service: the server's local administrators (always, so nobody can lock themselves
+/// out), plus the accounts and groups of the "Utilisateurs de la console" list.
 /// </summary>
 public class ConsoleAccess(ISettingsRepository settingsRepository)
 {
     public const string AdministratorsSid = "S-1-5-32-544";
 
-    /// <summary>Une console interroge le service toutes les 2 s : au-delà de 2 minutes sans demande, elle est fermée.</summary>
+    /// <summary>A console polls the service every 2 s: after more than 2 minutes without a request, it is closed.</summary>
     public static readonly TimeSpan SessionTimeout = TimeSpan.FromMinutes(2);
 
     private const string SettingKey = "console.users";
-    // Clé : « compte|adresse » (une même personne peut ouvrir la console sur deux postes).
+    // Key: "account|address" (the same person can open the console on two computers).
     private readonly ConcurrentDictionary<string, DateTime> _sessions = new(StringComparer.OrdinalIgnoreCase);
-    // Nom des postes d'après leur adresse, cherché une fois dans le DNS (l'adresse s'affiche en attendant).
+    // Computer names from their address, looked up once in DNS (the address is shown meanwhile).
     private readonly ConcurrentDictionary<string, string> _computers = new();
 
     public List<ConsoleUser> ListUsers() =>
         settingsRepository.Get(SettingKey) is { } json ? JsonSerializer.Deserialize<List<ConsoleUser>>(json, Database.Json) ?? [] : [];
 
-    /// <summary>Ajoute un compte ou un groupe (DOMAINE\nom) ; renvoie l'entrée enregistrée, ou une erreur lisible.</summary>
+    /// <summary>Adds an account or group (DOMAIN\name); returns the saved entry, or a readable error.</summary>
     public (ConsoleUser? User, string? Error) AddUser(string? name)
     {
         name = name?.Trim();
@@ -45,7 +45,7 @@ public class ConsoleAccess(ISettingsRepository settingsRepository)
             var sid = (SecurityIdentifier)new NTAccount(name).Translate(typeof(SecurityIdentifier));
             user = new ConsoleUser(sid.Value, sid.Translate(typeof(NTAccount)).Value);
         }
-        catch (SystemException) // nom mal écrit, inconnu, ou annuaire injoignable
+        catch (SystemException) // misspelled name, unknown, or directory unreachable
         {
             return (null, $"Compte ou groupe « {name} » introuvable. Écrivez-le sous la forme DOMAINE\\nom.");
         }
@@ -61,7 +61,7 @@ public class ConsoleAccess(ISettingsRepository settingsRepository)
     private void Save(List<ConsoleUser> users) =>
         settingsRepository.Set(SettingKey, users.Count == 0 ? null : JsonSerializer.Serialize(users, Database.Json));
 
-    /// <summary>SID de la personne et de ses groupes, y compris ceux que le contrôle de compte (UAC) garde en refus seul.</summary>
+    /// <summary>SID of the person and of their groups, including those that User Account Control (UAC) keeps deny-only.</summary>
     public static HashSet<string> Sids(ClaimsPrincipal user)
     {
         var sids = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -72,15 +72,15 @@ public class ConsoleAccess(ISettingsRepository settingsRepository)
     }
 
     /// <summary>
-    /// Une console ouverte sans élévation présente le groupe Administrateurs « en refus seul » : on le compte quand
-    /// même, la personne est bien administrateur du serveur.
+    /// A console opened without elevation presents the Administrators group as "deny-only": it is counted
+    /// anyway, the person really is an administrator of the server.
     /// </summary>
     public static bool IsServerAdmin(IReadOnlySet<string> sids) => sids.Contains(AdministratorsSid);
 
     public static bool IsAllowed(IReadOnlySet<string> sids, IEnumerable<ConsoleUser> users) =>
         IsServerAdmin(sids) || users.Any(u => sids.Contains(u.Sid));
 
-    /// <param name="address">Adresse de la console (null ou boucle locale : la console du serveur lui-même).</param>
+    /// <param name="address">Console address (null or loopback: the console of the server itself).</param>
     public void Seen(string user, IPAddress? address = null)
     {
         var key = address == null || IPAddress.IsLoopback(address) ? "" : address.ToString();
@@ -112,8 +112,8 @@ public class ConsoleAccess(ISettingsRepository settingsRepository)
     }
 
     /// <summary>
-    /// Filtre de l'API : la console s'identifie avec la session Windows de la personne (Negotiate, sans mot de passe à
-    /// saisir) ; un compte qui n'est ni administrateur du serveur ni dans la liste est refusé avec un message clair.
+    /// API filter: the console identifies itself with the person's Windows session (Negotiate, no password to
+    /// type); an account that is neither a server administrator nor in the list is refused with a clear message.
     /// </summary>
     public async Task Check(HttpContext context, Func<Task> next)
     {

@@ -71,22 +71,22 @@ public sealed class Database
             );
             """);
 
-        // Colonnes ajoutées en 0.3 : les bases existantes sont complétées sans perte.
+        // Columns added in 0.3: existing databases are completed without loss.
         AddColumnIfMissing(db, "deployments", "launched_by", "TEXT");
         AddColumnIfMissing(db, "deployments", "run_as", "TEXT");
         AddColumnIfMissing(db, "deployments", "start_step", "INTEGER NOT NULL DEFAULT 1");
 
-        // 0.6 : exécuter en tant que, mode de copie, étape de départ et priorité par poste.
+        // 0.6: run as, copy mode, start step and priority per computer.
         AddColumnIfMissing(db, "packages", "run_as", "TEXT NOT NULL DEFAULT 'DeployUser'");
         AddColumnIfMissing(db, "packages", "copy_mode", "TEXT NOT NULL DEFAULT 'Push'");
-        // Avant 0.6, le service temporaire tournait toujours en Système local.
+        // Before 0.6, the temporary service always ran as Local System.
         AddColumnIfMissing(db, "deployments", "run_as_mode", "TEXT NOT NULL DEFAULT 'LocalSystem'");
         AddColumnIfMissing(db, "deployments", "copy_mode", "TEXT NOT NULL DEFAULT 'Push'");
         if (AddColumnIfMissing(db, "deployment_targets", "start_step", "INTEGER NOT NULL DEFAULT 1"))
             Exec(db, "UPDATE deployment_targets SET start_step = (SELECT start_step FROM deployments WHERE deployments.id = deployment_id)");
         AddColumnIfMissing(db, "deployment_targets", "prioritized", "INTEGER NOT NULL DEFAULT 0");
 
-        // 0.8 : planifications. Le réglage complet est rangé en JSON ; l'historique est par poste et par paquet.
+        // 0.8: schedules. The full setting is stored as JSON; the history is per computer and per package.
         Exec(db, """
             CREATE TABLE IF NOT EXISTS schedules (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -111,7 +111,7 @@ public sealed class Database
         AddColumnIfMissing(db, "deployments", "schedule_name", "TEXT");
         AddColumnIfMissing(db, "deployments", "queue_timeout", "INTEGER");
 
-        // 0.9 : plusieurs identifiants ; le mot de passe est rangé chiffré (voir DeployCredentials).
+        // 0.9: multiple credentials; the password is stored encrypted (see DeployCredentials).
         Exec(db, """
             CREATE TABLE IF NOT EXISTS credentials (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -124,12 +124,12 @@ public sealed class Database
             """);
         AddColumnIfMissing(db, "deployments", "credential_id", "INTEGER");
 
-        // 0.10 : version, délai, conditions et réglages hors ligne du paquet ; run_as / copy_mode « Default » = Préférences.
+        // 0.10: version, delay, conditions and offline settings of the package; run_as / copy_mode "Default" = Preferences.
         AddColumnIfMissing(db, "packages", "version", "TEXT");
         AddColumnIfMissing(db, "packages", "timeout", "INTEGER");
         AddColumnIfMissing(db, "packages", "conditions", "TEXT");
         AddColumnIfMissing(db, "packages", "offline", "TEXT");
-        // Dossiers de l'arbre des paquets.
+        // Folders of the package tree.
         Exec(db, """
             CREATE TABLE IF NOT EXISTS package_folders (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -138,7 +138,7 @@ public sealed class Database
             );
             """);
         AddColumnIfMissing(db, "packages", "folder_id", "INTEGER");
-        // Adresses MAC apprises lors des déploiements, pour le Wake-on-LAN.
+        // MAC addresses learned during deployments, for Wake-on-LAN.
         Exec(db, """
             CREATE TABLE IF NOT EXISTS computers (
                 name TEXT PRIMARY KEY COLLATE NOCASE,
@@ -148,7 +148,7 @@ public sealed class Database
             """);
     }
 
-    /// <summary>Renvoie true si la colonne vient d'être ajoutée.</summary>
+    /// <summary>Returns true if the column has just been added.</summary>
     private static bool AddColumnIfMissing(SqliteConnection db, string table, string column, string type)
     {
         using (var cmd = Command(db, $"SELECT COUNT(*) FROM pragma_table_info('{table}') WHERE name = $c", ("$c", column)))

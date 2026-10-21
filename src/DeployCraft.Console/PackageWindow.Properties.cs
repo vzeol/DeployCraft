@@ -7,7 +7,7 @@ namespace DeployCraft.Console;
 /// <summary>Package editor: package properties and options.</summary>
 public partial class PackageWindow
 {
-    // ---------- Propriétés ----------
+    // ---------- Properties ----------
 
     private void NameBox_TextChanged(object sender, TextChangedEventArgs e)
     {
@@ -18,10 +18,10 @@ public partial class PackageWindow
     private void UpdateTitle() =>
         Title = string.IsNullOrWhiteSpace(Package.Name) ? "Nouveau paquet" : $"{Package.Name} — Paquet";
 
-    /// <summary>Délai qu'auront les étapes sans délai propre.</summary>
+    /// <summary>Delay that steps without their own delay will have.</summary>
     private int PackageTimeout => Package.TimeoutMinutes ?? _defaults.TimeoutMinutes;
 
-    /// <summary>Options et Hors ligne : chaque liste commence par « Par défaut (valeur des Préférences) ».</summary>
+    /// <summary>Options and Offline: each list starts with "Par défaut (valeur des Préférences)".</summary>
     private void FillOptions()
     {
         _loadingOptions = true;
@@ -68,7 +68,7 @@ public partial class PackageWindow
         else if (int.TryParse(text, out var minutes)) Package.TimeoutMinutes = minutes;
     }
 
-    /// <summary>Case cochée : le paquet suit les Préférences ; décochée : il garde ses propres réglages, partis de ceux des Préférences.</summary>
+    /// <summary>Checked: the package follows the Preferences; unchecked: it keeps its own settings, starting from those of the Preferences.</summary>
     private void OfflineDefault_Click(object sender, RoutedEventArgs e)
     {
         Package.Offline = OfflineDefaultBox.IsChecked == true ? null : Clone(_defaults.Offline);

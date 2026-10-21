@@ -9,7 +9,7 @@ namespace DeployCraft.Console;
 /// <summary>Deploy once window: target computers, DNS check and start step.</summary>
 public partial class DeployWindow
 {
-    // ---------- Cibles ----------
+    // ---------- Targets ----------
 
     private void AddTarget(string name, int startStep)
     {
@@ -20,7 +20,7 @@ public partial class DeployWindow
         _nameCheck.Start();
     }
 
-    /// <summary>Les postes ajoutés sont vérifiés par lots, un instant après la dernière saisie.</summary>
+    /// <summary>Added computers are checked in batches, a moment after the last input.</summary>
     private readonly System.Windows.Threading.DispatcherTimer _nameCheck = new() { Interval = TimeSpan.FromMilliseconds(300) };
 
     private async void NameCheck_Tick(object? sender, EventArgs e)
@@ -35,7 +35,7 @@ public partial class DeployWindow
                 if (results.FirstOrDefault(r => r.Name.Equals(target.Computer, StringComparison.OrdinalIgnoreCase)) is { } result)
                     target.Check = result;
         }
-        catch (ApiException) { } // service injoignable : les postes restent « en cours », sans bloquer le déploiement
+        catch (ApiException) { } // service unreachable: the computers stay "en cours", without blocking the deployment
     }
 
     private void AddNames(string text)
@@ -88,7 +88,7 @@ public partial class DeployWindow
     {
         var picker = new AdPickerWindow(_targets.Select(t => t.Computer).ToList()) { Owner = this };
         if (picker.ShowDialog() != true) return;
-        // La sélection AD remplace les postes AD précédents mais garde les saisies manuelles.
+        // The AD selection replaces the previous AD computers but keeps the manual entries.
         foreach (var removed in picker.Unchecked)
             if (_targets.FirstOrDefault(t => t.Computer.Equals(removed, StringComparison.OrdinalIgnoreCase)) is { } item) _targets.Remove(item);
         AddNames(string.Join(" ", picker.Selected));
@@ -119,7 +119,7 @@ public partial class DeployWindow
 
     private void Targets_KeyDown(object sender, KeyEventArgs e)
     {
-        if (e.OriginalSource is ComboBox or ComboBoxItem) return; // choix de l'étape en cours
+        if (e.OriginalSource is ComboBox or ComboBoxItem) return; // choice of the start step in progress
         if (e.Key == Key.Delete) { Remove_Click(sender, e); e.Handled = true; }
         else if (e.Key == Key.V && Keyboard.Modifiers == ModifierKeys.Control) { PasteNames(); e.Handled = true; }
     }

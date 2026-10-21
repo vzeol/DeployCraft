@@ -31,7 +31,7 @@ public partial class MainWindow
         await RefreshAsync(packages: false);
     }
 
-    // ---------- Planifications ----------
+    // ---------- Schedules ----------
 
     private void NewSchedule_Click(object sender, RoutedEventArgs e)
     {
@@ -45,7 +45,7 @@ public partial class MainWindow
         if (SelectedPackage is { } p) OpenSchedule(new Schedule { PackageIds = [p.Id], Name = p.Name });
     }
 
-    /// <summary>Ajoute le paquet sélectionné à une planification existante, choisie dans une liste.</summary>
+    /// <summary>Adds the selected package to an existing schedule, chosen from a list.</summary>
     private async Task AttachToScheduleAsync()
     {
         if (SelectedPackage is not { } p) return;
@@ -101,7 +101,7 @@ public partial class MainWindow
         catch (ApiException ex) { Ui.Error(this, ex); }
     }
 
-    /// <summary>Ouvre la fenêtre d'une planification ; après enregistrement, affiche la page des planifications.</summary>
+    /// <summary>Opens the window of a schedule; after saving, shows the schedules page.</summary>
     public async void OpenSchedule(Schedule schedule)
     {
         var window = new ScheduleWindow(schedule) { Owner = this };
@@ -152,7 +152,7 @@ public partial class MainWindow
             var copy = await Api.Schedule(s.Id);
             copy.Id = 0;
             copy.Name += " (copie)";
-            copy.Enabled = false; // une copie active doublerait les déploiements : on l'active à la main
+            copy.Enabled = false; // an active copy would double the deployments: it is enabled by hand
             await ShowSchedule((await Api.SaveSchedule(copy)).Id);
         }
         catch (ApiException ex) { Ui.Error(this, ex); }

@@ -2,22 +2,22 @@ using System.Text.Json.Serialization;
 
 namespace DeployCraft.Server.Data;
 
-// Types partagés avec la console : fichier d'export et compte rendu d'import.
+// Types shared with the console: export file and import report.
 
-/// <summary>Fichier d'export de paquets DeployCraft (JSON). Les paquets imbriqués utilisés sont toujours inclus.</summary>
+/// <summary>DeployCraft package export file (JSON). Nested packages that are used are always included.</summary>
 public class PackageExport
 {
     public const string FormatName = "DeployCraft.Packages";
     public const int CurrentVersion = 1;
 
-    /// <summary>Vide dans un fichier JSON qui n'est pas un export DeployCraft.</summary>
+    /// <summary>Empty in a JSON file that is not a DeployCraft export.</summary>
     public string Format { get; set; } = "";
     public int Version { get; set; }
     public DateTime ExportedUtc { get; set; }
     public List<Package> Packages { get; set; } = [];
 }
 
-/// <summary>Résultat d'un élément importé : repris tel quel, repris avec des réserves, ou non repris.</summary>
+/// <summary>Result of an imported item: taken as is, taken with reservations, or not taken.</summary>
 public enum ImportState { Ok, Warning, Skipped }
 
 public class ImportStepResult
@@ -41,22 +41,22 @@ public class ImportStepResult
 
 public class ImportPackageResult
 {
-    /// <summary>Nom dans le fichier importé.</summary>
+    /// <summary>Name in the imported file.</summary>
     public string Name { get; set; } = "";
-    /// <summary>Nom dans DeployCraft (« Nom (2) » si le nom est déjà pris) ; null si le paquet n'est pas repris.</summary>
+    /// <summary>Name in DeployCraft ("Name (2)" if the name is already taken); null if the package is not taken.</summary>
     public string? FinalName { get; set; }
     public long? NewId { get; set; }
     public ImportState State { get; set; }
     public List<string> Notes { get; set; } = [];
     public List<ImportStepResult> Steps { get; set; } = [];
 
-    /// <summary>Paquet à créer (null : non repris).</summary>
+    /// <summary>Package to create (null: not taken).</summary>
     [JsonIgnore] public Package? Package { get; set; }
-    /// <summary>Références de ce paquet dans le fichier (numéro, chemin ou nom) pour les étapes « paquet imbriqué ».</summary>
+    /// <summary>References of this package in the file (number, path or name) for the "nested package" steps.</summary>
     [JsonIgnore] public List<string> Keys { get; set; } = [];
-    /// <summary>Étape « paquet imbriqué » → référence du paquet visé dans le fichier.</summary>
+    /// <summary>"Nested package" step → reference of the targeted package in the file.</summary>
     [JsonIgnore] public Dictionary<PackageStep, string> NestedRefs { get; } = new(ReferenceEqualityComparer.Instance);
-    /// <summary>Étape du paquet → sa ligne dans le compte rendu.</summary>
+    /// <summary>Package step → its line in the report.</summary>
     [JsonIgnore] public Dictionary<PackageStep, ImportStepResult> StepResults { get; } = new(ReferenceEqualityComparer.Instance);
 
     public void Warn(string note) => Notes.Add(note);
@@ -68,14 +68,14 @@ public class ImportPackageResult
     }
 }
 
-/// <summary>Compte rendu d'un import : aperçu (rien n'est créé) ou import réel.</summary>
+/// <summary>Import report: preview (nothing is created) or actual import.</summary>
 public class ImportReport
 {
     public const string SourceDeployCraft = "DeployCraft";
-    /// <summary>Fichier XML de paquets.</summary>
+    /// <summary>XML packages file.</summary>
     public const string SourceXml = "XML";
 
-    /// <summary><see cref="SourceDeployCraft"/> ou <see cref="SourceXml"/>.</summary>
+    /// <summary><see cref="SourceDeployCraft"/> or <see cref="SourceXml"/>.</summary>
     public string Source { get; set; } = "";
     public bool Applied { get; set; }
     public List<string> Notes { get; set; } = [];

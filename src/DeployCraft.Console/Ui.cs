@@ -6,7 +6,7 @@ using System.Windows.Media;
 
 namespace DeployCraft.Console;
 
-/// <summary>Petits utilitaires d'affichage partagés par les fenêtres.</summary>
+/// <summary>Small display utilities shared by the windows.</summary>
 public static class Ui
 {
     public static readonly FontFamily IconFont = new("Segoe Fluent Icons, Segoe MDL2 Assets");
@@ -19,14 +19,14 @@ public static class Ui
     public const string IconInstall = "";
     public const string IconCommand = "";
     public const string IconScript = "";
-    public const string IconPause = ""; // chronomètre
-    public const string IconCopy = "\uE8DE"; // dossier avec flèche
-    public const string IconReboot = "\uE7E8"; // bouton marche / arrêt
-    public const string IconMessage = "\uE8BD"; // bulle de message
+    public const string IconPause = ""; // stopwatch
+    public const string IconCopy = "\uE8DE"; // folder with arrow
+    public const string IconReboot = "\uE7E8"; // power button
+    public const string IconMessage = "\uE8BD"; // message bubble
     public const string IconComputer = "";
     public const string IconProperties = "";
     public const string IconSteps = "";
-    public const string IconUpdate = ""; // flèche vers le haut
+    public const string IconUpdate = ""; // up arrow
     public const string IconLibrary = ""; // livres
     public const string IconSchedule = ""; // calendrier
 
@@ -45,14 +45,14 @@ public static class Ui
 
     public static string StatusIcon(string status) => status switch
     {
-        "Successful" or "success" => "", // coche dans un cercle
-        "Failed" or "failed" => "",      // croix dans un cercle
+        "Successful" or "success" => "", // check mark in a circle
+        "Failed" or "failed" => "",      // cross in a circle
         "Partial" => "",                 // avertissement
         "Running" or "running" => "",    // synchro
-        "Aborted" => "",                 // croix simple (annulé)
-        "skipped" => "",                 // ignoré
-        "stopped" => "",                 // coche (arrêt compté réussi)
-        _ => "",                         // horloge (en attente)
+        "Aborted" => "",                 // plain cross (cancelled)
+        "skipped" => "",                 // skipped
+        "stopped" => "",                 // check mark (stop counted as success)
+        _ => "",                         // clock (waiting)
     };
 
     public static Brush StatusBrush(string status) => status switch
@@ -103,7 +103,7 @@ public static class Ui
         _ => IconScript,
     };
 
-    /// <summary>En-tête d'élément d'arbre : icône + texte.</summary>
+    /// <summary>Tree item header: icon + text.</summary>
     public static StackPanel Header(string icon, string text, Brush? iconBrush = null)
     {
         var panel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 0, 2) };
@@ -121,8 +121,8 @@ public static class Ui
     }
 
     /// <summary>
-    /// Choix du dossier de la bibliothèque dans la fenêtre Windows de choix de dossier (un partage s'écrit dans sa barre
-    /// d'adresse, ex. \\SERVEUR\Deploiement). Renvoie le dossier choisi, ou null si rien n'a changé.
+    /// Library folder choice in the standard Windows folder picker (a share is typed in its address
+    /// bar, e.g. \\SERVEUR\Deploiement). Returns the chosen folder, or null if nothing changed.
     /// </summary>
     public static string? PickLibraryFolder(Window owner, string current)
     {
@@ -147,7 +147,7 @@ public static class Ui
     public static readonly MenuEntry Separator = new("-", () => { });
 
     /// <summary>
-    /// Menu clic droit reconstruit à chaque ouverture selon la sélection du moment.
+    /// Right-click menu rebuilt at each opening according to the current selection.
     /// Une liste vide n'ouvre rien.
     /// </summary>
     public static void ContextMenu(FrameworkElement element, Func<IEnumerable<MenuEntry>> build)
@@ -173,7 +173,7 @@ public static class Ui
         return item;
     }
 
-    /// <summary>Le clic droit sélectionne d'abord l'élément sous la souris (ligne de grille, nœud d'arbre, élément de liste).</summary>
+    /// <summary>Right-click first selects the item under the mouse (grid row, tree node, list item).</summary>
     public static void SelectOnRightClick(Control control)
     {
         control.PreviewMouseRightButtonDown += (_, e) =>
@@ -202,14 +202,14 @@ public static class Ui
     }
 }
 
-/// <summary>Statut technique → libellé français (colonnes de grille).</summary>
+/// <summary>Technical status → French label (grid columns).</summary>
 public class StatusTextConverter : IValueConverter
 {
     public object Convert(object value, Type t, object p, CultureInfo c) => Ui.StatusText(value?.ToString() ?? "");
     public object ConvertBack(object value, Type t, object p, CultureInfo c) => Binding.DoNothing;
 }
 
-/// <summary>Statut technique → icône.</summary>
+/// <summary>Technical status → icon.</summary>
 public class StatusIconConverter : IValueConverter
 {
     public object Convert(object value, Type t, object p, CultureInfo c) => Ui.StatusIcon(value?.ToString() ?? "");

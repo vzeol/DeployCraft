@@ -7,22 +7,22 @@ using System.Text;
 namespace DeployCraft.Runner
 {
     /// <summary>
-    /// Étape « message » : fenêtre lancée par Windows PowerShell dans chaque session ouverte (une fenêtre par
-    /// processus, donc jamais mise en attente derrière une autre), et résultat selon les codes de sortie.
+    /// "Message" step: window launched by Windows PowerShell in each open session (one window per
+    /// process, so never queued behind another), and result according to the exit codes.
     /// </summary>
     internal static class MessageOutcome
     {
-        /// <summary>Code de sortie : OK cliqué (ou fenêtre fermée par l'utilisateur).</summary>
+        /// <summary>Exit code: OK clicked (or window closed by the user).</summary>
         public const int Clicked = 0;
-        /// <summary>Code de sortie : fenêtre fermée à la fin de la durée d'affichage, sans clic.</summary>
+        /// <summary>Exit code: window closed at the end of the display duration, without a click.</summary>
         public const int Timeout = 2;
 
-        /// <summary>Arguments de powershell.exe : script encodé, le texte n'a donc aucun caractère à échapper sur la ligne de commande.</summary>
+        /// <summary>powershell.exe arguments: encoded script, so the text has no character to escape on the command line.</summary>
         public static string Arguments(string title, string text, int seconds) =>
             "-NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -EncodedCommand " +
             Convert.ToBase64String(Encoding.Unicode.GetBytes(Script(title, text, seconds)));
 
-        /// <param name="seconds">Fermeture automatique après ce délai (0 = jamais), avec le code <see cref="Timeout"/>.</param>
+        /// <param name="seconds">Automatic close after this delay (0 = never), with the <see cref="Timeout"/> code.</param>
         public static string Script(string title, string text, int seconds)
         {
             string Literal(string s) => "'" + (s ?? "").Replace("'", "''") + "'";
@@ -48,9 +48,9 @@ namespace DeployCraft.Runner
                 .ToString();
         }
 
-        /// <param name="sessions">Sessions ouvertes où le message a été affiché.</param>
-        /// <param name="exitCodes">Codes de sortie des fenêtres, null si l'étape ne les attend pas.</param>
-        /// <param name="untilClick">Pas de durée d'affichage : seul le délai max de l'étape a pu fermer la fenêtre.</param>
+        /// <param name="sessions">Open sessions where the message was shown.</param>
+        /// <param name="exitCodes">Exit codes of the windows, null if the step does not wait for them.</param>
+        /// <param name="untilClick">No display duration: only the step's max delay could close the window.</param>
         public static bool Succeeded(int sessions, IList<int> exitCodes, bool untilClick, out string text)
         {
             var errors = exitCodes?.Count(c => c != Clicked && c != Timeout) ?? 0;

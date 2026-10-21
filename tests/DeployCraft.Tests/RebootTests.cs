@@ -4,7 +4,7 @@ using DeployCraft.Server.Remote;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Étape « redémarrer » : consignes du runner, ligne shutdown.exe, tranches coupées et arrêt du poste.</summary>
+/// <summary>"Redémarrer" step: runner instructions, shutdown.exe line, cut slices and computer shutdown.</summary>
 public class RebootTests
 {
     private const RunAsMode D = RunAsMode.DeployUser, S = RunAsMode.LocalSystem, U = RunAsMode.LoggedOnUser;
@@ -41,7 +41,7 @@ public class RebootTests
         Assert.Equal(
             [new RunAsPlan.Tranche(0, 2, false), new RunAsPlan.Tranche(2, 1, false), new RunAsPlan.Tranche(3, 2, true)],
             tranches);
-        // Redémarrage en dernière étape : pas de tranche vide derrière.
+        // Restart as the last step: no empty slice behind it.
         Assert.Equal([new RunAsPlan.Tranche(0, 2, false)], RunAsPlan.Split([S, S], [false, true]));
     }
 

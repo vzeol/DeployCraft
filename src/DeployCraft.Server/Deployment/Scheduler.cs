@@ -3,17 +3,17 @@ using DeployCraft.Server.Data;
 namespace DeployCraft.Server.Deployment;
 
 /// <summary>
-/// Déclenche les planifications. Toutes les 15 s, chaque planification active regarde si un de ses
-/// déclencheurs est passé depuis le dernier examen ; si oui, elle lance un déploiement par paquet
-/// sur les postes qui en ont encore besoin.
+/// Fires the schedules. Every 15 s, each active schedule checks whether one of its
+/// triggers has passed since the last check; if so, it starts one deployment per package
+/// on the computers that still need it.
 /// </summary>
 public class Scheduler(IScheduleRepository scheduleRepository, IPackageRepository packageRepository, DeploymentEngine engine, ILogger<Scheduler> log) : BackgroundService
 {
     private static readonly TimeSpan Tick = TimeSpan.FromSeconds(15);
 
     /// <summary>
-    /// Un déclenchement manqué (service arrêté, serveur éteint) n'est rattrapé que s'il date de moins
-    /// de 5 minutes : on ne lance pas à 20 h une installation prévue à 8 h.
+    /// A missed trigger (service stopped, server off) is only caught up if it is less than
+    /// 5 minutes old: we do not start at 8 pm an installation planned for 8 am.
     /// </summary>
     private static readonly TimeSpan CatchUp = TimeSpan.FromMinutes(5);
 
@@ -44,7 +44,7 @@ public class Scheduler(IScheduleRepository scheduleRepository, IPackageRepositor
             scheduleRepository.SetChecked(schedule.Id, now);
             if (!schedule.Enabled) continue;
 
-            // Plusieurs déclenchements passés depuis le dernier examen : un seul lancement.
+            // Several triggers passed since the last check: a single launch.
             var due = schedule.Triggers.Select(t => TriggerCalendar.Next(t, since)).Where(d => d <= now).Min();
             if (due == null) continue;
             if (now - due.Value > CatchUp)
@@ -57,8 +57,8 @@ public class Scheduler(IScheduleRepository scheduleRepository, IPackageRepositor
     }
 
     /// <summary>
-    /// Lance la planification maintenant. Renvoie les déploiements créés (aucun si tous les postes
-    /// ont déjà réussi, sont en cours ou ont atteint le nombre d'échecs maximum).
+    /// Starts the schedule now. Returns the deployments created (none if all computers
+    /// have already succeeded, are running or reached the maximum number of failures).
     /// </summary>
     public List<Data.Deployment> Run(Schedule schedule, string? launchedBy)
     {
@@ -81,7 +81,7 @@ public class Scheduler(IScheduleRepository scheduleRepository, IPackageRepositor
 
         var history = scheduleRepository.GetHistory(schedule.Id)
             .ToDictionary(h => (h.Computer.ToUpperInvariant(), h.PackageId));
-        // Un poste encore servi par un lancement précédent est laissé tranquille jusqu'au suivant.
+        // A computer still served by a previous launch is left alone until the next one.
         var busy = scheduleRepository.ActiveComputers(schedule.Id);
 
         var plan = new List<(Package, List<TargetRequest>)>();

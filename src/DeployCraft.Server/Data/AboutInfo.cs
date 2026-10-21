@@ -1,6 +1,6 @@
 namespace DeployCraft.Server.Data;
 
-/// <summary>Contenu de la fenêtre « À propos » de la console (partagé pour être testé).</summary>
+/// <summary>Content of the console "À propos" window (shared so it can be tested).</summary>
 public static class AboutInfo
 {
     public const string ProjectUrl = "https://github.com/vzeol/DeployCraft";
@@ -10,13 +10,13 @@ public static class AboutInfo
         "Logiciel libre sous licence GNU GPL version 3 : vous pouvez l'utiliser, l'étudier, le modifier et le " +
         "redistribuer selon ses termes. Il est fourni tel quel, sans aucune garantie.";
 
-    /// <summary>Texte de l'état du service affiché dans la fenêtre.</summary>
+    /// <summary>Service state text shown in the window.</summary>
     public static string ServiceText(string? version, string? machine, string? error) =>
         error != null ? error
         : string.IsNullOrWhiteSpace(machine) ? Version(version)
         : $"{Version(version)} sur {machine}";
 
-    /// <summary>Résumé à coller dans un signalement de problème (bouton « Copier les informations »).</summary>
+    /// <summary>Summary to paste into a problem report ("Copier les informations" button).</summary>
     public static string Summary(string? consoleVersion, string serviceText, string? connectedAs, string windows, string runtime)
     {
         var lines = new List<string>

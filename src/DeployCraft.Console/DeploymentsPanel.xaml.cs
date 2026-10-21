@@ -15,19 +15,19 @@ public record TargetRow(DeploymentTarget Target, long DeploymentId, string Compu
     string Detail, string Started, string Duration);
 
 /// <summary>
-/// Vue maître/détail des déploiements : grille des déploiements + carte de détails,
-/// puis grille des postes du déploiement sélectionné + carte du poste.
+/// Master/detail view of the deployments: deployments grid + details card,
+/// then grid of computers of the selected deployment + computer card.
 /// </summary>
 public partial class DeploymentsPanel : UserControl
 {
     private List<Deployment> _all = [];
     private long? _pendingSelection;
 
-    /// <summary>Demande de déploiement (paquet, cibles pré-remplies avec leur étape de départ).</summary>
+    /// <summary>Deployment request (package, targets pre-filled with their start step).</summary>
     public event Action<long, IReadOnlyList<TargetRequest>>? DeployRequested;
-    /// <summary>Nouvelle planification pré-remplie d'après un déploiement, à ouvrir dans sa fenêtre.</summary>
+    /// <summary>New schedule pre-filled from a deployment, to open in its window.</summary>
     public event Action<Schedule>? ScheduleRequested;
-    /// <summary>L'historique a changé (suppression, annulation, lancement direct) : la fenêtre doit rafraîchir.</summary>
+    /// <summary>The history changed (deletion, cancellation, direct launch): the window must refresh.</summary>
     public event Action? Changed;
 
     public DeploymentsPanel()
@@ -48,9 +48,9 @@ public partial class DeploymentsPanel : UserControl
     private static bool IsActive(DeploymentTarget t) => t.Status is TargetStatus.Queued or TargetStatus.Running;
     private static bool IsActive(Deployment d) => d.Status is DeploymentStatus.Queued or DeploymentStatus.Running;
 
-    // ---------- Actions (barre de menus Édition et clic droit) ----------
+    // ---------- Actions (Edit menu bar and right-click) ----------
 
-    /// <summary>La grille des postes a le focus : Ctrl+R vise alors les postes sélectionnés.</summary>
+    /// <summary>The computers grid has focus: Ctrl+R then targets the selected computers.</summary>
     public bool TargetsFocused => TargetsGrid.IsKeyboardFocusWithin;
 
     public bool CanAbort => Selected is { } d && IsActive(d);
@@ -79,8 +79,8 @@ public partial class DeploymentsPanel : UserControl
     public void DeleteSelected() => _ = DeleteSelectedAsync();
 
     /// <summary>
-    /// Étape (numérotée dans le paquet) à laquelle reprendre pour un poste en échec :
-    /// la première étape en échec, ou le point de départ s'il a échoué avant d'exécuter une étape.
+    /// Step (numbered in the package) to resume at for a failed computer:
+    /// the first failed step, or the start point if it failed before running a step.
     /// </summary>
     private static int FailedStep(DeploymentTarget t)
     {
@@ -88,7 +88,7 @@ public partial class DeploymentsPanel : UserControl
         return index < 0 ? t.StartStep : t.StartStep + index;
     }
 
-    /// <summary>Un seul déploiement : chaque poste reprend à sa propre étape en échec.</summary>
+    /// <summary>A single deployment: each computer resumes at its own failed step.</summary>
     private void RedeployFromFailedStep(List<DeploymentTarget> targets)
     {
         if (Selected is not { } d || targets.Count == 0) return;
@@ -124,7 +124,7 @@ public partial class DeploymentsPanel : UserControl
         catch (ApiException ex) { Ui.Error(Owner, ex); }
     }
 
-    // ---------- Données ----------
+    // ---------- Data ----------
 
     public void SetDeployments(IEnumerable<Deployment> deployments)
     {
@@ -132,7 +132,7 @@ public partial class DeploymentsPanel : UserControl
         ApplyDeploymentFilter();
     }
 
-    /// <summary>Sélectionne un déploiement (éventuellement au prochain rafraîchissement s'il n'est pas encore listé).</summary>
+    /// <summary>Selects a deployment (possibly at the next refresh if it is not listed yet).</summary>
     public void Select(long id)
     {
         _pendingSelection = id;
@@ -164,7 +164,7 @@ public partial class DeploymentsPanel : UserControl
     private static bool Matches(string filter, params string?[] values) =>
         values.Any(v => v?.Contains(filter, StringComparison.OrdinalIgnoreCase) == true);
 
-    // ---------- Carte du déploiement + grille des postes ----------
+    // ---------- Deployment card + computers grid ----------
 
     private void ShowDeployment()
     {
@@ -194,7 +194,7 @@ public partial class DeploymentsPanel : UserControl
             RunAsMode.LocalSystem => "Système local",
             _ => "Utilisateur connecté",
         }
-        // L'identifiant sert aussi à copier les fichiers et à créer le service, même sans tourner sous ce compte.
+        // The credential is also used to copy files and create the service, even without running under this account.
         + (d.RunAsMode != RunAsMode.DeployUser && d.CredentialId != null ? $" (accès : {d.RunAs})" : "")
         + (d.CopyMode == CopyMode.Pull ? " · pull" : "");
         var failed = d.Targets.Count(t => t.Status == TargetStatus.Failed);
@@ -232,7 +232,7 @@ public partial class DeploymentsPanel : UserControl
         ShowTarget();
     }
 
-    // ---------- Carte du poste ----------
+    // ---------- Computer card ----------
 
     private void ShowTarget()
     {
@@ -252,7 +252,7 @@ public partial class DeploymentsPanel : UserControl
         TEnded.Text = t.EndedUtc == null ? "—" : Ui.LocalTime(t.EndedUtc);
         TDuration.Text = string.IsNullOrEmpty(row.Duration) ? "—" : row.Duration;
         TError.Text = t.Error ?? "";
-        // Raison sur un poste réussi (étape ignorée, arrêt en succès…) : une remarque, pas une erreur.
+        // Reason on a succeeded computer (skipped step, stop on success...): a note, not an error.
         var failed = t.Status == TargetStatus.Failed;
         TErrorTitle.Text = failed ? "ERREUR" : "REMARQUE";
         System.Windows.Automation.AutomationProperties.SetName(TErrorTitle, TErrorTitle.Text);
@@ -266,7 +266,7 @@ public partial class DeploymentsPanel : UserControl
         new StepsWindow(d, row.Target) { Owner = Owner }.Show();
     }
 
-    // ---------- Événements ----------
+    // ---------- Events ----------
 
     private void DeploymentFilter_TextChanged(object sender, TextChangedEventArgs e) => ApplyDeploymentFilter();
     private void TargetFilter_TextChanged(object sender, TextChangedEventArgs e) => ApplyTargetFilter();
@@ -291,7 +291,7 @@ public partial class DeploymentsPanel : UserControl
         if (Selected is { } d && TargetsGrid.SelectedItem is TargetRow row) DeployRequested?.Invoke(d.PackageId, Fresh([row.Computer]));
     }
 
-    // ---------- Menus clic droit ----------
+    // ---------- Right-click menus ----------
 
     private void SetupContextMenus()
     {
@@ -333,7 +333,7 @@ public partial class DeploymentsPanel : UserControl
             ];
         });
 
-        // Raccourcis propres au panneau (les autres sont gérés par la fenêtre via le menu Édition).
+        // Shortcuts specific to the panel (the others are handled by the window via the Edit menu).
         TargetsGrid.KeyDown += (_, e) =>
         {
             if (e.Key == Key.R && Keyboard.Modifiers == ModifierKeys.Control && Selected is { } d && SelectedTargets.Count > 0)

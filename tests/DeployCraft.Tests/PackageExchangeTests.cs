@@ -2,7 +2,7 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Export et import de paquets : format DeployCraft (JSON) et fichiers XML de paquets.</summary>
+/// <summary>Export and import of packages: DeployCraft format (JSON) and package XML files.</summary>
 public class PackageExchangeTests
 {
     private readonly Dictionary<long, Package> _library = [];
@@ -19,7 +19,7 @@ public class PackageExchangeTests
 
     private static PackageStep Nested(long id) => new() { Name = "imbriqué", Type = StepType.Nested, NestedPackageId = id };
 
-    /// <summary>Même vérification que le service : paquets imbriqués existants, sans boucle.</summary>
+    /// <summary>Same check as the service: existing nested packages, no loop.</summary>
     private static string? Validate(Package p, Func<long, Package?> lookup)
     {
         try
@@ -47,7 +47,7 @@ public class PackageExchangeTests
         return report;
     }
 
-    // ---------- Format DeployCraft ----------
+    // ---------- DeployCraft format ----------
 
     [Fact]
     public void Export_IncludesNestedPackages_AtEveryLevel()
@@ -84,7 +84,7 @@ public class PackageExchangeTests
         Assert.Equal("Poste (2)", poste.FinalName);
         Assert.Equal("Outils (2)", outils.FinalName);
         Assert.Equal(outils.NewId, _library[poste.NewId!.Value].Steps[0].NestedPackageId);
-        Assert.All(report.Packages, r => Assert.Equal(ImportState.Warning, r.State)); // renommés
+        Assert.All(report.Packages, r => Assert.Equal(ImportState.Warning, r.State)); // renamed
     }
 
     [Fact]
@@ -131,7 +131,7 @@ public class PackageExchangeTests
         Assert.Throws<FormatException>(() => PackageExchange.Read("bonjour"));
     }
 
-    // ---------- Fichiers XML de paquets ----------
+    // ---------- Package XML files ----------
 
     private static string Xml(string packages) => $"""
         <?xml version="1.0" encoding="utf-8"?>

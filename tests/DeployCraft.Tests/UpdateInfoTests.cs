@@ -2,7 +2,7 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Nouvelle version publiée : comparaison de l'étiquette de la release et de la version installée.</summary>
+/// <summary>New published version: comparison of the release tag and the installed version.</summary>
 public class UpdateInfoTests
 {
     [Theory]

@@ -9,8 +9,8 @@ using DeployCraft.Server.Data;
 namespace DeployCraft.Console;
 
 /// <summary>
-/// Recherche d'une nouvelle version publiée sur GitHub, et téléchargement de son installeur (empreinte vérifiée).
-/// L'installeur met à jour le service et la console ensemble, en administrateur, sur le serveur.
+/// Looks for a new version published on GitHub, and downloads its installer (hash checked).
+/// The installer updates the service and the console together, as administrator, on the server.
 /// </summary>
 public static class UpdateCheck
 {
@@ -23,12 +23,12 @@ public static class UpdateCheck
         Download.DefaultRequestHeaders.UserAgent.ParseAdd("DeployCraft-Console");
     }
 
-    /// <summary>Version installée, pré-version comprise (« 1.0.0-rc.1 »), sans le n° de compilation.</summary>
+    /// <summary>Installed version, pre-release included ("1.0.0-rc.1"), without the build number.</summary>
     public static string? CurrentVersion =>
         typeof(UpdateCheck).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0]
         ?? typeof(UpdateCheck).Assembly.GetName().Version?.ToString(3);
 
-    /// <summary>La nouvelle version, ou null (déjà à jour, pas d'accès à Internet…).</summary>
+    /// <summary>The new version, or null (already up to date, no Internet access...).</summary>
     public static async Task<UpdateInfo?> FindAsync()
     {
         try
@@ -46,8 +46,8 @@ public static class UpdateCheck
     }
 
     /// <summary>
-    /// Télécharge l'installeur dans le dossier temporaire et vérifie son empreinte ; renvoie son chemin.
-    /// Un fichier qui ne correspond pas est supprimé (<see cref="InvalidDataException"/>).
+    /// Downloads the installer into the temporary folder and checks its hash; returns its path.
+    /// A file that does not match is deleted (<see cref="InvalidDataException"/>).
     /// </summary>
     public static async Task<string> DownloadSetupAsync(UpdateInfo update, IProgress<int> progress)
     {

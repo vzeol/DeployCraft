@@ -1,17 +1,17 @@
 namespace DeployCraft.Server.Library;
 
-/// <summary>Installeur retenu dans une fiche du catalogue, avec les paramètres qui le lancent sans fenêtre.</summary>
+/// <summary>Installer chosen from a catalog entry, with the parameters that launch it without a window.</summary>
 public record LibraryInstaller(string Type, string Architecture, string Url, string Sha256, string Extension, string Arguments);
 
 /// <summary>
-/// Lecture des fiches d'installation du catalogue public winget (format YAML) et choix de l'installeur à déployer :
-/// pour tout le poste, sans fenêtre, en 64 bits de préférence et en français si l'éditeur en propose un.
+/// Reading of the public winget catalog's installation entries (YAML format) and choice of the installer to deploy:
+/// for the whole machine, without a window, 64-bit preferred and in French if the publisher offers one.
 /// </summary>
 public static class CatalogManifest
 {
     private static readonly string[] SupportedTypes = ["msi", "wix", "nullsoft", "inno", "burn", "exe"];
 
-    /// <summary>Installeur à déployer ; <paramref name="problem"/> dit pourquoi aucun ne convient.</summary>
+    /// <summary>Installer to deploy; <paramref name="problem"/> says why none fits.</summary>
     public static LibraryInstaller? Choose(string yaml, out string? problem)
     {
         var root = Yaml.Parse(yaml) as Dictionary<string, object?> ?? [];
@@ -51,8 +51,8 @@ public static class CatalogManifest
     }
 
     /// <summary>
-    /// Paramètres ajoutés au fichier. Un .msi est déjà lancé sans fenêtre et sans redémarrage par DeployCraft :
-    /// seuls les paramètres propres au logiciel s'y ajoutent.
+    /// Parameters added to the file. An .msi is already run without a window and without a restart by DeployCraft:
+    /// only the software's own parameters are added to it.
     /// </summary>
     internal static string Arguments(Dictionary<string, object?> installer, Dictionary<string, object?> root, string type, string? scope)
     {
@@ -90,7 +90,7 @@ public static class CatalogManifest
         _ => 4,
     };
 
-    /// <summary>Valeur de l'installeur, sinon celle de la fiche (valeur commune à tous ses installeurs).</summary>
+    /// <summary>Installer's value, otherwise the entry's (value common to all its installers).</summary>
     private static string? Text(Dictionary<string, object?> installer, Dictionary<string, object?>? root, string key) =>
         installer.GetValueOrDefault(key) as string ?? root?.GetValueOrDefault(key) as string;
 
@@ -101,7 +101,7 @@ public static class CatalogManifest
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 
-    /// <summary>Compare deux numéros de version (« 3.0.24 » &lt; « 3.0.100 »), chiffre par chiffre.</summary>
+    /// <summary>Compares two version numbers ("3.0.24" &lt; "3.0.100"), digit by digit.</summary>
     public static int CompareVersions(string? a, string? b)
     {
         var x = (a ?? "").Split('.', '-', '_');
@@ -118,8 +118,8 @@ public static class CatalogManifest
 }
 
 /// <summary>
-/// Lecteur YAML réduit aux fiches du catalogue : clés « Nom: valeur », blocs indentés, listes « - », chaînes entre
-/// guillemets et textes sur plusieurs lignes (| ou &gt;). Les commentaires et les lignes vides sont ignorés.
+/// YAML reader reduced to catalog entries: "Name: value" keys, indented blocks, "- " lists, quoted
+/// strings and multi-line texts (| or &gt;). Comments and empty lines are ignored.
 /// </summary>
 internal static class Yaml
 {
@@ -157,7 +157,7 @@ internal static class Yaml
         return map;
     }
 
-    /// <summary>Contenu d'une clé sans valeur : bloc plus indenté, ou liste au même niveau que la clé.</summary>
+    /// <summary>Content of a key with no value: a more indented block, or a list at the same level as the key.</summary>
     private static object? Child(List<string> lines, ref int i, int indent)
     {
         if (i >= lines.Count) return null;
@@ -181,7 +181,7 @@ internal static class Yaml
             }
             else if (KeySeparator(content) >= 0)
             {
-                // « - Clé: valeur » : la ligne devient la première clé d'un bloc indenté sous le tiret.
+                // "- Key: value": the line becomes the first key of a block indented under the dash.
                 lines[i] = new string(' ', itemIndent) + content;
                 list.Add(Block(lines, ref i, itemIndent));
             }
@@ -201,7 +201,7 @@ internal static class Yaml
         return string.Join(folded ? " " : "\n", parts);
     }
 
-    /// <summary>Position du « : » qui sépare la clé de sa valeur (hors guillemets et adresses « https:// »).</summary>
+    /// <summary>Position of the ":" that separates the key from its value (outside quotes and "https://" addresses).</summary>
     private static int KeySeparator(string line)
     {
         if (line.StartsWith('"') || line.StartsWith('\'')) return -1;

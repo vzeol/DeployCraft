@@ -2,7 +2,7 @@ using DeployCraft.Server.Security;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Compte du service saisi dans Options › Service en arrière-plan.</summary>
+/// <summary>Service account entered in Options › Service en arrière-plan.</summary>
 public class ServiceAccountTests
 {
     [Fact]

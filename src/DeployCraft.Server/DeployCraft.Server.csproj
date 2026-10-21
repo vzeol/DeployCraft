@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0-windows</TargetFramework>
-    <!-- Publié en win-x64 autonome (build.ps1) : le lock file inclut ce runtime. -->
+    <!-- Published as self-contained win-x64 (build.ps1): the lock file includes this runtime. -->
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -22,7 +22,7 @@
     <InternalsVisibleTo Include="DeployCraft.Tests" />
   </ItemGroup>
 
-  <!-- Le runner (net48) est compilé avant le serveur puis copié dans runner\ à côté du serveur. -->
+  <!-- The runner (net48) is built before the server then copied into runner\ next to the server. -->
   <ItemGroup>
     <ProjectReference Include="..\DeployCraft.Runner\DeployCraft.Runner.csproj"
                       ReferenceOutputAssembly="false"

@@ -3,7 +3,7 @@ using DeployCraft.Runner;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Sortie d'un programme : page de code OEM, UTF-16, ou les deux mélangés.</summary>
+/// <summary>Output of a program: OEM code page, UTF-16, or both mixed.</summary>
 public class ProcessOutputTests
 {
     static ProcessOutputTests() => Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);

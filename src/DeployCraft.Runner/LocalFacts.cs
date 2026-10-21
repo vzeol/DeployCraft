@@ -8,7 +8,7 @@ using Microsoft.Win32;
 
 namespace DeployCraft.Runner
 {
-    /// <summary>Le poste réel, lu au moment de vérifier les conditions.</summary>
+    /// <summary>The real computer, read when the conditions are checked.</summary>
     internal sealed class LocalFacts : ITargetFacts
     {
         public string WindowsFamily
@@ -19,7 +19,7 @@ namespace DeployCraft.Runner
                 using (var key = root.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion"))
                 {
                     int.TryParse(key?.GetValue("CurrentBuildNumber") as string, out var build);
-                    // CurrentMajorVersionNumber n'existe qu'à partir de Windows 10.
+                    // CurrentMajorVersionNumber only exists from Windows 10.
                     var major = key?.GetValue("CurrentMajorVersionNumber") is int m ? m : 6;
                     var server = !string.Equals(key?.GetValue("InstallationType") as string, "Client", StringComparison.OrdinalIgnoreCase);
                     return ConditionCheck.Family(build, server, major);
@@ -72,7 +72,7 @@ namespace DeployCraft.Runner
             }
         }
 
-        /// <summary>Cartes réseau actives (Ethernet, Wi-Fi) avec une adresse IPv4 : MAC et adresse de diffusion du sous-réseau.</summary>
+        /// <summary>Active network cards (Ethernet, Wi-Fi) with an IPv4 address: MAC and subnet broadcast address.</summary>
         public static List<NetworkCard> NetworkCards()
         {
             var cards = new List<NetworkCard>();
@@ -99,7 +99,7 @@ namespace DeployCraft.Runner
             }
             catch (NetworkInformationException)
             {
-                // Pas de réveil possible pour ce poste : sans conséquence sur le déploiement.
+                // No wake-up possible for this computer: no consequence on the deployment.
             }
             return cards;
         }

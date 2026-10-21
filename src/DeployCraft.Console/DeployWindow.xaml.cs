@@ -6,8 +6,8 @@ using DeployCraft.Server.Data;
 namespace DeployCraft.Console;
 
 /// <summary>
-/// « Déployer une fois », en deux volets : à gauche les paquets et les cibles
-/// (avec l'étape de départ par poste), à droite les options du déploiement.
+/// "Déployer une fois" (Deploy once), in two panes: packages and targets on the left
+/// (with the start step per computer), deployment options on the right.
 /// </summary>
 public partial class DeployWindow : Window
 {
@@ -16,12 +16,12 @@ public partial class DeployWindow : Window
     private readonly ObservableCollection<PackageItem> _packages = [];
     private readonly ObservableCollection<TargetItem> _targets = [];
     private List<Package> _library = [];
-    /// <summary>Préférences : valeur des paquets laissés « par défaut ».</summary>
+    /// <summary>Preferences: value of packages left on "default".</summary>
     private DeploymentDefaults _defaults = new();
 
     public ObservableCollection<StepChoice> StepChoices { get; } = [];
 
-    /// <summary>Déploiements créés (un par paquet).</summary>
+    /// <summary>Deployments created (one per package).</summary>
     public List<Deployment> Deployments { get; private set; } = [];
 
     public DeployWindow(long? packageId, IEnumerable<TargetRequest> targets)
@@ -63,7 +63,7 @@ public partial class DeployWindow : Window
             if (_initialPackageId is { } id && _library.FirstOrDefault(p => p.Id == id) is { } package)
             {
                 AddPackage(package);
-                // Cibles mémorisées : proposées seulement si la fenêtre n'a pas été ouverte avec des postes.
+                // Remembered targets: offered only if the window was not opened with computers.
                 if (!_hasInitialTargets)
                     foreach (var c in await Api.PackageTargets(id)) AddTarget(c, 1);
                 RememberBox.IsChecked = !_hasInitialTargets && _targets.Count > 0;
@@ -78,9 +78,9 @@ public partial class DeployWindow : Window
         }
     }
 
-    // ---------- Lancement ----------
+    // ---------- Launch ----------
 
-    /// <summary>Planification à créer à partir de cette fenêtre (bouton « Planifier… »).</summary>
+    /// <summary>Schedule to create from this window ("Planifier…" button).</summary>
     public Schedule? ScheduleRequest { get; private set; }
 
     private void Schedule_Click(object sender, RoutedEventArgs e)

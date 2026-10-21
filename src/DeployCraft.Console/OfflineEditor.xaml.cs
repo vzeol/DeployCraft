@@ -4,7 +4,7 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Console;
 
-/// <summary>Réglages hors ligne (réveil, nouveaux essais), communs au paquet et aux Préférences.</summary>
+/// <summary>Offline settings (wake-up, retries), shared by the package and the Preferences.</summary>
 public partial class OfflineEditor : UserControl
 {
     private OfflineSettings _settings = new();

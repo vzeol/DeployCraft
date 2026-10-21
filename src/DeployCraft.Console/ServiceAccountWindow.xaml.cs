@@ -2,7 +2,7 @@ using System.Windows;
 
 namespace DeployCraft.Console;
 
-/// <summary>Choix du compte du service : Système local, ou un compte administrateur du serveur avec son mot de passe.</summary>
+/// <summary>Choice of the service account: Local System, or an administrator account of the server with its password.</summary>
 public partial class ServiceAccountWindow : Window
 {
     private const string LocalSystem = "LocalSystem";

@@ -5,7 +5,7 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Console;
 
-/// <summary>Page d'accueil : déploiements en cours, échecs récents, prochaines planifications, bibliothèque, raccourcis.</summary>
+/// <summary>Home page: running deployments, recent failures, next schedules, library, shortcuts.</summary>
 public partial class MainWindow
 {
     private async Task RefreshHomeAsync(List<Deployment> deployments)
@@ -53,7 +53,7 @@ public partial class MainWindow
 
     private static string Plural(int count, string word) => $"{count} {word}{(count > 1 ? "s" : "")}";
 
-    /// <summary>Ligne cliquable d'une carte : icône, titre (lien), détail atténué.</summary>
+    /// <summary>Clickable row of a card: icon, title (link), dimmed detail.</summary>
     private TextBlock Line(string icon, string brush, string title, string detail, Action open)
     {
         var link = new Hyperlink(new Run(title));

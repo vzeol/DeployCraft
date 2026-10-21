@@ -6,8 +6,8 @@ using DeployCraft.Server.Data;
 namespace DeployCraft.Server.Remote;
 
 /// <summary>
-/// Vérifie que les noms de postes saisis dans « Déployer une fois » existent dans le DNS (vu du serveur, qui contactera
-/// les postes). Les réponses sont gardées une minute : ajouter puis retirer un poste ne redemande rien.
+/// Checks that the computer names typed in "Déployer une fois" exist in DNS (as seen from the server, which will contact
+/// the computers). Answers are kept for one minute: adding then removing a computer asks nothing again.
 /// </summary>
 public sealed class NameCheck(Func<string, CancellationToken, Task<string>>? lookup = null)
 {
@@ -22,7 +22,7 @@ public sealed class NameCheck(Func<string, CancellationToken, Task<string>>? loo
     {
         var clean = (name ?? "").Trim();
         if (clean.Length == 0) return new(clean, false, null, "Nom vide.");
-        if (IPAddress.TryParse(clean, out _)) return new(clean, true, clean, null); // une adresse IP se garde telle quelle
+        if (IPAddress.TryParse(clean, out _)) return new(clean, true, clean, null); // an IP address is kept as is
         if (_cache.TryGetValue(clean, out var hit) && DateTime.UtcNow - hit.Utc < CacheLifetime) return hit.Result;
 
         var result = await ResolveAsync(clean, ct);
@@ -31,8 +31,8 @@ public sealed class NameCheck(Func<string, CancellationToken, Task<string>>? loo
     }
 
     /// <summary>
-    /// Résout le nom tel qu'il est saisi, comme le fera le déploiement : un nom complet dans un mauvais domaine est
-    /// signalé, même si le nom court existe.
+    /// Resolves the name as typed, as the deployment will: a full name in the wrong domain is
+    /// reported, even if the short name exists.
     /// </summary>
     private async Task<NameCheckResult> ResolveAsync(string name, CancellationToken ct)
     {
@@ -50,7 +50,7 @@ public sealed class NameCheck(Func<string, CancellationToken, Task<string>>? loo
         }
     }
 
-    /// <summary>Nom DNS complet du poste (ou le nom tel quel si le DNS n'en donne pas d'autre).</summary>
+    /// <summary>Full DNS name of the computer (or the name as is if DNS gives no other).</summary>
     private static async Task<string> DnsLookup(string host, CancellationToken ct)
     {
         var entry = await Dns.GetHostEntryAsync(host, ct);

@@ -3,14 +3,14 @@ using System.Globalization;
 namespace DeployCraft.Server.Data;
 
 /// <summary>
-/// Calendrier des déclencheurs : prochain déclenchement et résumé en français.
-/// Partagé par le service (qui déclenche) et la console (qui affiche).
+/// Trigger calendar: next firing and summary in French.
+/// Shared by the service (which fires) and the console (which displays).
 /// </summary>
 public static class TriggerCalendar
 {
     private static readonly CultureInfo Fr = CultureInfo.GetCultureInfo("fr-FR");
 
-    /// <summary>Premier déclenchement strictement après <paramref name="after"/> (heure locale), ou null s'il n'y en a plus.</summary>
+    /// <summary>First firing strictly after <paramref name="after"/> (local time), or null if there are none left.</summary>
     public static DateTime? Next(ScheduleTrigger t, DateTime after)
     {
         if (!t.Enabled) return null;
@@ -24,7 +24,7 @@ public static class TriggerCalendar
         return next;
     }
 
-    /// <summary>Prochain déclenchement d'une planification parmi ses déclencheurs actifs.</summary>
+    /// <summary>Next firing of a schedule among its active triggers.</summary>
     public static DateTime? Next(Schedule s, DateTime after) =>
         s.Triggers.Select(t => Next(t, after)).Where(d => d != null).Min();
 
@@ -34,7 +34,7 @@ public static class TriggerCalendar
         var candidate = AlignAfter(t.Start, step, after);
         if (!t.UseTimeWindow) return candidate;
 
-        // Hors de la plage horaire : on saute au début de la plage suivante, puis on se recale sur la grille.
+        // Outside the time range: jump to the start of the next range, then realign on the grid.
         for (var i = 0; i < 1000; i++)
         {
             if (t.End is { } end && candidate > end) return null;
@@ -46,7 +46,7 @@ public static class TriggerCalendar
         return null;
     }
 
-    /// <summary>Premier point de la grille début + k × pas (k ≥ 0) strictement après <paramref name="after"/>.</summary>
+    /// <summary>First grid point start + k × step (k ≥ 0) strictly after <paramref name="after"/>.</summary>
     private static DateTime AlignAfter(DateTime start, TimeSpan step, DateTime after)
     {
         if (start > after) return start;
@@ -54,7 +54,7 @@ public static class TriggerCalendar
         return start + TimeSpan.FromTicks(step.Ticks * k);
     }
 
-    /// <summary>Plage « entre » / « et » ; si la fin précède le début, la plage passe minuit.</summary>
+    /// <summary>"Between" / "and" range; if the end precedes the start, the range crosses midnight.</summary>
     public static bool InWindow(TimeSpan time, TimeSpan from, TimeSpan to) =>
         from <= to ? time >= from && time <= to : time >= from || time <= to;
 
@@ -62,7 +62,7 @@ public static class TriggerCalendar
     {
         var time = t.Start.TimeOfDay;
         var day = (after > t.Start ? after : t.Start).Date;
-        // Une année et demie suffit à trouver le prochain jour de n'importe quelle règle mensuelle.
+        // A year and a half is enough to find the next day of any monthly rule.
         for (var i = 0; i < 550; i++, day = day.AddDays(1))
         {
             var candidate = day + time;
@@ -86,7 +86,7 @@ public static class TriggerCalendar
         _ => false,
     };
 
-    // ---------- Résumés ----------
+    // ---------- Summaries ----------
 
     public static string Describe(ScheduleTrigger t)
     {

@@ -6,10 +6,10 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Console;
 
-/// <summary>Préférences. Les identifiants ont leur propre fenêtre (Options › Identifiants).</summary>
+/// <summary>Preferences. Credentials have their own window (Options › Identifiants).</summary>
 public partial class SettingsWindow : Window
 {
-    /// <summary>Réglages du serveur (null tant qu'ils ne sont pas chargés) et leur état à l'ouverture.</summary>
+    /// <summary>Server settings (null until loaded) and their state when opened.</summary>
     private DeploymentDefaults? _defaults;
     private string _loaded = "";
     private bool _closing;
@@ -29,7 +29,7 @@ public partial class SettingsWindow : Window
             Theme.Set(choice);
     }
 
-    // ---------- Déploiement et Hors ligne (réglages du serveur) ----------
+    // ---------- Deployment and Offline (server settings) ----------
 
     private async Task LoadDefaultsAsync()
     {
@@ -57,7 +57,7 @@ public partial class SettingsWindow : Window
         DeploymentPage.IsEnabled = DefaultOffline.IsEnabled = true;
     }
 
-    /// <summary>Les réglages du serveur modifiés sont enregistrés à la fermeture ; une erreur garde la fenêtre ouverte.</summary>
+    /// <summary>Modified server settings are saved on close; an error keeps the window open.</summary>
     protected override async void OnClosing(CancelEventArgs e)
     {
         base.OnClosing(e);
@@ -87,7 +87,7 @@ public partial class SettingsWindow : Window
         }
         _defaults.Performance = performance;
 
-        // Case décochée : un nombre de jours illisible n'empêche pas de fermer, on garde la dernière valeur valide.
+        // Unchecked box: an unreadable number of days does not prevent closing, the last valid value is kept.
         var cleanup = CleanupBox.IsChecked == true;
         var daysValid = int.TryParse(CleanupDaysBox.Text.Trim(), out var days) && HistorySettings.Validate(days) == null;
         if (cleanup && !daysValid)
@@ -101,7 +101,7 @@ public partial class SettingsWindow : Window
         if (daysValid) _defaults.History.KeepDays = days;
         if (JsonSerializer.Serialize(_defaults, Api.Json) == _loaded) return;
 
-        e.Cancel = true; // fermeture reprise après l'enregistrement asynchrone
+        e.Cancel = true; // closing resumed after the asynchronous save
         try
         {
             await Api.SaveDefaults(_defaults);

@@ -12,7 +12,7 @@ public static class StepTexts
             ? $"Étape {index + 1} ({StepSummary.TypeText(step.Type)})"
             : $"{index + 1}. {step.Name}") + (step.Enabled ? "" : " (désactivée)");
 
-    /// <summary>Un .exe sans paramètre silencieux attend un clic qui n'arrivera jamais : on rappelle les paramètres courants.</summary>
+    /// <summary>An .exe with no silent parameter waits for a click that will never come: we recall the usual parameters.</summary>
     public static string SilentHint(string? file) => Path.GetExtension(file ?? "").ToLowerInvariant() switch
     {
         ".exe" => "Paramètres silencieux courants : /S (NSIS), /VERYSILENT /NORESTART (Inno Setup), /quiet /norestart, /s /v\"/qn\" (InstallShield).",

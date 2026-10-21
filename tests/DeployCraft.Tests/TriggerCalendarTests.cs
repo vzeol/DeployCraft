@@ -4,7 +4,7 @@ namespace DeployCraft.Tests;
 
 public class TriggerCalendarTests
 {
-    private static readonly DateTime Monday = new(2026, 10, 12, 9, 0, 0); // lundi 12/10/2026, 9 h
+    private static readonly DateTime Monday = new(2026, 10, 12, 9, 0, 0); // Monday 12/10/2026, 9 am
 
     [Fact]
     public void Once_FiresOnlyBeforeItsStart()
@@ -37,8 +37,8 @@ public class TriggerCalendarTests
             WindowEnd = new(18, 0, 0),
         };
 
-        // Grille de 1 h 30 partie de lundi 9 h (… 18 h, 19 h 30 … 6 h, 7 h 30, 9 h) : après 18 h 30, le premier
-        // point dans la plage 8 h – 18 h est mardi 9 h (8 h, début de plage, n'est pas sur la grille).
+        // 1 h 30 grid started on Monday 9 am (... 6 pm, 7:30 pm ... 6 am, 7:30 am, 9 am): after 6:30 pm, the first
+        // point in the 8 am – 6 pm range is Tuesday 9 am (8 am, start of the range, is not on the grid).
         Assert.Equal(new DateTime(2026, 10, 13, 9, 0, 0), TriggerCalendar.Next(t, Monday.Date.AddHours(18).AddMinutes(30)));
     }
 

@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Identifiants multiples (0.9.0), sur une base SQLite jetable. Mots de passe fictifs uniquement.</summary>
+/// <summary>Multiple credentials (0.9.0), on a throwaway SQLite database. Fake passwords only.</summary>
 public sealed class CredentialsTests : IDisposable
 {
     private const string FakePassword = "mot-de-passe-fictif-de-test";
@@ -78,7 +78,7 @@ public sealed class CredentialsTests : IDisposable
     public void UnreadablePassword_IsFlagged_AndRefusedWithAClearMessage()
     {
         var credentials = new DeployCredentials(_store.Credentials, _store.Settings);
-        // Chiffré « ailleurs » : des octets que DPAPI ne sait pas déchiffrer sur ce poste.
+        // Encrypted "elsewhere": bytes that DPAPI cannot decrypt on this computer.
         var saved = _store.Credentials.Save(new Credential { Domain = "DOMAINE.LOCAL", User = "admin" }, Convert.ToBase64String(new byte[64]));
 
         var reloaded = credentials.Get(saved.Id)!;
@@ -181,7 +181,7 @@ public sealed class CredentialsTests : IDisposable
     [Fact]
     public void DataFolder_IsReservedToSystemAndAdministrators()
     {
-        // Retirer ses propres droits n'est sans risque qu'en administrateur (sinon le dossier ne pourrait plus être supprimé).
+        // Removing one's own rights is only safe as administrator (otherwise the folder could no longer be deleted).
         if (!new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator)) return;
         var folder = Path.Combine(_dir, "data");
         Directory.CreateDirectory(folder);

@@ -9,12 +9,12 @@ namespace DeployCraft.Console;
 /// <summary>Options, help, tools and new version of DeployCraft.</summary>
 public partial class MainWindow
 {
-    // ---------- Options et aide ----------
+    // ---------- Options and help ----------
 
     private async void Settings_Click(object sender, RoutedEventArgs e)
     {
         new SettingsWindow { Owner = this }.ShowDialog();
-        // Les Préférences changées se voient tout de suite dans les Détails du paquet affiché.
+        // Changed Preferences show up immediately in the Details of the displayed package.
         try
         {
             await RefreshPackagesAsync();
@@ -35,7 +35,7 @@ public partial class MainWindow
 
     private WelcomeWindow? _welcome;
 
-    /// <summary>Assistant de démarrage, non modal : une seule fenêtre, ramenée devant si elle est déjà ouverte.</summary>
+    /// <summary>Startup wizard, non-modal: a single window, brought to the front if already open.</summary>
     private void Welcome_Click(object sender, RoutedEventArgs e)
     {
         if (_welcome != null)
@@ -52,9 +52,9 @@ public partial class MainWindow
         _welcome.Show();
     }
 
-    /// <summary>Affiche la bibliothèque de paquets (depuis l'assistant de démarrage).</summary>
+    /// <summary>Shows the package library (from the startup wizard).</summary>
     public void OpenLibrary() => _libraryNode.IsSelected = true;
-    /// <summary>F1 : l'aide, ouverte sur le sujet de la vue affichée.</summary>
+    /// <summary>F1: help, opened on the topic of the displayed view.</summary>
     private void Help_Click(object sender, RoutedEventArgs e) => HelpWindow.Show(this, _view switch
     {
         View.Deployments => "suivi",
@@ -81,15 +81,15 @@ public partial class MainWindow
 
     private void About_Click(object sender, RoutedEventArgs e) => new AboutWindow { Owner = this }.ShowDialog();
 
-    // ---------- Nouvelle version ----------
+    // ---------- New version ----------
 
     private UpdateInfo? _update;
     private string? _serverMachine;
     private bool _installing;
 
     /// <summary>
-    /// L'installeur met à jour le service et la console ensemble : il ne se lance que depuis la console du serveur,
-    /// et seulement si la release fournit son empreinte.
+    /// The installer updates the service and the console together: it only starts from the server's console,
+    /// and only if the release provides its fingerprint.
     /// </summary>
     private bool CanInstallHere(UpdateInfo update) =>
         update.SetupUrl != null && string.Equals(_serverMachine, Environment.MachineName, StringComparison.OrdinalIgnoreCase);
@@ -107,7 +107,7 @@ public partial class MainWindow
         UpdateBar.Visibility = update == null ? Visibility.Collapsed : Visibility.Visible;
     }
 
-    /// <summary>Au démarrage (et par Aide) : propose d'installer la nouvelle version tout de suite. Non = rappel au prochain démarrage.</summary>
+    /// <summary>At startup (and via Help): offers to install the new version right away. No = reminder at the next startup.</summary>
     private async Task ProposeUpdateAsync(UpdateInfo update)
     {
         if (!CanInstallHere(update) || _installing) return;
@@ -142,7 +142,7 @@ public partial class MainWindow
         }
         try
         {
-            // Installation sans questions, avec sa barre de progression ; RELAUNCH rouvre la console à la fin.
+            // Silent install, with its progress bar; RELAUNCH reopens the console at the end.
             Process.Start(new ProcessStartInfo(file, "/SILENT /SUPPRESSMSGBOXES /NORESTART /RELAUNCH=1") { UseShellExecute = true, Verb = "runas" });
         }
         catch (System.ComponentModel.Win32Exception)

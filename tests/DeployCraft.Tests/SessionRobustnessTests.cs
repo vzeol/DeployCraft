@@ -3,7 +3,7 @@ using DeployCraft.Server.Remote;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Suivi d'un poste : coupure réseau tolérée, verrou de slot laissé par un serveur arrêté.</summary>
+/// <summary>Monitoring of a computer: network outage tolerated, slot lock left by a stopped server.</summary>
 public sealed class SessionRobustnessTests : IDisposable
 {
     private readonly string _dir = Directory.CreateTempSubdirectory("dc-tests-").FullName;
@@ -26,7 +26,7 @@ public sealed class SessionRobustnessTests : IDisposable
     public void NetworkErrors_AreRetried_OthersAreNot()
     {
         Assert.True(TargetSession.IsNetworkError(new IOException("Le chemin réseau n'a pas été trouvé.")));
-        Assert.True(TargetSession.IsNetworkError(new Win32Exception(1722))); // serveur RPC indisponible
+        Assert.True(TargetSession.IsNetworkError(new Win32Exception(1722))); // RPC server unavailable
         Assert.False(TargetSession.IsNetworkError(new DeployException("Délai global dépassé.")));
         Assert.False(TargetSession.IsNetworkError(new UnauthorizedAccessException()));
     }
@@ -40,7 +40,7 @@ public sealed class SessionRobustnessTests : IDisposable
     [Fact]
     public void Lock_OfAnotherServerStillRunningOnThisMachine_IsKept()
     {
-        // Par exemple une instance de test lancée à côté du service.
+        // For example a test instance started next to the service.
         Assert.False(TargetSession.CanReclaim(Lock("SERVEUR-01|90|1"), Slot, Current, DateTime.UtcNow, owner => owner == "SERVEUR-01|90|1"));
     }
 
@@ -67,7 +67,7 @@ public sealed class SessionRobustnessTests : IDisposable
         File.WriteAllText(exe, "");
         var path = Lock("SERVEUR-01|90|1");
 
-        using (new FileStream(exe, FileMode.Open, FileAccess.Read, FileShare.Read)) // comme un programme lancé
+        using (new FileStream(exe, FileMode.Open, FileAccess.Read, FileShare.Read)) // like a running program
             Assert.False(TargetSession.CanReclaim(path, Slot, Current, DateTime.UtcNow, NoneAlive));
         Assert.True(TargetSession.CanReclaim(path, Slot, Current, DateTime.UtcNow, NoneAlive));
     }

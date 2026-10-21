@@ -8,17 +8,17 @@ using Microsoft.Data.Sqlite;
 namespace DeployCraft.Server.Library;
 
 /// <summary>
-/// Bibliothèque de paquets : recherche dans l'index du catalogue public winget, lit la fiche du logiciel choisi,
-/// télécharge son installeur (empreinte vérifiée) dans le dossier de la bibliothèque et crée ou met à jour le paquet
-/// DeployCraft correspondant. Index et téléchargements sont traités en arrière-plan ; la console suit l'état.
+/// Package library: searches the public winget catalog index, reads the sheet of the chosen software,
+/// downloads its installer (hash checked) into the library folder and creates or updates the matching
+/// DeployCraft package. Index and downloads are handled in the background; the console follows the state.
 /// </summary>
 public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepository settingsRepository, DeployCredentials credentials, string dataDir, ILogger<PackageLibrary> log)
 {
     private const string SettingKey = "library";
     private const string CatalogRaw = "https://raw.githubusercontent.com/microsoft/winget-pkgs/master/";
-    /// <summary>Résultats affichés au plus pour une recherche.</summary>
+    /// <summary>At most this many results are shown for a search.</summary>
     private const int SearchLimit = 1000;
-    /// <summary>L'index est relu de lui-même quand il a plus d'un jour (vérifié chaque heure, et quand la console l'affiche).</summary>
+    /// <summary>The index is re-read on its own when it is more than a day old (checked every hour, and when the console shows it).</summary>
     private static readonly TimeSpan MaxAge = TimeSpan.FromDays(1);
 
     private static readonly HttpClient Http = CreateClient();
@@ -35,12 +35,12 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
 
     public string DefaultFolder => Path.Combine(dataDir, "Bibliotheque");
 
-    // ---------- État ----------
+    // ---------- State ----------
 
     /// <summary>
-    /// Sans recherche : tout le catalogue, avec en tête les logiciels déjà téléchargés puis les logiciels courants.
-    /// Avec recherche : les logiciels qui correspondent. La console charge cette liste une fois, puis suit seulement
-    /// les changements avec <see cref="Status"/>.
+    /// Without a search: the whole catalog, with already downloaded software first, then common software.
+    /// With a search: the matching software. The console loads this list once, then only follows
+    /// the changes with <see cref="Status"/>.
     /// </summary>
     public LibraryInfo Info(string? search) => Read(state =>
     {
@@ -49,8 +49,8 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
     });
 
     /// <summary>
-    /// Seulement les logiciels qui ont un état propre : téléchargement en cours, erreur, ou paquet créé.
-    /// Petit : la console le demande toutes les deux secondes pour mettre à jour ces lignes.
+    /// Only the software that has a state of its own: download in progress, error, or package created.
+    /// Small: the console asks for it every two seconds to update these rows.
     /// </summary>
     public LibraryInfo Status() => Read(state =>
     {
@@ -75,7 +75,7 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
             }
             catch (SqliteException ex)
             {
-                // Index remplacé pendant la lecture : la console redemandera dans un instant.
+                // Index replaced during the read: the console will ask again in a moment.
                 log.LogDebug(ex, "Lecture de l'index de la bibliothèque");
             }
         }
@@ -97,7 +97,7 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
         }
     }
 
-    /// <summary>Logiciels déjà téléchargés, puis logiciels courants, puis le reste par ordre alphabétique.</summary>
+    /// <summary>Already downloaded software first, then common software, then the rest in alphabetical order.</summary>
     private List<IndexEntry> Ordered(List<IndexEntry> all, LibraryState state)
     {
         var linked = state.Links.Where(l => packageRepository.Get(l.Value.PackageId) != null).Select(l => l.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -107,10 +107,10 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
 
     private LibraryItem Item(IndexEntry e, LibraryState state)
     {
-        // La fiche lue ne vaut que pour la version qu'elle décrit.
+        // The sheet that was read is only valid for the version it describes.
         var entry = state.Entries.GetValueOrDefault(e.Id) is { } known && known.Version == e.Version ? known : null;
         var link = state.Links.GetValueOrDefault(e.Id);
-        // Un paquet supprimé dans DeployCraft n'est plus relié.
+        // A package deleted in DeployCraft is no longer linked.
         if (link != null && packageRepository.Get(link.PackageId) == null) link = null;
         return new LibraryItem
         {
@@ -128,7 +128,7 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
         };
     }
 
-    /// <summary>Dossier des installeurs : un partage est conseillé (lisible par les postes en mode pull).</summary>
+    /// <summary>Installer folder: a share is recommended (readable by computers in pull mode).</summary>
     public string? SetFolder(string? folder)
     {
         folder = folder?.Trim().TrimEnd('\\');
@@ -146,7 +146,7 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
     public const int MinAutoUpdateDays = 1;
     public const int MaxAutoUpdateDays = 90;
 
-    /// <summary>Mise à jour des paquets de la bibliothèque : manuelle, dès la nouvelle version, ou après quelques jours.</summary>
+    /// <summary>Update of the library packages: manual, as soon as the new version appears, or after a few days.</summary>
     public string? SetAutoUpdate(LibraryAutoUpdate mode, int days)
     {
         if (!Enum.IsDefined(mode)) return "Mode de mise à jour inconnu.";
@@ -162,17 +162,17 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
         return null;
     }
 
-    // ---------- Lecture du catalogue ----------
+    // ---------- Reading the catalog ----------
 
-    /// <summary>Relit l'index en arrière-plan (sans effet si une lecture est déjà en cours).</summary>
+    /// <summary>Re-reads the index in the background (no effect if a read is already in progress).</summary>
     public void StartRefresh()
     {
         if (TryStartRefresh()) _ = Task.Run(RefreshAsync);
     }
 
     /// <summary>
-    /// Passage du service (chaque heure) : relit l'index s'il a plus d'un jour, même si personne n'ouvre la console.
-    /// Les mises à jour automatiques suivent chaque lecture réussie.
+    /// Service tick (every hour): re-reads the index if it is more than a day old, even if nobody opens the console.
+    /// Automatic updates follow each successful read.
     /// </summary>
     public async Task RefreshIfStaleAsync()
     {
@@ -192,8 +192,8 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
     }
 
     /// <summary>
-    /// Télécharge l'index, puis relit les fiches des logiciels affichés sans recherche dont la version a changé
-    /// (pour indiquer tout de suite leur installeur, ou pourquoi ils ne sont pas disponibles).
+    /// Downloads the index, then re-reads the sheets of the software shown without a search whose version changed
+    /// (to show their installer right away, or why they are not available).
     /// </summary>
     private async Task RefreshAsync()
     {
@@ -234,7 +234,7 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
         if (error == null) await StartAutoUpdatesAsync(DateTime.UtcNow);
     }
 
-    /// <summary>Lance la mise à jour des paquets dont la nouvelle version est due, selon le réglage.</summary>
+    /// <summary>Starts the update of the packages whose new version is due, according to the setting.</summary>
     private async Task StartAutoUpdatesAsync(DateTime nowUtc)
     {
         var state = Load();
@@ -257,8 +257,8 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
     }
 
     /// <summary>
-    /// Une nouvelle version est à installer d'elle-même : tout de suite, ou une fois le délai passé depuis que le
-    /// catalogue l'a fait connaître (date inconnue : version lue avant ce réglage, donc déjà ancienne).
+    /// A new version is to be installed on its own: right away, or once the delay has passed since the
+    /// catalog announced it (unknown date: version read before this setting, so already old).
     /// </summary>
     internal static bool IsUpdateDue(LibraryAutoUpdate mode, int days, string current, string latest, DateTime? seenUtc, DateTime nowUtc)
     {
@@ -266,7 +266,7 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
         return mode == LibraryAutoUpdate.Immediate || seenUtc == null || nowUtc - seenUtc.Value >= TimeSpan.FromDays(days);
     }
 
-    /// <summary>Fiche d'installation de la dernière version : installeur retenu, ou raison de son absence.</summary>
+    /// <summary>Install sheet of the latest version: chosen installer, or the reason why there is none.</summary>
     private static async Task<LibraryEntry> ReadEntryAsync(IndexEntry e)
     {
         var url = $"{CatalogRaw}{Escape(LibraryCatalog.ManifestFolder(e.Id))}/{Escape(e.Version)}/{Escape(e.Id)}.installer.yaml";
@@ -280,11 +280,11 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
 
     private static string Escape(string path) => string.Join('/', path.Split('/').Select(Uri.EscapeDataString));
 
-    // ---------- Téléchargement ----------
+    // ---------- Download ----------
 
     /// <summary>
-    /// Lit la fiche du logiciel puis lance le téléchargement en arrière-plan ; renvoie une erreur s'il ne peut pas
-    /// commencer (pas d'installeur silencieux pour tout le poste…).
+    /// Reads the software sheet then starts the download in the background; returns an error if it cannot
+    /// start (no silent installer for the whole computer...).
     /// </summary>
     public async Task<string?> StartDownloadAsync(string id)
     {
@@ -333,7 +333,7 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
             var folder = Folder(Load());
             var version = app.Version;
             var file = Path.Combine(folder, SafeName(app.Name), SafeName(version), SafeName($"{app.Name} {version}") + installer.Extension);
-            // Un partage s'écrit avec l'identifiant par défaut, comme il sera lu au déploiement.
+            // A share is written with the default identity, as it will be read at deployment.
             credentials.RunAs(credentials.Default, null, () =>
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(file)!);
@@ -410,7 +410,7 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
             throw new InvalidDataException("Le fichier téléchargé ne correspond pas à l'empreinte du catalogue : il n'a pas été gardé. Réessayez plus tard.");
     }
 
-    /// <summary>Copie dans le dossier de la bibliothèque, en suivant l'avancement.</summary>
+    /// <summary>Copies into the library folder, following the progress.</summary>
     private void CopyWithProgress(string id, string source, string destination)
     {
         using var input = File.OpenRead(source);
@@ -432,8 +432,8 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
     }
 
     /// <summary>
-    /// Crée le paquet, ou met à jour celui déjà relié : version, fichier et paramètres de son étape d'installation.
-    /// Les autres réglages modifiés à la main (conditions, étapes ajoutées…) sont gardés.
+    /// Creates the package, or updates the one already linked: version, file and parameters of its install step.
+    /// The other settings edited by hand (conditions, added steps...) are kept.
     /// </summary>
     private Package SavePackage(IndexEntry app, string version, LibraryInstaller installer, string file, LibraryLink? previous)
     {
@@ -466,7 +466,7 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
         });
     }
 
-    /// <summary>Supprime le dossier de l'ancienne version, seulement s'il est bien dans le dossier de la bibliothèque.</summary>
+    /// <summary>Deletes the folder of the old version, only if it is inside the library folder.</summary>
     private void RemoveOldVersion(string oldFile, string folder)
     {
         var dir = Path.GetDirectoryName(oldFile);
@@ -481,7 +481,7 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
         }
     }
 
-    // ---------- Stockage ----------
+    // ---------- Storage ----------
 
     private string Folder(LibraryState state) => string.IsNullOrWhiteSpace(state.Folder) ? DefaultFolder : state.Folder;
 
@@ -490,7 +490,7 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
 
     private void Save(LibraryState state) => settingsRepository.Set(SettingKey, JsonSerializer.Serialize(state, Database.Json));
 
-    /// <summary>Nom utilisable comme nom de dossier ou de fichier.</summary>
+    /// <summary>Name usable as a folder or file name.</summary>
     internal static string SafeName(string name)
     {
         var invalid = Path.GetInvalidFileNameChars();
@@ -502,7 +502,7 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
     private static HttpClient CreateClient()
     {
         var client = new HttpClient { Timeout = TimeSpan.FromMinutes(30) };
-        // Le catalogue refuse les demandes sans nom d'application.
+        // The catalog rejects requests without an application name.
         client.DefaultRequestHeaders.UserAgent.ParseAdd("DeployCraft");
         return client;
     }
@@ -524,7 +524,7 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
         public string? Version { get; set; }
         public LibraryInstaller? Installer { get; set; }
         public string? Problem { get; set; }
-        /// <summary>Première lecture de cette version (point de départ du délai des mises à jour automatiques).</summary>
+        /// <summary>First time this version was read (starting point of the delay for automatic updates).</summary>
         public DateTime? SeenUtc { get; set; }
     }
 

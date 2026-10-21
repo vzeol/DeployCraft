@@ -6,7 +6,7 @@ namespace DeployCraft.Console;
 /// <summary>Schedule window: target history (success and failures per computer and package).</summary>
 public partial class ScheduleWindow
 {
-    // ---------- Historique des cibles ----------
+    // ---------- Target history ----------
 
     private async Task LoadHistoryAsync()
     {

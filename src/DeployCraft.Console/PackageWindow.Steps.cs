@@ -9,7 +9,7 @@ namespace DeployCraft.Console;
 /// <summary>Package editor: step toolbar, clipboard and right-click menus.</summary>
 public partial class PackageWindow
 {
-    // ---------- Menus clic droit ----------
+    // ---------- Right-click menus ----------
 
     private void SetupContextMenus()
     {
@@ -79,7 +79,7 @@ public partial class PackageWindow
         PasteButton.IsEnabled = CanPaste;
     }
 
-    // ---------- Barre d'outils ----------
+    // ---------- Toolbar ----------
 
     private void NewStep_Click(object sender, RoutedEventArgs e)
     {
@@ -108,7 +108,7 @@ public partial class PackageWindow
 
     private void AddStep(PackageStep step)
     {
-        // Insérée après l'étape sélectionnée, sinon à la fin.
+        // Inserted after the selected step, otherwise at the end.
         StepList.InsertAfter(Package.Steps, SelectedStep, step);
         RebuildSteps(step);
     }

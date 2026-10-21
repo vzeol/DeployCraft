@@ -15,7 +15,7 @@
             </StackPanel>
         </DataTemplate>
 
-        <!-- Carte de détails à droite des grilles -->
+        <!-- Details card to the right of the grids -->
         <Style x:Key="Card" TargetType="Border">
             <Setter Property="Background" Value="{DynamicResource ContentBackground}" />
             <Setter Property="BorderBrush" Value="{DynamicResource PanelBorder}" />
@@ -60,7 +60,7 @@
             <ColumnDefinition Width="320" />
         </Grid.ColumnDefinitions>
 
-        <!-- ======= Déploiements ======= -->
+        <!-- ======= Deployments ======= -->
         <DockPanel>
             <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
                 <TextBox x:Name="DeploymentFilter" DockPanel.Dock="Right" Style="{StaticResource FilterBox}" TextChanged="DeploymentFilter_TextChanged" />
@@ -137,7 +137,7 @@
 
         <GridSplitter Grid.Row="1" Grid.ColumnSpan="3" HorizontalAlignment="Stretch" Background="Transparent" />
 
-        <!-- ======= Postes du déploiement sélectionné ======= -->
+        <!-- ======= Computers of the selected deployment ======= -->
         <DockPanel Grid.Row="2">
             <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
                 <TextBox x:Name="TargetFilter" DockPanel.Dock="Right" Style="{StaticResource FilterBox}" TextChanged="TargetFilter_TextChanged" />
@@ -202,7 +202,7 @@
                             </TextBlock>
                         </Grid>
 
-                        <!-- « ERREUR » en rouge pour un poste en échec ; « REMARQUE » pour la raison donnée sur un poste réussi. -->
+                        <!-- "ERREUR" in red for a failed computer; "REMARQUE" for the reason given on a successful computer. -->
                         <TextBlock x:Name="TErrorTitle" Text="ERREUR" Style="{StaticResource CardSection}" AutomationProperties.Name="ERREUR" />
                         <TextBlock x:Name="TError" TextWrapping="Wrap" Foreground="{DynamicResource KoBrush}" />
                     </StackPanel>

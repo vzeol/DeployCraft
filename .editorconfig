@@ -17,7 +17,7 @@ indent_size = 2
 trim_trailing_whitespace = false
 
 [*.cs]
-# Style du projet : espaces de noms en une ligne, `var` partout, accolades facultatives sur une ligne.
+# Project style: one-line namespaces, `var` everywhere, optional braces on a single line.
 csharp_style_namespace_declarations = file_scoped:suggestion
 csharp_style_var_for_built_in_types = true:suggestion
 csharp_style_var_when_type_is_apparent = true:suggestion

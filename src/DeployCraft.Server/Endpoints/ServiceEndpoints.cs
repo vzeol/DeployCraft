@@ -12,7 +12,7 @@ internal static class ServiceEndpoints
         {
             info = ServiceAccount.Info(),
             canEdit = ConsoleAccess.IsServerAdmin(ConsoleAccess.Sids(context.User)),
-            // Le mot de passe ne voyage pas sur le réseau : le compte se change depuis la console du serveur.
+            // The password does not travel over the network: the account is changed from the server's console.
             local = context.Connection.RemoteIpAddress is { } ip && IPAddress.IsLoopback(ip),
         });
 

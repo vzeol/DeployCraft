@@ -2,7 +2,7 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Tests;
 
-/// <summary>Statut affiché d'un déploiement et de ses postes, et compteurs.</summary>
+/// <summary>Displayed status of a deployment and its computers, and counters.</summary>
 public class DeploymentSummaryTests
 {
     private static DeploymentTarget Target(TargetStatus status, string? error = null) => new() { Status = status, Error = error };

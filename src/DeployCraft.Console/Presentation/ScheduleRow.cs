@@ -7,7 +7,7 @@ public record ScheduleRow(Schedule Schedule) : System.ComponentModel.INotifyProp
 {
     public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
 
-    /// <summary>Fait avancer le compte à rebours affiché.</summary>
+    /// <summary>Advances the displayed countdown.</summary>
     public void Tick() => PropertyChanged?.Invoke(this, new(nameof(Countdown)));
 
     public long Id => Schedule.Id;
@@ -17,7 +17,7 @@ public record ScheduleRow(Schedule Schedule) : System.ComponentModel.INotifyProp
     public DateTime? NextUtc => Schedule.NextRunUtc;
     public string Next => Schedule.Enabled ? Ui.LocalTime(NextUtc) is { Length: > 0 } t ? t : "—" : "Désactivée";
 
-    /// <summary>Compte à rebours jusqu'à la prochaine exécution (le service vérifie toutes les 15 s).</summary>
+    /// <summary>Countdown to the next run (the service checks every 15 s).</summary>
     public string Countdown
     {
         get

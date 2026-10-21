@@ -3,12 +3,12 @@ using Microsoft.Data.Sqlite;
 
 namespace DeployCraft.Server.Library;
 
-/// <summary>Logiciel de l'index du catalogue : identifiant, nom et dernière version.</summary>
+/// <summary>Software entry of the catalog index: identifier, name and latest version.</summary>
 public record IndexEntry(string Id, string Name, string Version);
 
 /// <summary>
-/// Index du catalogue public winget : un petit fichier (base SQLite dans une archive) qui liste tous les logiciels
-/// avec leur nom, leur éditeur, leurs mots-clés et leur dernière version. Téléchargé d'un coup, interrogé en local.
+/// Index of the public winget catalog: a small file (SQLite database in an archive) that lists all the software
+/// with its name, publisher, keywords and latest version. Downloaded in one go, queried locally.
 /// </summary>
 public class CatalogIndex(string path)
 {
@@ -17,7 +17,7 @@ public class CatalogIndex(string path)
 
     public bool Exists => File.Exists(path);
 
-    /// <summary>Télécharge l'index et remplace l'ancien une fois le nouveau complet.</summary>
+    /// <summary>Downloads the index and replaces the old one once the new one is complete.</summary>
     public async Task DownloadAsync(HttpClient http)
     {
         var archive = path + ".msix";
@@ -49,7 +49,7 @@ public class CatalogIndex(string path)
         return Convert.ToInt32(cmd.ExecuteScalar());
     }
 
-    /// <summary>Tout le catalogue, par ordre alphabétique.</summary>
+    /// <summary>The whole catalog, in alphabetical order.</summary>
     public List<IndexEntry> All()
     {
         using var db = Open();
@@ -59,8 +59,8 @@ public class CatalogIndex(string path)
     }
 
     /// <summary>
-    /// Logiciels dont le nom, l'identifiant, l'éditeur ou un mot-clé contient chacun des mots cherchés ;
-    /// d'abord le nom exact, puis les noms qui commencent par la recherche, puis ceux qui contiennent tous les mots.
+    /// Software whose name, identifier, publisher or a keyword contains each of the searched words;
+    /// first the exact name, then names that start with the search, then those that contain all the words.
     /// </summary>
     public List<IndexEntry> Search(string text, int limit)
     {
@@ -72,7 +72,7 @@ public class CatalogIndex(string path)
         var inName = new List<string>();
         for (var i = 0; i < words.Length; i++)
         {
-            // Sous-requêtes indépendantes du logiciel : calculées une fois, pas pour chacun des milliers de logiciels.
+            // Subqueries independent of the software: computed once, not for each of the thousands of software entries.
             conditions.Add($"""
                 (p.name LIKE $w{i} OR p.id LIKE $w{i} OR p.moniker LIKE $w{i}
                  OR p.rowid IN (SELECT package FROM norm_publishers2 WHERE norm_publisher LIKE $w{i})
@@ -95,7 +95,7 @@ public class CatalogIndex(string path)
         return Read(cmd);
     }
 
-    /// <summary>Les logiciels demandés qui sont dans l'index, par identifiant.</summary>
+    /// <summary>The requested software that is in the index, by identifier.</summary>
     public Dictionary<string, IndexEntry> Get(IEnumerable<string> ids)
     {
         var list = ids.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
@@ -119,10 +119,10 @@ public class CatalogIndex(string path)
         return result;
     }
 
-    /// <summary>Retire « % » et « _ », qui ont un sens particulier pour LIKE.</summary>
+    /// <summary>Removes "%" and "_", which have a special meaning for LIKE.</summary>
     private static string Escape(string word) => word.Replace("%", "").Replace("_", "");
 
-    // Sans pool de connexions : le fichier doit pouvoir être remplacé par le prochain téléchargement.
+    // No connection pool: the file must be replaceable by the next download.
     private SqliteConnection Open()
     {
         var db = new SqliteConnection(new SqliteConnectionStringBuilder { DataSource = path, Mode = SqliteOpenMode.ReadOnly, Pooling = false }.ToString());

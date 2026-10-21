@@ -36,7 +36,7 @@ internal static class ScheduleEndpoints
             return Results.NoContent();
         });
 
-        // « Démarrer maintenant » : même règles qu'un déclenchement (postes réussis ou en cours ignorés).
+        // "Démarrer maintenant" (Start now): same rules as a trigger (successful or running computers are skipped).
         api.MapPost("/schedules/{id:long}/run", (HttpContext context, long id, IScheduleRepository scheduleRepository, Scheduler scheduler) =>
         {
             if (scheduleRepository.Get(id) is not { } s) return Results.NotFound();
@@ -46,7 +46,7 @@ internal static class ScheduleEndpoints
 
         api.MapGet("/schedules/{id:long}/history", (long id, IScheduleRepository scheduleRepository) => scheduleRepository.GetHistory(id));
 
-        // Efface des lignes de l'historique des cibles (toutes si la liste est vide) : ces postes seront redéployés.
+        // Clears rows of the targets history (all if the list is empty): these computers will be redeployed.
         api.MapPost("/schedules/{id:long}/history/clear", (long id, List<ScheduleHistoryKey>? keys, IScheduleRepository scheduleRepository) =>
         {
             scheduleRepository.ClearHistory(id, keys);

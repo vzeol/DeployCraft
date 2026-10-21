@@ -8,7 +8,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net48</TargetFramework>
-    <!-- Restauré aussi pour win-x64 (publication du service) : le lock file reste le même dans les deux cas. -->
+    <!-- Also restored for win-x64 (service publish): the lock file stays the same in both cases. -->
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
@@ -18,7 +18,7 @@
     <RootNamespace>DeployCraft.Runner</RootNamespace>
   </PropertyGroup>
 
-  <!-- Assemblys de référence .NET Framework 4.8 en paquet : même compilation (et même lock file) avec ou sans le pack 4.8 installé. -->
+  <!-- .NET Framework 4.8 reference assemblies as a package: same compilation (and same lock file) with or without the 4.8 pack installed. -->
   <ItemGroup>
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
   </ItemGroup>

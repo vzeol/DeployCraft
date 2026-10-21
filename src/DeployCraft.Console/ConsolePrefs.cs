@@ -5,8 +5,8 @@ using System.Text.Json.Nodes;
 namespace DeployCraft.Console;
 
 /// <summary>
-/// Réglages propres à la session Windows de la personne (thème, largeur de l'arbre…), dans son profil : chaque réglage
-/// est lu et écrit seul, sans effacer les autres. Fichier absent ou illisible : valeurs d'usine.
+/// Settings specific to the person's Windows session (theme, tree width...), in their profile: each setting
+/// is read and written on its own, without erasing the others. File missing or unreadable: factory values.
 /// </summary>
 public static class ConsolePrefs
 {
@@ -31,7 +31,7 @@ public static class ConsolePrefs
             Directory.CreateDirectory(Path.GetDirectoryName(File)!);
             System.IO.File.WriteAllText(File, all.ToJsonString());
         }
-        catch (IOException) { } // réglage non enregistré : il reste appliqué pour cette session
+        catch (IOException) { } // setting not saved: it stays applied for this session
         catch (UnauthorizedAccessException) { }
     }
 

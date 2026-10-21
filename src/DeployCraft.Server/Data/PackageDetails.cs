@@ -1,14 +1,14 @@
 namespace DeployCraft.Server.Data;
 
-/// <summary>Textes de l'onglet Détails de la page d'un paquet : emplacement, conditions, hors ligne, paquets qui l'utilisent.</summary>
+/// <summary>Texts of the Details tab of a package page: location, conditions, offline, packages that use it.</summary>
 public static class PackageDetails
 {
-    /// <summary>Chemin du dossier dans l'arbre (« Paquets › Bureautique › PDF »), « Paquets » à la racine.</summary>
+    /// <summary>Path of the folder in the tree ("Paquets › Bureautique › PDF"), "Paquets" at the root.</summary>
     public static string FolderPath(long? folderId, IEnumerable<PackageFolder> folders)
     {
         var byId = folders.ToDictionary(f => f.Id);
         var names = new List<string>();
-        // Limite de profondeur : une base modifiée à la main ne doit pas faire tourner en rond.
+        // Depth limit: a hand-edited database must not make it loop forever.
         while (folderId is { } id && byId.TryGetValue(id, out var folder) && names.Count < 50)
         {
             names.Insert(0, folder.Name);
@@ -17,7 +17,7 @@ public static class PackageDetails
         return string.Join(" › ", names.Prepend("Paquets"));
     }
 
-    /// <summary>Conditions en une ligne lisible, ou « Aucune ».</summary>
+    /// <summary>Conditions on one readable line, or "Aucune".</summary>
     public static string ConditionsText(Conditions c)
     {
         if (c.IsEmpty) return "Aucune : le paquet s'exécute sur tous les postes.";
@@ -45,7 +45,7 @@ public static class PackageDetails
 
     private static string Presence(PresenceCondition p) => p == PresenceCondition.Exists ? "présent" : "absent";
 
-    /// <summary>Réglages hors ligne en une ligne ; <paramref name="fromDefaults"/> : ceux des Préférences.</summary>
+    /// <summary>Offline settings on one line; <paramref name="fromDefaults"/>: those from Preferences.</summary>
     public static string OfflineText(OfflineSettings o, bool fromDefaults)
     {
         var parts = new List<string>
@@ -57,7 +57,7 @@ public static class PackageDetails
         return fromDefaults ? $"Préférences ({text})" : char.ToUpper(text[0]) + text[1..];
     }
 
-    /// <summary>Paquets qui contiennent celui-ci comme paquet imbriqué, par nom.</summary>
+    /// <summary>Packages that contain this one as a nested package, by name.</summary>
     public static string UsedByText(long id, IEnumerable<Package> packages)
     {
         var users = Package.UsersOf(packages, id).Select(p => p.Name).OrderBy(n => n, StringComparer.CurrentCultureIgnoreCase).ToList();

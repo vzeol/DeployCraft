@@ -5,8 +5,8 @@ using System.Windows.Input;
 namespace DeployCraft.Console;
 
 /// <summary>
-/// Boîte de message aux couleurs du thème, à la place de MessageBox (même signature) : centrée sur la fenêtre
-/// appelante, Entrée = premier bouton, Échap = Annuler (sinon Non, sinon OK), texte copiable.
+/// Message box in the theme's colors, in place of MessageBox (same signature): centered on the calling
+/// window, Enter = first button, Esc = Cancel (otherwise No, otherwise OK), copyable text.
 /// </summary>
 public partial class MessageDialog : Window
 {
@@ -41,7 +41,7 @@ public partial class MessageDialog : Window
         _cancelResult = choices.Any(c => c.Result == MessageBoxResult.Cancel) ? MessageBoxResult.Cancel
             : choices.Any(c => c.Result == MessageBoxResult.No) ? MessageBoxResult.No
             : MessageBoxResult.OK;
-        _result = _cancelResult; // fermeture par la croix
+        _result = _cancelResult; // closed with the X
 
         Button? first = null;
         foreach (var (label, result) in choices)
@@ -65,7 +65,7 @@ public partial class MessageDialog : Window
         }
         Loaded += (_, _) => first?.Focus();
 
-        // Ctrl+C sans sélection : copie tout le message.
+        // Ctrl+C without a selection: copies the whole message.
         PreviewKeyDown += (_, e) =>
         {
             if (e.Key == Key.C && Keyboard.Modifiers == ModifierKeys.Control && Message.SelectionLength == 0)

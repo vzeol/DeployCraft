@@ -42,7 +42,7 @@
         </DockPanel>
 
         <TabControl x:Name="Tabs">
-            <!-- Déclencheurs -->
+            <!-- Triggers -->
             <TabItem>
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal" Margin="4,2">
@@ -126,7 +126,7 @@
                                         </StackPanel>
                                     </StackPanel>
 
-                                    <!-- Début / fin -->
+                                    <!-- Start / end -->
                                     <StackPanel Style="{StaticResource Row}">
                                         <TextBlock x:Name="StartLabel" Text="Début" Style="{StaticResource EditorLabel}" />
                                         <DatePicker x:Name="StartDate" Width="150" SelectedDateChanged="Editor_Changed" />
@@ -277,7 +277,7 @@
                 </ScrollViewer>
             </TabItem>
 
-            <!-- Historique des cibles -->
+            <!-- Target history -->
             <TabItem x:Name="HistoryTab">
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal" Margin="4,2">

@@ -1,8 +1,8 @@
 namespace DeployCraft.Server.Library;
 
 /// <summary>
-/// Au démarrage puis chaque heure : relit le catalogue de la bibliothèque s'il a plus d'un jour, même sans console
-/// ouverte. Les nouvelles versions sont ainsi signalées, et mises à jour d'elles-mêmes si le réglage le demande.
+/// At startup then every hour: re-reads the library catalog if it is more than a day old, even with no console
+/// open. New versions are thus reported, and updated by themselves if the setting asks for it.
 /// </summary>
 public class LibraryUpdater(PackageLibrary library, ILogger<LibraryUpdater> log) : BackgroundService
 {

@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- Tests automatiques : logique du service testable sans réseau ni poste (dotnet test DeployCraft.slnx). -->
+  <!-- Automated tests: service logic testable without network or computers (dotnet test DeployCraft.slnx). -->
   <PropertyGroup>
     <TargetFramework>net10.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -22,7 +22,7 @@
     <ProjectReference Include="..\..\src\DeployCraft.Console\DeployCraft.Console.csproj" Aliases="ConsoleApp" />
   </ItemGroup>
 
-  <!-- Conditions et enchaînement des étapes du runner (.NET Framework, sur les postes) : mêmes fichiers, testés ici. -->
+  <!-- Conditions and step sequencing of the runner (.NET Framework, on the computers): same files, tested here. -->
   <ItemGroup>
     <Compile Include="..\..\src\DeployCraft.Runner\Job.cs" Link="Runner\Job.cs" />
     <Compile Include="..\..\src\DeployCraft.Runner\Conditions.cs" Link="Runner\Conditions.cs" />
