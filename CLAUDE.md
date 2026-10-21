@@ -123,6 +123,8 @@ when you touch a file that does not follow them yet, do not make it worse.
 - Formatting: `dotnet format` (rules in `.editorconfig`).
 - Dependencies pinned by `packages.lock.json` (always committed); no dependency added without a reason.
 - GitHub Actions CI (`.github/workflows/ci.yml`) builds, tests and checks the formatting of every PR.
+- Code quality rules (`.editorconfig`: unused usings, methods too complex, disposable fields, ignored results) are
+  checked by every build; CI fails on any finding. Fix the code rather than silence a rule.
 - No dead code, no large commented-out blocks, no leftover debugging `Console.WriteLine` / `Debug.WriteLine`.
 
 ## Before each commit or push, check
