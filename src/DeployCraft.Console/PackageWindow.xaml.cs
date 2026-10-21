@@ -137,36 +137,50 @@ public partial class PackageWindow : Window
         _loadingStep = true;
         StepView.DataContext = step;
         ShowOnly(StepView);
+        ShowStepFields(step);
+        ShowStepOptions(step);
+        UpdateErrorModeHint(step);
+        UpdateSilentHint();
+        UpdateStepWarnings();
+        _warningCheck.Stop();
+        _warningCheck.Start();
+        _loadingStep = false;
+    }
 
-        var install = step.Type == StepType.Install;
-        var pause = step.Type == StepType.Pause;
-        var nested = step.Type == StepType.Nested;
-        var copy = step.Type == StepType.CopyFiles;
-        var reboot = step.Type == StepType.Reboot;
-        var message = step.Type == StepType.Message;
+    /// <summary>Only the fields of this step type are shown.</summary>
+    private void ShowStepFields(PackageStep step)
+    {
+        var f = StepTexts.Fields(step.Type);
         foreach (UIElement el in new UIElement[] { FileLabel, FileBox, BrowseButton, FileHint, ArgsLabel, ArgsBox, SilentHint, IncludeDirBox, InstallPanel })
-            el.Visibility = install ? Visibility.Visible : Visibility.Collapsed;
-        FilesPanel.Visibility = step.Type is StepType.Install or StepType.Command or StepType.PowerShell ? Visibility.Visible : Visibility.Collapsed;
-        if (install) LoadInstallOptions(step);
-        CopyPanel.Visibility = copy ? Visibility.Visible : Visibility.Collapsed;
-        RebootPanel.Visibility = reboot ? Visibility.Visible : Visibility.Collapsed;
-        MessagePanel.Visibility = message ? Visibility.Visible : Visibility.Collapsed;
-        CommandLabel.Visibility = CommandBox.Visibility = install || pause || nested || copy || reboot || message ? Visibility.Collapsed : Visibility.Visible;
+            el.Visibility = Show(f.Install);
+        FilesPanel.Visibility = Show(f.AdditionalFiles);
+        if (f.Install) LoadInstallOptions(step);
+        CopyPanel.Visibility = Show(f.Copy);
+        RebootPanel.Visibility = Show(f.Reboot);
+        MessagePanel.Visibility = Show(f.Message);
+        CommandLabel.Visibility = CommandBox.Visibility = Show(f.Command);
         foreach (UIElement el in new UIElement[] { NestedLabel, NestedBox, NestedHint })
-            el.Visibility = nested ? Visibility.Visible : Visibility.Collapsed;
-        if (nested)
+            el.Visibility = Show(f.Nested);
+        if (f.Nested)
         {
             NestedBox.ItemsSource = _library.Where(p => p.Id != Package.Id).OrderBy(p => p.Name).ToList();
             NestedBox.SelectedValue = step.NestedPackageId;
         }
         foreach (UIElement el in new UIElement[] { PauseLabel, PauseBox, PauseHint })
-            el.Visibility = pause ? Visibility.Visible : Visibility.Collapsed;
+            el.Visibility = Show(f.Pause);
         foreach (UIElement el in new UIElement[] { CodesLabel, CodesBox, CodesHint })
-            el.Visibility = pause || nested || copy || reboot || message ? Visibility.Collapsed : Visibility.Visible;
+            el.Visibility = Show(f.SuccessCodes);
         CommandLabel.Text = step.Type == StepType.PowerShell ? "Script" : "Commande";
         CommandBox.MinHeight = step.Type == StepType.PowerShell ? 220 : 26;
         CommandBox.TextWrapping = step.Type == StepType.PowerShell ? TextWrapping.NoWrap : TextWrapping.Wrap;
+    }
 
+    private static Visibility Show(bool visible) => visible ? Visibility.Visible : Visibility.Collapsed;
+
+    /// <summary>Conditions and Options tabs of the step.</summary>
+    private void ShowStepOptions(PackageStep step)
+    {
+        var nested = step.Type == StepType.Nested;
         StepConditions.Load(step.Conditions, forPackage: false);
         StepTimeoutHint.Text = StepTexts.TimeoutHint(step.Type, PackageTimeout);
         StepTimeoutBox.IsEnabled = ErrorModeBox.IsEnabled = !nested;
@@ -180,12 +194,6 @@ public partial class PackageWindow : Window
         });
         foreach (var mode in Enum.GetValues<RunAsMode>())
             StepRunAsBox.Items.Add(new ComboBoxItem { Content = Ui.RunAsText(mode), Tag = mode, IsSelected = step.RunAs == mode });
-        UpdateErrorModeHint(step);
-        UpdateSilentHint();
-        UpdateStepWarnings();
-        _warningCheck.Stop();
-        _warningCheck.Start();
-        _loadingStep = false;
     }
 
     private void StepName_TextChanged(object sender, TextChangedEventArgs e)

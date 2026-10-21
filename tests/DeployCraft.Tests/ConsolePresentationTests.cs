@@ -204,4 +204,40 @@ public class ConsolePresentationTests
 
         Assert.Equal(new StepRow(1, "Pause", "Pause", "", "30 s"), Assert.Single(rows));
     }
+
+    [Theory]
+    [InlineData(StepType.Install, true, false, true)]
+    [InlineData(StepType.Command, false, true, true)]
+    [InlineData(StepType.Pause, false, false, false)]
+    [InlineData(StepType.Reboot, false, false, false)]
+    public void StepTexts_FieldsDependOnTheType(StepType type, bool install, bool command, bool codes)
+    {
+        var fields = StepTexts.Fields(type);
+
+        Assert.Equal(install, fields.Install);
+        Assert.Equal(command || install, fields.AdditionalFiles);
+        Assert.Equal(command, fields.Command);
+        Assert.Equal(codes, fields.SuccessCodes);
+    }
+
+    [Fact]
+    public void StepDetailRow_ShowsStepsBeforeTheStartStepAsSkipped()
+    {
+        var deployment = new Deployment
+        {
+            Id = 4,
+            Snapshot = new Package { Steps = [new() { Name = "a" }, new() { Name = "b" }, new() { Name = "c" }] },
+        };
+        var target = new DeploymentTarget
+        {
+            StartStep = 2,
+            Status = TargetStatus.Running,
+            Steps = [new StepOutcome { Name = "b", State = "success", ExitCode = 0 }],
+        };
+
+        var rows = StepDetailRow.For(deployment, target);
+
+        Assert.Equal(["skipped", "success", "Queued"], rows.Select(r => r.Status));
+        Assert.Equal("0", rows[1].ReturnCode);
+    }
 }
