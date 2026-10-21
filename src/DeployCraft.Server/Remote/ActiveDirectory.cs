@@ -42,11 +42,11 @@ public class ActiveDirectory(DeployCredentials credentials)
         }
         catch (DirectoryServicesCOMException ex)
         {
-            throw new DeployException("Lecture de l'Active Directory impossible : " + ex.Message.Trim(), ex);
+            throw new DeployException(Msg.Format("ActiveDirectory_ReadFailed", ex.Message.Trim()), ex);
         }
         catch (System.Runtime.InteropServices.COMException ex)
         {
-            throw new DeployException($"Domaine « {domain} » injoignable ou identifiants refusés : {ex.Message.Trim()}", ex);
+            throw new DeployException(Msg.Format("ActiveDirectory_DomainUnreachable", domain, ex.Message.Trim()), ex);
         }
 
         return list.OrderBy(c => c.Ou).ThenBy(c => c.Name).ToList();
@@ -63,7 +63,7 @@ public class ActiveDirectory(DeployCredentials credentials)
         }
         catch (System.Runtime.InteropServices.COMException ex)
         {
-            throw new DeployException($"Connexion au domaine « {domain} » refusée : {ex.Message.Trim()}", ex);
+            throw new DeployException(Msg.Format("ActiveDirectory_ConnectDenied", domain, ex.Message.Trim()), ex);
         }
     }
 

@@ -27,14 +27,14 @@ public static class StepWarnings
 
         if (step.Type == StepType.Install && string.IsNullOrWhiteSpace(step.CustomCommandLine)
             && System.IO.Path.GetExtension(step.File ?? "").Equals(".exe", StringComparison.OrdinalIgnoreCase) && string.IsNullOrWhiteSpace(step.Arguments))
-            warnings.Add("Aucun paramètre silencieux : l'installation risque d'attendre un clic jusqu'au délai max.");
+            warnings.Add(Msg.Get("StepWarnings_NoSilentArgs"));
 
         foreach (var path in Paths(step))
         {
             if (missing.Contains(path, StringComparer.OrdinalIgnoreCase))
-                warnings.Add($"Introuvable depuis le serveur : {path}");
+                warnings.Add(Msg.Format("StepWarnings_NotFound", path));
             else if (copyMode == CopyMode.Pull && !path.StartsWith(@"\\", StringComparison.Ordinal))
-                warnings.Add($"Mode pull, mais « {path} » n'est pas sur un partage : le serveur l'enverra lui-même (comme en push).");
+                warnings.Add(Msg.Format("StepWarnings_PullNotShare", path));
         }
         return warnings;
     }

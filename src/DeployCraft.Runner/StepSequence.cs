@@ -28,13 +28,13 @@ namespace DeployCraft.Runner
                 }
                 catch (Exception ex)
                 {
-                    log("Enregistrement de l'avancement impossible : " + ex.Message);
+                    log(RunnerTexts.Format("StepSequence_ProgressNotSaved", ex.Message));
                 }
             }
 
             // Package conditions not met: all steps are skipped, without failure.
             var packageSkip = Unmet(job.Conditions, facts, out var packageError);
-            if (packageSkip != null) log("Conditions du paquet non remplies : " + packageSkip);
+            if (packageSkip != null) log(RunnerTexts.Format("StepSequence_PackageConditionsLog", packageSkip));
 
             var first = Math.Max(1, job.FirstNumber);
             var stop = false;
@@ -57,12 +57,12 @@ namespace DeployCraft.Runner
                 if (step.Disabled)
                 {
                     result.State = Skipped;
-                    result.Error = "Étape désactivée.";
+                    result.Error = RunnerTexts.Get("StepSequence_StepDisabled");
                 }
                 else if (packageSkip != null)
                 {
                     result.State = Skipped;
-                    result.Error = "Conditions du paquet non remplies. " + packageSkip;
+                    result.Error = RunnerTexts.Format("StepSequence_PackageConditionsNotMet", packageSkip);
                 }
                 else if (packageError != null)
                 {
@@ -82,7 +82,7 @@ namespace DeployCraft.Runner
                 else if ((stepSkip = Unmet(step.Conditions, facts, out stepError)) != null)
                 {
                     result.State = Skipped;
-                    result.Error = "Condition non remplie. " + stepSkip;
+                    result.Error = RunnerTexts.Format("StepSequence_StepConditionNotMet", stepSkip);
                 }
                 else if (stepError != null)
                 {
@@ -100,19 +100,19 @@ namespace DeployCraft.Runner
                 if (result.State == Failed && packageError == null && step.StopSuccessOnError)
                 {
                     result.State = Stopped;
-                    stopReason = $"Paquet arrêté en succès par l'étape {first + i} « {step.Name} ».";
+                    stopReason = RunnerTexts.Format("StepSequence_StoppedBy", first + i, step.Name);
                 }
                 if (result.State == Stopped || result.State == Failed && (packageError != null || !step.ContinueOnError))
                     stop = true;
 
-                log($"Étape {first + i} « {step.Name} » : {result.State}" +
-                    (result.Error != null ? $" ({result.Error})" : result.ExitCode != null ? $" (code {result.ExitCode})" : ""));
+                log(RunnerTexts.Format("StepSequence_StepLog", first + i, step.Name, result.State) +
+                    (result.Error != null ? RunnerTexts.Format("StepSequence_LogError", result.Error) : result.ExitCode != null ? RunnerTexts.Format("StepSequence_LogCode", result.ExitCode) : ""));
                 Save();
             }
 
             // For the server, which chains any other identities: should it stop here?
             status.Halt = stop || packageSkip != null;
-            status.HaltReason = stop ? stopReason : packageSkip != null ? "Conditions du paquet non remplies. " + packageSkip : null;
+            status.HaltReason = stop ? stopReason : packageSkip != null ? RunnerTexts.Format("StepSequence_PackageConditionsNotMet", packageSkip) : null;
         }
 
         /// <summary>Waits <paramref name="seconds"/> seconds in short slices; false if the deployment is cancelled in the meantime.</summary>
@@ -135,7 +135,7 @@ namespace DeployCraft.Runner
             {
                 var unmet = Unmet(group.Conditions, facts, out error);
                 if (error != null) return null;
-                if (unmet != null) return $"{group.Label} non remplies. {unmet}";
+                if (unmet != null) return RunnerTexts.Format("StepSequence_GroupNotMet", group.Label, unmet);
             }
             return null;
         }
@@ -153,7 +153,7 @@ namespace DeployCraft.Runner
             }
             catch (Exception ex)
             {
-                error = "Vérification des conditions impossible : " + ex.Message;
+                error = RunnerTexts.Format("StepSequence_CheckImpossible", ex.Message);
                 return null;
             }
         }

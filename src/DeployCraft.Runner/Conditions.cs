@@ -26,24 +26,24 @@ namespace DeployCraft.Runner
             if (c == null) return null;
 
             if (c.Windows != null && c.Windows.Count > 0 && !c.Windows.Contains(facts.WindowsFamily))
-                return $"Windows : {FamilyText(facts.WindowsFamily)} n'est pas dans les versions demandées ({string.Join(", ", c.Windows.Select(FamilyText))}).";
+                return RunnerTexts.Format("Conditions_WindowsMismatch", FamilyText(facts.WindowsFamily), string.Join(", ", c.Windows.Select(FamilyText)));
 
-            if (c.Architecture == "x64" && !facts.Is64Bit) return "Architecture : le poste est en 32 bits (64 bits demandé).";
-            if (c.Architecture == "x86" && facts.Is64Bit) return "Architecture : le poste est en 64 bits (32 bits demandé).";
+            if (c.Architecture == "x64" && !facts.Is64Bit) return RunnerTexts.Get("Conditions_Arch32");
+            if (c.Architecture == "x86" && facts.Is64Bit) return RunnerTexts.Get("Conditions_Arch64");
 
             if (c.MinPowerShell is int min && facts.PowerShellVersion < min)
                 return facts.PowerShellVersion == 0
-                    ? $"PowerShell : absent du poste ({min} ou plus demandé)."
-                    : $"PowerShell : version {facts.PowerShellVersion} sur le poste ({min} ou plus demandé).";
+                    ? RunnerTexts.Format("Conditions_PowerShellMissing", min)
+                    : RunnerTexts.Format("Conditions_PowerShellVersion", facts.PowerShellVersion, min);
 
-            if (c.LoggedOn == true && !facts.UserLoggedOn) return "Utilisateur : personne n'est connecté sur le poste.";
-            if (c.LoggedOn == false && facts.UserLoggedOn) return "Utilisateur : quelqu'un est connecté sur le poste.";
+            if (c.LoggedOn == true && !facts.UserLoggedOn) return RunnerTexts.Get("Conditions_NobodyLoggedOn");
+            if (c.LoggedOn == false && facts.UserLoggedOn) return RunnerTexts.Get("Conditions_SomeoneLoggedOn");
 
             if (c.FileExists is bool fileWanted && !string.IsNullOrWhiteSpace(c.FilePath))
             {
                 var path = Environment.ExpandEnvironmentVariables(c.FilePath.Trim());
                 if (facts.PathExists(path) != fileWanted)
-                    return fileWanted ? $"Fichier : {path} n'existe pas." : $"Fichier : {path} existe déjà.";
+                    return RunnerTexts.Format(fileWanted ? "Conditions_FileMissing" : "Conditions_FileExists", path);
             }
 
             if (c.RegistryExists is bool keyWanted && !string.IsNullOrWhiteSpace(c.RegistryKey))
@@ -51,7 +51,7 @@ namespace DeployCraft.Runner
                 var key = c.RegistryKey.Trim();
                 var what = string.IsNullOrEmpty(c.RegistryValue) ? key : $"{key} › {c.RegistryValue}";
                 if (facts.RegistryExists(key, c.RegistryValue) != keyWanted)
-                    return keyWanted ? $"Registre : {what} n'existe pas." : $"Registre : {what} existe déjà.";
+                    return RunnerTexts.Format(keyWanted ? "Conditions_RegistryMissing" : "Conditions_RegistryExists", what);
             }
             return null;
         }
@@ -61,7 +61,7 @@ namespace DeployCraft.Runner
             "10" => "Windows 10",
             "11" => "Windows 11",
             "server" => "Windows Server",
-            _ => "version antérieure à Windows 10",
+            _ => RunnerTexts.Get("Conditions_FamilyOlder"),
         };
 
         /// <summary>"10.0.22631" + installation type → family. Servers are recognized separately.</summary>

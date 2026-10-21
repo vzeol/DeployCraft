@@ -8,6 +8,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>DeployCraft.Server</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Messages: Texts\Msg.resx in French, Msg.en.resx in English. -->
+    <NeutralLanguage>fr</NeutralLanguage>
   </PropertyGroup>
 
   <ItemGroup>

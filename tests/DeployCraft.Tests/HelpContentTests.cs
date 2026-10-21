@@ -41,10 +41,12 @@ public class HelpContentTests
         Assert.False(topics[0].Matches("1618"));
     }
 
-    [Fact]
-    public void ShippedHelp_HasTheTopicsUsedByF1()
+    [Theory]
+    [InlineData("aide.txt")]
+    [InlineData("aide.en.txt")]
+    public void ShippedHelp_HasTheTopicsUsedByF1(string name)
     {
-        var file = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "src", "DeployCraft.Console", "Help", "aide.txt");
+        var file = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "src", "DeployCraft.Console", "Help", name);
         var ids = HelpContent.Parse(File.ReadAllText(file)).Select(t => t.Id).ToList();
 
         Assert.Subset(ids.ToHashSet(), new HashSet<string> { "accueil", "suivi", "paquets", "planifications", "bibliotheque" });

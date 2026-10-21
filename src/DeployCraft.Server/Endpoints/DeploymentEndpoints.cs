@@ -14,7 +14,7 @@ internal static class DeploymentEndpoints
             var packages = new List<Package>();
             foreach (var id in input.PackageIds)
             {
-                if (packageRepository.Get(id) is not { } package) return Results.NotFound(new { error = $"Paquet introuvable (n° {id})." });
+                if (packageRepository.Get(id) is not { } package) return Results.NotFound(new { error = Msg.Format("DeploymentEndpoints_PackageNotFound", id) });
                 packages.Add(package);
             }
             try
@@ -39,7 +39,7 @@ internal static class DeploymentEndpoints
         {
             if (deploymentRepository.Get(id) is not { } d) return Results.NoContent();
             if (d.Status is DeploymentStatus.Running or DeploymentStatus.Queued)
-                return Results.BadRequest(new { error = "Ce déploiement est en cours : attendez qu'il se termine." });
+                return Results.BadRequest(new { error = Msg.Get("DeploymentEndpoints_StillRunning") });
             deploymentRepository.Delete(id);
             return Results.NoContent();
         });

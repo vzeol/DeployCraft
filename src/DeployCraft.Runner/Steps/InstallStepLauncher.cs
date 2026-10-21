@@ -11,8 +11,8 @@ namespace DeployCraft.Runner.Steps
         {
             if (!string.IsNullOrEmpty(step.SourcePath)) host.Pull(step);
             var file = Path.Combine(host.ExecDir, step.Command ?? "");
-            if (!File.Exists(file)) throw new FileNotFoundException("Fichier d'installation introuvable sur la cible : " + step.Command);
-            if (string.IsNullOrWhiteSpace(step.CommandLine)) throw new ArgumentException("Installer : aucune ligne de commande.");
+            if (!File.Exists(file)) throw new FileNotFoundException(RunnerTexts.Format("Launcher_InstallFileMissing", step.Command));
+            if (string.IsNullOrWhiteSpace(step.CommandLine)) throw new ArgumentException(RunnerTexts.Get("Launcher_InstallNoCommandLine"));
             // Windows Installer log: the one from a previous step must not be reused.
             File.Delete(Path.Combine(host.ExecDir, InstallLog.FileName));
             // Through cmd: the line (generated or hand-written) is run as is, in exec\.

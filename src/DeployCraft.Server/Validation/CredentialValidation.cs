@@ -5,9 +5,9 @@ internal static class CredentialValidation
 {
     internal static string? Validate(string? user, string? password, bool isNew)
     {
-        if (string.IsNullOrWhiteSpace(user)) return "Saisissez le nom d'utilisateur.";
-        if (user.Contains('\\') || user.Contains('@')) return "Saisissez le domaine dans sa propre case, et l'utilisateur seul.";
-        if (isNew && string.IsNullOrEmpty(password)) return "Saisissez le mot de passe.";
+        if (string.IsNullOrWhiteSpace(user)) return Msg.Get("CredentialValidation_UserRequired");
+        if (user.Contains('\\') || user.Contains('@')) return Msg.Get("CredentialValidation_DomainSeparate");
+        if (isNew && string.IsNullOrEmpty(password)) return Msg.Get("CredentialValidation_PasswordRequired");
         return null;
     }
 }

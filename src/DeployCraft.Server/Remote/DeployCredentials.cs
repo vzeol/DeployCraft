@@ -91,7 +91,7 @@ public class DeployCredentials
     }
 
     internal string Password(Credential c) => TryPassword(c.Id)
-        ?? throw new DeployException($"Le mot de passe de {c.Account} ne peut pas être relu : ressaisissez-le (Options › Identifiants).");
+        ?? throw new DeployException(Msg.Format("DeployCredentials_PasswordUnreadable", c.Account));
 
     /// <summary>
     /// Name under which the account authenticates to <paramref name="computer"/>: a local account
@@ -118,7 +118,7 @@ public class DeployCredentials
         // NEW_CREDENTIALS: the local identity does not change, only network access uses this account.
         if (!Win32.LogonUser(c.User, LogonDomain(c, computer), password, Win32.LOGON32_LOGON_NEW_CREDENTIALS,
                 Win32.LOGON32_PROVIDER_WINNT50, out SafeAccessTokenHandle token))
-            throw Win32.LastError($"Ouverture de session de {c.Account}");
+            throw Win32.LastError(Msg.Format("DeployCredentials_Logon", c.Account));
         using (token)
             return WindowsIdentity.RunImpersonated(token, action);
     }
@@ -133,7 +133,7 @@ public class DeployCredentials
         {
             if (!Win32.LogonUser(c.User, LogonDomain(c, computer), password, Win32.LOGON32_LOGON_NETWORK,
                     Win32.LOGON32_PROVIDER_DEFAULT, out SafeAccessTokenHandle local))
-                throw new DeployException($"{c.Account} refusé par ce serveur : {new Win32Exception().Message}");
+                throw new DeployException(Msg.Format("DeployCredentials_RefusedByServer", c.Account, new Win32Exception().Message));
             local.Dispose();
             return;
         }
@@ -143,11 +143,11 @@ public class DeployCredentials
         }
         catch (UnauthorizedAccessException)
         {
-            throw new DeployException($"{c.Account} n'a pas accès à ADMIN$ sur {computer} : mot de passe incorrect ou compte non administrateur du poste.");
+            throw new DeployException(Msg.Format("DeployCredentials_NoAdminShare", c.Account, computer));
         }
         catch (IOException ex)
         {
-            throw new DeployException($"{c.Account} refusé par {computer} : {new Win32Exception(ex.HResult & 0xFFFF).Message}");
+            throw new DeployException(Msg.Format("DeployCredentials_RefusedByComputer", c.Account, computer, new Win32Exception(ex.HResult & 0xFFFF).Message));
         }
     }
 
@@ -156,6 +156,6 @@ public class DeployCredentials
     {
         var all = List();
         return all.FirstOrDefault(c => c.IsDefault && !c.IsLocal) ?? all.FirstOrDefault(c => !c.IsLocal)
-            ?? throw new DeployException("Ajoutez un identifiant du domaine (Options › Identifiants) pour lire l'Active Directory.");
+            ?? throw new DeployException(Msg.Get("DeployCredentials_NeedDomainCredential"));
     }
 }

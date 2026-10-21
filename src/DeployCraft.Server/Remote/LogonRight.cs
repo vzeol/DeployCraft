@@ -61,10 +61,10 @@ internal static class LogonRight
         {
             var attributes = new LSA_OBJECT_ATTRIBUTES { Length = Marshal.SizeOf<LSA_OBJECT_ATTRIBUTES>() };
             Check(LsaOpenPolicy(ref system, ref attributes, POLICY_CREATE_ACCOUNT | POLICY_LOOKUP_NAMES, out var policy),
-                "Ouverture de la stratégie de sécurité du poste");
+                Msg.Get("LogonRight_OpenPolicy"));
             try
             {
-                Check(LsaAddAccountRights(policy, sid, [right], 1), "Octroi du droit « Ouvrir une session en tant que service »");
+                Check(LsaAddAccountRights(policy, sid, [right], 1), Msg.Get("LogonRight_Grant"));
             }
             finally
             {
@@ -85,7 +85,7 @@ internal static class LogonRight
         var sid = new byte[sidSize];
         var domain = new StringBuilder((int)domainSize);
         if (sidSize == 0 || !LookupAccountName(computer, account, sid, ref sidSize, domain, ref domainSize, out _))
-            throw new DeployException($"Compte de déploiement « {account} » introuvable depuis {computer ?? "ce serveur"}.",
+            throw new DeployException(Msg.Format("LogonRight_AccountNotFound", account, computer ?? Msg.Get("LogonRight_ThisServer")),
                 new Win32Exception(Marshal.GetLastWin32Error()));
         return sid;
     }
@@ -101,6 +101,6 @@ internal static class LogonRight
     {
         if (status == 0) return;
         var code = LsaNtStatusToWinError(status);
-        throw new Win32Exception(code, $"{action} : {new Win32Exception(code).Message} (code {code})");
+        throw new Win32Exception(code, Msg.Format("LogonRight_Failed", action, new Win32Exception(code).Message, code));
     }
 }

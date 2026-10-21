@@ -30,7 +30,7 @@ internal static class AccessEndpoints
     }
 
     internal static IResult OnlyAdmins() => Results.Json(
-        new { error = "Seuls les administrateurs de ce serveur peuvent modifier la liste des utilisateurs de la console." },
+        new { error = Msg.Get("AccessEndpoints_OnlyAdmins") },
         statusCode: StatusCodes.Status403Forbidden);
 }
 

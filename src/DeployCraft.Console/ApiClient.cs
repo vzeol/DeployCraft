@@ -32,6 +32,7 @@ public static class Api
     {
         BaseAddress = new Uri((Environment.GetEnvironmentVariable("DEPLOYCRAFT_URL") ?? "http://localhost:5080") + "/api/"),
         Timeout = TimeSpan.FromMinutes(2),
+        DefaultRequestHeaders = { AcceptLanguage = { new(UiLanguage.Current) } }, // service messages in the console language
     };
 
     public static Task<ServerStatus> Status() => Get<ServerStatus>("status");

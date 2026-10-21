@@ -38,8 +38,8 @@ namespace DeployCraft.Runner
             if (!WTSQueryUserToken(session, out var token))
             {
                 var code = Marshal.GetLastWin32Error();
-                if (code == ERROR_NO_TOKEN) throw new InvalidOperationException("Aucun utilisateur n'est connecté sur ce poste : étape impossible en « utilisateur connecté ».");
-                throw new Win32Exception(code, "Récupération du jeton de l'utilisateur connecté : " + new Win32Exception(code).Message);
+                if (code == ERROR_NO_TOKEN) throw new InvalidOperationException(RunnerTexts.Get("UserProcess_NoUser"));
+                throw new Win32Exception(code, RunnerTexts.Format("UserProcess_TokenFailed", new Win32Exception(code).Message));
             }
 
             IntPtr environment = IntPtr.Zero, outRead = IntPtr.Zero, outWrite = IntPtr.Zero, inRead = IntPtr.Zero, inWrite = IntPtr.Zero;
@@ -49,7 +49,7 @@ namespace DeployCraft.Runner
 
                 var sa = new SECURITY_ATTRIBUTES { nLength = Marshal.SizeOf(typeof(SECURITY_ATTRIBUTES)), bInheritHandle = true };
                 if (!CreatePipe(out outRead, out outWrite, ref sa, 0) || !CreatePipe(out inRead, out inWrite, ref sa, 0))
-                    throw new Win32Exception(Marshal.GetLastWin32Error(), "Création des tubes de sortie");
+                    throw new Win32Exception(Marshal.GetLastWin32Error(), RunnerTexts.Get("UserProcess_PipesFailed"));
                 // Only the child-side ends are inherited.
                 SetHandleInformation(outRead, HANDLE_FLAG_INHERIT, 0);
                 SetHandleInformation(inWrite, HANDLE_FLAG_INHERIT, 0);
@@ -66,7 +66,7 @@ namespace DeployCraft.Runner
                 var commandLine = new StringBuilder($"\"{fileName}\" {arguments}".Trim());
                 if (!CreateProcessAsUser(token, null, commandLine, IntPtr.Zero, IntPtr.Zero, true,
                         CREATE_UNICODE_ENVIRONMENT | CREATE_NO_WINDOW, environment, workingDirectory, ref si, out var pi))
-                    throw new Win32Exception(Marshal.GetLastWin32Error(), "Lancement dans la session de l'utilisateur connecté");
+                    throw new Win32Exception(Marshal.GetLastWin32Error(), RunnerTexts.Get("UserProcess_LaunchFailed"));
 
                 CloseHandle(pi.hThread);
                 var result = new UserProcess { _process = pi.hProcess, Id = pi.dwProcessId, User = user };
@@ -156,7 +156,7 @@ namespace DeployCraft.Runner
                 return sessions[0].Key;
             }
             var console = WTSGetActiveConsoleSessionId();
-            if (console == 0xFFFFFFFF) throw new InvalidOperationException("Aucun utilisateur n'est connecté sur ce poste : étape impossible en « utilisateur connecté ».");
+            if (console == 0xFFFFFFFF) throw new InvalidOperationException(RunnerTexts.Get("UserProcess_NoUser"));
             user = SessionUser(console);
             return console;
         }

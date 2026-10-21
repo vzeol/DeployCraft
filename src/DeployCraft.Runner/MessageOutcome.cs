@@ -29,7 +29,7 @@ namespace DeployCraft.Runner
             var script = new StringBuilder()
                 .AppendLine("Add-Type -AssemblyName System.Windows.Forms")
                 .AppendLine("[System.Windows.Forms.Application]::EnableVisualStyles()")
-                .AppendLine("$f = New-Object System.Windows.Forms.Form -Property @{ Text = " + Literal(string.IsNullOrWhiteSpace(title) ? "Information" : title) +
+                .AppendLine("$f = New-Object System.Windows.Forms.Form -Property @{ Text = " + Literal(string.IsNullOrWhiteSpace(title) ? RunnerTexts.Get("MessageOutcome_DefaultTitle") : title) +
                     "; TopMost = $true; StartPosition = 'CenterScreen'; FormBorderStyle = 'FixedDialog'; MinimizeBox = $false; MaximizeBox = $false; " +
                     "AutoSize = $true; AutoSizeMode = 'GrowAndShrink'; ShowInTaskbar = $true }")
                 .AppendLine("$p = New-Object System.Windows.Forms.FlowLayoutPanel -Property @{ FlowDirection = 'TopDown'; AutoSize = $true; AutoSizeMode = 'GrowAndShrink'; Padding = 12 }")
@@ -55,12 +55,12 @@ namespace DeployCraft.Runner
         {
             var errors = exitCodes?.Count(c => c != Clicked && c != Timeout) ?? 0;
             var timedOut = exitCodes?.Count(c => c == Timeout) ?? 0;
-            if (sessions == 0) text = "Aucun utilisateur connecté : message non affiché.";
-            else if (errors > 0) text = $"Fenêtre du message en erreur dans {errors} session(s) sur {sessions}.";
-            else if (exitCodes == null) text = $"Message affiché dans {sessions} session(s).";
-            else if (timedOut == 0) text = $"OK cliqué dans {sessions} session(s).";
-            else if (untilClick) text = $"Personne n'a cliqué sur OK avant le délai max de l'étape ({timedOut} session(s) sur {sessions}).";
-            else text = $"Message fermé à la fin de la durée d'affichage, sans clic, dans {timedOut} session(s) sur {sessions}.";
+            if (sessions == 0) text = RunnerTexts.Get("MessageOutcome_NoUser");
+            else if (errors > 0) text = RunnerTexts.Format("MessageOutcome_WindowError", errors, sessions);
+            else if (exitCodes == null) text = RunnerTexts.Format("MessageOutcome_Shown", sessions);
+            else if (timedOut == 0) text = RunnerTexts.Format("MessageOutcome_Clicked", sessions);
+            else if (untilClick) text = RunnerTexts.Format("MessageOutcome_NoClickTimeout", timedOut, sessions);
+            else text = RunnerTexts.Format("MessageOutcome_ClosedNoClick", timedOut, sessions);
             return errors == 0 && !(untilClick && timedOut > 0);
         }
     }

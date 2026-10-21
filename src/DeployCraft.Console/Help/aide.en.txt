@@ -1,0 +1,81 @@
+## Getting started {#accueil}
+DeployCraft installs and configures software on the Windows computers of your network, without anything installed on those computers beforehand.
+### The three pieces
+- The DeployCraft service runs all the time on the server: it keeps the packages and the history, and starts deployments and schedules.
+- The console (this window) is where you prepare everything and follow what is going on. Several people can open it at the same time.
+- The runner is a small program copied to each computer for the duration of a deployment, then removed.
+### Before the first deployment
+- Options › Credentials: add an administrator account for the computers (often a domain account).
+- The computers must accept file sharing (ADMIN$ share, port 445) and remote service management.
+- Help › Setup wizard goes through these steps one by one.
+### Useful shortcuts
+- Ctrl+N: new package. Ctrl+Shift+F: new folder. Ctrl+D: deploy once.
+- Ctrl+Shift+N: new schedule. F5: refresh. F1: this help.
+- Ctrl+0 to Ctrl+4: home, deployments, schedules, library, packages. Ctrl+F: search for a package.
+
+## Packages and steps {#paquets}
+A package is a series of steps run in order on each computer.
+### Step types
+- Install: runs an .exe, .msi, .msp, .msu, .ps1, .bat, .cmd, .vbs or .reg file. The command line is built from the file type; the Custom box lets you write it yourself.
+- Command: a cmd command line. PowerShell: a script.
+- File copy: copies a file or folder to a folder on the computer.
+- Pause, Message (a window shown to logged-on users), Restart (or shut down) the computer.
+- Nested package: reuses the steps of another package.
+### Step settings
+- Success codes: exit codes counted as a success (0, 1641, 3010 and 2359302 for Install).
+- On error: stop the package with failure, continue, or stop with success.
+- Run as: deployment account, Local System or the logged-on user.
+- Conditions: Windows version, architecture, PowerShell, logged-on user, file or registry key. A step whose conditions are not met is "Skipped" and the package continues.
+### Warnings
+- A red message at the top of the step points out a file that cannot be found from the server, an .exe without a silent parameter, or a local path while the package is in pull mode. It is shown again when you save.
+### Folders
+- Keep packages in folders and subfolders (Ctrl+Shift+F); drag them from one folder to another. Only an empty folder can be deleted.
+
+## Deploy {#deployer}
+### Deploy once
+- Choose a package, then Deploy (Ctrl+D): type computer names, paste a list, or pick them from Active Directory.
+- Several packages can be chained: on a given computer, each one waits for the previous one to finish.
+- High priority: the computers of this deployment go ahead of those waiting for a slot (8 computers in parallel).
+### Copy mode
+- Push: the server copies the files to the computer itself.
+- Pull: the computer fetches the files from a network share. A path local to the server is always sent as push.
+### Powered-off computers
+- A computer that does not answer can be woken up (Wake-on-LAN) if it has already received a deployment, then retried later according to the Offline settings.
+
+## Follow deployments {#suivi}
+- All deployments: the list at the top, the computers of the selected deployment at the bottom, their details on the right.
+- Counters: computers waiting, running, succeeded, failed and cancelled. "Partial": some of the computers succeeded. "Cancelled": stopped by hand.
+- The Detail column shows the current step (copying, running, computer unreachable…) or the error.
+- Step details of a computer: status, return code, duration and output of each step. The output can be copied, opened in Notepad or saved.
+- Right-click: cancel, redeploy (everything, the failed computers, or from the failed step), create a schedule from the deployment.
+
+## Schedules {#planifications}
+- A schedule deploys one or more packages to computers at chosen times: once, at an interval (with a time window), every day, every week or every month.
+- Stop deploying once succeeded: with an interval trigger, the installation is retried until it works on every computer.
+- The Target history tab shows, computer by computer, what succeeded and the number of failures. Clearing a line makes that computer deploy again.
+- Start now starts the schedule right away, without waiting for its trigger.
+
+## Package library {#bibliotheque}
+- The library searches a public catalog of software (browsers, PDF readers, office tools…).
+- Download creates a ready-to-deploy package, with the installer stored in the library folder.
+- When a newer version is out, the row says "Update available": Update replaces the installer of the package.
+- Folder…: where to store the installers. A network share is recommended for pull mode.
+
+## Credentials and access {#identifiants}
+- Options › Credentials: accounts used to connect to the computers. The default credential is used when no other is chosen. Passwords are encrypted on the server.
+- A local account is written .\user: it is then presented to each computer under its own name.
+- Options › Console users: Windows accounts or groups allowed to open the console, in addition to the server administrators.
+
+## Preferences {#preferences}
+- Interface: light theme, dark theme, or follow Windows (specific to each user).
+- Deployment: run as, copy mode and default timeout; automatic deletion of old deployments after N days.
+- Offline: Wake-on-LAN and new attempts for powered-off computers.
+- These settings apply to packages left on "Default".
+
+## Troubleshooting {#depannage}
+- "Offline": the computer is off, its name is not in DNS, or the firewall blocks file sharing (port 445).
+- Access denied to ADMIN$: the credential is not an administrator of the computer, or its password has changed.
+- Code 1618: another installation is already in progress on the computer; try again later.
+- Code 1603: error during installation; the Windows Installer log is added to the step output.
+- An installation that runs until the timeout is often waiting for a click: add the installer's silent parameters.
+- On the computer, C:\Windows\DeployCraft\last-runner.log keeps the log of the last run.

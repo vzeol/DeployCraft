@@ -47,14 +47,14 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
             .Where(t => t.Computer.Length > 0)
             .DistinctBy(t => t.Computer, StringComparer.OrdinalIgnoreCase)
             .ToList();
-        if (requests.Count == 0) throw new ArgumentException("Aucune cible.");
-        if (packages.Count == 0) throw new ArgumentException("Aucun paquet.");
+        if (requests.Count == 0) throw new ArgumentException(Msg.Get("DeploymentEngine_NoTarget"));
+        if (packages.Count == 0) throw new ArgumentException(Msg.Get("DeploymentEngine_NoPackage"));
         foreach (var p in packages.Where(p => p.Steps.Count == 0))
-            throw new ArgumentException($"Le paquet « {p.Name} » n'a aucune étape.");
+            throw new ArgumentException(Msg.Format("DeploymentEngine_PackageNoSteps", p.Name));
         // The start step is counted on the deployed list, with nested packages replaced by their steps.
         var stepCount = packages[0].Flatten(packageRepository.Get).Steps.Count;
         foreach (var t in requests.Where(t => t.StartStep < 1 || t.StartStep > stepCount))
-            throw new ArgumentException($"{t.Computer} : étape de départ invalide ({t.StartStep}) ; le paquet a {stepCount} étape(s).");
+            throw new ArgumentException(Msg.Format("DeploymentEngine_BadStartStep", t.Computer, t.StartStep, stepCount));
 
         return StartPlan(
             packages.Select((p, i) => (p, i == 0 ? requests : requests.Select(t => t with { StartStep = 1 }).ToList())).ToList(),
@@ -70,8 +70,8 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
     {
         // Chosen credential, otherwise the default one; none saved = the service identity.
         var credential = credentials.Resolve(options.CredentialId);
-        if (options.CredentialId != null && credential == null) throw new ArgumentException("Identifiant introuvable (supprimé ?).");
-        var account = credential?.Account ?? "Compte du service";
+        if (options.CredentialId != null && credential == null) throw new ArgumentException(Msg.Get("DeploymentEngine_CredentialNotFound"));
+        var account = credential?.Account ?? Msg.Get("DeploymentEngine_ServiceAccount");
 
         var defaults = settingsRepository.GetDefaults();
         ApplyPerformance(defaults.Performance);
@@ -172,7 +172,7 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
             {
                 if (_after.TryRemove(target.Id, out var before) && _done.TryGetValue(before, out var previous))
                 {
-                    target.Stage = "En attente du paquet précédent";
+                    target.Stage = Msg.Get("DeploymentEngine_WaitingPrevious");
                     deploymentRepository.UpdateTarget(target);
                     await previous.Task.WaitAsync(waitCts.Token);
                 }
@@ -183,20 +183,20 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
             catch (OperationCanceledException) when (waitCts.IsCancellationRequested && !cts.IsCancellationRequested)
             {
                 target.Status = TargetStatus.Failed;
-                target.Error = $"Pas démarré : toujours en attente après {deployment.QueueTimeoutMinutes} min (délai de la planification).";
+                target.Error = Msg.Format("DeploymentEngine_QueueTimeout", deployment.QueueTimeoutMinutes);
                 return;
             }
             countForSchedule = true;
 
             target.Status = TargetStatus.Running;
             target.StartedUtc = DateTime.UtcNow;
-            target.Stage = "Démarrage";
+            target.Stage = Msg.Get("DeploymentEngine_Starting");
             deploymentRepository.UpdateTarget(target);
 
             Credential? credential = null;
             if (deployment.CredentialId is { } credentialId)
                 credential = credentials.Get(credentialId)
-                    ?? throw new DeployException($"L'identifiant {deployment.RunAs} a été supprimé depuis le lancement.");
+                    ?? throw new DeployException(Msg.Format("DeploymentEngine_CredentialDeleted", deployment.RunAs));
 
             // Offline: retry later if the package allows it (the slot is released during the wait).
             var offline = deployment.Snapshot.Offline ?? new OfflineSettings();
@@ -238,17 +238,17 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
                     var next = DateTime.Now.AddMinutes(Math.Max(1, offline.RetryIntervalMinutes));
                     target.Status = TargetStatus.Queued;
                     target.Error = ex.Message;
-                    target.Stage = $"Hors ligne : nouvel essai à {next:HH:mm} (essai {attempt + 1} sur {attempts})";
+                    target.Stage = Msg.Format("DeploymentEngine_OfflineRetry", next, attempt + 1, attempts);
                     deploymentRepository.UpdateTarget(target);
 
                     await Task.Delay(next - DateTime.Now, cts.Token);
-                    target.Stage = "En attente d'un créneau";
+                    target.Stage = Msg.Get("DeploymentEngine_WaitingSlot");
                     deploymentRepository.UpdateTarget(target);
                     await _slots.WaitAsync(target.Prioritized, cts.Token);
                     slotTaken = true;
                     target.Status = TargetStatus.Running;
                     target.Error = null;
-                    target.Stage = "Démarrage";
+                    target.Stage = Msg.Get("DeploymentEngine_Starting");
                     deploymentRepository.UpdateTarget(target);
                 }
             }
@@ -260,7 +260,7 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
             countForSchedule = false;
             target.Status = TargetStatus.Failed;
             _abortedBy.TryRemove(target.Id, out var by);
-            target.Error = string.IsNullOrEmpty(by) ? $"{DeploymentSummary.AbortedPrefix}." : $"{DeploymentSummary.AbortedPrefix} par {by}.";
+            target.Error = string.IsNullOrEmpty(by) ? Msg.Format("DeploymentEngine_Aborted", DeploymentSummary.AbortedPrefix) : Msg.Format("DeploymentEngine_AbortedBy", DeploymentSummary.AbortedPrefix, by);
             MarkAborted(target.Steps, DateTime.UtcNow);
         }
         catch (Exception ex)
@@ -299,9 +299,9 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
         if (await remote.ProbeAsync(target.Computer, ct) is not { } down) return;
         var cards = computerRepository.GetNetwork(target.Computer);
         if (cards.Count == 0)
-            throw new DeployException(down.Message + " Réveil impossible : adresse MAC inconnue (elle est apprise au premier déploiement réussi sur ce poste).") { Offline = true };
+            throw new DeployException(down.Message + " " + Msg.Get("DeploymentEngine_WakeNoMac")) { Offline = true };
 
-        target.Stage = "Réveil du poste (Wake-on-LAN)";
+        target.Stage = Msg.Get("DeploymentEngine_Waking");
         deploymentRepository.UpdateTarget(target);
         remote.Wake(cards);
         var deadline = DateTime.UtcNow.AddMinutes(Math.Max(1, waitMinutes));
@@ -310,7 +310,7 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
             await Task.Delay(TimeSpan.FromSeconds(10), ct);
             if (await remote.ProbeAsync(target.Computer, ct) == null) return;
         }
-        throw new DeployException($"{target.Computer} ne répond toujours pas {Math.Max(1, waitMinutes)} min après le réveil (Wake-on-LAN désactivé sur le poste, ou poste débranché ?).") { Offline = true };
+        throw new DeployException(Msg.Format("DeploymentEngine_WakeTimeout", target.Computer, Math.Max(1, waitMinutes))) { Offline = true };
     }
 
     /// <summary>
@@ -322,7 +322,7 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
         if (steps.FirstOrDefault(s => s.State == "failed") is { } failed) return (TargetStatus.Failed, ErrorMessages.ForStep(failed));
         if (steps.Count == 0) return (TargetStatus.Failed, null);
         if (steps.FirstOrDefault(s => s.State == "stopped") is { } stopped)
-            return (TargetStatus.Successful, "Arrêt en succès demandé en cas d'erreur. " + ErrorMessages.ForStep(stopped));
+            return (TargetStatus.Successful, Msg.Get("DeploymentEngine_StoppedAsSuccess") + " " + ErrorMessages.ForStep(stopped));
         var skipped = steps.Where(s => s.State == "skipped").ToList();
         if (skipped.Count == 0) return (TargetStatus.Successful, null);
         // Everything skipped (package conditions not met...): the reason is enough.
@@ -330,8 +330,8 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
         var first = skipped[0];
         var reason = string.IsNullOrEmpty(first.Error) ? "" : $" ({first.Error})";
         return (TargetStatus.Successful, skipped.Count == 1
-            ? $"1 étape ignorée : « {first.Name} »{reason}"
-            : $"{skipped.Count} étapes ignorées, dont « {first.Name} »{reason}");
+            ? Msg.Format("DeploymentEngine_OneSkipped", first.Name, reason)
+            : Msg.Format("DeploymentEngine_ManySkipped", skipped.Count, first.Name, reason));
     }
 
     /// <summary>Cancellation: the interrupted step (still "running") becomes failed "Annulé.", with an end date.</summary>
@@ -340,7 +340,7 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
         foreach (var step in steps.Where(s => s.State == "running"))
         {
             step.State = "failed";
-            step.Error ??= "Annulé.";
+            step.Error ??= Msg.Format("DeploymentEngine_Aborted", DeploymentSummary.AbortedPrefix);
             step.EndedUtc ??= nowUtc;
         }
     }

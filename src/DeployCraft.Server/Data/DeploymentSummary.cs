@@ -3,11 +3,16 @@ namespace DeployCraft.Server.Data;
 /// <summary>Displayed statuses and counters of a deployment, from the state of its computers.</summary>
 public static class DeploymentSummary
 {
-    /// <summary>Start of the error of a cancelled computer ("Annulé." or "Annulé par ...").</summary>
-    public const string AbortedPrefix = "Annulé";
+    /// <summary>Start of the error of a cancelled computer, in the current language ("Annulé." or "Annulé par ...").</summary>
+    public static string AbortedPrefix => Msg.Get("DeploymentSummary_Aborted");
+
+    // Errors are stored in the language in use when the deployment was cancelled: both are recognized.
+    private static readonly string[] StoredAbortedPrefixes = ["Annulé", "Cancelled"];
 
     public static bool IsAborted(DeploymentTarget target) =>
-        target.Status == TargetStatus.Failed && target.Error?.StartsWith(AbortedPrefix, StringComparison.Ordinal) == true;
+        target.Status == TargetStatus.Failed && target.Error is { } error
+        && (error.StartsWith(AbortedPrefix, StringComparison.Ordinal)
+            || StoredAbortedPrefixes.Any(prefix => error.StartsWith(prefix, StringComparison.Ordinal)));
 
     /// <summary>Status of a computer: the service's, or "Aborted" for a cancelled computer.</summary>
     public static string TargetStatusOf(DeploymentTarget target) => IsAborted(target) ? "Aborted" : target.Status.ToString();

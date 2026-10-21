@@ -16,10 +16,10 @@ internal static class SettingsEndpoints
             defaults.Offline ??= new();
             defaults.History ??= new();
             defaults.Performance ??= new();
-            if (defaults.TimeoutMinutes < 1) return Results.BadRequest(new { error = "Le délai max doit être d'au moins 1 minute." });
-            if (PackageValidation.ValidateOffline(defaults.Offline) is { } error) return Results.BadRequest(new { error = $"Hors ligne : {error}" });
-            if (HistorySettings.Validate(defaults.History.KeepDays) is { } historyError) return Results.BadRequest(new { error = $"Historique : {historyError}" });
-            if (PerformanceSettings.Validate(defaults.Performance) is { } performanceError) return Results.BadRequest(new { error = $"Performance : {performanceError}" });
+            if (defaults.TimeoutMinutes < 1) return Results.BadRequest(new { error = Msg.Get("SettingsEndpoints_TimeoutMin") });
+            if (PackageValidation.ValidateOffline(defaults.Offline) is { } error) return Results.BadRequest(new { error = Msg.Format("SettingsEndpoints_Offline", error) });
+            if (HistorySettings.Validate(defaults.History.KeepDays) is { } historyError) return Results.BadRequest(new { error = Msg.Format("SettingsEndpoints_History", historyError) });
+            if (PerformanceSettings.Validate(defaults.Performance) is { } performanceError) return Results.BadRequest(new { error = Msg.Format("SettingsEndpoints_Performance", performanceError) });
             settingsRepository.SaveDefaults(defaults);
             engine.ApplyPerformance(defaults.Performance);
             return Results.Ok(defaults);

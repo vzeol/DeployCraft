@@ -28,7 +28,7 @@ namespace DeployCraft.Runner
                     log = reader.ReadToEnd();
                 File.Delete(path);
                 if (log.Length > maxChars) log = "[…]" + log.Substring(log.Length - maxChars);
-                var header = "--- Journal de l'installation (" + FileName + ") ---" + Environment.NewLine;
+                var header = RunnerTexts.Format("InstallLog_Header", FileName) + Environment.NewLine;
                 return string.IsNullOrWhiteSpace(output) ? header + log : output + Environment.NewLine + header + log;
             }
             catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
@@ -40,41 +40,41 @@ namespace DeployCraft.Runner
         /// <summary>Codes of a Windows update (.msu) that mean something else than for Windows Installer.</summary>
         private static readonly Dictionary<int, string> UpdateMessages = new Dictionary<int, string>
         {
-            [1] = "Cette mise à jour ne concerne pas ce poste (déjà intégrée ou version de Windows différente).",
-            [unchecked((int)0x80240017)] = "Cette mise à jour ne concerne pas ce poste (déjà intégrée ou version de Windows différente).",
-            [5] = "Accès refusé pendant l'installation de la mise à jour.",
-            [1630] = "Fichier de mise à jour non reconnu (fichier endommagé, ou pas une mise à jour Windows).",
+            [1] = "InstallLog_UpdateNotApplicable",
+            [unchecked((int)0x80240017)] = "InstallLog_UpdateNotApplicable",
+            [5] = "InstallLog_UpdateAccessDenied",
+            [1630] = "InstallLog_UpdateBadFile",
         };
 
-        /// <summary>Common Windows Installer codes, explained in our words; the others take the Windows text.</summary>
+        /// <summary>Common Windows Installer codes, explained in our words (keys of <see cref="RunnerTexts"/>); the others take the Windows text.</summary>
         private static readonly Dictionary<int, string> InstallerMessages = new Dictionary<int, string>
         {
-            [1601] = "Le service Windows Installer ne répond pas sur ce poste.",
-            [1602] = "Installation annulée.",
-            [1603] = "Erreur grave pendant l'installation : voir le journal ci-dessous.",
-            [1605] = "Ce produit n'est pas installé sur ce poste.",
-            [1614] = "Ce produit n'est pas installé sur ce poste.",
-            [1618] = "Une autre installation est déjà en cours sur ce poste : réessayez plus tard.",
-            [1619] = "Fichier d'installation introuvable ou illisible.",
-            [1620] = "Fichier d'installation invalide ou endommagé.",
-            [1622] = "Impossible d'écrire le journal de l'installation.",
-            [1624] = "Fichier de transformation (.mst) introuvable ou invalide.",
-            [1632] = "Dossier temporaire plein ou inaccessible.",
-            [1633] = "Ce fichier ne convient pas à ce processeur (32 / 64 bits).",
-            [1638] = "Une autre version de ce produit est déjà installée.",
-            [1639] = "Paramètre de ligne de commande invalide.",
-            [1642] = "Le correctif ne s'applique pas : le produit à corriger n'est pas installé (ou pas dans cette version).",
-            [1704] = "Une installation précédente de ce produit est restée inachevée.",
-            [17031] = "Un prérequis de cette installation manque sur ce poste.",
+            [1601] = "InstallLog_Msi1601",
+            [1602] = "InstallLog_Msi1602",
+            [1603] = "InstallLog_Msi1603",
+            [1605] = "InstallLog_Msi1605",
+            [1614] = "InstallLog_Msi1605",
+            [1618] = "InstallLog_Msi1618",
+            [1619] = "InstallLog_Msi1619",
+            [1620] = "InstallLog_Msi1620",
+            [1622] = "InstallLog_Msi1622",
+            [1624] = "InstallLog_Msi1624",
+            [1632] = "InstallLog_Msi1632",
+            [1633] = "InstallLog_Msi1633",
+            [1638] = "InstallLog_Msi1638",
+            [1639] = "InstallLog_Msi1639",
+            [1642] = "InstallLog_Msi1642",
+            [1704] = "InstallLog_Msi1704",
+            [17031] = "InstallLog_Msi17031",
         };
 
         /// <summary>Explanation of a Windows Installer exit code (.msi, .msp, .msu); null for other files or codes.</summary>
         public static string ErrorMessage(string file, int code)
         {
             var ext = Path.GetExtension(file ?? "").ToLowerInvariant();
-            if (ext == ".msu" && UpdateMessages.TryGetValue(code, out var update)) return update;
+            if (ext == ".msu" && UpdateMessages.TryGetValue(code, out var update)) return RunnerTexts.Get(update);
             if (ext != ".msi" && ext != ".msp" && ext != ".msu") return null;
-            return InstallerMessages.TryGetValue(code, out var message) ? message : WindowsMessage(code);
+            return InstallerMessages.TryGetValue(code, out var message) ? RunnerTexts.Get(message) : WindowsMessage(code);
         }
 
         /// <summary>Text that Windows associates with this code (Windows Installer codes are part of it), or null if it has none.</summary>

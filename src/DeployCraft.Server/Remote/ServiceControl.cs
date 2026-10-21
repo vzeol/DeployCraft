@@ -11,7 +11,7 @@ internal sealed class ServiceControl : IDisposable
     public ServiceControl(string? machine)
     {
         _scm = OpenSCManager(machine == null ? null : @"\\" + machine, null, SC_MANAGER_ALL_ACCESS);
-        if (_scm == IntPtr.Zero) throw LastError("Ouverture du gestionnaire de services");
+        if (_scm == IntPtr.Zero) throw LastError(Msg.Get("ServiceControl_OpenManager"));
     }
 
     /// <param name="account">null = local System; otherwise DOMAIN\user (or .\user) with its password.</param>
@@ -24,21 +24,19 @@ internal sealed class ServiceControl : IDisposable
             SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL, $"\"{binaryPath}\"", null, IntPtr.Zero, null, account, password);
         if (service == IntPtr.Zero)
         {
-            var error = LastError("Création du service");
+            var error = LastError(Msg.Get("ServiceControl_Create"));
             if (error.NativeErrorCode == ERROR_INVALID_SERVICE_ACCOUNT)
-                throw new DeployException($"Le poste refuse le compte de déploiement « {account} » pour le service temporaire (compte inconnu ?).", error);
+                throw new DeployException(Msg.Format("ServiceControl_AccountRefused", account), error);
             throw error;
         }
         try
         {
             if (!StartService(service, 0, IntPtr.Zero))
             {
-                var error = LastError("Démarrage du service");
+                var error = LastError(Msg.Get("ServiceControl_Start"));
                 if (error.NativeErrorCode == ERROR_SERVICE_LOGON_FAILED)
                     throw new DeployException(
-                        $"Le service temporaire n'a pas pu ouvrir de session avec le compte « {account} » sur ce poste " +
-                        "(mot de passe modifié depuis l'enregistrement, ou droit « Ouvrir une session en tant que service » " +
-                        "retiré par une stratégie de groupe). Essayez « Exécuter en tant que : Système local ».", error);
+                        Msg.Format("ServiceControl_LogonFailed", account), error);
                 throw error;
             }
         }
@@ -54,13 +52,13 @@ internal sealed class ServiceControl : IDisposable
         if (service == IntPtr.Zero)
         {
             // Only "service not found" means stopped; any other error (computer not answering) bubbles up.
-            var error = LastError("Lecture de l'état du service");
+            var error = LastError(Msg.Get("ServiceControl_ReadState"));
             if (error.NativeErrorCode == ERROR_SERVICE_DOES_NOT_EXIST) return false;
             throw error;
         }
         try
         {
-            if (!QueryServiceStatus(service, out var status)) throw LastError("Lecture de l'état du service");
+            if (!QueryServiceStatus(service, out var status)) throw LastError(Msg.Get("ServiceControl_ReadState"));
             return status.dwCurrentState != SERVICE_STOPPED;
         }
         finally
@@ -82,7 +80,7 @@ internal sealed class ServiceControl : IDisposable
                 Thread.Sleep(250);
             if (!DeleteService(service))
             {
-                var error = LastError("Suppression du service");
+                var error = LastError(Msg.Get("ServiceControl_Delete"));
                 if (error.NativeErrorCode != ERROR_SERVICE_MARKED_FOR_DELETE) throw error;
             }
         }

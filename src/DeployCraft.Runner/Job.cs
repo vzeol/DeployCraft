@@ -19,6 +19,8 @@ namespace DeployCraft.Runner
         [DataMember(Name = "steps")] public List<JobStep> Steps { get; set; } = new List<JobStep>();
         /// <summary>Number (in the package) of the job's first step, for messages (0 = 1).</summary>
         [DataMember(Name = "firstNumber")] public int FirstNumber { get; set; }
+        /// <summary>Language of the messages ("fr" or "en"; missing = French).</summary>
+        [DataMember(Name = "language")] public string Language { get; set; }
     }
 
     [DataContract]

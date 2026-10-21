@@ -77,6 +77,6 @@ internal static partial class Win32
     public static Win32Exception LastError(string action)
     {
         var code = Marshal.GetLastPInvokeError();
-        return new Win32Exception(code, $"{action} : {new Win32Exception(code).Message} (code {code})");
+        return new Win32Exception(code, Msg.Format("Win32_Error", action, new Win32Exception(code).Message, code));
     }
 }

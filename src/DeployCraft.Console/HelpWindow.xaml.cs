@@ -15,11 +15,14 @@ public partial class HelpWindow : Window
     private HelpWindow()
     {
         InitializeComponent();
-        var resource = Application.GetResourceStream(new Uri("Help/aide.txt", UriKind.Relative));
+        var resource = Application.GetResourceStream(new Uri(HelpFile, UriKind.Relative));
         using (var reader = new StreamReader(resource.Stream)) _topics = HelpContent.Parse(reader.ReadToEnd());
         Topics.ItemsSource = _topics;
         Closed += (_, _) => _open = null;
     }
+
+    /// <summary>Help in the console language: Help/aide.txt (French) or Help/aide.en.txt (English).</summary>
+    private static string HelpFile => UiLanguage.Current == UiLanguage.English ? "Help/aide.en.txt" : "Help/aide.txt";
 
     /// <summary>Opens the help (one window at a time) on the topic <paramref name="topicId"/>, or the first one.</summary>
     public static void Show(Window owner, string? topicId = null)
