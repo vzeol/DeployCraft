@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace DeployCraft.Tests;
 
 /// <summary>The deployment engine run end to end against an in-memory remote: no network, no real computer.</summary>
-public sealed class DeploymentEngineTests : IAsyncLifetime
+public sealed class DeploymentEngineTests : IAsyncLifetime, IDisposable
 {
     private readonly string _dir = Directory.CreateTempSubdirectory("dc-tests-").FullName;
     private readonly Store _store;
@@ -40,6 +40,12 @@ public sealed class DeploymentEngineTests : IAsyncLifetime
         await _engine.StopAsync(CancellationToken.None);
         Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
         Directory.Delete(_dir, recursive: true);
+    }
+
+    public void Dispose()
+    {
+        _engine.Dispose();
+        _stop.Dispose();
     }
 
     private Package SavedPackage() => _store.Packages.Save(new Package

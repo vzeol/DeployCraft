@@ -1,5 +1,6 @@
 #nullable disable
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -36,43 +37,44 @@ namespace DeployCraft.Runner
             }
         }
 
+        /// <summary>Codes of a Windows update (.msu) that mean something else than for Windows Installer.</summary>
+        private static readonly Dictionary<int, string> UpdateMessages = new Dictionary<int, string>
+        {
+            [1] = "Cette mise à jour ne concerne pas ce poste (déjà intégrée ou version de Windows différente).",
+            [unchecked((int)0x80240017)] = "Cette mise à jour ne concerne pas ce poste (déjà intégrée ou version de Windows différente).",
+            [5] = "Accès refusé pendant l'installation de la mise à jour.",
+            [1630] = "Fichier de mise à jour non reconnu (fichier endommagé, ou pas une mise à jour Windows).",
+        };
+
+        /// <summary>Common Windows Installer codes, explained in our words; the others take the Windows text.</summary>
+        private static readonly Dictionary<int, string> InstallerMessages = new Dictionary<int, string>
+        {
+            [1601] = "Le service Windows Installer ne répond pas sur ce poste.",
+            [1602] = "Installation annulée.",
+            [1603] = "Erreur grave pendant l'installation : voir le journal ci-dessous.",
+            [1605] = "Ce produit n'est pas installé sur ce poste.",
+            [1614] = "Ce produit n'est pas installé sur ce poste.",
+            [1618] = "Une autre installation est déjà en cours sur ce poste : réessayez plus tard.",
+            [1619] = "Fichier d'installation introuvable ou illisible.",
+            [1620] = "Fichier d'installation invalide ou endommagé.",
+            [1622] = "Impossible d'écrire le journal de l'installation.",
+            [1624] = "Fichier de transformation (.mst) introuvable ou invalide.",
+            [1632] = "Dossier temporaire plein ou inaccessible.",
+            [1633] = "Ce fichier ne convient pas à ce processeur (32 / 64 bits).",
+            [1638] = "Une autre version de ce produit est déjà installée.",
+            [1639] = "Paramètre de ligne de commande invalide.",
+            [1642] = "Le correctif ne s'applique pas : le produit à corriger n'est pas installé (ou pas dans cette version).",
+            [1704] = "Une installation précédente de ce produit est restée inachevée.",
+            [17031] = "Un prérequis de cette installation manque sur ce poste.",
+        };
+
         /// <summary>Explication d'un code de sortie de Windows Installer (.msi, .msp, .msu) ; null pour les autres fichiers ou codes.</summary>
         public static string ErrorMessage(string file, int code)
         {
             var ext = Path.GetExtension(file ?? "").ToLowerInvariant();
-            if (ext == ".msu")
-            {
-                switch (code)
-                {
-                    case 1:
-                    case unchecked((int)0x80240017):
-                        return "Cette mise à jour ne concerne pas ce poste (déjà intégrée ou version de Windows différente).";
-                    case 5: return "Accès refusé pendant l'installation de la mise à jour.";
-                    case 1630: return "Fichier de mise à jour non reconnu (fichier endommagé, ou pas une mise à jour Windows).";
-                }
-            }
+            if (ext == ".msu" && UpdateMessages.TryGetValue(code, out var update)) return update;
             if (ext != ".msi" && ext != ".msp" && ext != ".msu") return null;
-            switch (code)
-            {
-                case 1601: return "Le service Windows Installer ne répond pas sur ce poste.";
-                case 1602: return "Installation annulée.";
-                case 1603: return "Erreur grave pendant l'installation : voir le journal ci-dessous.";
-                case 1605:
-                case 1614: return "Ce produit n'est pas installé sur ce poste.";
-                case 1618: return "Une autre installation est déjà en cours sur ce poste : réessayez plus tard.";
-                case 1619: return "Fichier d'installation introuvable ou illisible.";
-                case 1620: return "Fichier d'installation invalide ou endommagé.";
-                case 1622: return "Impossible d'écrire le journal de l'installation.";
-                case 1624: return "Fichier de transformation (.mst) introuvable ou invalide.";
-                case 1632: return "Dossier temporaire plein ou inaccessible.";
-                case 1633: return "Ce fichier ne convient pas à ce processeur (32 / 64 bits).";
-                case 1638: return "Une autre version de ce produit est déjà installée.";
-                case 1639: return "Paramètre de ligne de commande invalide.";
-                case 1642: return "Le correctif ne s'applique pas : le produit à corriger n'est pas installé (ou pas dans cette version).";
-                case 1704: return "Une installation précédente de ce produit est restée inachevée.";
-                case 17031: return "Un prérequis de cette installation manque sur ce poste.";
-                default: return WindowsMessage(code);
-            }
+            return InstallerMessages.TryGetValue(code, out var message) ? message : WindowsMessage(code);
         }
 
         /// <summary>Texte que Windows associe à ce code (les codes de Windows Installer en font partie), ou null s'il n'en a pas.</summary>

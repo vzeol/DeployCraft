@@ -150,7 +150,7 @@ public class ServiceAccount(ILogger<ServiceAccount> log)
         finally
         {
             Marshal.FreeHGlobal(buffer);
-            Win32.LsaClose(policy);
+            _ = Win32.LsaClose(policy); // closing a handle: nothing to do if it fails
         }
     }
 }

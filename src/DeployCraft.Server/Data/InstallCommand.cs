@@ -1,5 +1,3 @@
-using System.IO;
-
 namespace DeployCraft.Server.Data;
 
 /// <summary>
@@ -24,7 +22,7 @@ public static class InstallCommand
     /// <summary>Ligne générée d'après le type de fichier, les options Windows Installer et les paramètres.</summary>
     public static string Generate(PackageStep step)
     {
-        var name = Path.GetFileName(step.File ?? "");
+        var name = System.IO.Path.GetFileName(step.File ?? "");
         if (name.Length == 0) return ""; // pas encore de fichier choisi
         var file = $"\"{name}\"";
         var args = step.Arguments?.Trim() ?? "";
@@ -55,7 +53,7 @@ public static class InstallCommand
         };
     }
 
-    private static string Extension(string? file) => Path.GetExtension(file ?? "").ToLowerInvariant();
+    private static string Extension(string? file) => System.IO.Path.GetExtension(file ?? "").ToLowerInvariant();
 
     private static string Join(params string[] parts) => string.Join(" ", parts.Where(p => p.Length > 0));
 }

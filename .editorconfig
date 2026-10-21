@@ -25,3 +25,18 @@ csharp_style_var_elsewhere = true:suggestion
 csharp_prefer_braces = when_multiline:suggestion
 csharp_new_line_before_open_brace = all
 dotnet_sort_system_directives_first = true
+
+# Code quality checked by every build (CI builds with -warnaserror, so a finding blocks the PR).
+# Unused usings.
+dotnet_diagnostic.IDE0005.severity = warning
+# Method too complex (cyclomatic complexity above 25): split it.
+dotnet_diagnostic.CA1502.severity = warning
+# A type that owns disposable fields must be disposable.
+dotnet_diagnostic.CA1001.severity = warning
+# Result of a call ignored (HRESULT, new object…): use it or discard it explicitly with `_ =`.
+dotnet_diagnostic.CA1806.severity = warning
+
+[src/DeployCraft.Runner/**.cs]
+# The runner files are also compiled into the test project, which has implicit usings: their usings would look
+# unused there, while the runner itself (.NET Framework) needs them.
+dotnet_diagnostic.IDE0005.severity = none

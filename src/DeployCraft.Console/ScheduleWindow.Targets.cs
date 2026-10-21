@@ -1,7 +1,6 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
-using DeployCraft.Server.Data;
 using Microsoft.Win32;
 
 namespace DeployCraft.Console;

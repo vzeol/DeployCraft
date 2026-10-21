@@ -477,11 +477,6 @@ public class Credential
     public string Display => Account + (string.IsNullOrWhiteSpace(Description) ? "" : $" — {Description}");
 }
 
-/// <summary>
-/// Planification : des paquets (dans l'ordre) déployés sur des postes à chaque déclenchement.
-/// Avec <see cref="StopOnSuccess"/>, un poste qui a réussi un paquet ne le reçoit plus :
-/// un déclencheur à intervalle réessaie ainsi les postes jusqu'à ce que tous aient réussi.
-/// </summary>
 /// <summary>Dossier de l'arbre des paquets ; peut contenir des paquets et d'autres dossiers.</summary>
 public class PackageFolder
 {
@@ -534,6 +529,11 @@ public class PackageFolder
             : null;
 }
 
+/// <summary>
+/// Planification : des paquets (dans l'ordre) déployés sur des postes à chaque déclenchement.
+/// Avec <see cref="StopOnSuccess"/>, un poste qui a réussi un paquet ne le reçoit plus :
+/// un déclencheur à intervalle réessaie ainsi les postes jusqu'à ce que tous aient réussi.
+/// </summary>
 public class Schedule
 {
     public long Id { get; set; }

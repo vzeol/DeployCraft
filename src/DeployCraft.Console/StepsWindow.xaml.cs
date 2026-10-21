@@ -7,9 +7,6 @@ using DeployCraft.Server.Data;
 
 namespace DeployCraft.Console;
 
-public record StepDetailRow(int Number, string Name, string Status, string ReturnCode, string Duration, string Runs, string Note,
-    string CommandLine, StepOutcome? Outcome);
-
 /// <summary>Détail des étapes exécutées sur un poste : statut, code retour, durée, sortie.</summary>
 public partial class StepsWindow : Window
 {
@@ -27,25 +24,7 @@ public partial class StepsWindow : Window
         Heading.Text = $"{target.Computer} · {Ui.StatusText(target.Status.ToString())}";
         SubHeading.Text = $"{deployment.PackageName} · déploiement {deployment.Id} · {Ui.LocalTime(target.StartedUtc)}";
 
-        // Toutes les étapes du paquet, exécutées ou non, pour voir où le déploiement s'est arrêté.
-        // Les étapes avant l'étape de départ n'ont pas été exécutées (« redéployer depuis l'étape en échec »).
-        var offset = target.StartStep - 1;
-        var rows = deployment.Snapshot.Steps.Select((step, i) =>
-        {
-            var j = i - offset;
-            var outcome = j >= 0 && j < target.Steps.Count ? target.Steps[j] : null;
-            return new StepDetailRow(
-                i + 1,
-                outcome?.Name ?? (string.IsNullOrWhiteSpace(step.Name) ? StepSummary.TypeText(step.Type) : step.Name),
-                outcome?.State ?? (j < 0 || target.Status == TargetStatus.Failed ? "skipped" : "Queued"),
-                outcome?.ExitCode?.ToString() ?? "",
-                outcome?.State == "skipped" ? "" : Ui.Duration(outcome?.StartedUtc, outcome?.EndedUtc),
-                // Déploiements antérieurs au compteur : une étape passée compte pour une exécution.
-                outcome == null ? "" : Math.Max(outcome.Runs, outcome.Ran ? 1 : 0).ToString(),
-                outcome?.Note ?? "",
-                outcome?.CommandLine ?? outcome?.Error ?? "",
-                outcome);
-        }).ToList();
+        var rows = StepDetailRow.For(deployment, target);
 
         Grid.ItemsSource = rows;
         Grid.SelectedItem = rows.FirstOrDefault(r => r.Status == "failed") ?? rows.LastOrDefault(r => r.Outcome != null) ?? rows.FirstOrDefault();

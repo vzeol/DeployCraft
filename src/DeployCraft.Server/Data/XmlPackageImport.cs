@@ -131,49 +131,14 @@ public static partial class XmlPackageImport
         {
             Name = title,
             Enabled = !e.Elements("IsEnabled").Any() || Bool(e, "IsEnabled"),
-            ErrorMode = Text(e, "ErrorMode") switch
-            {
-                "Continue" => ErrorMode.Continue,
-                "StopDeploymentSuccess" => ErrorMode.StopSuccess,
-                _ => ErrorMode.Stop,
-            },
+            ErrorMode = ErrorModeOf(Text(e, "ErrorMode")),
             RunAs = RunAs(Text(e, "RunAs"), line.Warn, "Étape"),
         };
 
         switch (type)
         {
             case "Install":
-                step.Type = StepType.Install;
-                step.File = Text(e, "FileName").Trim();
-                step.Arguments = NullIfEmpty(Text(e, "Parameters"));
-                step.IncludeDirectory = Bool(e, "IncludeDirectory");
-                step.SuccessCodes = SuccessCodes(e);
-                step.CustomCommandLine = NullIfEmpty(Text(e, "CustomCommandLine").Trim());
-                step.KeepInstallFile = Bool(e, "LeaveInstallFile");
-                if (InstallCommand.HasMsiOptions(step.File))
-                {
-                    var extension = Path.GetExtension(step.File).ToLowerInvariant();
-                    step.MsiQuiet = !e.Elements("MsiQuiet").Any() || Bool(e, "MsiQuiet");
-                    if (Text(e, "MsiOperation").Trim() is { Length: > 0 } operation)
-                    {
-                        if (!Enum.TryParse<MsiOperation>(operation, true, out var op))
-                            line.Warn($"Opération MSI inconnue ({operation}) : installation.");
-                        else if (extension == ".msp" && op != MsiOperation.Install)
-                            line.Warn("Opération MSI ignorée : un correctif .msp s'installe toujours.");
-                        else if (extension == ".msu" && op == MsiOperation.Repair)
-                            line.Warn("Réparation impossible pour une mise à jour .msu : installation.");
-                        else
-                            step.MsiOperation = op;
-                    }
-                    if (Text(e, "MsiRestart").Trim() is { Length: > 0 } restart)
-                    {
-                        if (Enum.TryParse<MsiRestart>(restart, true, out var r))
-                            step.MsiRestart = r;
-                        else
-                            line.Warn($"Redémarrage MSI inconnu ({restart}) : jamais.");
-                    }
-                }
-                step.AdditionalFiles = AdditionalFiles(e);
+                ReadInstall(e, step, line);
                 break;
 
             case "Command":
@@ -193,22 +158,7 @@ public static partial class XmlPackageImport
                 break;
 
             case "FileCopy":
-                step.Type = StepType.CopyFiles;
-                step.CopySource = Text(e, "Source").Trim();
-                step.CopyDestination = Text(e, "Target").Trim();
-                step.CopyOverwrite = Bool(e, "AllowOverwrite");
-                step.CopyIgnoreErrors = Bool(e, "IgnoreOverwriteErrors");
-                if (Text(e, "Mode") == "Folder")
-                {
-                    step.CopySubfolders = Bool(e, "IncludeSubFolders");
-                    var patterns = Text(e, "FilePatternsText").Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                    step.CopyPatterns = Bool(e, "CopyAllFiles") || patterns.Length == 0 ? "*" : string.Join(";", patterns);
-                }
-                else
-                {
-                    step.CopySubfolders = false;
-                    step.CopyPatterns = "*";
-                }
+                ReadFileCopy(e, step);
                 break;
 
             case "Sleep":
@@ -232,18 +182,7 @@ public static partial class XmlPackageImport
                 break;
 
             case "Reboot":
-                step.Type = StepType.Reboot;
-                step.RebootShutdownOnly = Bool(e, "ShutdownOnly");
-                var delay = Int(e, "Timeout") ?? 60;
-                step.RebootDelaySeconds = Math.Clamp(delay, 30, 3600);
-                if (step.RebootDelaySeconds != delay) line.Warn($"Délai avant le redémarrage ramené à {step.RebootDelaySeconds} s (de 30 secondes à 1 heure).");
-                var message = Text(e, "Message").Trim();
-                if (message.Length > 500)
-                {
-                    message = message[..500];
-                    line.Warn("Message raccourci à 500 caractères.");
-                }
-                step.RebootMessage = NullIfEmpty(message);
+                ReadReboot(e, step, line);
                 break;
             case "Message":
                 line.Skip("Étape « Message » : pas encore disponible dans DeployCraft.");
@@ -270,6 +209,85 @@ public static partial class XmlPackageImport
     }
 
     /// <summary>Fichiers additionnels, un chemin par ligne (aucun = null).</summary>
+
+    private static ErrorMode ErrorModeOf(string text) => text switch
+    {
+        "Continue" => ErrorMode.Continue,
+        "StopDeploymentSuccess" => ErrorMode.StopSuccess,
+        _ => ErrorMode.Stop,
+    };
+
+    private static void ReadReboot(XElement e, PackageStep step, ImportStepResult line)
+    {
+        step.Type = StepType.Reboot;
+        step.RebootShutdownOnly = Bool(e, "ShutdownOnly");
+        var delay = Int(e, "Timeout") ?? 60;
+        step.RebootDelaySeconds = Math.Clamp(delay, 30, 3600);
+        if (step.RebootDelaySeconds != delay) line.Warn($"Délai avant le redémarrage ramené à {step.RebootDelaySeconds} s (de 30 secondes à 1 heure).");
+        var message = Text(e, "Message").Trim();
+        if (message.Length > 500)
+        {
+            message = message[..500];
+            line.Warn("Message raccourci à 500 caractères.");
+        }
+        step.RebootMessage = NullIfEmpty(message);
+    }
+
+    private static void ReadInstall(XElement e, PackageStep step, ImportStepResult line)
+    {
+        step.Type = StepType.Install;
+        step.File = Text(e, "FileName").Trim();
+        step.Arguments = NullIfEmpty(Text(e, "Parameters"));
+        step.IncludeDirectory = Bool(e, "IncludeDirectory");
+        step.SuccessCodes = SuccessCodes(e);
+        step.CustomCommandLine = NullIfEmpty(Text(e, "CustomCommandLine").Trim());
+        step.KeepInstallFile = Bool(e, "LeaveInstallFile");
+        if (InstallCommand.HasMsiOptions(step.File))
+        {
+            var extension = Path.GetExtension(step.File).ToLowerInvariant();
+            step.MsiQuiet = !e.Elements("MsiQuiet").Any() || Bool(e, "MsiQuiet");
+            if (Text(e, "MsiOperation").Trim() is { Length: > 0 } operation)
+            {
+                if (!Enum.TryParse<MsiOperation>(operation, true, out var op))
+                    line.Warn($"Opération MSI inconnue ({operation}) : installation.");
+                else if (extension == ".msp" && op != MsiOperation.Install)
+                    line.Warn("Opération MSI ignorée : un correctif .msp s'installe toujours.");
+                else if (extension == ".msu" && op == MsiOperation.Repair)
+                    line.Warn("Réparation impossible pour une mise à jour .msu : installation.");
+                else
+                    step.MsiOperation = op;
+            }
+            if (Text(e, "MsiRestart").Trim() is { Length: > 0 } restart)
+            {
+                if (Enum.TryParse<MsiRestart>(restart, true, out var r))
+                    step.MsiRestart = r;
+                else
+                    line.Warn($"Redémarrage MSI inconnu ({restart}) : jamais.");
+            }
+        }
+        step.AdditionalFiles = AdditionalFiles(e);
+    }
+
+    private static void ReadFileCopy(XElement e, PackageStep step)
+    {
+        step.Type = StepType.CopyFiles;
+        step.CopySource = Text(e, "Source").Trim();
+        step.CopyDestination = Text(e, "Target").Trim();
+        step.CopyOverwrite = Bool(e, "AllowOverwrite");
+        step.CopyIgnoreErrors = Bool(e, "IgnoreOverwriteErrors");
+        if (Text(e, "Mode") == "Folder")
+        {
+            step.CopySubfolders = Bool(e, "IncludeSubFolders");
+            var patterns = Text(e, "FilePatternsText").Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            step.CopyPatterns = Bool(e, "CopyAllFiles") || patterns.Length == 0 ? "*" : string.Join(";", patterns);
+        }
+        else
+        {
+            step.CopySubfolders = false;
+            step.CopyPatterns = "*";
+        }
+    }
+
     private static string? AdditionalFiles(XElement e) =>
         PackageStep.SplitLines(Text(e, "Files")) is { Count: > 0 } files ? string.Join("\n", files) : null;
 

@@ -46,4 +46,20 @@ public static class StepTexts
         var msi = InstallCommand.HasMsiOptions(file);
         return (msi, msi && ext != ".msp", ext != ".msu");
     }
+
+    /// <summary>Fields of the step editor shown for this step type.</summary>
+    public static StepFields Fields(StepType type) => new(
+        Install: type == StepType.Install,
+        AdditionalFiles: type is StepType.Install or StepType.Command or StepType.PowerShell,
+        Command: type is StepType.Command or StepType.PowerShell,
+        Copy: type == StepType.CopyFiles,
+        Reboot: type == StepType.Reboot,
+        Message: type == StepType.Message,
+        Nested: type == StepType.Nested,
+        Pause: type == StepType.Pause,
+        SuccessCodes: type is StepType.Install or StepType.Command or StepType.PowerShell);
 }
+
+/// <summary>Which parts of the step editor a step type uses.</summary>
+public record StepFields(bool Install, bool AdditionalFiles, bool Command, bool Copy, bool Reboot, bool Message, bool Nested, bool Pause,
+    bool SuccessCodes);
