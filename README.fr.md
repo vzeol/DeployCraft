@@ -83,7 +83,7 @@ groupes : Options › **Utilisateurs de la console…**
 
 ## Tester la version candidate
 
-La **1.0.0** est en préparation : la version candidate (`1.0.0-rc.1`) est disponible dans les
+La **1.0.0** est en préparation : la version candidate (`1.0.0-rc.2`) est disponible dans les
 [Releases](https://github.com/vzeol/DeployCraft/releases). Merci de l'essayer !
 
 - Installez-la sur un serveur ou une VM de test, et commencez par des **postes de test**.

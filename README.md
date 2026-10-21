@@ -86,7 +86,7 @@ Options › **Utilisateurs de la console…** (*Console users*).
 
 ## Try the release candidate
 
-**1.0.0** is on its way: the release candidate (`1.0.0-rc.1`) is available in the
+**1.0.0** is on its way: the release candidate (`1.0.0-rc.2`) is available in the
 [Releases](https://github.com/vzeol/DeployCraft/releases). Thank you for trying it!
 
 - Install it on a test server or VM, and start with **test computers**.
