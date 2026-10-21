@@ -18,20 +18,25 @@ starts once they have validated everything**.
 Information specific to the maintainer's environment (servers, test computers, accounts) stays in their notes
 **outside the repository**: never copy it here.
 
-## Current version: 1.0.0-rc.1, 1.0.0 postponed until the code is reorganized
+## Current version: 1.0.0-rc.2, last test before 1.0.0
 
 **The whole [`FEATURES.md`](FEATURES.md) list is covered**: 61 features done, 22 dropped by the maintainer, 6 set
 aside. Only 8.1 remains partial: LAPS is planned after v1 (issue #106).
 
-**Decision of the maintainer (20/10): 1.0.0 is postponed until the code follows the architecture rules**
-(`CLAUDE.md` § "Architecture", plan in issue #127). The freeze on `main` is lifted. Order:
-1. Merge #116 (background service, active sessions) and #117 (tree width), both already validated.
-2. Small refactoring PRs from #127, each without behavior change. Those touching the deployment path
-   (`DeploymentEngine`, `TargetSession`, `Remote/`, step classes) get a regression run on the domain test
-   environment before merging (Install / Command / File copy / Restart steps, push and pull, cancel during copy,
-   rate limit, parallel computers).
-3. Then **1.0.0-rc.2**, tested by the maintainer on their fleet, then **1.0.0**. The installed rc.1 console will
-   offer 1.0.0 at startup ("Yes" → install): first real test of updating from the console.
+**The code reorganization (#127) is finished**: the code follows the architecture rules (`CLAUDE.md` §
+"Architecture") and every build checks the code quality rules (#142). The refactoring PRs that touched the
+deployment path got a regression run on the domain test environment before merging; the whole release was run
+again there before 1.0.0-rc.2 (one package with every step type, including a restart).
+
+**Next:** the maintainer tests **1.0.0-rc.2** on their fleet. If nothing blocks, the same code is published as
+**1.0.0**; the installed console then offers 1.0.0 at startup ("Yes" → install). Not yet tested on the domain:
+pull mode end to end, Message step shown to a logged-on user.
+
+New since 1.0.0-rc.1 (PRs #116 to #142):
+- Options › Background service: service account, active sessions per computer (#116); wider package tree (#117)
+- Package editor: Ctrl+Up / Down, warnings of an enabled step (#138)
+- Deploy once: choose the start step from the right-click menu of the targets (#141)
+- Code reorganization without behavior change (#127: #130 to #140), code quality rules checked by every build (#142)
 
 New since 0.14.0 (PRs #61 to #114):
 - Complete Install step: MSI options, command line, additional files (2.20–2.22)
