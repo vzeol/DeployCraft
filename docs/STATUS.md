@@ -60,7 +60,9 @@ whole UI, the library and automatic package updates.
 - 8.1 LAPS (issue #106).
 - Import packages from an XML file (issue #14, on hold).
 - 8.9 service account: set aside, picked up only if the need arises.
-- Repository: code comments and test messages in English; English console (issue #120).
+- Repository: code comments in English (#147). English console done (#148, #150): texts in French and English,
+  Préférences › Interface › Langue; service messages follow the console during a request and the server's Windows
+  language for background work.
 
 Build: `.\build.ps1 -Version x.y.z` → `dist\DeployCraft-Setup-x.y.z.exe` (requires the .NET 10 SDK and Inno Setup 6).
 Each version is published in GitHub **Releases** with its installer (tag `vx.y.z`); a release candidate or beta is

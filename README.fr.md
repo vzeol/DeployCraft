@@ -28,6 +28,9 @@ Rien à installer à l'avance sur les postes.
 Son organisation reprend les habitudes des outils de déploiement du marché ; c'est une réalisation
 indépendante, écrite de zéro.
 
+> La console est en **français** par défaut, et aussi en **anglais** : Préférences › Interface › Langue (prise en
+> compte au prochain démarrage).
+
 ## Fonctions
 
 **Paquets**
