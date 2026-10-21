@@ -1,4 +1,4 @@
-﻿# Construit l'installeur : dist\DeployCraft-Setup-<version>.exe
+﻿# Builds the installer: dist\DeployCraft-Setup-<version>.exe
 #   .\build.ps1            (version 0.1.0)
 #   .\build.ps1 -Version 0.2.0
 param([string]$Version = "0.2.0")
