@@ -18,6 +18,7 @@ public partial class SettingsWindow : Window
     {
         InitializeComponent();
         ThemeBox.SelectedItem = ThemeBox.Items.Cast<ComboBoxItem>().First(i => (string)i.Tag == Theme.Current);
+        LanguageBox.SelectedItem = LanguageBox.Items.Cast<ComboBoxItem>().First(i => (string)i.Tag == UiLanguage.Saved());
         Loaded += async (_, _) => await LoadDefaultsAsync();
     }
 
@@ -27,6 +28,12 @@ public partial class SettingsWindow : Window
     {
         if (ThemeBox.SelectedItem is ComboBoxItem { Tag: string choice } && choice != Theme.Current)
             Theme.Set(choice);
+    }
+
+    private void Language_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (LanguageBox.SelectedItem is ComboBoxItem { Tag: string choice } && choice != UiLanguage.Saved())
+            UiLanguage.Set(choice);
     }
 
     // ---------- Deployment and Offline (server settings) ----------

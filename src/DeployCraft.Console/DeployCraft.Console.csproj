@@ -29,6 +29,12 @@
     <Compile Include="..\DeployCraft.Server\Data\PackageDetails.cs" Link="Shared\PackageDetails.cs" />
   </ItemGroup>
 
+  <!-- Console texts: Resources\Strings.resx in French (default language), Strings.en.resx in English.
+       Read through L.Get / L.Format in C# and {l:T Key} in XAML (UiLanguage.cs). -->
+  <PropertyGroup>
+    <NeutralLanguage>fr</NeutralLanguage>
+  </PropertyGroup>
+
   <!-- Built-in help (Help › Aide de DeployCraft, F1). -->
   <ItemGroup>
     <Resource Include="Help\aide.txt" />

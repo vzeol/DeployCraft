@@ -51,15 +51,27 @@
                             <ColumnDefinition Width="110" />
                             <ColumnDefinition Width="220" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Style="{StaticResource FieldLabel}" Text="Thème" />
+                        <TextBlock Style="{StaticResource FieldLabel}" Text="{local:T Settings_Theme}" />
                         <ComboBox Grid.Column="1" x:Name="ThemeBox" SelectionChanged="Theme_Changed">
-                            <ComboBoxItem Tag="Clair">Clair</ComboBoxItem>
-                            <ComboBoxItem Tag="Sombre">Sombre</ComboBoxItem>
-                            <ComboBoxItem Tag="Windows">Selon Windows</ComboBoxItem>
+                            <ComboBoxItem Tag="Clair" Content="{local:T Settings_ThemeLight}" />
+                            <ComboBoxItem Tag="Sombre" Content="{local:T Settings_ThemeDark}" />
+                            <ComboBoxItem Tag="Windows" Content="{local:T Settings_ThemeSystem}" />
                         </ComboBox>
                     </Grid>
-                    <TextBlock Style="{StaticResource Hint}" Margin="110,6,0,0"
-                               Text="S'applique tout de suite à toutes les fenêtres. « Selon Windows » suit le mode clair ou sombre choisi dans les paramètres de Windows. Réglage propre à votre session Windows." />
+                    <TextBlock Style="{StaticResource Hint}" Margin="110,6,0,0" Text="{local:T Settings_ThemeHint}" />
+                    <Grid Margin="0,16,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="110" />
+                            <ColumnDefinition Width="220" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{StaticResource FieldLabel}" Text="{local:T Settings_Language}" />
+                        <!-- Language names stay in their own language. -->
+                        <ComboBox Grid.Column="1" x:Name="LanguageBox" SelectionChanged="Language_Changed">
+                            <ComboBoxItem Tag="fr">Français</ComboBoxItem>
+                            <ComboBoxItem Tag="en">English</ComboBoxItem>
+                        </ComboBox>
+                    </Grid>
+                    <TextBlock Style="{StaticResource Hint}" Margin="110,6,0,0" Text="{local:T Settings_LanguageHint}" />
                 </StackPanel>
             </TabItem>
 
