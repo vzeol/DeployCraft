@@ -44,7 +44,7 @@
         </Style>
         <Style x:Key="FilterBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
             <Setter Property="Width" Value="220" />
-            <Setter Property="ToolTip" Value="Filtrer" />
+            <Setter Property="ToolTip" Value="{local:T DeploymentsPanel_Filter}" />
         </Style>
     </UserControl.Resources>
 
@@ -68,18 +68,18 @@
             </DockPanel>
             <DataGrid x:Name="DeploymentsGrid" SelectionChanged="DeploymentsGrid_SelectionChanged">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="N°" Binding="{Binding Id}" Width="55" />
-                    <DataGridTemplateColumn Header="Statut" CellTemplate="{StaticResource StatusCell}" Width="110" SortMemberPath="Status" />
-                    <DataGridTextColumn x:Name="PackageColumn" Header="Paquet" Binding="{Binding PackageName}" Width="*" MinWidth="120" />
-                    <DataGridTextColumn Header="Lancé le" Binding="{Binding Created}" Width="140" SortMemberPath="CreatedUtc" />
-                    <DataGridTextColumn Header="Durée" Binding="{Binding Duration}" Width="90" />
-                    <DataGridTextColumn Header="Postes" Binding="{Binding Counts.Total}" Width="75" />
-                    <DataGridTextColumn Header="Prioritaire" Binding="{Binding Prioritized}" Width="95" />
-                    <DataGridTextColumn Header="En attente" Binding="{Binding Counts.Queued}" Width="95" />
-                    <DataGridTextColumn Header="En cours" Binding="{Binding Counts.Running}" Width="85" />
-                    <DataGridTextColumn Header="Réussis" Binding="{Binding Counts.Successful}" Width="80" />
-                    <DataGridTextColumn Header="Échecs" Binding="{Binding Counts.Failed}" Width="75" />
-                    <DataGridTextColumn Header="Annulés" Binding="{Binding Counts.Aborted}" Width="80" />
+                    <DataGridTextColumn Header="{local:T DeploymentsPanel_ColNumber}" Binding="{Binding Id}" Width="55" />
+                    <DataGridTemplateColumn Header="{local:T DeploymentsPanel_Status}" CellTemplate="{StaticResource StatusCell}" Width="110" SortMemberPath="Status" />
+                    <DataGridTextColumn x:Name="PackageColumn" Header="{local:T DeploymentsPanel_Package}" Binding="{Binding PackageName}" Width="*" MinWidth="120" />
+                    <DataGridTextColumn Header="{local:T DeploymentsPanel_Launched}" Binding="{Binding Created}" Width="140" SortMemberPath="CreatedUtc" />
+                    <DataGridTextColumn Header="{local:T DeploymentsPanel_Duration}" Binding="{Binding Duration}" Width="90" />
+                    <DataGridTextColumn Header="{local:T DeploymentsPanel_Computers}" Binding="{Binding Counts.Total}" Width="75" />
+                    <DataGridTextColumn Header="{local:T DeploymentsPanel_ColPriority}" Binding="{Binding Prioritized}" Width="95" />
+                    <DataGridTextColumn Header="{local:T DeploymentsPanel_Waiting}" Binding="{Binding Counts.Queued}" Width="95" />
+                    <DataGridTextColumn Header="{local:T DeploymentsPanel_Running}" Binding="{Binding Counts.Running}" Width="85" />
+                    <DataGridTextColumn Header="{local:T DeploymentsPanel_ColSucceeded}" Binding="{Binding Counts.Successful}" Width="80" />
+                    <DataGridTextColumn Header="{local:T DeploymentsPanel_Failures}" Binding="{Binding Counts.Failed}" Width="75" />
+                    <DataGridTextColumn Header="{local:T DeploymentsPanel_ColCancelled}" Binding="{Binding Counts.Aborted}" Width="80" />
                 </DataGrid.Columns>
             </DataGrid>
         </DockPanel>
@@ -87,9 +87,9 @@
         <Border Grid.Column="2" Style="{StaticResource Card}">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <Grid>
-                    <TextBlock x:Name="NoDeployment" Text="Sélectionnez un déploiement." Foreground="{DynamicResource MutedBrush}" />
+                    <TextBlock x:Name="NoDeployment" Text="{local:T DeploymentsPanel_SelectDeployment}" Foreground="{DynamicResource MutedBrush}" />
                     <StackPanel x:Name="DeploymentDetails" Visibility="Collapsed">
-                        <TextBlock Text="DÉTAILS DU DÉPLOIEMENT" Style="{StaticResource CardSection}" Margin="0,0,0,8" />
+                        <TextBlock Text="{local:T DeploymentsPanel_DeploymentDetailsTitle}" Style="{StaticResource CardSection}" Margin="0,0,0,8" />
                         <StackPanel Orientation="Horizontal">
                             <TextBlock x:Name="DStatusIcon" FontFamily="{StaticResource IconFont}" FontSize="26" VerticalAlignment="Center" Margin="0,0,10,0" />
                             <StackPanel>
@@ -98,7 +98,7 @@
                             </StackPanel>
                         </StackPanel>
 
-                        <TextBlock Text="RÉSUMÉ" Style="{StaticResource CardSection}" />
+                        <TextBlock Text="{local:T DeploymentsPanel_Summary}" Style="{StaticResource CardSection}" />
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -107,25 +107,25 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition />
                             </Grid.RowDefinitions>
-                            <TextBlock Style="{StaticResource CardLabel}" Text="Paquet" />
+                            <TextBlock Style="{StaticResource CardLabel}" Text="{local:T DeploymentsPanel_Package}" />
                             <TextBlock Grid.Column="1" Style="{StaticResource CardValue}" x:Name="DPackage" FontWeight="SemiBold" />
-                            <TextBlock Grid.Row="1" Style="{StaticResource CardLabel}" Text="Lancé le" />
+                            <TextBlock Grid.Row="1" Style="{StaticResource CardLabel}" Text="{local:T DeploymentsPanel_Launched}" />
                             <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource CardValue}" x:Name="DCreated" />
-                            <TextBlock Grid.Row="2" Style="{StaticResource CardLabel}" Text="Durée" />
+                            <TextBlock Grid.Row="2" Style="{StaticResource CardLabel}" Text="{local:T DeploymentsPanel_Duration}" />
                             <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource CardValue}" x:Name="DDuration" />
-                            <TextBlock Grid.Row="3" Style="{StaticResource CardLabel}" Text="Lancé par" />
+                            <TextBlock Grid.Row="3" Style="{StaticResource CardLabel}" Text="{local:T DeploymentsPanel_LaunchedBy}" />
                             <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource CardValue}" x:Name="DLaunchedBy" />
-                            <TextBlock Grid.Row="4" Style="{StaticResource CardLabel}" Text="Compte" />
+                            <TextBlock Grid.Row="4" Style="{StaticResource CardLabel}" Text="{local:T DeploymentsPanel_Account}" />
                             <TextBlock Grid.Row="4" Grid.Column="1" Style="{StaticResource CardValue}" x:Name="DRunAs" />
-                            <TextBlock Grid.Row="5" Style="{StaticResource CardLabel}" Text="Postes" />
+                            <TextBlock Grid.Row="5" Style="{StaticResource CardLabel}" Text="{local:T DeploymentsPanel_Computers}" />
                             <TextBlock Grid.Row="5" Grid.Column="1" Style="{StaticResource CardValue}">
                                 <Run x:Name="DTotal" />
-                                <Hyperlink x:Name="RedeployLink" Click="RedeployAll_Click">Redéployer</Hyperlink>
+                                <Hyperlink x:Name="RedeployLink" Click="RedeployAll_Click"><Run Text="{local:T DeploymentsPanel_Redeploy}" /></Hyperlink>
                             </TextBlock>
-                            <TextBlock Grid.Row="6" Style="{StaticResource CardLabel}" Text="Échecs" />
+                            <TextBlock Grid.Row="6" Style="{StaticResource CardLabel}" Text="{local:T DeploymentsPanel_Failures}" />
                             <TextBlock Grid.Row="6" Grid.Column="1" Style="{StaticResource CardValue}">
                                 <Run x:Name="DFailed" />
-                                <Hyperlink x:Name="RetryLink" Click="RedeployFailed_Click">Relancer</Hyperlink>
+                                <Hyperlink x:Name="RetryLink" Click="RedeployFailed_Click"><Run Text="{local:T DeploymentsPanel_Retry}" /></Hyperlink>
                             </TextBlock>
                         </Grid>
                         <TextBlock x:Name="DCounts" Foreground="{DynamicResource RunBrush}" Margin="0,6,0,0" />
@@ -145,17 +145,17 @@
             </DockPanel>
             <DataGrid x:Name="TargetsGrid" SelectionMode="Extended" SelectionChanged="TargetsGrid_SelectionChanged" MouseDoubleClick="TargetsGrid_MouseDoubleClick">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Déploiement" Binding="{Binding DeploymentId}" Width="110" />
-                    <DataGridTextColumn Header="Poste" Binding="{Binding Computer}" Width="160" />
-                    <DataGridTemplateColumn Header="Statut" CellTemplate="{StaticResource StatusCell}" Width="110" SortMemberPath="Status" />
-                    <DataGridTextColumn Header="Étapes" Binding="{Binding Steps}" Width="Auto" MinWidth="90" />
+                    <DataGridTextColumn Header="{local:T DeploymentsPanel_Deployment}" Binding="{Binding DeploymentId}" Width="110" />
+                    <DataGridTextColumn Header="{local:T DeploymentsPanel_Computer}" Binding="{Binding Computer}" Width="160" />
+                    <DataGridTemplateColumn Header="{local:T DeploymentsPanel_Status}" CellTemplate="{StaticResource StatusCell}" Width="110" SortMemberPath="Status" />
+                    <DataGridTextColumn Header="{local:T DeploymentsPanel_Steps}" Binding="{Binding Steps}" Width="Auto" MinWidth="90" />
                     <DataGridTextColumn Binding="{Binding Detail}" Width="*" MinWidth="220">
                         <DataGridTextColumn.Header>
-                            <TextBlock Text="Détail" ToolTip="Erreur, remarque ou étape en cours" />
+                            <TextBlock Text="{local:T DeploymentsPanel_Detail}" ToolTip="{local:T DeploymentsPanel_DetailTip}" />
                         </DataGridTextColumn.Header>
                     </DataGridTextColumn>
-                    <DataGridTextColumn Header="Début" Binding="{Binding Started}" Width="140" />
-                    <DataGridTextColumn Header="Durée" Binding="{Binding Duration}" Width="80" />
+                    <DataGridTextColumn Header="{local:T DeploymentsPanel_Start}" Binding="{Binding Started}" Width="140" />
+                    <DataGridTextColumn Header="{local:T DeploymentsPanel_Duration}" Binding="{Binding Duration}" Width="80" />
                 </DataGrid.Columns>
             </DataGrid>
         </DockPanel>
@@ -163,9 +163,9 @@
         <Border Grid.Row="2" Grid.Column="2" Style="{StaticResource Card}">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <Grid>
-                    <TextBlock x:Name="NoTarget" Text="Sélectionnez un poste." Foreground="{DynamicResource MutedBrush}" />
+                    <TextBlock x:Name="NoTarget" Text="{local:T DeploymentsPanel_SelectComputer}" Foreground="{DynamicResource MutedBrush}" />
                     <StackPanel x:Name="TargetDetails" Visibility="Collapsed">
-                        <TextBlock Text="DÉTAILS DU POSTE" Style="{StaticResource CardSection}" Margin="0,0,0,8" />
+                        <TextBlock Text="{local:T DeploymentsPanel_ComputerDetailsTitle}" Style="{StaticResource CardSection}" Margin="0,0,0,8" />
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE977;" FontFamily="{StaticResource IconFont}" FontSize="26" Foreground="{DynamicResource Accent}"
                                        VerticalAlignment="Center" Margin="0,0,10,0" />
@@ -175,7 +175,7 @@
                             </StackPanel>
                         </StackPanel>
 
-                        <TextBlock Text="RÉSUMÉ" Style="{StaticResource CardSection}" />
+                        <TextBlock Text="{local:T DeploymentsPanel_Summary}" Style="{StaticResource CardSection}" />
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -184,26 +184,26 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition /><RowDefinition x:Name="TCurrentRow" /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition />
                             </Grid.RowDefinitions>
-                            <TextBlock Style="{StaticResource CardLabel}" Text="Étapes" />
+                            <TextBlock Style="{StaticResource CardLabel}" Text="{local:T DeploymentsPanel_Steps}" />
                             <TextBlock Grid.Column="1" Style="{StaticResource CardValue}">
                                 <Hyperlink Click="ShowSteps_Click"><Run x:Name="TSteps" /></Hyperlink>
                             </TextBlock>
-                            <TextBlock Grid.Row="1" Style="{StaticResource CardLabel}" Text="En cours" />
+                            <TextBlock Grid.Row="1" Style="{StaticResource CardLabel}" Text="{local:T DeploymentsPanel_Running}" />
                             <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource CardValue}" x:Name="TCurrent" Foreground="{DynamicResource RunBrush}" />
-                            <TextBlock Grid.Row="2" Style="{StaticResource CardLabel}" Text="Début" />
+                            <TextBlock Grid.Row="2" Style="{StaticResource CardLabel}" Text="{local:T DeploymentsPanel_Start}" />
                             <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource CardValue}" x:Name="TStarted" />
-                            <TextBlock Grid.Row="3" Style="{StaticResource CardLabel}" Text="Fin" />
+                            <TextBlock Grid.Row="3" Style="{StaticResource CardLabel}" Text="{local:T DeploymentsPanel_End}" />
                             <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource CardValue}" x:Name="TEnded" />
-                            <TextBlock Grid.Row="4" Style="{StaticResource CardLabel}" Text="Durée" />
+                            <TextBlock Grid.Row="4" Style="{StaticResource CardLabel}" Text="{local:T DeploymentsPanel_Duration}" />
                             <TextBlock Grid.Row="4" Grid.Column="1" Style="{StaticResource CardValue}" x:Name="TDuration" />
-                            <TextBlock Grid.Row="5" Style="{StaticResource CardLabel}" Text="Action" />
+                            <TextBlock Grid.Row="5" Style="{StaticResource CardLabel}" Text="{local:T DeploymentsPanel_Action}" />
                             <TextBlock Grid.Row="5" Grid.Column="1" Style="{StaticResource CardValue}">
-                                <Hyperlink Click="RedeployTarget_Click">Redéployer sur ce poste</Hyperlink>
+                                <Hyperlink Click="RedeployTarget_Click"><Run Text="{local:T DeploymentsPanel_RedeployOnComputer}" /></Hyperlink>
                             </TextBlock>
                         </Grid>
 
                         <!-- "ERREUR" in red for a failed computer; "REMARQUE" for the reason given on a successful computer. -->
-                        <TextBlock x:Name="TErrorTitle" Text="ERREUR" Style="{StaticResource CardSection}" AutomationProperties.Name="ERREUR" />
+                        <TextBlock x:Name="TErrorTitle" Text="{local:T DeploymentsPanel_ErrorTitle}" Style="{StaticResource CardSection}" AutomationProperties.Name="{local:T DeploymentsPanel_ErrorTitle}" />
                         <TextBlock x:Name="TError" TextWrapping="Wrap" Foreground="{DynamicResource KoBrush}" />
                     </StackPanel>
                 </Grid>

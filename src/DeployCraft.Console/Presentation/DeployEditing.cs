@@ -21,22 +21,22 @@ public static class DeployEditing
     }
 
     public static string RunAsHint(IReadOnlyList<RunAsMode> modes, bool hasCredentials) =>
-        modes.Count != 1 ? "Chaque paquet garde son propre réglage." : modes[0] switch
+        modes.Count != 1 ? L.Get("DeployEditing_EachPackageOwn") : modes[0] switch
         {
-            RunAsMode.DeployUser when !hasCredentials => "Aucun identifiant enregistré : le service tournera en Système local.",
-            RunAsMode.DeployUser => "Le service temporaire tourne sous l'identifiant choisi (accès réseau avec ce compte).",
-            RunAsMode.LocalSystem => "Le service temporaire tourne en Système local (accès réseau avec le compte ordinateur du poste).",
-            _ => "Chaque étape s'ouvre dans la session de l'utilisateur connecté ; échec si personne n'est connecté.",
+            RunAsMode.DeployUser when !hasCredentials => L.Get("DeployEditing_NoCredentialLocalSystem"),
+            RunAsMode.DeployUser => L.Get("DeployEditing_RunsAsCredential"),
+            RunAsMode.LocalSystem => L.Get("DeployEditing_RunsAsLocalSystem"),
+            _ => L.Get("DeployEditing_RunsInUserSession"),
         };
 
     public static string CopyModeHint(IReadOnlyList<CopyMode> modes) =>
-        modes.Count != 1 ? "Chaque paquet garde son propre réglage." : modes[0] == CopyMode.Push
-            ? "Le serveur copie les fichiers d'installation sur chaque poste."
-            : "Chaque poste copie lui-même les fichiers depuis le partage (chemins \\\\serveur\\… seulement ; sinon push).";
+        modes.Count != 1 ? L.Get("DeployEditing_EachPackageOwn") : modes[0] == CopyMode.Push
+            ? L.Get("DeployEditing_CopyPush")
+            : L.Get("DeployEditing_CopyPull");
 
     public static string CountText(int packages, int targets)
     {
-        var text = targets == 0 ? "aucune cible" : $"{targets} poste(s)";
-        return packages > 1 ? $"{packages} paquets · {text}" : char.ToUpper(text[0]) + text[1..];
+        var text = targets == 0 ? L.Get("DeployEditing_NoTarget") : L.Format("DeployEditing_ComputerCount", targets);
+        return packages > 1 ? L.Format("DeployEditing_PackagesAndTargets", packages, text) : char.ToUpper(text[0]) + text[1..];
     }
 }

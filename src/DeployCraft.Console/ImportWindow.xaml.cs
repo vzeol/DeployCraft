@@ -26,7 +26,7 @@ public partial class ImportWindow : Window
     {
         InitializeComponent();
         _content = content;
-        FileText.Text = $"Fichier : {fileName}";
+        FileText.Text = L.Format("ImportWindow_File", fileName);
         Loaded += async (_, _) => await PreviewAsync();
     }
 
@@ -74,8 +74,8 @@ public partial class ImportWindow : Window
         var withWarnings = report.Packages.Count(p => p.State == ImportState.Warning);
         var skipped = report.Packages.Count - imported;
         Summary.Text = report.Packages.Count == 0
-            ? "Aucun paquet à importer."
-            : $"{imported} paquet(s) à créer, dont {withWarnings} avec des réserves ; {skipped} non repris.";
+            ? L.Get("ImportWindow_NoPackages")
+            : L.Format("ImportWindow_Summary", imported, withWarnings, skipped);
         ImportButton.IsEnabled = imported > 0;
     }
 
@@ -92,9 +92,9 @@ public partial class ImportWindow : Window
 
     private static string StateText(ImportState state) => state switch
     {
-        ImportState.Ok => "repris tel quel",
-        ImportState.Warning => "repris avec des réserves",
-        _ => "non repris",
+        ImportState.Ok => L.Get("ImportWindow_StateOk"),
+        ImportState.Warning => L.Get("ImportWindow_StateWarning"),
+        _ => L.Get("ImportWindow_StateSkipped"),
     };
 
     private static Brush StateBrush(ImportState state) => Brush(state switch
@@ -115,7 +115,7 @@ public partial class ImportWindow : Window
         {
             Result = await Api.ImportPackages(_content, Repository.Text, apply: true);
             var created = Result.Packages.Count(p => p.NewId != null);
-            MessageDialog.Show(this, $"{created} paquet(s) importé(s).", Title, MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageDialog.Show(this, L.Format("ImportWindow_Done", created), Title, MessageBoxButton.OK, MessageBoxImage.Information);
             DialogResult = true;
         }
         catch (ApiException ex)
@@ -134,7 +134,7 @@ public partial class ImportWindow : Window
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            MessageDialog.Show(owner, $"Impossible de lire le fichier : {ex.Message}", "Importer des paquets", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageDialog.Show(owner, L.Format("ImportWindow_ReadError", ex.Message), L.Get("ImportWindow_Title"), MessageBoxButton.OK, MessageBoxImage.Warning);
             return null;
         }
     }

@@ -17,12 +17,12 @@ public record LibraryRow(LibraryItem Item)
     {
         get
         {
-            if (Item.Stage is { } stage) return $"{stage}… {Item.Progress} %";
-            if (Item.Problem != null) return $"Non disponible : {Item.Problem}";
-            if (Item.Error != null) return $"Échec : {Item.Error}";
-            if (Item.LatestVersion == null) return "Catalogue pas encore lu";
-            if (Item.PackageId == null) return "Pas encore téléchargé";
-            return Item.UpdateAvailable ? "Mise à jour disponible" : "À jour";
+            if (Item.Stage is { } stage) return L.Format("LibraryRow_Progress", stage, Item.Progress);
+            if (Item.Problem != null) return L.Format("LibraryRow_Unavailable", Item.Problem);
+            if (Item.Error != null) return L.Format("LibraryRow_Failed", Item.Error);
+            if (Item.LatestVersion == null) return L.Get("LibraryRow_CatalogNotRead");
+            if (Item.PackageId == null) return L.Get("LibraryRow_NotDownloaded");
+            return Item.UpdateAvailable ? L.Get("LibraryRow_UpdateAvailable") : L.Get("LibraryRow_UpToDate");
         }
     }
 }

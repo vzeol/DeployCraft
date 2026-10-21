@@ -9,34 +9,33 @@ public static class StepTexts
     /// <summary>Title of a step in the package tree.</summary>
     public static string Header(PackageStep step, int index) =>
         (string.IsNullOrWhiteSpace(step.Name)
-            ? $"Étape {index + 1} ({StepSummary.TypeText(step.Type)})"
-            : $"{index + 1}. {step.Name}") + (step.Enabled ? "" : " (désactivée)");
+            ? L.Format("StepTexts_HeaderUnnamed", index + 1, StepSummary.TypeText(step.Type))
+            : $"{index + 1}. {step.Name}") + (step.Enabled ? "" : L.Get("StepSummary_DisabledSuffix"));
 
     /// <summary>An .exe with no silent parameter waits for a click that will never come: we recall the usual parameters.</summary>
     public static string SilentHint(string? file) => Path.GetExtension(file ?? "").ToLowerInvariant() switch
     {
-        ".exe" => "Paramètres silencieux courants : /S (NSIS), /VERYSILENT /NORESTART (Inno Setup), /quiet /norestart, /s /v\"/qn\" (InstallShield).",
-        ".msi" or ".msp" or ".msu" => "Options de Windows Installer ci-dessous (silencieux et sans redémarrage par défaut).",
+        ".exe" => L.Get("StepTexts_SilentExe"),
+        ".msi" or ".msp" or ".msu" => L.Get("StepTexts_SilentMsi"),
         _ => "",
     };
 
     public static string ErrorModeHint(PackageStep step) => step.Type == StepType.Nested
-        ? "Sans effet : chaque étape du paquet imbriqué garde son propre comportement en cas d'erreur."
+        ? L.Get("StepTexts_ErrorNested")
         : step.ErrorMode switch
         {
-            ErrorMode.Continue => "L'étape est notée en échec (le poste aussi), mais les étapes suivantes s'exécutent.",
-            ErrorMode.StopSuccess => "Les étapes suivantes ne s'exécutent pas et le poste est compté réussi : " +
-                                     "utile quand l'échec veut dire « rien à faire » sur ce poste.",
-            _ => "Les étapes suivantes ne s'exécutent pas et le poste est en échec.",
+            ErrorMode.Continue => L.Get("StepTexts_ErrorContinue"),
+            ErrorMode.StopSuccess => L.Get("StepTexts_ErrorStopSuccess"),
+            _ => L.Get("StepTexts_ErrorStopFail"),
         };
 
     public static string TimeoutHint(StepType type, int packageTimeout) => type switch
     {
-        StepType.Pause => "Sans effet sur une pause : elle dure toujours la durée choisie.",
-        StepType.Nested => "Sans effet : chaque étape du paquet imbriqué garde son délai (sinon celui du paquet imbriqué).",
-        StepType.Reboot => $"Vide : délai du paquet ({packageTimeout} min). Temps laissé au poste pour revenir après le redémarrage.",
-        StepType.Message => $"Vide : délai du paquet ({packageTimeout} min). Attente maximale d'un clic quand la durée d'affichage est 0.",
-        _ => $"Vide : délai du paquet ({packageTimeout} min). Au-delà, le processus est arrêté et l'étape échoue.",
+        StepType.Pause => L.Get("StepTexts_TimeoutPause"),
+        StepType.Nested => L.Get("StepTexts_TimeoutNested"),
+        StepType.Reboot => L.Format("StepTexts_TimeoutReboot", packageTimeout),
+        StepType.Message => L.Format("StepTexts_TimeoutMessage", packageTimeout),
+        _ => L.Format("StepTexts_TimeoutDefault", packageTimeout),
     };
 
     /// <summary>Windows Installer options shown for the file: restart / quiet, operation (not for .msp), repair (not for .msu).</summary>

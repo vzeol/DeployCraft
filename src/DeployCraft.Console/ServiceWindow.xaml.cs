@@ -25,7 +25,7 @@ public partial class ServiceWindow : Window
         {
             StateIcon.Text = ""; // cross
             StateIcon.Foreground = (Brush)FindResource("KoBrush");
-            StateText.Text = "Service injoignable";
+            StateText.Text = L.Get("Service_Unreachable");
             Hint.Text = ex.Message;
             RestartButton.IsEnabled = false;
             ChangeLink.Visibility = Visibility.Collapsed;
@@ -35,17 +35,17 @@ public partial class ServiceWindow : Window
         var info = _state.Info;
         StateIcon.Text = info.Elevated ? "" : ""; // checkmark, or warning
         StateIcon.Foreground = (Brush)FindResource(info.Elevated ? "OkBrush" : "WarnBrush");
-        StateText.Text = $"En marche depuis le {Ui.LocalTime(info.StartedUtc)}" + (info.IsService ? "" : " (lancé à la main, pas en service Windows)");
+        StateText.Text = L.Format("ServiceWindow_RunningSince", Ui.LocalTime(info.StartedUtc)) + (info.IsService ? "" : " " + L.Get("ServiceWindow_ManualStart"));
         ServicesLink.Visibility = _state.Local ? Visibility.Visible : Visibility.Collapsed;
-        AccountText.Text = info.LocalSystem ? $"Système local ({info.Account})" : info.Account;
+        AccountText.Text = info.LocalSystem ? L.Format("ServiceWindow_LocalSystemAccount", info.Account) : info.Account;
 
         var canChange = _state.CanEdit && _state.Local && info.IsService;
         RestartButton.IsEnabled = _state.CanEdit && info.IsService;
         ChangeLink.Visibility = canChange ? Visibility.Visible : Visibility.Collapsed;
-        Hint.Text = !info.Elevated ? "Ce compte n'est pas administrateur du serveur : les déploiements échoueront. Choisissez Système local ou un compte administrateur."
-            : !_state.CanEdit ? "Seuls les administrateurs de ce serveur peuvent redémarrer le service ou changer son compte."
-            : !info.IsService ? "Instance lancée à la main : elle se redémarre et se configure en dehors de DeployCraft."
-            : !_state.Local ? "Le compte se change depuis la console du serveur : le mot de passe ne passe pas par le réseau."
+        Hint.Text = !info.Elevated ? L.Get("ServiceWindow_HintNotAdmin")
+            : !_state.CanEdit ? L.Get("ServiceWindow_HintNoEdit")
+            : !info.IsService ? L.Get("ServiceWindow_HintManual")
+            : !_state.Local ? L.Get("ServiceWindow_HintRemote")
             : "";
     }
 
@@ -54,7 +54,7 @@ public partial class ServiceWindow : Window
 
     private async void Restart_Click(object sender, RoutedEventArgs e)
     {
-        if (MessageDialog.Show(this, "Redémarrer le service DeployCraft ? Les déploiements en cours seront interrompus ; la console se reconnecte d'elle-même.",
+        if (MessageDialog.Show(this, L.Get("ServiceWindow_RestartConfirm"),
                 Title, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         try
         {

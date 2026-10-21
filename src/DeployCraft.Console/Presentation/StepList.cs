@@ -31,7 +31,7 @@ public static class StepList
     public static PackageStep Duplicate(PackageStep step)
     {
         var copy = Copy(step);
-        copy.Name = string.IsNullOrWhiteSpace(step.Name) ? "" : step.Name + " (copie)";
+        copy.Name = string.IsNullOrWhiteSpace(step.Name) ? "" : step.Name + L.Get("StepList_CopySuffix");
         return copy;
     }
 

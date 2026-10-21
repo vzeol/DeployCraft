@@ -7,5 +7,5 @@ public record StepRow(int Number, string Name, string Type, string Conditions, s
 {
     public static List<StepRow> For(IEnumerable<PackageStep> steps, Func<long, Package?> lookup) =>
         steps.Select((s, i) => new StepRow(i + 1, StepSummary.Name(s), StepSummary.TypeText(s.Type),
-            s.Conditions.IsEmpty ? "" : "Oui", StepSummary.Details(s, lookup))).ToList();
+            s.Conditions.IsEmpty ? "" : L.Get("StepRow_Yes"), StepSummary.Details(s, lookup))).ToList();
 }

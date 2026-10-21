@@ -40,16 +40,16 @@ public partial class DeployWindow : Window
         Ui.SelectOnRightClick(TargetsGrid);
         Ui.ContextMenu(TargetsGrid, () =>
         [
-            new("Coller une liste de postes", PasteNames, Clipboard.ContainsText(), "Ctrl+V"),
+            new(L.Get("DeployWindow_PasteList"), PasteNames, Clipboard.ContainsText(), "Ctrl+V"),
             new("Active Directory…", () => Ad_Click(this, new())),
-            new("Fichier texte…", () => TextFile_Click(this, new())),
+            new(L.Get("DeployWindow_TextFile"), () => TextFile_Click(this, new())),
             Ui.Separator,
-            new("Démarrer à l'étape 1", () => SetStartStep(1), TargetsGrid.SelectedItems.Count > 0),
-            new("Démarrer à l'étape", () => { }, TargetsGrid.SelectedItems.Count > 0 && StepChoices.Count > 1,
+            new(L.Get("DeployWindow_StartAtStep1"), () => SetStartStep(1), TargetsGrid.SelectedItems.Count > 0),
+            new(L.Get("DeployWindow_StartAtStep"), () => { }, TargetsGrid.SelectedItems.Count > 0 && StepChoices.Count > 1,
                 Children: [.. StepChoices.Select(c => new Ui.MenuEntry(c.Text, () => SetStartStep(c.Number)))]),
             Ui.Separator,
-            new("Retirer", () => Remove_Click(this, new()), TargetsGrid.SelectedItems.Count > 0, "Suppr"),
-            new("Tout retirer", () => Clear_Click(this, new()), _targets.Count > 0),
+            new(L.Get("DeployWindow_RemoveItem"), () => Remove_Click(this, new()), TargetsGrid.SelectedItems.Count > 0, L.Get("DeployWindow_DeleteKey")),
+            new(L.Get("DeployWindow_RemoveAll"), () => Clear_Click(this, new()), _targets.Count > 0),
         ]);
     }
 

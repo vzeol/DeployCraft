@@ -12,7 +12,7 @@ public partial class SchedulePickerWindow : Window
     public SchedulePickerWindow(string packageName, IEnumerable<Schedule> schedules)
     {
         InitializeComponent();
-        Prompt.Text = $"Planification où ajouter « {packageName} » (il sera déployé après les paquets déjà présents) :";
+        Prompt.Text = L.Format("SchedulePickerWindow_Prompt", packageName);
         List.ItemsSource = schedules.OrderBy(s => s.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
         OkButton.IsEnabled = false;
     }

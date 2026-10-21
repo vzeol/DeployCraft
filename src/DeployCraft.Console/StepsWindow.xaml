@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:DeployCraft.Console"
-        Title="Étapes" Height="560" Width="900" MinHeight="360" MinWidth="600"
+        Title="{local:T StepsWindow_Title}" Height="560" Width="900" MinHeight="360" MinWidth="600"
         WindowStartupLocation="CenterOwner" Background="{DynamicResource WindowBackground}" Foreground="{DynamicResource TextBrush}" ShowInTaskbar="False">
     <Window.Resources>
         <local:StatusTextConverter x:Key="StatusText" />
@@ -26,9 +26,9 @@
             </Grid.RowDefinitions>
             <DataGrid x:Name="Grid" SelectionChanged="Grid_SelectionChanged" MaxHeight="260">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="N°" Binding="{Binding Number}" Width="40" />
-                    <DataGridTextColumn Header="Étape" Binding="{Binding Name}" Width="200" />
-                    <DataGridTemplateColumn Header="Statut" Width="110">
+                    <DataGridTextColumn Header="{local:T PackageWindow_ColNumber}" Binding="{Binding Number}" Width="40" />
+                    <DataGridTextColumn Header="{local:T PackageWindow_ColStep}" Binding="{Binding Name}" Width="200" />
+                    <DataGridTemplateColumn Header="{local:T StepsWindow_ColStatus}" Width="110">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
@@ -39,24 +39,24 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="Code retour" Binding="{Binding ReturnCode}" Width="Auto" MinWidth="100" />
-                    <DataGridTextColumn Header="Durée" Binding="{Binding Duration}" Width="80" />
-                    <DataGridTextColumn Header="Exécutions" Binding="{Binding Runs}" Width="Auto" MinWidth="80" />
-                    <DataGridTextColumn Header="Note" Binding="{Binding Note}" Width="*" MinWidth="160" />
-                    <DataGridTextColumn Header="Commande" Binding="{Binding CommandLine}" Width="*" />
+                    <DataGridTextColumn Header="{local:T StepsWindow_ColReturnCode}" Binding="{Binding ReturnCode}" Width="Auto" MinWidth="100" />
+                    <DataGridTextColumn Header="{local:T StepsWindow_ColDuration}" Binding="{Binding Duration}" Width="80" />
+                    <DataGridTextColumn Header="{local:T StepsWindow_ColRuns}" Binding="{Binding Runs}" Width="Auto" MinWidth="80" />
+                    <DataGridTextColumn Header="{local:T StepsWindow_ColNote}" Binding="{Binding Note}" Width="*" MinWidth="160" />
+                    <DataGridTextColumn Header="{local:T StepSummary_TypeCommand}" Binding="{Binding CommandLine}" Width="*" />
                 </DataGrid.Columns>
             </DataGrid>
             <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" Background="Transparent" />
             <DockPanel Grid.Row="2">
                 <DockPanel DockPanel.Dock="Top" Margin="0,0,0,4">
                     <TextBlock DockPanel.Dock="Right" x:Name="OutputActions">
-                        <Hyperlink Click="CopyOutput_Click">Copier</Hyperlink>
+                        <Hyperlink Click="CopyOutput_Click"><Run Text="{local:T StepsWindow_Copy}" /></Hyperlink>
                         <Run Text="   " />
-                        <Hyperlink Click="OpenOutput_Click">Ouvrir dans le Bloc-notes</Hyperlink>
+                        <Hyperlink Click="OpenOutput_Click"><Run Text="{local:T StepsWindow_OpenInNotepad}" /></Hyperlink>
                         <Run Text="   " />
-                        <Hyperlink Click="SaveOutput_Click">Enregistrer…</Hyperlink>
+                        <Hyperlink Click="SaveOutput_Click"><Run Text="{local:T StepsWindow_Save}" /></Hyperlink>
                     </TextBlock>
-                    <TextBlock Text="Sortie de l'étape" FontWeight="SemiBold" />
+                    <TextBlock Text="{local:T StepsWindow_OutputHeading}" FontWeight="SemiBold" />
                 </DockPanel>
                 <TextBox x:Name="Output" IsReadOnly="True" FontFamily="Consolas" FontSize="12" Background="{DynamicResource AltBackground}"
                          VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" VerticalContentAlignment="Top" />

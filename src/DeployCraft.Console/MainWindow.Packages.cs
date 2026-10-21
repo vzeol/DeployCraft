@@ -45,7 +45,7 @@ public partial class MainWindow
         {
             var copy = await Api.Package(source.Id);
             copy.Id = 0;
-            copy.Name += " (copie)";
+            copy.Name += " " + L.Get("MainWindow_CopySuffix");
             await AfterPackageSaved(await Api.SavePackage(copy));
         }
         catch (ApiException ex) { Ui.Error(this, ex); }
@@ -53,7 +53,7 @@ public partial class MainWindow
 
     // ---------- Import / export ----------
 
-    private const string ExportFilter = "Paquets DeployCraft (*.json)|*.json";
+    private static string ExportFilter => L.Get("MainWindow_ExportFilter");
 
     private async void ExportPackage_Click(object sender, RoutedEventArgs e)
     {
@@ -62,7 +62,7 @@ public partial class MainWindow
 
     private async void ExportAll_Click(object sender, RoutedEventArgs e)
     {
-        if (_packages.Count > 0) await ExportAsync(_packages.Select(p => p.Id), "Paquets DeployCraft");
+        if (_packages.Count > 0) await ExportAsync(_packages.Select(p => p.Id), L.Get("MainWindow_ExportDefaultName"));
     }
 
     /// <summary>Saves the packages (and the nested packages they use) to a .json file.</summary>
@@ -70,7 +70,7 @@ public partial class MainWindow
     {
         var dialog = new Microsoft.Win32.SaveFileDialog
         {
-            Title = "Exporter",
+            Title = L.Get("MainWindow_ExportTitle"),
             Filter = ExportFilter,
             FileName = string.Concat(defaultName.Split(System.IO.Path.GetInvalidFileNameChars())) + ".json",
         };
@@ -81,13 +81,13 @@ public partial class MainWindow
             await System.IO.File.WriteAllTextAsync(dialog.FileName, JsonSerializer.Serialize(export, Api.JsonIndented));
             var nested = export.Packages.Count - ids.Distinct().Count();
             StatusRunning.Text = nested > 0
-                ? $"{export.Packages.Count} paquet(s) exporté(s), dont {nested} paquet(s) imbriqué(s) ajouté(s)"
-                : $"{export.Packages.Count} paquet(s) exporté(s)";
+                ? L.Format("MainWindow_ExportedWithNested", export.Packages.Count, nested)
+                : L.Format("MainWindow_Exported", export.Packages.Count);
         }
         catch (ApiException ex) { Ui.Error(this, ex); }
         catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException)
         {
-            MessageDialog.Show(this, $"Impossible d'écrire le fichier : {ex.Message}", "Exporter", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageDialog.Show(this, L.Format("MainWindow_ExportWriteFailed", ex.Message), L.Get("MainWindow_ExportTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 
@@ -95,8 +95,8 @@ public partial class MainWindow
     {
         var dialog = new Microsoft.Win32.OpenFileDialog
         {
-            Title = "Importer des paquets",
-            Filter = "Exports de paquets (*.json;*.xml)|*.json;*.xml|Tous les fichiers|*.*",
+            Title = L.Get("MainWindow_ImportPackages"),
+            Filter = L.Get("MainWindow_ImportFilter"),
         };
         if (dialog.ShowDialog(this) != true || ImportWindow.ReadFile(this, dialog.FileName) is not { } content) return;
         var window = new ImportWindow(System.IO.Path.GetFileName(dialog.FileName), content) { Owner = this };
@@ -112,7 +112,7 @@ public partial class MainWindow
             return;
         }
         if (SelectedPackage is not { } selected) return;
-        if (InputDialog.Ask(this, "Renommer", "Nouveau nom du paquet :", selected.Name) is not { } name || name == selected.Name) return;
+        if (InputDialog.Ask(this, L.Get("MainWindow_Rename"), L.Get("MainWindow_RenamePackagePrompt"), selected.Name) is not { } name || name == selected.Name) return;
         try
         {
             var package = await Api.Package(selected.Id);
@@ -125,8 +125,8 @@ public partial class MainWindow
     private async void DeletePackage_Click(object sender, RoutedEventArgs e)
     {
         if (SelectedPackage is not { } p) return;
-        if (MessageDialog.Show(this, $"Supprimer le paquet « {p.Name} » ?\nL'historique de ses déploiements est conservé.",
-                "Supprimer", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+        if (MessageDialog.Show(this, L.Format("MainWindow_DeletePackageConfirm", p.Name),
+                L.Get("MainWindow_Delete"), MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         try
         {
             await Api.DeletePackage(p.Id);

@@ -35,17 +35,17 @@ public partial class MainWindow
         }
         MergeLibraryStatus(status.Items);
 
-        var refreshed = status.Refreshing ? "lecture du catalogue en cours…"
-            : status.LastRefreshUtc is { } at ? $"lu le {Ui.LocalTime(at)}" : "pas encore lu";
+        var refreshed = status.Refreshing ? L.Get("MainWindow_LibraryReading")
+            : status.LastRefreshUtc is { } at ? L.Format("MainWindow_LibraryReadOn", Ui.LocalTime(at)) : L.Get("MainWindow_LibraryNotRead");
         var updates = status.Items.Count(i => i.UpdateAvailable);
-        var shown = search.Length == 0 ? "vos paquets et les logiciels courants en tête"
-            : _library.Rows.Count == 0 ? "aucun résultat" : $"{_library.Rows.Count:N0} résultat(s)";
-        LibrarySubtitle.Text = $"Catalogue public winget ({status.CatalogCount:N0} logiciels, {refreshed}) · {shown}" +
-                               (updates > 0 ? $" · {updates} mise(s) à jour disponible(s)" : "");
+        var shown = search.Length == 0 ? L.Get("MainWindow_LibraryDefaultList")
+            : _library.Rows.Count == 0 ? L.Get("MainWindow_LibraryNoResult") : L.Format("MainWindow_LibraryResults", _library.Rows.Count);
+        LibrarySubtitle.Text = L.Format("MainWindow_LibrarySubtitle", status.CatalogCount, refreshed, shown) +
+                               (updates > 0 ? " · " + L.Format("MainWindow_LibraryUpdatesAvailable", updates) : "");
         LibraryFolderText.Text = (status.RefreshError is { } error ? error + Environment.NewLine : "") +
-            $"Les installeurs sont rangés dans {status.Folder}" +
-            (status.DefaultFolder ? " (dossier du serveur : préférez un partage, lisible aussi par les postes en mode pull)." : ".") +
-            " Chaque téléchargement crée ou met à jour un paquet du même nom, prêt à déployer.";
+            L.Format("MainWindow_LibraryInstallersIn", status.Folder) +
+            (status.DefaultFolder ? " " + L.Get("MainWindow_LibraryServerFolderHint") : ".") +
+            " " + L.Get("MainWindow_LibraryDownloadCreates");
         LibraryRefreshButton.IsEnabled = !status.Refreshing;
         UpdateLibraryButton();
         ShowLibraryUpdates(status);
@@ -75,7 +75,7 @@ public partial class MainWindow
     {
         var ready = SelectedLibraryRows.Where(r => r.CanDownload).ToList();
         LibraryDownloadButton.IsEnabled = ready.Count > 0;
-        LibraryDownloadText.Text = ready.Count > 0 && ready.All(r => r.Item.UpdateAvailable) ? "Mettre à jour" : "Télécharger";
+        LibraryDownloadText.Text = ready.Count > 0 && ready.All(r => r.Item.UpdateAvailable) ? L.Get("MainWindow_Update") : L.Get("MainWindow_Download");
     }
 
     private void LibrarySearch_TextChanged(object sender, TextChangedEventArgs e)

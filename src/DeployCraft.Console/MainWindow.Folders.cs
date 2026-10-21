@@ -69,7 +69,7 @@ public partial class MainWindow
                         Margin = new Thickness(6, 0, 0, 0),
                         VerticalAlignment = VerticalAlignment.Center,
                         Foreground = (Brush)FindResource("Accent"),
-                        ToolTip = "Nouvelle version disponible dans la bibliothèque de paquets",
+                        ToolTip = L.Get("MainWindow_UpdateInLibraryTip"),
                     });
                 var node = new TreeViewItem { Header = header, Tag = p };
                 parent.Items.Add(node);
@@ -102,7 +102,7 @@ public partial class MainWindow
     private async void NewFolder_Click(object sender, RoutedEventArgs e)
     {
         var parentId = CurrentFolderId;
-        if (InputDialog.Ask(this, "Nouveau dossier", "Nom du dossier :", "Nouveau dossier") is not { } name) return;
+        if (InputDialog.Ask(this, L.Get("MainWindow_NewFolder"), L.Get("MainWindow_FolderNamePrompt"), L.Get("MainWindow_NewFolder")) is not { } name) return;
         try
         {
             var folder = await Api.SaveFolder(new PackageFolder { Name = name, ParentId = parentId });
@@ -114,7 +114,7 @@ public partial class MainWindow
 
     private async Task RenameFolderAsync(PackageFolder folder)
     {
-        if (InputDialog.Ask(this, "Renommer", "Nouveau nom du dossier :", folder.Name) is not { } name || name == folder.Name) return;
+        if (InputDialog.Ask(this, L.Get("MainWindow_Rename"), L.Get("MainWindow_RenameFolderPrompt"), folder.Name) is not { } name || name == folder.Name) return;
         try
         {
             await Api.SaveFolder(new PackageFolder { Id = folder.Id, Name = name, ParentId = folder.ParentId });
@@ -125,7 +125,7 @@ public partial class MainWindow
 
     private async Task DeleteFolderAsync(PackageFolder folder)
     {
-        if (MessageDialog.Show(this, $"Supprimer le dossier « {folder.Name} » ?", "Supprimer",
+        if (MessageDialog.Show(this, L.Format("MainWindow_DeleteFolderConfirm", folder.Name), L.Get("MainWindow_Delete"),
                 MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         try
         {

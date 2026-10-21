@@ -86,7 +86,7 @@ public partial class AdPickerWindow : Window
     private async Task LoadAsync()
     {
         SearchButton.IsEnabled = false;
-        Info.Text = "Lecture de l'Active Directory…";
+        Info.Text = L.Get("AdPicker_Reading");
         Tree.ItemsSource = null;
         _computers.Clear();
         try
@@ -120,7 +120,7 @@ public partial class AdPickerWindow : Window
                     ComputerName = c.Name,
                     Icon = Ui.IconComputer,
                     Parent = ou,
-                    Detail = (c.OperatingSystem ?? "") + (c.Enabled ? "" : " · désactivé"),
+                    Detail = (c.OperatingSystem ?? "") + (c.Enabled ? "" : " · " + L.Get("AdPicker_Disabled")),
                 };
                 ou.Children.Add(node);
                 _computers.Add(node);
@@ -132,7 +132,7 @@ public partial class AdPickerWindow : Window
             if (search.Length > 0) foreach (var r in roots) r.ExpandAll();
 
             Tree.ItemsSource = roots;
-            Info.Text = list.Count == 0 ? "Aucun poste trouvé." : $"{list.Count} poste(s) dans {folders.Count} OU. Cochez une OU pour sélectionner tous ses postes.";
+            Info.Text = list.Count == 0 ? L.Get("AdPicker_None") : L.Format("AdPicker_Found", list.Count, folders.Count);
         }
         catch (ApiException ex)
         {

@@ -6,9 +6,9 @@ public static class ServerIssues
     public static string For(ServerStatus s)
     {
         var issues = new List<string>();
-        if (!s.Elevated) issues.Add("Le service DeployCraft ne tourne pas en administrateur : les déploiements échoueront.");
-        if (s.DefaultCredential == null) issues.Add("Aucun identifiant enregistré (Options › Identifiants). Nécessaire pour les postes du domaine.");
-        if (s.UnreadableCredentials > 0) issues.Add("Un ou plusieurs mots de passe d'identifiants ne peuvent pas être relus : ressaisissez-les (Options › Identifiants).");
+        if (!s.Elevated) issues.Add(L.Get("ServerIssues_NotElevated"));
+        if (s.DefaultCredential == null) issues.Add(L.Get("ServerIssues_NoCredential"));
+        if (s.UnreadableCredentials > 0) issues.Add(L.Get("ServerIssues_Unreadable"));
         return string.Join(Environment.NewLine, issues);
     }
 }

@@ -100,8 +100,8 @@ public partial class MainWindow
         if (update != null)
         {
             var here = CanInstallHere(update);
-            UpdateText.Text = $"DeployCraft {update.Version} est disponible (vous avez la {UpdateCheck.CurrentVersion})." +
-                              (here ? "" : " Installez-la sur le serveur, en administrateur : le service et la console sont mis à jour ensemble.");
+            UpdateText.Text = L.Format("MainWindow_UpdateAvailable", update.Version, UpdateCheck.CurrentVersion) +
+                              (here ? "" : " " + L.Get("MainWindow_UpdateInstallOnServer"));
             UpdateInstall.Visibility = here && !_installing ? Visibility.Visible : Visibility.Collapsed;
         }
         UpdateBar.Visibility = update == null ? Visibility.Collapsed : Visibility.Visible;
@@ -117,10 +117,9 @@ public partial class MainWindow
             running = (await Api.Deployments()).Count(d => d.Status is DeploymentStatus.Running or DeploymentStatus.Queued);
         }
         catch (ApiException) { /* rien de plus à signaler */ }
-        var text = $"Une nouvelle version de DeployCraft est disponible : {update.Version} (vous avez la {UpdateCheck.CurrentVersion}).\n\n" +
-                   "Voulez-vous l'installer maintenant ? La console se ferme, le service redémarre, puis la console se rouvre (une minute environ)." +
-                   (running > 0 ? $"\n\nAttention : {running} déploiement(s) en cours ou en attente seront interrompus." : "");
-        if (MessageDialog.Show(this, text, "Nouvelle version", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+        var text = L.Format("MainWindow_UpdateProposal", update.Version, UpdateCheck.CurrentVersion) +
+                   (running > 0 ? "\n\n" + L.Format("MainWindow_UpdateRunningWarning", running) : "");
+        if (MessageDialog.Show(this, text, L.Get("MainWindow_NewVersionTitle"), MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             await InstallUpdateAsync(update);
     }
 
@@ -131,13 +130,13 @@ public partial class MainWindow
         string file;
         try
         {
-            file = await UpdateCheck.DownloadSetupAsync(update, new Progress<int>(p => UpdateText.Text = $"Téléchargement de DeployCraft {update.Version}… {p} %"));
+            file = await UpdateCheck.DownloadSetupAsync(update, new Progress<int>(p => UpdateText.Text = L.Format("MainWindow_UpdateDownloading", update.Version, p)));
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or IOException or InvalidDataException or UnauthorizedAccessException)
         {
             _installing = false;
             ShowUpdate(update);
-            MessageDialog.Show(this, $"Téléchargement de la nouvelle version impossible : {ex.Message}", "Nouvelle version", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageDialog.Show(this, L.Format("MainWindow_UpdateDownloadFailed", ex.Message), L.Get("MainWindow_NewVersionTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
         try
@@ -149,8 +148,8 @@ public partial class MainWindow
         {
             _installing = false;
             ShowUpdate(update);
-            MessageDialog.Show(this, "Installation annulée : l'autorisation administrateur est nécessaire pour mettre à jour le service.",
-                "Nouvelle version", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageDialog.Show(this, L.Get("MainWindow_UpdateInstallCancelled"),
+                L.Get("MainWindow_NewVersionTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
         Application.Current.Shutdown();
@@ -166,8 +165,8 @@ public partial class MainWindow
         var update = await UpdateCheck.FindAsync();
         ShowUpdate(update);
         if (update == null)
-            MessageDialog.Show(this, $"Aucune nouvelle version trouvée (version {UpdateCheck.CurrentVersion}, ou pas d'accès à Internet).",
-                "Mise à jour", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageDialog.Show(this, L.Format("MainWindow_UpdateNoneFound", UpdateCheck.CurrentVersion),
+                L.Get("MainWindow_UpdateTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
         else await ProposeUpdateAsync(update);
     }
 

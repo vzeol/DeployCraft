@@ -18,16 +18,16 @@ public partial class PackageWindow
 
         Ui.MenuEntry[] AddEntries() =>
         [
-            new("Nouvelle étape : Installer", () => AddInstall_Click(this, new())),
-            new("Nouvelle étape : Commande", () => AddCommand_Click(this, new())),
-            new("Nouvelle étape : PowerShell", () => AddPowerShell_Click(this, new())),
-            new("Nouvelle étape : Copie de fichiers", () => AddCopy_Click(this, new())),
-            new("Nouvelle étape : Pause", () => AddPause_Click(this, new())),
-            new("Nouvelle étape : Redémarrer", () => AddReboot_Click(this, new())),
-            new("Nouvelle étape : Message", () => AddMessage_Click(this, new())),
-            new("Nouvelle étape : Paquet imbriqué", () => AddNested_Click(this, new())),
+            new(L.Get("PackageWindow_NewStepInstall"), () => AddInstall_Click(this, new())),
+            new(L.Get("PackageWindow_NewStepCommand"), () => AddCommand_Click(this, new())),
+            new(L.Get("PackageWindow_NewStepPowerShell"), () => AddPowerShell_Click(this, new())),
+            new(L.Get("PackageWindow_NewStepCopy"), () => AddCopy_Click(this, new())),
+            new(L.Get("PackageWindow_NewStepPause"), () => AddPause_Click(this, new())),
+            new(L.Get("PackageWindow_NewStepReboot"), () => AddReboot_Click(this, new())),
+            new(L.Get("PackageWindow_NewStepMessage"), () => AddMessage_Click(this, new())),
+            new(L.Get("PackageWindow_NewStepNested"), () => AddNested_Click(this, new())),
             Ui.Separator,
-            new("Coller", () => Paste_Click(this, new()), CanPaste, "Ctrl+V"),
+            new(L.Get("PackageWindow_Paste"), () => Paste_Click(this, new()), CanPaste, "Ctrl+V"),
         ];
 
         IEnumerable<Ui.MenuEntry> StepEntries(PackageStep step)
@@ -35,15 +35,15 @@ public partial class PackageWindow
             return
             [
                 .. AddEntries(),
-                new("Couper", () => { SelectStep(step); Cut_Click(this, new()); }, Gesture: "Ctrl+X"),
-                new("Copier", () => { SelectStep(step); Copy_Click(this, new()); }, Gesture: "Ctrl+C"),
-                new("Dupliquer", () => { SelectStep(step); Duplicate_Click(this, new()); }),
-                new(step.Enabled ? "Désactiver" : "Activer", () => SetEnabled(step, !step.Enabled)),
+                new(L.Get("PackageWindow_Cut"), () => { SelectStep(step); Cut_Click(this, new()); }, Gesture: "Ctrl+X"),
+                new(L.Get("PackageWindow_Copy"), () => { SelectStep(step); Copy_Click(this, new()); }, Gesture: "Ctrl+C"),
+                new(L.Get("PackageWindow_Duplicate"), () => { SelectStep(step); Duplicate_Click(this, new()); }),
+                new(L.Get(step.Enabled ? "PackageWindow_Disable" : "PackageWindow_Enable"), () => SetEnabled(step, !step.Enabled)),
                 Ui.Separator,
-                new("Monter", () => { SelectStep(step); Move(-1); }, CanMove(step, -1), "Ctrl+Haut"),
-                new("Descendre", () => { SelectStep(step); Move(1); }, CanMove(step, 1), "Ctrl+Bas"),
+                new(L.Get("PackageWindow_MoveUp"), () => { SelectStep(step); Move(-1); }, CanMove(step, -1), L.Get("PackageWindow_GestureUp")),
+                new(L.Get("PackageWindow_MoveDown"), () => { SelectStep(step); Move(1); }, CanMove(step, 1), L.Get("PackageWindow_GestureDown")),
                 Ui.Separator,
-                new("Supprimer", () => { SelectStep(step); DeleteStep_Click(this, new()); }, Gesture: "Suppr"),
+                new(L.Get("PackageWindow_Delete"), () => { SelectStep(step); DeleteStep_Click(this, new()); }, Gesture: L.Get("PackageWindow_GestureDelete")),
             ];
         }
 
@@ -52,7 +52,7 @@ public partial class PackageWindow
             : []);
 
         Ui.ContextMenu(StepsGrid, () => StepsGrid.SelectedItem is StepRow row
-            ? [new("Modifier", () => SelectStep(Package.Steps[row.Number - 1])), Ui.Separator, .. StepEntries(Package.Steps[row.Number - 1])]
+            ? [new(L.Get("PackageWindow_Edit"), () => SelectStep(Package.Steps[row.Number - 1])), Ui.Separator, .. StepEntries(Package.Steps[row.Number - 1])]
             : AddEntries());
 
         // Preview: the tree uses the arrow keys itself (Ctrl+Up / Down would never reach KeyDown).
@@ -149,7 +149,7 @@ public partial class PackageWindow
         }
         catch (System.Runtime.InteropServices.ExternalException)
         {
-            MessageDialog.Show(this, "Presse-papiers occupé par une autre application : réessayez.", "Paquet", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageDialog.Show(this, L.Get("PackageWindow_ClipboardBusy"), L.Get("PackageWindow_Title"), MessageBoxButton.OK, MessageBoxImage.Warning);
             return false;
         }
         UpdateButtons();
@@ -174,7 +174,7 @@ public partial class PackageWindow
         }
         catch (Exception ex) when (ex is System.Runtime.InteropServices.ExternalException or JsonException)
         {
-            MessageDialog.Show(this, "Impossible de coller l'étape : " + ex.Message, "Paquet", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageDialog.Show(this, L.Format("PackageWindow_PasteError", ex.Message), L.Get("PackageWindow_Title"), MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 

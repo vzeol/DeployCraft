@@ -56,7 +56,9 @@ public partial class ConsoleTextsTests
     [Fact]
     public void EveryKey_IsUsed()
     {
-        var unused = Texts("Strings.resx").Keys.Except(UsedKeys());
+        // A key can also be chosen in code (cond ? "A_One" : "A_Many"): any string literal naming it counts.
+        var sources = string.Join("\n", ConsoleSources().Select(File.ReadAllText));
+        var unused = Texts("Strings.resx").Keys.Where(k => !sources.Contains($"T {k}}}") && !sources.Contains($"\"{k}\""));
 
         Assert.Empty(unused);
     }
@@ -84,12 +86,11 @@ public partial class ConsoleTextsTests
 
     /// <summary>Keys read by the console: {local:T Key} in XAML, L.Get("Key") / L.Format("Key", …) in C#.</summary>
     private static HashSet<string> UsedKeys() =>
-    [
-        .. Directory.EnumerateFiles(ConsoleDir, "*.*", SearchOption.AllDirectories)
-            .Where(f => (f.EndsWith(".xaml") || f.EndsWith(".cs")) && !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}"))
-            .SelectMany(f => KeyPattern().Matches(File.ReadAllText(f)))
-            .Select(m => m.Groups["key"].Value),
-    ];
+        [.. ConsoleSources().SelectMany(f => KeyPattern().Matches(File.ReadAllText(f))).Select(m => m.Groups["key"].Value)];
+
+    private static IEnumerable<string> ConsoleSources() =>
+        Directory.EnumerateFiles(ConsoleDir, "*.*", SearchOption.AllDirectories)
+            .Where(f => (f.EndsWith(".xaml") || f.EndsWith(".cs")) && !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}"));
 
     private static string RepoRoot()
     {

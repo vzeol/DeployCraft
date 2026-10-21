@@ -137,7 +137,7 @@ public static class Api
         }
         catch (HttpRequestException)
         {
-            throw new ApiException("Le service DeployCraft ne répond pas. Vérifiez qu'il est démarré (services.msc).");
+            throw new ApiException(L.Get("ApiClient_ServiceNotResponding"));
         }
 
         using (response)
@@ -152,8 +152,8 @@ public static class Api
                 }
                 catch (JsonException) { }
                 if (message == null && response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                    message = "Le service n'a pas pu vérifier votre compte Windows. Ouvrez la console avec un compte du domaine ou du serveur.";
-                throw new ApiException(message ?? $"Erreur du service ({(int)response.StatusCode}).",
+                    message = L.Get("ApiClient_AuthFailed");
+                throw new ApiException(message ?? L.Format("ApiClient_ServiceError", (int)response.StatusCode),
                     response.StatusCode is System.Net.HttpStatusCode.Unauthorized or System.Net.HttpStatusCode.Forbidden);
             }
             if (response.StatusCode == System.Net.HttpStatusCode.NoContent) return default!;

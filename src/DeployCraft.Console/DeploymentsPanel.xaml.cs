@@ -8,7 +8,7 @@ namespace DeployCraft.Console;
 public record DeploymentRow(Deployment Deployment, long Id, string Status, string PackageName, DateTime CreatedUtc,
     string Created, string Duration, DeploymentSummary.Counts Counts)
 {
-    public string Prioritized => Deployment.Targets.Any(t => t.Prioritized) ? "Oui" : "";
+    public string Prioritized => Deployment.Targets.Any(t => t.Prioritized) ? L.Get("DeploymentsPanel_Yes") : "";
 }
 
 public record TargetRow(DeploymentTarget Target, long DeploymentId, string Computer, string Status, string Steps,
@@ -99,10 +99,10 @@ public partial class DeploymentsPanel : UserControl
 
     private async Task AbortAsync(Deployment d, List<DeploymentTarget>? targets)
     {
-        var what = targets == null ? $"le déploiement {d.Id} ({d.PackageName})"
-            : targets.Count == 1 ? $"le déploiement sur {targets[0].Computer}" : $"le déploiement sur ces {targets.Count} postes";
-        if (MessageDialog.Show(Owner!, $"Annuler {what} ?\nUne installation en cours sera interrompue.",
-                "Annuler", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+        var what = targets == null ? L.Format("DeploymentsPanel_AbortWhatAll", d.Id, d.PackageName)
+            : targets.Count == 1 ? L.Format("DeploymentsPanel_AbortWhatOne", targets[0].Computer) : L.Format("DeploymentsPanel_AbortWhatMany", targets.Count);
+        if (MessageDialog.Show(Owner!, L.Format("DeploymentsPanel_AbortConfirm", what),
+                L.Get("DeploymentsPanel_Cancel"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
         try
         {
             await Api.Abort(d.Id, targets?.Select(t => t.Id));
@@ -114,8 +114,8 @@ public partial class DeploymentsPanel : UserControl
     private async Task DeleteSelectedAsync()
     {
         if (Selected is not { } d || IsActive(d)) return;
-        if (MessageDialog.Show(Owner!, $"Supprimer le déploiement {d.Id} ({d.PackageName}) de l'historique ?",
-                "Supprimer", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+        if (MessageDialog.Show(Owner!, L.Format("DeploymentsPanel_DeleteConfirm", d.Id, d.PackageName),
+                L.Get("DeploymentsPanel_Delete"), MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         try
         {
             await Api.DeleteDeployment(d.Id);
@@ -153,7 +153,7 @@ public partial class DeploymentsPanel : UserControl
         DeploymentsGrid.SelectedItem = toSelect;
         if (toSelect != null) DeploymentsGrid.ScrollIntoView(toSelect);
 
-        DeploymentsTitle.Text = rows.Count switch { 0 => "Aucun déploiement", 1 => "1 déploiement", _ => $"{rows.Count} déploiements" };
+        DeploymentsTitle.Text = rows.Count switch { 0 => L.Get("DeploymentsPanel_NoDeployment"), 1 => L.Get("DeploymentsPanel_OneDeployment"), _ => L.Format("DeploymentsPanel_DeploymentCount", rows.Count) };
         ShowDeployment();
     }
 
@@ -174,7 +174,7 @@ public partial class DeploymentsPanel : UserControl
         if (d == null)
         {
             TargetsGrid.ItemsSource = null;
-            TargetsTitle.Text = "Postes";
+            TargetsTitle.Text = L.Get("DeploymentsPanel_Computers");
             ShowTarget();
             return;
         }
@@ -182,20 +182,20 @@ public partial class DeploymentsPanel : UserControl
         var status = DeploymentSummary.StatusOf(d);
         DStatusIcon.Text = Ui.StatusIcon(status);
         DStatusIcon.Foreground = DStatus.Foreground = Ui.StatusBrush(status);
-        DTitle.Text = $"Déploiement {d.Id}";
+        DTitle.Text = L.Format("DeploymentsPanel_DeploymentTitle", d.Id);
         DStatus.Text = Ui.StatusText(status);
-        DPackage.Text = d.StartStep > 1 ? $"{d.PackageName} (depuis l'étape {d.StartStep})" : d.PackageName;
+        DPackage.Text = d.StartStep > 1 ? L.Format("DeploymentsPanel_FromStep", d.PackageName, d.StartStep) : d.PackageName;
         DCreated.Text = Ui.LocalTime(d.CreatedUtc);
         DDuration.Text = Ui.Duration(d.CreatedUtc, d.EndedUtc);
         DLaunchedBy.Text = d.LaunchedBy ?? "—";
         DRunAs.Text = d.RunAsMode switch
         {
             RunAsMode.DeployUser => d.RunAs ?? "—",
-            RunAsMode.LocalSystem => "Système local",
-            _ => "Utilisateur connecté",
+            RunAsMode.LocalSystem => L.Get("Ui_RunAsLocalSystem"),
+            _ => L.Get("Ui_RunAsLoggedOn"),
         }
         // The credential is also used to copy files and create the service, even without running under this account.
-        + (d.RunAsMode != RunAsMode.DeployUser && d.CredentialId != null ? $" (accès : {d.RunAs})" : "")
+        + (d.RunAsMode != RunAsMode.DeployUser && d.CredentialId != null ? " " + L.Format("DeploymentsPanel_RunAsAccess", d.RunAs) : "")
         + (d.CopyMode == CopyMode.Pull ? " · pull" : "");
         var failed = d.Targets.Count(t => t.Status == TargetStatus.Failed);
         DTotal.Text = $"{d.Targets.Count} ";
@@ -203,7 +203,7 @@ public partial class DeploymentsPanel : UserControl
         RetryLink.IsEnabled = failed > 0;
         var running = IsActive(d);
         DCounts.Text = running
-            ? $"{d.Targets.Count(t => t.Status == TargetStatus.Running)} en cours · {d.Targets.Count(t => t.Status == TargetStatus.Queued)} en attente"
+            ? L.Format("DeploymentsPanel_RunningWaiting", d.Targets.Count(t => t.Status == TargetStatus.Running), d.Targets.Count(t => t.Status == TargetStatus.Queued))
             : "";
         DCounts.Visibility = running ? Visibility.Visible : Visibility.Collapsed;
 
@@ -217,7 +217,7 @@ public partial class DeploymentsPanel : UserControl
 
         var rows = d.Targets.Select(t => new TargetRow(
                 t, d.Id, t.Computer, DeploymentSummary.TargetStatusOf(t),
-                $"{t.Steps.Count(s => s.State is "success" or "stopped" || s.State == "skipped" && t.Status == TargetStatus.Successful)} sur {d.Snapshot.Steps.Count - t.StartStep + 1}",
+                L.Format("DeploymentsPanel_StepsOf", t.Steps.Count(s => s.State is "success" or "stopped" || s.State == "skipped" && t.Status == TargetStatus.Successful), d.Snapshot.Steps.Count - t.StartStep + 1),
                 t.Status == TargetStatus.Running ? t.Stage ?? "" : t.Error ?? "",
                 Ui.LocalTime(t.StartedUtc), Ui.Duration(t.StartedUtc, t.EndedUtc)))
             .Where(r => filter.Length == 0 || Matches(filter, r.Computer, Ui.StatusText(r.Status), r.Detail))
@@ -228,7 +228,7 @@ public partial class DeploymentsPanel : UserControl
         var reselect = rows.Where(r => selectedIds.Contains(r.Target.Id)).ToList();
         if (reselect.Count == 0 && rows.Count > 0) reselect.Add(rows[0]);
         foreach (var row in reselect) TargetsGrid.SelectedItems.Add(row);
-        TargetsTitle.Text = rows.Count == 1 ? "1 poste" : $"{rows.Count} postes";
+        TargetsTitle.Text = rows.Count == 1 ? L.Get("DeploymentsPanel_OneComputer") : L.Format("DeploymentsPanel_ComputerCount", rows.Count);
         ShowTarget();
     }
 
@@ -245,7 +245,7 @@ public partial class DeploymentsPanel : UserControl
         TName.Text = t.Computer;
         TStatus.Text = Ui.StatusText(row.Status);
         TStatus.Foreground = Ui.StatusBrush(row.Status);
-        TSteps.Text = row.Steps + " étapes";
+        TSteps.Text = row.Steps + " " + L.Get("DeploymentsPanel_StepsWord");
         TCurrent.Text = t.Status == TargetStatus.Running ? t.Stage ?? "" : "";
         TCurrentRow.Height = t.Status == TargetStatus.Running ? GridLength.Auto : new GridLength(0);
         TStarted.Text = string.IsNullOrEmpty(row.Started) ? "—" : row.Started;
@@ -254,7 +254,7 @@ public partial class DeploymentsPanel : UserControl
         TError.Text = t.Error ?? "";
         // Reason on a succeeded computer (skipped step, stop on success...): a note, not an error.
         var failed = t.Status == TargetStatus.Failed;
-        TErrorTitle.Text = failed ? "ERREUR" : "REMARQUE";
+        TErrorTitle.Text = failed ? L.Get("DeploymentsPanel_ErrorTitle") : L.Get("DeploymentsPanel_NoteTitle");
         System.Windows.Automation.AutomationProperties.SetName(TErrorTitle, TErrorTitle.Text);
         TError.SetResourceReference(TextBlock.ForegroundProperty, failed ? "KoBrush" : "MutedBrush");
         TErrorTitle.Visibility = TError.Visibility = string.IsNullOrEmpty(t.Error) ? Visibility.Collapsed : Visibility.Visible;
@@ -302,15 +302,15 @@ public partial class DeploymentsPanel : UserControl
             ? []
             :
             [
-                new("Annuler le déploiement", AbortDeployment, CanAbort),
+                new(L.Get("DeploymentsPanel_CtxCancelDeployment"), AbortDeployment, CanAbort),
                 Ui.Separator,
-                new("Redéployer", Redeploy, CanRedeploy, "Ctrl+R"),
-                new("Redéployer sur les postes en échec", RedeployFailed, CanRedeployFailed, "Ctrl+Maj+R"),
-                new("Redéployer depuis l'étape en échec", RedeployFromFailedStep, CanRedeployFailed),
+                new(L.Get("DeploymentsPanel_Redeploy"), Redeploy, CanRedeploy, "Ctrl+R"),
+                new(L.Get("DeploymentsPanel_CtxRedeployFailed"), RedeployFailed, CanRedeployFailed, L.Get("DeploymentsPanel_KeyCtrlShiftR")),
+                new(L.Get("DeploymentsPanel_CtxRedeployFromStep"), RedeployFromFailedStep, CanRedeployFailed),
                 Ui.Separator,
-                new("Nouvelle planification à partir de ce déploiement…", () => ScheduleRequested?.Invoke(Schedule.From(Selected!))),
+                new(L.Get("DeploymentsPanel_CtxNewScheduleFrom"), () => ScheduleRequested?.Invoke(Schedule.From(Selected!))),
                 Ui.Separator,
-                new("Supprimer", DeleteSelected, CanDelete, "Suppr"),
+                new(L.Get("DeploymentsPanel_Delete"), DeleteSelected, CanDelete, L.Get("DeploymentsPanel_KeyDelete")),
             ]);
 
         Ui.ContextMenu(TargetsGrid, () =>
@@ -321,14 +321,14 @@ public partial class DeploymentsPanel : UserControl
             var names = targets.Select(t => t.Computer).ToList();
             return
             [
-                new("Annuler", () => _ = AbortAsync(d, active), active.Count > 0),
+                new(L.Get("DeploymentsPanel_Cancel"), () => _ = AbortAsync(d, active), active.Count > 0),
                 Ui.Separator,
-                new("Redéployer", () => DeployRequested?.Invoke(d.PackageId, Fresh(names)), Gesture: "Ctrl+R"),
-                new("Redéployer depuis l'étape en échec", () => RedeployFromFailedStep(failed), failed.Count > 0),
+                new(L.Get("DeploymentsPanel_Redeploy"), () => DeployRequested?.Invoke(d.PackageId, Fresh(names)), Gesture: "Ctrl+R"),
+                new(L.Get("DeploymentsPanel_CtxRedeployFromStep"), () => RedeployFromFailedStep(failed), failed.Count > 0),
                 Ui.Separator,
-                new("Détail des étapes…", OpenSteps, targets.Count == 1),
-                new("Copier le nom du poste", () => Clipboard.SetText(string.Join(Environment.NewLine, names))),
-                new("Copier l'erreur", () => Clipboard.SetText(string.Join(Environment.NewLine, targets.Select(t => t.Error).Where(e => !string.IsNullOrEmpty(e)))),
+                new(L.Get("DeploymentsPanel_CtxStepDetails"), OpenSteps, targets.Count == 1),
+                new(L.Get("DeploymentsPanel_CtxCopyName"), () => Clipboard.SetText(string.Join(Environment.NewLine, names))),
+                new(L.Get("DeploymentsPanel_CtxCopyError"), () => Clipboard.SetText(string.Join(Environment.NewLine, targets.Select(t => t.Error).Where(e => !string.IsNullOrEmpty(e)))),
                     targets.Any(t => !string.IsNullOrEmpty(t.Error))),
             ];
         });

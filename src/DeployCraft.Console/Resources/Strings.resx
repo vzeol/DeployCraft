@@ -4,11 +4,887 @@
   <resheader name="version"><value>2.0</value></resheader>
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AboutWindow_AccessDenied" xml:space="preserve"><value>Accès refusé</value></data>
+  <data name="AboutWindow_ConnectedAs" xml:space="preserve"><value>Connecté en tant que</value></data>
+  <data name="AboutWindow_Console" xml:space="preserve"><value>Console</value></data>
+  <data name="AboutWindow_Copy" xml:space="preserve"><value>Copier les informations</value></data>
+  <data name="AboutWindow_CopyTip" xml:space="preserve"><value>Copie les versions et l'environnement, pratique pour signaler un problème.</value></data>
+  <data name="AboutWindow_LicenseText" xml:space="preserve"><value>Texte de la licence</value></data>
+  <data name="AboutWindow_ProjectPage" xml:space="preserve"><value>Page du projet</value></data>
+  <data name="AboutWindow_Querying" xml:space="preserve"><value>Interrogation du service…</value></data>
+  <data name="AboutWindow_Service" xml:space="preserve"><value>Service</value></data>
+  <data name="AboutWindow_Tagline" xml:space="preserve"><value>Déploiement de logiciels sur un parc Windows, sans agent installé sur les postes.</value></data>
+  <data name="AboutWindow_Title" xml:space="preserve"><value>À propos de DeployCraft</value></data>
+  <data name="AdPicker_Disabled" xml:space="preserve"><value>désactivé</value></data>
+  <data name="AdPicker_Found" xml:space="preserve"><value>{0} poste(s) dans {1} OU. Cochez une OU pour sélectionner tous ses postes.</value></data>
+  <data name="AdPicker_Info" xml:space="preserve"><value>Cochez une OU pour sélectionner tous ses postes.</value></data>
+  <data name="AdPicker_None" xml:space="preserve"><value>Aucun poste trouvé.</value></data>
+  <data name="AdPicker_Reading" xml:space="preserve"><value>Lecture de l'Active Directory…</value></data>
+  <data name="AdPicker_Search" xml:space="preserve"><value>Rechercher</value></data>
+  <data name="AdPicker_SearchTip" xml:space="preserve"><value>Partie du nom du poste (vide = tous les postes)</value></data>
+  <data name="AdPicker_Title" xml:space="preserve"><value>Choisir des postes dans l'Active Directory</value></data>
+  <data name="ApiClient_AuthFailed" xml:space="preserve"><value>Le service n'a pas pu vérifier votre compte Windows. Ouvrez la console avec un compte du domaine ou du serveur.</value></data>
+  <data name="ApiClient_ServiceError" xml:space="preserve"><value>Erreur du service ({0}).</value></data>
+  <data name="ApiClient_ServiceNotResponding" xml:space="preserve"><value>Le service DeployCraft ne répond pas. Vérifiez qu'il est démarré (services.msc).</value></data>
+  <data name="ConditionsEditor_Any" xml:space="preserve"><value>Indifférent</value></data>
+  <data name="ConditionsEditor_Arch32" xml:space="preserve"><value>32 bits</value></data>
+  <data name="ConditionsEditor_Arch64" xml:space="preserve"><value>64 bits</value></data>
+  <data name="ConditionsEditor_ArchAll" xml:space="preserve"><value>Toutes</value></data>
+  <data name="ConditionsEditor_Architecture" xml:space="preserve"><value>Architecture</value></data>
+  <data name="ConditionsEditor_Exists" xml:space="preserve"><value>Existe</value></data>
+  <data name="ConditionsEditor_FileOrFolder" xml:space="preserve"><value>Fichier ou dossier</value></data>
+  <data name="ConditionsEditor_IntroPackage" xml:space="preserve"><value>Le paquet n'est installé que sur les postes qui remplissent toutes ces conditions. Les autres sont comptés réussis, sans rien exécuter (étapes « Ignoré »).</value></data>
+  <data name="ConditionsEditor_IntroStep" xml:space="preserve"><value>L'étape n'est exécutée que sur les postes qui remplissent toutes ces conditions. Sinon elle est sautée (« Ignoré ») et le paquet continue.</value></data>
+  <data name="ConditionsEditor_LoggedOnUser" xml:space="preserve"><value>Utilisateur connecté</value></data>
+  <data name="ConditionsEditor_NoBoxHint" xml:space="preserve"><value>Aucune case cochée : toutes les versions.</value></data>
+  <data name="ConditionsEditor_NoCondition" xml:space="preserve"><value>Aucune condition</value></data>
+  <data name="ConditionsEditor_NobodyLoggedOn" xml:space="preserve"><value>Personne ne doit être connecté</value></data>
+  <data name="ConditionsEditor_NotExists" xml:space="preserve"><value>N'existe pas</value></data>
+  <data name="ConditionsEditor_OlderVersions" xml:space="preserve"><value>Versions antérieures</value></data>
+  <data name="ConditionsEditor_PathHint" xml:space="preserve"><value>Chemin sur le poste ; les variables comme %ProgramFiles% ou %windir% sont acceptées.</value></data>
+  <data name="ConditionsEditor_PowerShell3" xml:space="preserve"><value>3 ou plus</value></data>
+  <data name="ConditionsEditor_PowerShell4" xml:space="preserve"><value>4 ou plus</value></data>
+  <data name="ConditionsEditor_PowerShell5" xml:space="preserve"><value>5 ou plus</value></data>
+  <data name="ConditionsEditor_PowerShell7" xml:space="preserve"><value>7 ou plus</value></data>
+  <data name="ConditionsEditor_Registry" xml:space="preserve"><value>Registre</value></data>
+  <data name="ConditionsEditor_RegistryHint" xml:space="preserve"><value>Clé commençant par HKLM, HKCU, HKCR ou HKU (vue 64 bits sur un poste 64 bits). Valeur vide : seule la clé compte. HKCU désigne le compte qui exécute le paquet.</value></data>
+  <data name="ConditionsEditor_RegistryKeyTip" xml:space="preserve"><value>Clé, par exemple HKLM\SOFTWARE\Éditeur\Logiciel</value></data>
+  <data name="ConditionsEditor_SomeoneLoggedOn" xml:space="preserve"><value>Quelqu'un doit être connecté</value></data>
+  <data name="ConditionsEditor_Value" xml:space="preserve"><value>Valeur</value></data>
+  <data name="ConditionsEditor_ValueTip" xml:space="preserve"><value>Nom d'une valeur de la clé (facultatif)</value></data>
+  <data name="ConditionsEditor_WindowsVersion" xml:space="preserve"><value>Version de Windows</value></data>
+  <data name="ConsoleUsers_AccessHint" xml:space="preserve"><value>Les administrateurs de {0} ont toujours accès à DeployCraft. Ajoutez ici d'autres comptes ou groupes Windows (DOMAINE\nom) qui pourront ouvrir la console, sans les rendre administrateurs du serveur. Vous êtes connecté en tant que {1}.</value></data>
+  <data name="ConsoleUsers_AddPrompt" xml:space="preserve"><value>Compte ou groupe Windows (DOMAINE\nom) :</value></data>
+  <data name="ConsoleUsers_ColComputer" xml:space="preserve"><value>Poste</value></data>
+  <data name="ConsoleUsers_ColLastSeen" xml:space="preserve"><value>Dernière activité</value></data>
+  <data name="ConsoleUsers_ColUser" xml:space="preserve"><value>Utilisateur</value></data>
+  <data name="ConsoleUsers_NoEdit" xml:space="preserve"><value>Seuls les administrateurs de ce serveur peuvent modifier cette liste.</value></data>
+  <data name="ConsoleUsers_RemoveConfirm" xml:space="preserve"><value>Retirer l'accès de {0} ?</value></data>
+  <data name="ConsoleUsers_SessionsCount" xml:space="preserve"><value>{0} console(s) ouverte(s) en ce moment (une console fermée disparaît de la liste après 2 minutes).</value></data>
+  <data name="ConsoleUsers_SessionsTab" xml:space="preserve"><value>Sessions actives</value></data>
+  <data name="ConsoleUsers_Title" xml:space="preserve"><value>Utilisateurs de la console</value></data>
+  <data name="ConsoleUsers_UsersTab" xml:space="preserve"><value>Utilisateurs</value></data>
+  <data name="CredentialEdit_AccountAccepted" xml:space="preserve"><value>✓ Compte accepté par {0}.</value></data>
+  <data name="CredentialEdit_AddTitle" xml:space="preserve"><value>Ajouter un identifiant</value></data>
+  <data name="CredentialEdit_Checking" xml:space="preserve"><value>Vérification…</value></data>
+  <data name="CredentialEdit_Description" xml:space="preserve"><value>Description</value></data>
+  <data name="CredentialEdit_DescriptionTip" xml:space="preserve"><value>Facultatif, ex. « Admin domaine » ou « Admin local des postes »</value></data>
+  <data name="CredentialEdit_Domain" xml:space="preserve"><value>Domaine</value></data>
+  <data name="CredentialEdit_DomainHint" xml:space="preserve"><value>Compte local de chaque poste (ex. Administrateur) : laissez vide ou mettez « . ».</value></data>
+  <data name="CredentialEdit_DomainOk" xml:space="preserve"><value>✓ Connexion au domaine réussie.</value></data>
+  <data name="CredentialEdit_EditTitle" xml:space="preserve"><value>Modifier l'identifiant</value></data>
+  <data name="CredentialEdit_PasswordKeepHint" xml:space="preserve"><value>Laisser vide pour conserver le mot de passe actuel.</value></data>
+  <data name="CredentialEdit_PasswordUnreadable" xml:space="preserve"><value>Le mot de passe enregistré ne peut pas être relu : saisissez-le de nouveau.</value></data>
+  <data name="CredentialEdit_Test" xml:space="preserve"><value>Tester</value></data>
+  <data name="CredentialEdit_TestComputerPrompt" xml:space="preserve"><value>Poste sur lequel essayer le compte local « {0} » :</value></data>
+  <data name="CredentialEdit_TestDomainTip" xml:space="preserve"><value>Vérifie le compte et le mot de passe auprès du domaine</value></data>
+  <data name="CredentialEdit_TestLocalTip" xml:space="preserve"><value>Essaie le compte sur un poste (accès au partage ADMIN$, comme un déploiement)</value></data>
+  <data name="CredentialEdit_TestTitle" xml:space="preserve"><value>Tester l'identifiant</value></data>
+  <data name="CredentialEdit_User" xml:space="preserve"><value>Utilisateur</value></data>
+  <data name="Credentials_DefaultText" xml:space="preserve"><value>(par défaut)</value></data>
+  <data name="Credentials_DeleteConfirm" xml:space="preserve"><value>Supprimer l'identifiant {0} ?</value></data>
+  <data name="Credentials_Intro" xml:space="preserve"><value>Comptes administrateurs des postes. Celui par défaut sert quand un déploiement ou une planification n'en désigne pas d'autre. Les mots de passe sont chiffrés sur le serveur et ne sont jamais réaffichés.</value></data>
+  <data name="Credentials_NoneService" xml:space="preserve"><value>Aucun : compte du service DeployCraft</value></data>
+  <data name="Credentials_PasswordUnreadable" xml:space="preserve"><value>mot de passe à ressaisir</value></data>
+  <data name="Credentials_SetDefault" xml:space="preserve"><value>Définir par défaut</value></data>
+  <data name="Credentials_Title" xml:space="preserve"><value>Identifiants</value></data>
+  <data name="Credentials_WarnNone" xml:space="preserve"><value>Aucun identifiant : les déploiements utiliseront le compte du service DeployCraft.</value></data>
+  <data name="Credentials_WarnUnreadable" xml:space="preserve"><value>Un ou plusieurs mots de passe ne peuvent pas être relus (base venue d'un autre serveur ?) : ressaisissez-les avec « Modifier ».</value></data>
+  <data name="DeployEditing_ComputerCount" xml:space="preserve"><value>{0} poste(s)</value></data>
+  <data name="DeployEditing_CopyPull" xml:space="preserve"><value>Chaque poste copie lui-même les fichiers depuis le partage (chemins \\serveur\… seulement ; sinon push).</value></data>
+  <data name="DeployEditing_CopyPush" xml:space="preserve"><value>Le serveur copie les fichiers d'installation sur chaque poste.</value></data>
+  <data name="DeployEditing_EachPackageOwn" xml:space="preserve"><value>Chaque paquet garde son propre réglage.</value></data>
+  <data name="DeployEditing_NoCredentialLocalSystem" xml:space="preserve"><value>Aucun identifiant enregistré : le service tournera en Système local.</value></data>
+  <data name="DeployEditing_NoTarget" xml:space="preserve"><value>aucune cible</value></data>
+  <data name="DeployEditing_PackagesAndTargets" xml:space="preserve"><value>{0} paquets · {1}</value></data>
+  <data name="DeployEditing_RunsAsCredential" xml:space="preserve"><value>Le service temporaire tourne sous l'identifiant choisi (accès réseau avec ce compte).</value></data>
+  <data name="DeployEditing_RunsAsLocalSystem" xml:space="preserve"><value>Le service temporaire tourne en Système local (accès réseau avec le compte ordinateur du poste).</value></data>
+  <data name="DeployEditing_RunsInUserSession" xml:space="preserve"><value>Chaque étape s'ouvre dans la session de l'utilisateur connecté ; échec si personne n'est connecté.</value></data>
+  <data name="DeployWindow_AddButton" xml:space="preserve"><value>Ajouter</value></data>
+  <data name="DeployWindow_AddPackage" xml:space="preserve"><value>Ajouter un paquet ▾</value></data>
+  <data name="DeployWindow_Cancel" xml:space="preserve"><value>Annuler</value></data>
+  <data name="DeployWindow_ChooseTargets" xml:space="preserve"><value>Choisir des cibles ▾</value></data>
+  <data name="DeployWindow_ColComputer" xml:space="preserve"><value>Poste</value></data>
+  <data name="DeployWindow_ColStartStep" xml:space="preserve"><value>Démarrer à l'étape</value></data>
+  <data name="DeployWindow_ComputerListTitle" xml:space="preserve"><value>Liste de postes</value></data>
+  <data name="DeployWindow_ComputerNameTip" xml:space="preserve"><value>Nom du poste (plusieurs noms possibles, séparés par des espaces, virgules ou retours à la ligne)</value></data>
+  <data name="DeployWindow_CopyMode" xml:space="preserve"><value>Mode de copie</value></data>
+  <data name="DeployWindow_Credential" xml:space="preserve"><value>Identifiant</value></data>
+  <data name="DeployWindow_DeleteKey" xml:space="preserve"><value>Suppr</value></data>
+  <data name="DeployWindow_DeployNow" xml:space="preserve"><value>Déployer maintenant</value></data>
+  <data name="DeployWindow_Manage" xml:space="preserve"><value>Gérer…</value></data>
+  <data name="DeployWindow_ManageCredentialsTip" xml:space="preserve"><value>Ajouter, modifier ou supprimer des identifiants</value></data>
+  <data name="DeployWindow_MoveDown" xml:space="preserve"><value>Descendre</value></data>
+  <data name="DeployWindow_MoveUp" xml:space="preserve"><value>Monter</value></data>
+  <data name="DeployWindow_NoOtherPackage" xml:space="preserve"><value>(aucun autre paquet)</value></data>
+  <data name="DeployWindow_OptionsTab" xml:space="preserve"><value>Options</value></data>
+  <data name="DeployWindow_Packages" xml:space="preserve"><value>Paquets</value></data>
+  <data name="DeployWindow_PackagesHint" xml:space="preserve"><value>Plusieurs paquets : ils s'installent dans cet ordre sur chaque poste, le suivant après la fin du précédent.</value></data>
+  <data name="DeployWindow_PasteList" xml:space="preserve"><value>Coller une liste de postes</value></data>
+  <data name="DeployWindow_Priority" xml:space="preserve"><value>Prioritaire : ces postes passent devant ceux qui attendent déjà</value></data>
+  <data name="DeployWindow_Remember" xml:space="preserve"><value>Mémoriser ces cibles pour ce paquet (proposées au prochain déploiement)</value></data>
+  <data name="DeployWindow_RemoveAll" xml:space="preserve"><value>Tout retirer</value></data>
+  <data name="DeployWindow_RemoveItem" xml:space="preserve"><value>Retirer</value></data>
+  <data name="DeployWindow_RemovePackage" xml:space="preserve"><value>Retirer le paquet</value></data>
+  <data name="DeployWindow_RemoveSelection" xml:space="preserve"><value>Retirer la sélection</value></data>
+  <data name="DeployWindow_RunAs" xml:space="preserve"><value>Exécuter en tant que</value></data>
+  <data name="DeployWindow_ScheduleButton" xml:space="preserve"><value>Planifier…</value></data>
+  <data name="DeployWindow_ScheduleTip" xml:space="preserve"><value>Crée une planification avec ces paquets, ces cibles et ces options</value></data>
+  <data name="DeployWindow_StartAtStep" xml:space="preserve"><value>Démarrer à l'étape</value></data>
+  <data name="DeployWindow_StartAtStep1" xml:space="preserve"><value>Démarrer à l'étape 1</value></data>
+  <data name="DeployWindow_Targets" xml:space="preserve"><value>Cibles</value></data>
+  <data name="DeployWindow_TextFile" xml:space="preserve"><value>Fichier texte…</value></data>
+  <data name="DeployWindow_TextFilesFilter" xml:space="preserve"><value>Fichiers texte (*.txt;*.csv)|*.txt;*.csv|Tous les fichiers|*.*</value></data>
+  <data name="DeployWindow_Title" xml:space="preserve"><value>Déployer une fois</value></data>
+  <data name="DeployWindow_TitleWithPackage" xml:space="preserve"><value>Déployer une fois — {0}</value></data>
+  <data name="DeploymentsPanel_AbortConfirm" xml:space="preserve"><value>Annuler {0} ?
+Une installation en cours sera interrompue.</value></data>
+  <data name="DeploymentsPanel_AbortWhatAll" xml:space="preserve"><value>le déploiement {0} ({1})</value></data>
+  <data name="DeploymentsPanel_AbortWhatMany" xml:space="preserve"><value>le déploiement sur ces {0} postes</value></data>
+  <data name="DeploymentsPanel_AbortWhatOne" xml:space="preserve"><value>le déploiement sur {0}</value></data>
+  <data name="DeploymentsPanel_Account" xml:space="preserve"><value>Compte</value></data>
+  <data name="DeploymentsPanel_Action" xml:space="preserve"><value>Action</value></data>
+  <data name="DeploymentsPanel_Cancel" xml:space="preserve"><value>Annuler</value></data>
+  <data name="DeploymentsPanel_ColCancelled" xml:space="preserve"><value>Annulés</value></data>
+  <data name="DeploymentsPanel_ColNumber" xml:space="preserve"><value>N°</value></data>
+  <data name="DeploymentsPanel_ColPriority" xml:space="preserve"><value>Prioritaire</value></data>
+  <data name="DeploymentsPanel_ColSucceeded" xml:space="preserve"><value>Réussis</value></data>
+  <data name="DeploymentsPanel_Computer" xml:space="preserve"><value>Poste</value></data>
+  <data name="DeploymentsPanel_ComputerCount" xml:space="preserve"><value>{0} postes</value></data>
+  <data name="DeploymentsPanel_ComputerDetailsTitle" xml:space="preserve"><value>DÉTAILS DU POSTE</value></data>
+  <data name="DeploymentsPanel_Computers" xml:space="preserve"><value>Postes</value></data>
+  <data name="DeploymentsPanel_CtxCancelDeployment" xml:space="preserve"><value>Annuler le déploiement</value></data>
+  <data name="DeploymentsPanel_CtxCopyError" xml:space="preserve"><value>Copier l'erreur</value></data>
+  <data name="DeploymentsPanel_CtxCopyName" xml:space="preserve"><value>Copier le nom du poste</value></data>
+  <data name="DeploymentsPanel_CtxNewScheduleFrom" xml:space="preserve"><value>Nouvelle planification à partir de ce déploiement…</value></data>
+  <data name="DeploymentsPanel_CtxRedeployFailed" xml:space="preserve"><value>Redéployer sur les postes en échec</value></data>
+  <data name="DeploymentsPanel_CtxRedeployFromStep" xml:space="preserve"><value>Redéployer depuis l'étape en échec</value></data>
+  <data name="DeploymentsPanel_CtxStepDetails" xml:space="preserve"><value>Détail des étapes…</value></data>
+  <data name="DeploymentsPanel_Delete" xml:space="preserve"><value>Supprimer</value></data>
+  <data name="DeploymentsPanel_DeleteConfirm" xml:space="preserve"><value>Supprimer le déploiement {0} ({1}) de l'historique ?</value></data>
+  <data name="DeploymentsPanel_Deployment" xml:space="preserve"><value>Déploiement</value></data>
+  <data name="DeploymentsPanel_DeploymentCount" xml:space="preserve"><value>{0} déploiements</value></data>
+  <data name="DeploymentsPanel_DeploymentDetailsTitle" xml:space="preserve"><value>DÉTAILS DU DÉPLOIEMENT</value></data>
+  <data name="DeploymentsPanel_DeploymentTitle" xml:space="preserve"><value>Déploiement {0}</value></data>
+  <data name="DeploymentsPanel_Detail" xml:space="preserve"><value>Détail</value></data>
+  <data name="DeploymentsPanel_DetailTip" xml:space="preserve"><value>Erreur, remarque ou étape en cours</value></data>
+  <data name="DeploymentsPanel_Duration" xml:space="preserve"><value>Durée</value></data>
+  <data name="DeploymentsPanel_End" xml:space="preserve"><value>Fin</value></data>
+  <data name="DeploymentsPanel_ErrorTitle" xml:space="preserve"><value>ERREUR</value></data>
+  <data name="DeploymentsPanel_Failures" xml:space="preserve"><value>Échecs</value></data>
+  <data name="DeploymentsPanel_Filter" xml:space="preserve"><value>Filtrer</value></data>
+  <data name="DeploymentsPanel_FromStep" xml:space="preserve"><value>{0} (depuis l'étape {1})</value></data>
+  <data name="DeploymentsPanel_KeyCtrlShiftR" xml:space="preserve"><value>Ctrl+Maj+R</value></data>
+  <data name="DeploymentsPanel_KeyDelete" xml:space="preserve"><value>Suppr</value></data>
+  <data name="DeploymentsPanel_Launched" xml:space="preserve"><value>Lancé le</value></data>
+  <data name="DeploymentsPanel_LaunchedBy" xml:space="preserve"><value>Lancé par</value></data>
+  <data name="DeploymentsPanel_NoDeployment" xml:space="preserve"><value>Aucun déploiement</value></data>
+  <data name="DeploymentsPanel_NoteTitle" xml:space="preserve"><value>REMARQUE</value></data>
+  <data name="DeploymentsPanel_OneComputer" xml:space="preserve"><value>1 poste</value></data>
+  <data name="DeploymentsPanel_OneDeployment" xml:space="preserve"><value>1 déploiement</value></data>
+  <data name="DeploymentsPanel_Package" xml:space="preserve"><value>Paquet</value></data>
+  <data name="DeploymentsPanel_Redeploy" xml:space="preserve"><value>Redéployer</value></data>
+  <data name="DeploymentsPanel_RedeployOnComputer" xml:space="preserve"><value>Redéployer sur ce poste</value></data>
+  <data name="DeploymentsPanel_Retry" xml:space="preserve"><value>Relancer</value></data>
+  <data name="DeploymentsPanel_RunAsAccess" xml:space="preserve"><value>(accès : {0})</value></data>
+  <data name="DeploymentsPanel_Running" xml:space="preserve"><value>En cours</value></data>
+  <data name="DeploymentsPanel_RunningWaiting" xml:space="preserve"><value>{0} en cours · {1} en attente</value></data>
+  <data name="DeploymentsPanel_SelectComputer" xml:space="preserve"><value>Sélectionnez un poste.</value></data>
+  <data name="DeploymentsPanel_SelectDeployment" xml:space="preserve"><value>Sélectionnez un déploiement.</value></data>
+  <data name="DeploymentsPanel_Start" xml:space="preserve"><value>Début</value></data>
+  <data name="DeploymentsPanel_Status" xml:space="preserve"><value>Statut</value></data>
+  <data name="DeploymentsPanel_Steps" xml:space="preserve"><value>Étapes</value></data>
+  <data name="DeploymentsPanel_StepsOf" xml:space="preserve"><value>{0} sur {1}</value></data>
+  <data name="DeploymentsPanel_StepsWord" xml:space="preserve"><value>étapes</value></data>
+  <data name="DeploymentsPanel_Summary" xml:space="preserve"><value>RÉSUMÉ</value></data>
+  <data name="DeploymentsPanel_Waiting" xml:space="preserve"><value>En attente</value></data>
+  <data name="DeploymentsPanel_Yes" xml:space="preserve"><value>Oui</value></data>
+  <data name="Dialog_Add" xml:space="preserve"><value>Ajouter…</value></data>
+  <data name="Dialog_Cancel" xml:space="preserve"><value>Annuler</value></data>
+  <data name="Dialog_Close" xml:space="preserve"><value>Fermer</value></data>
+  <data name="Dialog_Delete" xml:space="preserve"><value>Supprimer</value></data>
+  <data name="Dialog_DeleteKey" xml:space="preserve"><value>Suppr</value></data>
+  <data name="Dialog_Edit" xml:space="preserve"><value>Modifier…</value></data>
+  <data name="Dialog_No" xml:space="preserve"><value>Non</value></data>
+  <data name="Dialog_Password" xml:space="preserve"><value>Mot de passe</value></data>
+  <data name="Dialog_Yes" xml:space="preserve"><value>Oui</value></data>
+  <data name="HelpWindow_SearchTip" xml:space="preserve"><value>Rechercher dans l'aide</value></data>
+  <data name="HelpWindow_Title" xml:space="preserve"><value>Aide de DeployCraft</value></data>
+  <data name="ImportWindow_Done" xml:space="preserve"><value>{0} paquet(s) importé(s).</value></data>
+  <data name="ImportWindow_File" xml:space="preserve"><value>Fichier : {0}</value></data>
+  <data name="ImportWindow_Import" xml:space="preserve"><value>Importer</value></data>
+  <data name="ImportWindow_NoPackages" xml:space="preserve"><value>Aucun paquet à importer.</value></data>
+  <data name="ImportWindow_PreviewHint" xml:space="preserve"><value>Aperçu : rien n'est encore créé. Dépliez un paquet pour voir le détail de ses étapes.</value></data>
+  <data name="ImportWindow_ReadError" xml:space="preserve"><value>Impossible de lire le fichier : {0}</value></data>
+  <data name="ImportWindow_RepositoryHint" xml:space="preserve"><value>Dossier du dépôt (partage réseau) : il remplace $(Repository) dans les chemins des paquets. Laissez vide si vos paquets ne l'utilisent pas.</value></data>
+  <data name="ImportWindow_StateOk" xml:space="preserve"><value>repris tel quel</value></data>
+  <data name="ImportWindow_StateSkipped" xml:space="preserve"><value>non repris</value></data>
+  <data name="ImportWindow_StateWarning" xml:space="preserve"><value>repris avec des réserves</value></data>
+  <data name="ImportWindow_Summary" xml:space="preserve"><value>{0} paquet(s) à créer, dont {1} avec des réserves ; {2} non repris.</value></data>
+  <data name="ImportWindow_Title" xml:space="preserve"><value>Importer des paquets</value></data>
+  <data name="ImportWindow_UpdatePreview" xml:space="preserve"><value>Mettre à jour l'aperçu</value></data>
+  <data name="LibraryRow_CatalogNotRead" xml:space="preserve"><value>Catalogue pas encore lu</value></data>
+  <data name="LibraryRow_Failed" xml:space="preserve"><value>Échec : {0}</value></data>
+  <data name="LibraryRow_NotDownloaded" xml:space="preserve"><value>Pas encore téléchargé</value></data>
+  <data name="LibraryRow_Progress" xml:space="preserve"><value>{0}… {1} %</value></data>
+  <data name="LibraryRow_Unavailable" xml:space="preserve"><value>Non disponible : {0}</value></data>
+  <data name="LibraryRow_UpToDate" xml:space="preserve"><value>À jour</value></data>
+  <data name="LibraryRow_UpdateAvailable" xml:space="preserve"><value>Mise à jour disponible</value></data>
+  <data name="MainWindow_AllDeployments" xml:space="preserve"><value>Tous les déploiements</value></data>
+  <data name="MainWindow_AllSchedules" xml:space="preserve"><value>Toutes les planifications</value></data>
+  <data name="MainWindow_ColAvailableVersion" xml:space="preserve"><value>Version disponible</value></data>
+  <data name="MainWindow_ColConditions" xml:space="preserve"><value>Conditions</value></data>
+  <data name="MainWindow_ColEnabled" xml:space="preserve"><value>Activée</value></data>
+  <data name="MainWindow_ColIdentifier" xml:space="preserve"><value>Identifiant</value></data>
+  <data name="MainWindow_ColInDeployCraft" xml:space="preserve"><value>Dans DeployCraft</value></data>
+  <data name="MainWindow_ColInstaller" xml:space="preserve"><value>Installeur</value></data>
+  <data name="MainWindow_ColLastResult" xml:space="preserve"><value>Dernier résultat</value></data>
+  <data name="MainWindow_ColLastRun" xml:space="preserve"><value>Dernière exécution</value></data>
+  <data name="MainWindow_ColName" xml:space="preserve"><value>Nom</value></data>
+  <data name="MainWindow_ColNextRun" xml:space="preserve"><value>Prochaine exécution</value></data>
+  <data name="MainWindow_ColNumber" xml:space="preserve"><value>N°</value></data>
+  <data name="MainWindow_ColSoftware" xml:space="preserve"><value>Logiciel</value></data>
+  <data name="MainWindow_ColStartsIn" xml:space="preserve"><value>Départ</value></data>
+  <data name="MainWindow_ColState" xml:space="preserve"><value>État</value></data>
+  <data name="MainWindow_ColStep" xml:space="preserve"><value>Étape</value></data>
+  <data name="MainWindow_ColTriggers" xml:space="preserve"><value>Déclencheurs</value></data>
+  <data name="MainWindow_ColType" xml:space="preserve"><value>Type</value></data>
+  <data name="MainWindow_ComputerMany" xml:space="preserve"><value>{0} postes</value></data>
+  <data name="MainWindow_ComputerOne" xml:space="preserve"><value>{0} poste</value></data>
+  <data name="MainWindow_CopySuffix" xml:space="preserve"><value>(copie)</value></data>
+  <data name="MainWindow_CtxAddToOtherSchedule" xml:space="preserve"><value>Ajouter à une autre planification…</value></data>
+  <data name="MainWindow_CtxAddToSchedule" xml:space="preserve"><value>Ajouter à une planification…</value></data>
+  <data name="MainWindow_CtxCopy" xml:space="preserve"><value>Copier</value></data>
+  <data name="MainWindow_CtxCut" xml:space="preserve"><value>Couper</value></data>
+  <data name="MainWindow_CtxDisable" xml:space="preserve"><value>Désactiver</value></data>
+  <data name="MainWindow_CtxDuplicate" xml:space="preserve"><value>Dupliquer</value></data>
+  <data name="MainWindow_CtxEdit" xml:space="preserve"><value>Modifier…</value></data>
+  <data name="MainWindow_CtxEditPackage" xml:space="preserve"><value>Modifier le paquet…</value></data>
+  <data name="MainWindow_CtxEnable" xml:space="preserve"><value>Activer</value></data>
+  <data name="MainWindow_CtxExport" xml:space="preserve"><value>Exporter…</value></data>
+  <data name="MainWindow_CtxExportAll" xml:space="preserve"><value>Exporter tous les paquets…</value></data>
+  <data name="MainWindow_CtxImportPackages" xml:space="preserve"><value>Importer des paquets…</value></data>
+  <data name="MainWindow_CtxNewFolder" xml:space="preserve"><value>Nouveau dossier…</value></data>
+  <data name="MainWindow_CtxNewPackage" xml:space="preserve"><value>Nouveau paquet…</value></data>
+  <data name="MainWindow_CtxPaste" xml:space="preserve"><value>Coller</value></data>
+  <data name="MainWindow_CtxRemoveFromSchedule" xml:space="preserve"><value>Retirer ce paquet de la planification</value></data>
+  <data name="MainWindow_CtxShowPackage" xml:space="preserve"><value>Afficher le paquet</value></data>
+  <data name="MainWindow_Delete" xml:space="preserve"><value>Supprimer</value></data>
+  <data name="MainWindow_DeleteFolderConfirm" xml:space="preserve"><value>Supprimer le dossier « {0} » ?</value></data>
+  <data name="MainWindow_DeletePackageConfirm" xml:space="preserve"><value>Supprimer le paquet « {0} » ?
+L'historique de ses déploiements est conservé.</value></data>
+  <data name="MainWindow_DeleteScheduleConfirm" xml:space="preserve"><value>Supprimer la planification « {0} » ?
+Ses déploiements passés restent dans l'historique.</value></data>
+  <data name="MainWindow_DeployOnce" xml:space="preserve"><value>Déployer une fois</value></data>
+  <data name="MainWindow_DeployOnceDots" xml:space="preserve"><value>Déployer une fois…</value></data>
+  <data name="MainWindow_Deployments" xml:space="preserve"><value>Déploiements</value></data>
+  <data name="MainWindow_DeploymentsSubtitle" xml:space="preserve"><value>Historique de tous les paquets, le plus récent en premier</value></data>
+  <data name="MainWindow_DetachConfirm" xml:space="preserve"><value>Retirer « {0} » de la planification « {1} » ?</value></data>
+  <data name="MainWindow_Details" xml:space="preserve"><value>Détails</value></data>
+  <data name="MainWindow_Download" xml:space="preserve"><value>Télécharger</value></data>
+  <data name="MainWindow_EditPackage" xml:space="preserve"><value>Modifier le paquet</value></data>
+  <data name="MainWindow_EditSettingsLink" xml:space="preserve"><value>Modifier ces réglages…</value></data>
+  <data name="MainWindow_ExportDefaultName" xml:space="preserve"><value>Paquets DeployCraft</value></data>
+  <data name="MainWindow_ExportFilter" xml:space="preserve"><value>Paquets DeployCraft (*.json)|*.json</value></data>
+  <data name="MainWindow_ExportTitle" xml:space="preserve"><value>Exporter</value></data>
+  <data name="MainWindow_ExportWriteFailed" xml:space="preserve"><value>Impossible d'écrire le fichier : {0}</value></data>
+  <data name="MainWindow_Exported" xml:space="preserve"><value>{0} paquet(s) exporté(s)</value></data>
+  <data name="MainWindow_ExportedWithNested" xml:space="preserve"><value>{0} paquet(s) exporté(s), dont {1} paquet(s) imbriqué(s) ajouté(s)</value></data>
+  <data name="MainWindow_FilterTip" xml:space="preserve"><value>Filtrer les paquets</value></data>
+  <data name="MainWindow_FolderDots" xml:space="preserve"><value>Dossier…</value></data>
+  <data name="MainWindow_FolderNamePrompt" xml:space="preserve"><value>Nom du dossier :</value></data>
+  <data name="MainWindow_Home" xml:space="preserve"><value>Accueil</value></data>
+  <data name="MainWindow_HomeAllQuiet" xml:space="preserve"><value>Tout est calme.</value></data>
+  <data name="MainWindow_HomeDeploymentLine" xml:space="preserve"><value>n° {0} · {1}</value></data>
+  <data name="MainWindow_HomeFailed" xml:space="preserve"><value>en échec</value></data>
+  <data name="MainWindow_HomeLast24h" xml:space="preserve"><value>Dernières 24 heures</value></data>
+  <data name="MainWindow_HomeLibraryNone" xml:space="preserve"><value>Aucun paquet téléchargé depuis la bibliothèque pour l'instant.</value></data>
+  <data name="MainWindow_HomeLibraryUnavailable" xml:space="preserve"><value>État de la bibliothèque indisponible.</value></data>
+  <data name="MainWindow_HomeLibraryUpToDate" xml:space="preserve"><value>{0} de la bibliothèque, tous à jour.</value></data>
+  <data name="MainWindow_HomeLibraryUpdateMany" xml:space="preserve"><value>{0} mises à jour disponibles sur {1} de la bibliothèque.</value></data>
+  <data name="MainWindow_HomeLibraryUpdateOne" xml:space="preserve"><value>{0} mise à jour disponible sur {1} de la bibliothèque.</value></data>
+  <data name="MainWindow_HomeManyRunning" xml:space="preserve"><value>déploiements en cours</value></data>
+  <data name="MainWindow_HomeNextSchedules" xml:space="preserve"><value>Prochaines planifications</value></data>
+  <data name="MainWindow_HomeNoUpcoming" xml:space="preserve"><value>Aucune planification à venir.</value></data>
+  <data name="MainWindow_HomeNoneRunning" xml:space="preserve"><value>aucun déploiement en cours</value></data>
+  <data name="MainWindow_HomeNow" xml:space="preserve"><value>En ce moment</value></data>
+  <data name="MainWindow_HomeOneRunning" xml:space="preserve"><value>déploiement en cours</value></data>
+  <data name="MainWindow_HomeOpenLibrary" xml:space="preserve"><value>Ouvrir la bibliothèque</value></data>
+  <data name="MainWindow_HomePreferences" xml:space="preserve"><value>Préférences</value></data>
+  <data name="MainWindow_HomeSeeDeployments" xml:space="preserve"><value>Voir tous les déploiements</value></data>
+  <data name="MainWindow_HomeShortcuts" xml:space="preserve"><value>Raccourcis</value></data>
+  <data name="MainWindow_HomeSubtitle" xml:space="preserve"><value>L'essentiel en un coup d'œil : ce qui tourne, ce qui a échoué, ce qui arrive</value></data>
+  <data name="MainWindow_HomeSucceeded" xml:space="preserve"><value>réussis</value></data>
+  <data name="MainWindow_HomeTargets" xml:space="preserve"><value>{0} en cours, {1} en attente</value></data>
+  <data name="MainWindow_ImportFilter" xml:space="preserve"><value>Exports de paquets (*.json;*.xml)|*.json;*.xml|Tous les fichiers|*.*</value></data>
+  <data name="MainWindow_ImportPackages" xml:space="preserve"><value>Importer des paquets</value></data>
+  <data name="MainWindow_KeyAltInsert" xml:space="preserve"><value>Alt+Inser</value></data>
+  <data name="MainWindow_KeyCtrlShiftF" xml:space="preserve"><value>Ctrl+Maj+F</value></data>
+  <data name="MainWindow_KeyCtrlShiftN" xml:space="preserve"><value>Ctrl+Maj+N</value></data>
+  <data name="MainWindow_KeyCtrlShiftR" xml:space="preserve"><value>Ctrl+Maj+R</value></data>
+  <data name="MainWindow_KeyDelete" xml:space="preserve"><value>Suppr</value></data>
+  <data name="MainWindow_Library" xml:space="preserve"><value>Bibliothèque de paquets</value></data>
+  <data name="MainWindow_LibraryAutoDelayed" xml:space="preserve"><value>Mettre à jour automatiquement, après un délai</value></data>
+  <data name="MainWindow_LibraryAutoImmediate" xml:space="preserve"><value>Mettre à jour automatiquement, tout de suite</value></data>
+  <data name="MainWindow_LibraryAutoManual" xml:space="preserve"><value>Signaler seulement (vous cliquez sur Mettre à jour)</value></data>
+  <data name="MainWindow_LibraryAutoUpdateTip" xml:space="preserve"><value>Le catalogue est relu chaque jour par le service, même console fermée. Une mise à jour change le paquet, elle ne le déploie pas : les planifications qui l'utilisent installeront la nouvelle version.</value></data>
+  <data name="MainWindow_LibraryDaysAfterRelease" xml:space="preserve"><value>jours après sa sortie</value></data>
+  <data name="MainWindow_LibraryDefaultList" xml:space="preserve"><value>vos paquets et les logiciels courants en tête</value></data>
+  <data name="MainWindow_LibraryDelayTip" xml:space="preserve"><value>Laisse le temps à l'éditeur de corriger une version défectueuse avant qu'elle arrive sur vos postes.</value></data>
+  <data name="MainWindow_LibraryDownloadCreates" xml:space="preserve"><value>Chaque téléchargement crée ou met à jour un paquet du même nom, prêt à déployer.</value></data>
+  <data name="MainWindow_LibraryInstallersIn" xml:space="preserve"><value>Les installeurs sont rangés dans {0}</value></data>
+  <data name="MainWindow_LibraryNewVersionLabel" xml:space="preserve"><value>Nouvelle version d'un paquet téléchargé :</value></data>
+  <data name="MainWindow_LibraryNoResult" xml:space="preserve"><value>aucun résultat</value></data>
+  <data name="MainWindow_LibraryNotRead" xml:space="preserve"><value>pas encore lu</value></data>
+  <data name="MainWindow_LibraryReadOn" xml:space="preserve"><value>lu le {0}</value></data>
+  <data name="MainWindow_LibraryReading" xml:space="preserve"><value>lecture du catalogue en cours…</value></data>
+  <data name="MainWindow_LibraryResults" xml:space="preserve"><value>{0:N0} résultat(s)</value></data>
+  <data name="MainWindow_LibrarySearchTip" xml:space="preserve"><value>Cherche dans tout le catalogue : nom, éditeur ou mot-clé (ex. vlc, adobe, java)</value></data>
+  <data name="MainWindow_LibraryServerFolderHint" xml:space="preserve"><value>(dossier du serveur : préférez un partage, lisible aussi par les postes en mode pull).</value></data>
+  <data name="MainWindow_LibrarySubtitle" xml:space="preserve"><value>Catalogue public winget ({0:N0} logiciels, {1}) · {2}</value></data>
+  <data name="MainWindow_LibraryUpdatesAvailable" xml:space="preserve"><value>{0} mise(s) à jour disponible(s)</value></data>
+  <data name="MainWindow_MenuAbout" xml:space="preserve"><value>_À propos de DeployCraft</value></data>
+  <data name="MainWindow_MenuAdminCmd" xml:space="preserve"><value>Ouvrir une _invite de commandes (admin)</value></data>
+  <data name="MainWindow_MenuAdminPowerShell" xml:space="preserve"><value>Ouvrir _PowerShell (admin)</value></data>
+  <data name="MainWindow_MenuAllDeployments" xml:space="preserve"><value>Tous les _déploiements</value></data>
+  <data name="MainWindow_MenuAllSchedules" xml:space="preserve"><value>Toutes les _planifications</value></data>
+  <data name="MainWindow_MenuBackgroundService" xml:space="preserve"><value>_Service en arrière-plan…</value></data>
+  <data name="MainWindow_MenuCancelDeployment" xml:space="preserve"><value>_Annuler le déploiement</value></data>
+  <data name="MainWindow_MenuCheckUpdate" xml:space="preserve"><value>Rechercher une _mise à jour</value></data>
+  <data name="MainWindow_MenuConsoleUsers" xml:space="preserve"><value>_Utilisateurs de la console…</value></data>
+  <data name="MainWindow_MenuCredentials" xml:space="preserve"><value>_Identifiants…</value></data>
+  <data name="MainWindow_MenuDelete" xml:space="preserve"><value>_Supprimer</value></data>
+  <data name="MainWindow_MenuDeployOnce" xml:space="preserve"><value>_Déployer une fois…</value></data>
+  <data name="MainWindow_MenuDuplicate" xml:space="preserve"><value>D_upliquer le paquet</value></data>
+  <data name="MainWindow_MenuEdit" xml:space="preserve"><value>_Édition</value></data>
+  <data name="MainWindow_MenuEditPackage" xml:space="preserve"><value>_Modifier le paquet…</value></data>
+  <data name="MainWindow_MenuExport" xml:space="preserve"><value>_Exporter le paquet…</value></data>
+  <data name="MainWindow_MenuExportAll" xml:space="preserve"><value>Exporter _tous les paquets…</value></data>
+  <data name="MainWindow_MenuFile" xml:space="preserve"><value>_Fichier</value></data>
+  <data name="MainWindow_MenuFindPackage" xml:space="preserve"><value>Rechercher un paquet</value></data>
+  <data name="MainWindow_MenuHelp" xml:space="preserve"><value>Ai_de</value></data>
+  <data name="MainWindow_MenuHelpContents" xml:space="preserve"><value>_Aide de DeployCraft</value></data>
+  <data name="MainWindow_MenuHome" xml:space="preserve"><value>A_ccueil</value></data>
+  <data name="MainWindow_MenuImport" xml:space="preserve"><value>_Importer des paquets…</value></data>
+  <data name="MainWindow_MenuLibrary" xml:space="preserve"><value>_Bibliothèque de paquets</value></data>
+  <data name="MainWindow_MenuNewFolder" xml:space="preserve"><value>Nouveau d_ossier</value></data>
+  <data name="MainWindow_MenuNewPackage" xml:space="preserve"><value>_Nouveau paquet</value></data>
+  <data name="MainWindow_MenuNewSchedule" xml:space="preserve"><value>Nouvelle _planification…</value></data>
+  <data name="MainWindow_MenuOptions" xml:space="preserve"><value>_Options</value></data>
+  <data name="MainWindow_MenuPackages" xml:space="preserve"><value>Pa_quets</value></data>
+  <data name="MainWindow_MenuPreferences" xml:space="preserve"><value>_Préférences…</value></data>
+  <data name="MainWindow_MenuQuit" xml:space="preserve"><value>_Quitter</value></data>
+  <data name="MainWindow_MenuRedeploy" xml:space="preserve"><value>_Redéployer</value></data>
+  <data name="MainWindow_MenuRedeployFailed" xml:space="preserve"><value>Redéployer sur les postes en _échec</value></data>
+  <data name="MainWindow_MenuRedeployFromStep" xml:space="preserve"><value>Redéployer depuis l'é_tape en échec</value></data>
+  <data name="MainWindow_MenuRefresh" xml:space="preserve"><value>_Actualiser</value></data>
+  <data name="MainWindow_MenuRename" xml:space="preserve"><value>Re_nommer le paquet</value></data>
+  <data name="MainWindow_MenuView" xml:space="preserve"><value>_Affichage</value></data>
+  <data name="MainWindow_MenuWelcome" xml:space="preserve"><value>Assistant de _démarrage…</value></data>
+  <data name="MainWindow_NewFolder" xml:space="preserve"><value>Nouveau dossier</value></data>
+  <data name="MainWindow_NewPackage" xml:space="preserve"><value>Nouveau paquet</value></data>
+  <data name="MainWindow_NewSchedule" xml:space="preserve"><value>Nouvelle planification</value></data>
+  <data name="MainWindow_NewScheduleDots" xml:space="preserve"><value>Nouvelle planification…</value></data>
+  <data name="MainWindow_NewVersionTitle" xml:space="preserve"><value>Nouvelle version</value></data>
+  <data name="MainWindow_NoScheduleToAttach" xml:space="preserve"><value>Aucune planification où ajouter ce paquet (il fait déjà partie de toutes, ou il n'y en a aucune).</value></data>
+  <data name="MainWindow_NothingToDeploy" xml:space="preserve"><value>Rien à déployer.</value></data>
+  <data name="MainWindow_OneStep" xml:space="preserve"><value>1 étape</value></data>
+  <data name="MainWindow_OnlyPackageInSchedule" xml:space="preserve"><value>« {0} » est le seul paquet de « {1} » : désactivez ou supprimez plutôt la planification.</value></data>
+  <data name="MainWindow_PackageMany" xml:space="preserve"><value>{0} paquets</value></data>
+  <data name="MainWindow_PackageNoSchedule" xml:space="preserve"><value>Ce paquet ne fait partie d'aucune planification.</value></data>
+  <data name="MainWindow_PackageOne" xml:space="preserve"><value>{0} paquet</value></data>
+  <data name="MainWindow_PackageScheduleCount" xml:space="preserve"><value>{0} planification(s) avec ce paquet</value></data>
+  <data name="MainWindow_PackageSubtitle" xml:space="preserve"><value>Paquet · {0} · modifié le {1}</value></data>
+  <data name="MainWindow_PackageSubtitleDesc" xml:space="preserve"><value>{0} · {1} · modifié le {2}</value></data>
+  <data name="MainWindow_Packages" xml:space="preserve"><value>Paquets</value></data>
+  <data name="MainWindow_Refresh" xml:space="preserve"><value>Actualiser</value></data>
+  <data name="MainWindow_RefreshCatalog" xml:space="preserve"><value>Actualiser le catalogue</value></data>
+  <data name="MainWindow_Rename" xml:space="preserve"><value>Renommer</value></data>
+  <data name="MainWindow_RenameFolderPrompt" xml:space="preserve"><value>Nouveau nom du dossier :</value></data>
+  <data name="MainWindow_RenamePackagePrompt" xml:space="preserve"><value>Nouveau nom du paquet :</value></data>
+  <data name="MainWindow_Schedules" xml:space="preserve"><value>Planifications</value></data>
+  <data name="MainWindow_SchedulesEmpty" xml:space="preserve"><value>Aucune planification : créez-en une pour déployer automatiquement (ou réessayer jusqu'à réussite)</value></data>
+  <data name="MainWindow_SchedulesSubtitleAll" xml:space="preserve"><value>{0} planification(s), {1} activée(s) · en dessous, les déploiements de toutes les planifications</value></data>
+  <data name="MainWindow_SchedulesSubtitleOne" xml:space="preserve"><value>{0} planification(s), {1} activée(s) · en dessous, les déploiements de « {2} »</value></data>
+  <data name="MainWindow_SchedulesTitle" xml:space="preserve"><value>Planifications</value></data>
+  <data name="MainWindow_SplitterTip" xml:space="preserve"><value>Faire glisser pour élargir ou réduire l'arbre (double-clic : largeur d'origine)</value></data>
+  <data name="MainWindow_StartNow" xml:space="preserve"><value>Démarrer maintenant</value></data>
+  <data name="MainWindow_StatusAccessDenied" xml:space="preserve"><value>Accès refusé</value></data>
+  <data name="MainWindow_StatusDefaultCredential" xml:space="preserve"><value>Identifiant par défaut : {0}</value></data>
+  <data name="MainWindow_StatusNoCredential" xml:space="preserve"><value>Aucun identifiant</value></data>
+  <data name="MainWindow_StatusNoneRunning" xml:space="preserve"><value>Aucun déploiement en cours</value></data>
+  <data name="MainWindow_StatusRunning" xml:space="preserve"><value>{0} déploiement(s) en cours</value></data>
+  <data name="MainWindow_StatusService" xml:space="preserve"><value>Service : {0} ({1}) — vous : {2}</value></data>
+  <data name="MainWindow_StatusUnreachable" xml:space="preserve"><value>Service injoignable</value></data>
+  <data name="MainWindow_StepCount" xml:space="preserve"><value>{0} étapes</value></data>
+  <data name="MainWindow_Steps" xml:space="preserve"><value>Étapes</value></data>
+  <data name="MainWindow_ToolEdit" xml:space="preserve"><value>Modifier</value></data>
+  <data name="MainWindow_ToolPreferences" xml:space="preserve"><value>Réglages</value></data>
+  <data name="MainWindow_Update" xml:space="preserve"><value>Mettre à jour</value></data>
+  <data name="MainWindow_UpdateAvailable" xml:space="preserve"><value>DeployCraft {0} est disponible (vous avez la {1}).</value></data>
+  <data name="MainWindow_UpdateDownloadFailed" xml:space="preserve"><value>Téléchargement de la nouvelle version impossible : {0}</value></data>
+  <data name="MainWindow_UpdateDownloading" xml:space="preserve"><value>Téléchargement de DeployCraft {0}… {1} %</value></data>
+  <data name="MainWindow_UpdateHide" xml:space="preserve"><value>Masquer</value></data>
+  <data name="MainWindow_UpdateInLibraryTip" xml:space="preserve"><value>Nouvelle version disponible dans la bibliothèque de paquets</value></data>
+  <data name="MainWindow_UpdateInstallCancelled" xml:space="preserve"><value>Installation annulée : l'autorisation administrateur est nécessaire pour mettre à jour le service.</value></data>
+  <data name="MainWindow_UpdateInstallNow" xml:space="preserve"><value>Installer maintenant</value></data>
+  <data name="MainWindow_UpdateInstallOnServer" xml:space="preserve"><value>Installez-la sur le serveur, en administrateur : le service et la console sont mis à jour ensemble.</value></data>
+  <data name="MainWindow_UpdateNoneFound" xml:space="preserve"><value>Aucune nouvelle version trouvée (version {0}, ou pas d'accès à Internet).</value></data>
+  <data name="MainWindow_UpdateProposal" xml:space="preserve"><value>Une nouvelle version de DeployCraft est disponible : {0} (vous avez la {1}).
+
+Voulez-vous l'installer maintenant ? La console se ferme, le service redémarre, puis la console se rouvre (une minute environ).</value></data>
+  <data name="MainWindow_UpdateRunningWarning" xml:space="preserve"><value>Attention : {0} déploiement(s) en cours ou en attente seront interrompus.</value></data>
+  <data name="MainWindow_UpdateSeeNew" xml:space="preserve"><value>Voir la nouvelle version</value></data>
+  <data name="MainWindow_UpdateTitle" xml:space="preserve"><value>Mise à jour</value></data>
+  <data name="OfflineEditor_Attempts" xml:space="preserve"><value>essais au total, toutes les</value></data>
+  <data name="OfflineEditor_Intro" xml:space="preserve"><value>Avant de copier quoi que ce soit, DeployCraft vérifie toujours que le poste répond (nom DNS et partage de fichiers). Ces réglages disent quoi faire s'il ne répond pas.</value></data>
+  <data name="OfflineEditor_Minutes" xml:space="preserve"><value>min</value></data>
+  <data name="OfflineEditor_Retry" xml:space="preserve"><value>Réessayer plus tard au lieu de marquer le poste en échec</value></data>
+  <data name="OfflineEditor_RetryHint" xml:space="preserve"><value>Le poste reste « En attente » dans le déploiement jusqu'au prochain essai. Un redémarrage du service DeployCraft abandonne les essais en attente.</value></data>
+  <data name="OfflineEditor_Wake" xml:space="preserve"><value>Réveiller le poste (Wake-on-LAN)</value></data>
+  <data name="OfflineEditor_WakeHint" xml:space="preserve"><value>Le poste doit avoir le réveil réseau activé (BIOS et carte réseau). Son adresse MAC est apprise au premier déploiement réussi ; d'un sous-réseau à l'autre, le routeur doit laisser passer le paquet de réveil.</value></data>
+  <data name="OfflineEditor_WakeWait" xml:space="preserve"><value>puis attendre qu'il réponde jusqu'à</value></data>
+  <data name="PackageDetailRows_Conditions" xml:space="preserve"><value>Conditions</value></data>
+  <data name="PackageDetailRows_CopyMode" xml:space="preserve"><value>Mode de copie</value></data>
+  <data name="PackageDetailRows_Description" xml:space="preserve"><value>Description</value></data>
+  <data name="PackageDetailRows_Folder" xml:space="preserve"><value>Dossier</value></data>
+  <data name="PackageDetailRows_FromPreferences" xml:space="preserve"><value>Préférences ({0})</value></data>
+  <data name="PackageDetailRows_Minutes" xml:space="preserve"><value>{0} min</value></data>
+  <data name="PackageDetailRows_Modified" xml:space="preserve"><value>Modifié le</value></data>
+  <data name="PackageDetailRows_Name" xml:space="preserve"><value>Nom</value></data>
+  <data name="PackageDetailRows_Offline" xml:space="preserve"><value>Postes hors ligne</value></data>
+  <data name="PackageDetailRows_RunAs" xml:space="preserve"><value>Exécuter en tant que</value></data>
+  <data name="PackageDetailRows_StepTimeout" xml:space="preserve"><value>Délai max par étape</value></data>
+  <data name="PackageDetailRows_Steps" xml:space="preserve"><value>Étapes</value></data>
+  <data name="PackageDetailRows_StepsSomeDisabled" xml:space="preserve"><value>{0}, dont {1} désactivée(s)</value></data>
+  <data name="PackageDetailRows_UsedIn" xml:space="preserve"><value>Utilisé dans</value></data>
+  <data name="PackageDetailRows_Version" xml:space="preserve"><value>Version</value></data>
+  <data name="PackageWindow_AddFilesTip" xml:space="preserve"><value>Ajouter des fichiers</value></data>
+  <data name="PackageWindow_AddLabel" xml:space="preserve"><value>Ajouter :</value></data>
+  <data name="PackageWindow_AdditionalFiles" xml:space="preserve"><value>Fichiers additionnels</value></data>
+  <data name="PackageWindow_AdditionalFilesHint" xml:space="preserve"><value>Facultatif, un chemin par ligne (vu depuis le serveur) : copiés à côté de la commande avant l'étape, par exemple un fichier de configuration.</value></data>
+  <data name="PackageWindow_AdditionalFilesOnePerLine" xml:space="preserve"><value>Fichiers additionnels, un par ligne</value></data>
+  <data name="PackageWindow_BrowseFile" xml:space="preserve"><value>Fichier…</value></data>
+  <data name="PackageWindow_BrowseFolder" xml:space="preserve"><value>Dossier…</value></data>
+  <data name="PackageWindow_ClipboardBusy" xml:space="preserve"><value>Presse-papiers occupé par une autre application : réessayez.</value></data>
+  <data name="PackageWindow_ColNumber" xml:space="preserve"><value>N°</value></data>
+  <data name="PackageWindow_ColStep" xml:space="preserve"><value>Étape</value></data>
+  <data name="PackageWindow_ColType" xml:space="preserve"><value>Type</value></data>
+  <data name="PackageWindow_CommandLine" xml:space="preserve"><value>Ligne de commande</value></data>
+  <data name="PackageWindow_CommandLineHint" xml:space="preserve"><value>Lancée sur le poste dans le dossier de travail, où sont copiés le fichier et les fichiers additionnels.</value></data>
+  <data name="PackageWindow_Copy" xml:space="preserve"><value>Copier</value></data>
+  <data name="PackageWindow_CopyDestination" xml:space="preserve"><value>Destination</value></data>
+  <data name="PackageWindow_CopyDestinationHint" xml:space="preserve"><value>Dossier du poste, créé s'il n'existe pas. Variables acceptées, par exemple %ProgramData%\Logiciel.</value></data>
+  <data name="PackageWindow_CopyDestinationName" xml:space="preserve"><value>Dossier de destination sur le poste</value></data>
+  <data name="PackageWindow_CopyIgnoreErrors" xml:space="preserve"><value>Réussir même si des fichiers ne peuvent pas être remplacés</value></data>
+  <data name="PackageWindow_CopyIgnoreErrorsTip" xml:space="preserve"><value>Par exemple un fichier en cours d'utilisation. Une source introuvable reste une erreur.</value></data>
+  <data name="PackageWindow_CopyMode" xml:space="preserve"><value>Mode de copie</value></data>
+  <data name="PackageWindow_CopyOf" xml:space="preserve"><value>Copie de {0}</value></data>
+  <data name="PackageWindow_CopyOverwrite" xml:space="preserve"><value>Remplacer les fichiers déjà présents sur le poste</value></data>
+  <data name="PackageWindow_CopyOverwriteTip" xml:space="preserve"><value>Décochée : un fichier déjà présent sur le poste est gardé tel quel.</value></data>
+  <data name="PackageWindow_CopyPatterns" xml:space="preserve"><value>Fichiers</value></data>
+  <data name="PackageWindow_CopyPatternsHint" xml:space="preserve"><value>Pour une source dossier : motifs séparés par « ; », par exemple *.ini;*.cfg (* = tous les fichiers).</value></data>
+  <data name="PackageWindow_CopyPatternsName" xml:space="preserve"><value>Motifs des fichiers à copier</value></data>
+  <data name="PackageWindow_CopySource" xml:space="preserve"><value>Source</value></data>
+  <data name="PackageWindow_CopySourceHint" xml:space="preserve"><value>Fichier ou dossier vu depuis le serveur DeployCraft (un partage réseau est conseillé).</value></data>
+  <data name="PackageWindow_CopySourceName" xml:space="preserve"><value>Fichier ou dossier à copier</value></data>
+  <data name="PackageWindow_CopySubfolders" xml:space="preserve"><value>Copier aussi les sous-dossiers</value></data>
+  <data name="PackageWindow_CopyTip" xml:space="preserve"><value>Copier l'étape (Ctrl+C), pour la coller ici ou dans un autre paquet</value></data>
+  <data name="PackageWindow_CustomCommand" xml:space="preserve"><value>Personnalisée</value></data>
+  <data name="PackageWindow_CustomCommandTip" xml:space="preserve"><value>Cochée : la ligne est modifiable et lancée telle quelle. Décochée : elle suit le fichier, les paramètres et les options.</value></data>
+  <data name="PackageWindow_Cut" xml:space="preserve"><value>Couper</value></data>
+  <data name="PackageWindow_CutTip" xml:space="preserve"><value>Couper l'étape (Ctrl+X)</value></data>
+  <data name="PackageWindow_DefaultOption" xml:space="preserve"><value>Par défaut ({0})</value></data>
+  <data name="PackageWindow_Delete" xml:space="preserve"><value>Supprimer</value></data>
+  <data name="PackageWindow_Description" xml:space="preserve"><value>Description</value></data>
+  <data name="PackageWindow_Disable" xml:space="preserve"><value>Désactiver</value></data>
+  <data name="PackageWindow_DisplayDurationName" xml:space="preserve"><value>Durée d'affichage (secondes)</value></data>
+  <data name="PackageWindow_Duplicate" xml:space="preserve"><value>Dupliquer</value></data>
+  <data name="PackageWindow_DurationSeconds" xml:space="preserve"><value>Durée (secondes)</value></data>
+  <data name="PackageWindow_Edit" xml:space="preserve"><value>Modifier</value></data>
+  <data name="PackageWindow_Enable" xml:space="preserve"><value>Activer</value></data>
+  <data name="PackageWindow_ErrorContinue" xml:space="preserve"><value>Continuer</value></data>
+  <data name="PackageWindow_ErrorStopFail" xml:space="preserve"><value>Arrêter en échec</value></data>
+  <data name="PackageWindow_ErrorStopSuccess" xml:space="preserve"><value>Arrêter en succès</value></data>
+  <data name="PackageWindow_FileToCopy" xml:space="preserve"><value>Fichier à copier</value></data>
+  <data name="PackageWindow_FilterAllFiles" xml:space="preserve"><value>Tous les fichiers</value></data>
+  <data name="PackageWindow_FilterInstallers" xml:space="preserve"><value>Installeurs</value></data>
+  <data name="PackageWindow_FolderToCopy" xml:space="preserve"><value>Dossier à copier</value></data>
+  <data name="PackageWindow_GestureDelete" xml:space="preserve"><value>Suppr</value></data>
+  <data name="PackageWindow_GestureDown" xml:space="preserve"><value>Ctrl+Bas</value></data>
+  <data name="PackageWindow_GestureUp" xml:space="preserve"><value>Ctrl+Haut</value></data>
+  <data name="PackageWindow_IncludeFolder" xml:space="preserve"><value>Copier tout le dossier du fichier (installeurs en plusieurs fichiers)</value></data>
+  <data name="PackageWindow_InstallCommandLine" xml:space="preserve"><value>Ligne de commande de l'installation</value></data>
+  <data name="PackageWindow_InstallFile" xml:space="preserve"><value>Fichier d'installation</value></data>
+  <data name="PackageWindow_InstallFileHint" xml:space="preserve"><value>Chemin vu depuis le serveur DeployCraft (un partage réseau est conseillé). .exe .msi .msp .msu .ps1 .bat .cmd .vbs .reg</value></data>
+  <data name="PackageWindow_KeepInstallFile" xml:space="preserve"><value>Garder le fichier d'installation sur le poste</value></data>
+  <data name="PackageWindow_KeepInstallFileTip" xml:space="preserve"><value>Copié après l'étape dans %ProgramData%\DeployCraft\Installeurs\(nom du paquet), avec les fichiers additionnels.</value></data>
+  <data name="PackageWindow_MessageDurationHint" xml:space="preserve"><value>Fermeture automatique après ce délai ; 0 = le message reste jusqu'au clic sur OK.</value></data>
+  <data name="PackageWindow_MessageHint" xml:space="preserve"><value>Affiché dans chaque session ouverte sur le poste. Personne de connecté : l'étape réussit sans rien afficher.</value></data>
+  <data name="PackageWindow_MessageTextName" xml:space="preserve"><value>Texte du message</value></data>
+  <data name="PackageWindow_MessageTitle" xml:space="preserve"><value>Titre</value></data>
+  <data name="PackageWindow_MessageTitleName" xml:space="preserve"><value>Titre du message</value></data>
+  <data name="PackageWindow_MessageWait" xml:space="preserve"><value>Attendre que l'utilisateur clique sur OK avant l'étape suivante</value></data>
+  <data name="PackageWindow_MessageWaitTip" xml:space="preserve"><value>Avec une durée : attente jusqu'au clic ou à la fin de l'affichage. Sans durée : un message toujours ouvert à la fin du délai max de l'étape la fait échouer.</value></data>
+  <data name="PackageWindow_MoveDown" xml:space="preserve"><value>Descendre</value></data>
+  <data name="PackageWindow_MoveUp" xml:space="preserve"><value>Monter</value></data>
+  <data name="PackageWindow_MsiOperation" xml:space="preserve"><value>Opération</value></data>
+  <data name="PackageWindow_MsiQuiet" xml:space="preserve"><value>Silencieux (aucune fenêtre)</value></data>
+  <data name="PackageWindow_MsiQuietTip" xml:space="preserve"><value>Décoché : l'installation attend des clics que personne ne fera, sauf si elle est lancée dans la session de l'utilisateur connecté.</value></data>
+  <data name="PackageWindow_MsiRepair" xml:space="preserve"><value>Réparer</value></data>
+  <data name="PackageWindow_MsiRestart" xml:space="preserve"><value>Redémarrage</value></data>
+  <data name="PackageWindow_MsiUninstall" xml:space="preserve"><value>Désinstaller</value></data>
+  <data name="PackageWindow_Name" xml:space="preserve"><value>Nom</value></data>
+  <data name="PackageWindow_NestedHint" xml:space="preserve"><value>Au lancement, ses étapes prennent la place de celle-ci (même section), avec les conditions de cette étape et du paquet choisi. Chaque étape garde son délai et son comportement en cas d'erreur.</value></data>
+  <data name="PackageWindow_NewPackage" xml:space="preserve"><value>Nouveau paquet</value></data>
+  <data name="PackageWindow_NewStep" xml:space="preserve"><value>Nouvelle étape ▾</value></data>
+  <data name="PackageWindow_NewStepCommand" xml:space="preserve"><value>Nouvelle étape : Commande</value></data>
+  <data name="PackageWindow_NewStepCopy" xml:space="preserve"><value>Nouvelle étape : Copie de fichiers</value></data>
+  <data name="PackageWindow_NewStepInstall" xml:space="preserve"><value>Nouvelle étape : Installer</value></data>
+  <data name="PackageWindow_NewStepMessage" xml:space="preserve"><value>Nouvelle étape : Message</value></data>
+  <data name="PackageWindow_NewStepNested" xml:space="preserve"><value>Nouvelle étape : Paquet imbriqué</value></data>
+  <data name="PackageWindow_NewStepPause" xml:space="preserve"><value>Nouvelle étape : Pause</value></data>
+  <data name="PackageWindow_NewStepPowerShell" xml:space="preserve"><value>Nouvelle étape : PowerShell</value></data>
+  <data name="PackageWindow_NewStepReboot" xml:space="preserve"><value>Nouvelle étape : Redémarrer</value></data>
+  <data name="PackageWindow_OfflineUsePreferences" xml:space="preserve"><value>Utiliser les réglages des Préférences (Options › Préférences › Hors ligne)</value></data>
+  <data name="PackageWindow_OnError" xml:space="preserve"><value>En cas d'erreur</value></data>
+  <data name="PackageWindow_Parameters" xml:space="preserve"><value>Paramètres</value></data>
+  <data name="PackageWindow_Paste" xml:space="preserve"><value>Coller</value></data>
+  <data name="PackageWindow_PasteError" xml:space="preserve"><value>Impossible de coller l'étape : {0}</value></data>
+  <data name="PackageWindow_PasteTip" xml:space="preserve"><value>Coller après l'étape choisie (Ctrl+V)</value></data>
+  <data name="PackageWindow_PauseHint" xml:space="preserve"><value>Le poste attend avant l'étape suivante (1 seconde à 24 heures). Rien n'est lancé sur le poste.</value></data>
+  <data name="PackageWindow_Properties" xml:space="preserve"><value>Propriétés</value></data>
+  <data name="PackageWindow_PropertiesHeading" xml:space="preserve"><value>Propriétés du paquet</value></data>
+  <data name="PackageWindow_PullHint" xml:space="preserve"><value>Pull : chaque poste lit lui-même le partage (chemins \\serveur\… seulement ; sinon push).</value></data>
+  <data name="PackageWindow_RebootDelay" xml:space="preserve"><value>Délai (secondes)</value></data>
+  <data name="PackageWindow_RebootDelayHint" xml:space="preserve"><value>De 30 secondes à 1 heure : l'utilisateur connecté est prévenu et peut enregistrer son travail.</value></data>
+  <data name="PackageWindow_RebootDelayName" xml:space="preserve"><value>Délai avant le redémarrage (secondes)</value></data>
+  <data name="PackageWindow_RebootHint" xml:space="preserve"><value>Redémarrage : DeployCraft attend que le poste revienne (au plus le délai max de l'étape), puis passe à l'étape suivante. Arrêt : les étapes suivantes sont ignorées.</value></data>
+  <data name="PackageWindow_RebootMessageHint" xml:space="preserve"><value>Facultatif : affiché à l'utilisateur connecté avec le compte à rebours.</value></data>
+  <data name="PackageWindow_RebootMessageName" xml:space="preserve"><value>Message à l'utilisateur connecté</value></data>
+  <data name="PackageWindow_RestartAlways" xml:space="preserve"><value>Toujours</value></data>
+  <data name="PackageWindow_RestartNever" xml:space="preserve"><value>Jamais</value></data>
+  <data name="PackageWindow_RestartNotSet" xml:space="preserve"><value>Non défini</value></data>
+  <data name="PackageWindow_RestartNotSetTip" xml:space="preserve"><value>Aucune consigne : le fichier d'installation décide.</value></data>
+  <data name="PackageWindow_RestartPrompt" xml:space="preserve"><value>Demander</value></data>
+  <data name="PackageWindow_RestartPromptTip" xml:space="preserve"><value>L'utilisateur connecté choisit de redémarrer ou non.</value></data>
+  <data name="PackageWindow_RunAs" xml:space="preserve"><value>Exécuter en tant que</value></data>
+  <data name="PackageWindow_RunAsPackageSetting" xml:space="preserve"><value>Paramètre du paquet ({0})</value></data>
+  <data name="PackageWindow_Save" xml:space="preserve"><value>Enregistrer</value></data>
+  <data name="PackageWindow_SaveChangesPrompt" xml:space="preserve"><value>Enregistrer les modifications du paquet ?</value></data>
+  <data name="PackageWindow_SaveTip" xml:space="preserve"><value>Enregistrer (Ctrl+S)</value></data>
+  <data name="PackageWindow_Script" xml:space="preserve"><value>Script</value></data>
+  <data name="PackageWindow_ShutdownOnly" xml:space="preserve"><value>Éteindre le poste au lieu de le redémarrer</value></data>
+  <data name="PackageWindow_StepEnabled" xml:space="preserve"><value>Étape activée</value></data>
+  <data name="PackageWindow_StepEnabledTip" xml:space="preserve"><value>Décochée : l'étape reste dans le paquet mais n'est pas exécutée (« Ignoré » dans le suivi).</value></data>
+  <data name="PackageWindow_StepRunAsHint" xml:space="preserve"><value>« Paramètre du paquet » suit le paquet, ou le choix fait dans Déployer une fois ou la planification ; un autre choix reste celui de l'étape. Changer d'identité entre deux étapes relance le service sur le poste (quelques secondes).</value></data>
+  <data name="PackageWindow_StepRunAsName" xml:space="preserve"><value>Exécuter l'étape en tant que</value></data>
+  <data name="PackageWindow_StepTitle" xml:space="preserve"><value>Titre de l'étape</value></data>
+  <data name="PackageWindow_StepWarning" xml:space="preserve"><value>Étape {0} « {1} » : {2}</value></data>
+  <data name="PackageWindow_Steps" xml:space="preserve"><value>Étapes</value></data>
+  <data name="PackageWindow_StepsIntro" xml:space="preserve"><value>Les étapes s'exécutent dans l'ordre sur chaque poste. Double-cliquez sur une étape pour la modifier, clic droit pour plus d'actions.</value></data>
+  <data name="PackageWindow_SuccessCodes" xml:space="preserve"><value>Codes de succès</value></data>
+  <data name="PackageWindow_SuccessCodesHint" xml:space="preserve"><value>Codes retour considérés comme une réussite, séparés par des virgules.</value></data>
+  <data name="PackageWindow_TabConditions" xml:space="preserve"><value>Conditions</value></data>
+  <data name="PackageWindow_TabDetails" xml:space="preserve"><value>Détails</value></data>
+  <data name="PackageWindow_TabOffline" xml:space="preserve"><value>Hors ligne</value></data>
+  <data name="PackageWindow_TabOptions" xml:space="preserve"><value>Options</value></data>
+  <data name="PackageWindow_TimeoutHint" xml:space="preserve"><value>Pour les étapes sans délai propre. Vide : valeur des Préférences ({0} min).</value></data>
+  <data name="PackageWindow_TimeoutMinutes" xml:space="preserve"><value>Délai max (minutes)</value></data>
+  <data name="PackageWindow_Title" xml:space="preserve"><value>Paquet</value></data>
+  <data name="PackageWindow_TitleNamed" xml:space="preserve"><value>{0} — Paquet</value></data>
+  <data name="PackageWindow_Version" xml:space="preserve"><value>Version</value></data>
+  <data name="PackageWindow_VersionTip" xml:space="preserve"><value>Version du logiciel installé par le paquet (facultatif)</value></data>
+  <data name="PackageWindow_WarningsPrompt" xml:space="preserve"><value>Ce paquet a des avertissements :
+
+{0}
+
+Enregistrer quand même ?</value></data>
+  <data name="ScheduleEditing_Daily" xml:space="preserve"><value>Quotidien</value></data>
+  <data name="ScheduleEditing_EndAfterStart" xml:space="preserve"><value>La fin d'un déclencheur doit être après son début.</value></data>
+  <data name="ScheduleEditing_HistorySummary" xml:space="preserve"><value>{0} réussi(s) sur {1} poste(s) × paquet</value></data>
+  <data name="ScheduleEditing_Interval" xml:space="preserve"><value>Intervalle</value></data>
+  <data name="ScheduleEditing_Monthly" xml:space="preserve"><value>Mensuel</value></data>
+  <data name="ScheduleEditing_NextRun" xml:space="preserve"><value>Prochain déclenchement : {0:dddd dd/MM/yyyy HH:mm}</value></data>
+  <data name="ScheduleEditing_NoDeploymentDone" xml:space="preserve"><value>Aucun déploiement terminé pour l'instant.</value></data>
+  <data name="ScheduleEditing_NoMoreRuns" xml:space="preserve"><value>Plus aucun déclenchement à venir.</value></data>
+  <data name="ScheduleEditing_Once" xml:space="preserve"><value>Une fois</value></data>
+  <data name="ScheduleEditing_TriggerDisabled" xml:space="preserve"><value>Déclencheur désactivé.</value></data>
+  <data name="ScheduleEditing_Weekly" xml:space="preserve"><value>Hebdomadaire</value></data>
+  <data name="ScheduleEditing_WeeklyNeedsDay" xml:space="preserve"><value>Déclencheur hebdomadaire : cochez au moins un jour.</value></data>
+  <data name="SchedulePickerWindow_Add" xml:space="preserve"><value>Ajouter</value></data>
+  <data name="SchedulePickerWindow_Cancel" xml:space="preserve"><value>Annuler</value></data>
+  <data name="SchedulePickerWindow_Prompt" xml:space="preserve"><value>Planification où ajouter « {0} » (il sera déployé après les paquets déjà présents) :</value></data>
+  <data name="SchedulePickerWindow_Title" xml:space="preserve"><value>Ajouter à une planification</value></data>
+  <data name="ScheduleRow_Disabled" xml:space="preserve"><value>Désactivée</value></data>
+  <data name="ScheduleRow_Imminent" xml:space="preserve"><value>imminent</value></data>
+  <data name="ScheduleRow_InDays" xml:space="preserve"><value>dans {0} j {1} h</value></data>
+  <data name="ScheduleRow_InHours" xml:space="preserve"><value>dans {0} h {1:00} min</value></data>
+  <data name="ScheduleRow_InMinutes" xml:space="preserve"><value>dans {0} min {1:00} s</value></data>
+  <data name="ScheduleRow_InSeconds" xml:space="preserve"><value>dans {0} s</value></data>
+  <data name="ScheduleRow_No" xml:space="preserve"><value>Non</value></data>
+  <data name="ScheduleRow_NoTriggerManual" xml:space="preserve"><value>(aucun : démarrage manuel)</value></data>
+  <data name="ScheduleRow_Yes" xml:space="preserve"><value>Oui</value></data>
+  <data name="ScheduleWindow_AbandonAfter" xml:space="preserve"><value>Abandonner les postes encore en attente après</value></data>
+  <data name="ScheduleWindow_AddButton" xml:space="preserve"><value>Ajouter</value></data>
+  <data name="ScheduleWindow_AddDaily" xml:space="preserve"><value>Quotidien</value></data>
+  <data name="ScheduleWindow_AddInterval" xml:space="preserve"><value>Intervalle</value></data>
+  <data name="ScheduleWindow_AddMonthly" xml:space="preserve"><value>Mensuel</value></data>
+  <data name="ScheduleWindow_AddOnce" xml:space="preserve"><value>Une fois</value></data>
+  <data name="ScheduleWindow_AddPackage" xml:space="preserve"><value>Ajouter un paquet ▾</value></data>
+  <data name="ScheduleWindow_AddWeekly" xml:space="preserve"><value>Hebdomadaire</value></data>
+  <data name="ScheduleWindow_And" xml:space="preserve"><value>et</value></data>
+  <data name="ScheduleWindow_At" xml:space="preserve"><value>à</value></data>
+  <data name="ScheduleWindow_Begin" xml:space="preserve"><value>Début</value></data>
+  <data name="ScheduleWindow_Between" xml:space="preserve"><value>Entre</value></data>
+  <data name="ScheduleWindow_Cancel" xml:space="preserve"><value>Annuler</value></data>
+  <data name="ScheduleWindow_ChooseTargets" xml:space="preserve"><value>Choisir des cibles ▾</value></data>
+  <data name="ScheduleWindow_ClearAll" xml:space="preserve"><value>Tout effacer</value></data>
+  <data name="ScheduleWindow_ClearHistoryConfirm" xml:space="preserve"><value>Effacer tout l'historique des cibles ?
+Tous les postes recevront de nouveau les paquets au prochain déclenchement.</value></data>
+  <data name="ScheduleWindow_ClearRedeploy" xml:space="preserve"><value>Effacer (redéployer ce paquet sur ce poste)</value></data>
+  <data name="ScheduleWindow_ClearSelection" xml:space="preserve"><value>Effacer la sélection</value></data>
+  <data name="ScheduleWindow_ColComputer" xml:space="preserve"><value>Poste</value></data>
+  <data name="ScheduleWindow_ColFailures" xml:space="preserve"><value>Échecs</value></data>
+  <data name="ScheduleWindow_ColLastAttempt" xml:space="preserve"><value>Dernier essai</value></data>
+  <data name="ScheduleWindow_ColPackage" xml:space="preserve"><value>Paquet</value></data>
+  <data name="ScheduleWindow_ColSucceeded" xml:space="preserve"><value>Réussi</value></data>
+  <data name="ScheduleWindow_ComputerCount" xml:space="preserve"><value>{0} poste(s)</value></data>
+  <data name="ScheduleWindow_ComputerListTitle" xml:space="preserve"><value>Liste de postes</value></data>
+  <data name="ScheduleWindow_ComputerNameTip" xml:space="preserve"><value>Nom du poste (plusieurs noms possibles, séparés par des espaces, virgules ou retours à la ligne)</value></data>
+  <data name="ScheduleWindow_CopyMode" xml:space="preserve"><value>Mode de copie</value></data>
+  <data name="ScheduleWindow_Credential" xml:space="preserve"><value>Identifiant</value></data>
+  <data name="ScheduleWindow_Delete" xml:space="preserve"><value>Supprimer</value></data>
+  <data name="ScheduleWindow_DeleteKey" xml:space="preserve"><value>Suppr</value></data>
+  <data name="ScheduleWindow_DeletedPackage" xml:space="preserve"><value>(paquet supprimé n° {0})</value></data>
+  <data name="ScheduleWindow_DisabledHint" xml:space="preserve"><value>Désactivée, elle ne se déclenche plus ; « Démarrer maintenant » reste possible.</value></data>
+  <data name="ScheduleWindow_Duplicate" xml:space="preserve"><value>Dupliquer</value></data>
+  <data name="ScheduleWindow_End" xml:space="preserve"><value>Fin</value></data>
+  <data name="ScheduleWindow_Every" xml:space="preserve"><value>Toutes les</value></data>
+  <data name="ScheduleWindow_EveryMonth" xml:space="preserve"><value>Chaque mois :</value></data>
+  <data name="ScheduleWindow_EveryWeekOn" xml:space="preserve"><value>Chaque semaine, le :</value></data>
+  <data name="ScheduleWindow_Failures" xml:space="preserve"><value>échec(s)</value></data>
+  <data name="ScheduleWindow_HistoryHint" xml:space="preserve"><value>Effacer une ligne remet le compteur à zéro : le poste recevra de nouveau le paquet au prochain déclenchement.</value></data>
+  <data name="ScheduleWindow_HistoryTab" xml:space="preserve"><value>Historique des cibles</value></data>
+  <data name="ScheduleWindow_LastDay" xml:space="preserve"><value>dernier jour</value></data>
+  <data name="ScheduleWindow_Manage" xml:space="preserve"><value>Gérer…</value></data>
+  <data name="ScheduleWindow_ManageCredentialsTip" xml:space="preserve"><value>Ajouter, modifier ou supprimer des identifiants</value></data>
+  <data name="ScheduleWindow_Minutes" xml:space="preserve"><value>minutes</value></data>
+  <data name="ScheduleWindow_MoveDown" xml:space="preserve"><value>Descendre</value></data>
+  <data name="ScheduleWindow_MoveUp" xml:space="preserve"><value>Monter</value></data>
+  <data name="ScheduleWindow_Name" xml:space="preserve"><value>Nom</value></data>
+  <data name="ScheduleWindow_NeedFailureCount" xml:space="preserve"><value>Indiquez un nombre d'échecs (1 ou plus).</value></data>
+  <data name="ScheduleWindow_NeedName" xml:space="preserve"><value>Donnez un nom à la planification.</value></data>
+  <data name="ScheduleWindow_NeedPackage" xml:space="preserve"><value>Ajoutez au moins un paquet.</value></data>
+  <data name="ScheduleWindow_NeedQueueDelay" xml:space="preserve"><value>Indiquez un délai d'attente en minutes (1 ou plus).</value></data>
+  <data name="ScheduleWindow_NeedTarget" xml:space="preserve"><value>Ajoutez au moins une cible.</value></data>
+  <data name="ScheduleWindow_NewSchedule" xml:space="preserve"><value>Nouvelle planification</value></data>
+  <data name="ScheduleWindow_NoHistory" xml:space="preserve"><value>Aucun historique : la planification n'est pas encore enregistrée.</value></data>
+  <data name="ScheduleWindow_NoOtherPackage" xml:space="preserve"><value>(aucun autre paquet)</value></data>
+  <data name="ScheduleWindow_NoPackage" xml:space="preserve"><value>Aucun paquet</value></data>
+  <data name="ScheduleWindow_NoTarget" xml:space="preserve"><value>Aucune cible</value></data>
+  <data name="ScheduleWindow_NoTrigger" xml:space="preserve"><value>Aucun déclencheur : la planification ne se lancera qu'avec « Démarrer maintenant ». Ajoutez-en un avec les boutons ci-dessus.</value></data>
+  <data name="ScheduleWindow_Note" xml:space="preserve"><value>Note</value></data>
+  <data name="ScheduleWindow_OnlyInWindow" xml:space="preserve"><value>Seulement pendant cette plage horaire</value></data>
+  <data name="ScheduleWindow_Optional" xml:space="preserve"><value>Facultatif</value></data>
+  <data name="ScheduleWindow_OptionsTab" xml:space="preserve"><value>Options</value></data>
+  <data name="ScheduleWindow_PackageCount" xml:space="preserve"><value>{0} paquet(s)</value></data>
+  <data name="ScheduleWindow_PackagesOrder" xml:space="preserve"><value>Sur chaque poste, les paquets s'installent dans cet ordre, le suivant après la fin du précédent.</value></data>
+  <data name="ScheduleWindow_PackagesTab" xml:space="preserve"><value>Paquets</value></data>
+  <data name="ScheduleWindow_PasteList" xml:space="preserve"><value>Coller une liste de postes</value></data>
+  <data name="ScheduleWindow_QueueHint" xml:space="preserve"><value>Un poste qui n'a pas pu démarrer (8 postes au plus en même temps) est noté en échec, sans compter dans les échecs ci-dessus.</value></data>
+  <data name="ScheduleWindow_Refresh" xml:space="preserve"><value>Actualiser</value></data>
+  <data name="ScheduleWindow_RemoveAll" xml:space="preserve"><value>Tout retirer</value></data>
+  <data name="ScheduleWindow_RemoveItem" xml:space="preserve"><value>Retirer</value></data>
+  <data name="ScheduleWindow_RemovePackage" xml:space="preserve"><value>Retirer le paquet</value></data>
+  <data name="ScheduleWindow_RemoveSelection" xml:space="preserve"><value>Retirer la sélection</value></data>
+  <data name="ScheduleWindow_RunAs" xml:space="preserve"><value>Exécuter en tant que</value></data>
+  <data name="ScheduleWindow_ScheduleEnabled" xml:space="preserve"><value>Planification activée</value></data>
+  <data name="ScheduleWindow_ScheduleNumber" xml:space="preserve"><value>Planification n° {0}</value></data>
+  <data name="ScheduleWindow_StopAfter" xml:space="preserve"><value>Ne plus déployer sur un poste après</value></data>
+  <data name="ScheduleWindow_StopOnSuccess" xml:space="preserve"><value>Ne plus déployer sur un poste une fois qu'il a réussi</value></data>
+  <data name="ScheduleWindow_StopOnSuccessHint" xml:space="preserve"><value>Avec un déclencheur à intervalle, la planification réessaie les postes en échec ou éteints jusqu'à ce que tous aient réussi. Le suivi est dans « Historique des cibles ».</value></data>
+  <data name="ScheduleWindow_TargetsTab" xml:space="preserve"><value>Cibles</value></data>
+  <data name="ScheduleWindow_TextFile" xml:space="preserve"><value>Fichier texte…</value></data>
+  <data name="ScheduleWindow_TextFilesFilter" xml:space="preserve"><value>Fichiers texte (*.txt;*.csv)|*.txt;*.csv|Tous les fichiers|*.*</value></data>
+  <data name="ScheduleWindow_The" xml:space="preserve"><value>Le</value></data>
+  <data name="ScheduleWindow_TheDay" xml:space="preserve"><value>Le jour</value></data>
+  <data name="ScheduleWindow_Title" xml:space="preserve"><value>Planification</value></data>
+  <data name="ScheduleWindow_TriggerEnabled" xml:space="preserve"><value>Déclencheur activé</value></data>
+  <data name="ScheduleWindow_TriggersTab" xml:space="preserve"><value>Déclencheurs</value></data>
+  <data name="ScheduleWindow_UnitDays" xml:space="preserve"><value>j</value></data>
+  <data name="ScheduleWindow_UnitHours" xml:space="preserve"><value>h</value></data>
+  <data name="ScheduleWindow_UnitMinutes" xml:space="preserve"><value>min</value></data>
+  <data name="ServerIssues_NoCredential" xml:space="preserve"><value>Aucun identifiant enregistré (Options › Identifiants). Nécessaire pour les postes du domaine.</value></data>
+  <data name="ServerIssues_NotElevated" xml:space="preserve"><value>Le service DeployCraft ne tourne pas en administrateur : les déploiements échoueront.</value></data>
+  <data name="ServerIssues_Unreadable" xml:space="preserve"><value>Un ou plusieurs mots de passe d'identifiants ne peuvent pas être relus : ressaisissez-les (Options › Identifiants).</value></data>
+  <data name="ServiceAccount_Account" xml:space="preserve"><value>Compte</value></data>
+  <data name="ServiceAccount_AccountHint" xml:space="preserve"><value>Le compte doit être administrateur de ce serveur. Il reçoit le droit d'ouvrir une session en tant que service.</value></data>
+  <data name="ServiceAccount_Apply" xml:space="preserve"><value>Appliquer</value></data>
+  <data name="ServiceAccount_LocalSystem" xml:space="preserve"><value>Système local (conseillé)</value></data>
+  <data name="ServiceAccount_LocalSystemHint" xml:space="preserve"><value>Le service est administrateur du serveur ; il utilise le compte de déploiement (Options › Identifiants) pour les postes et les partages.</value></data>
+  <data name="ServiceAccount_NameTip" xml:space="preserve"><value>DOMAINE\nom, ou .\nom pour un compte local du serveur</value></data>
+  <data name="ServiceAccount_RestartWarning" xml:space="preserve"><value>Le service redémarre aussitôt sous ce compte : les déploiements en cours sont interrompus.</value></data>
+  <data name="ServiceAccount_Saved" xml:space="preserve"><value>Compte enregistré : le service redémarre. La console se reconnecte d'elle-même dans quelques secondes.</value></data>
+  <data name="ServiceAccount_ThisAccount" xml:space="preserve"><value>Ce compte Windows :</value></data>
+  <data name="ServiceAccount_Title" xml:space="preserve"><value>Compte du service</value></data>
+  <data name="ServiceAccount_Warning" xml:space="preserve"><value>Attention : sous un compte utilisateur, une console ouverte depuis un autre poste peut ne plus se connecter (authentification Windows du domaine). La console de ce serveur, elle, fonctionne toujours. Pour revenir en arrière : Système local.</value></data>
+  <data name="ServiceWindow_Account" xml:space="preserve"><value>Compte</value></data>
+  <data name="ServiceWindow_Change" xml:space="preserve"><value>Changer…</value></data>
+  <data name="ServiceWindow_ConsoleUsers" xml:space="preserve"><value>Utilisateurs de la console…</value></data>
+  <data name="ServiceWindow_Explanation" xml:space="preserve"><value>Le service fait tout le travail : déploiements, planifications, bibliothèque de paquets, même console fermée. S'il est arrêté, rien ne part : les déploiements restent en attente.</value></data>
+  <data name="ServiceWindow_HintManual" xml:space="preserve"><value>Instance lancée à la main : elle se redémarre et se configure en dehors de DeployCraft.</value></data>
+  <data name="ServiceWindow_HintNoEdit" xml:space="preserve"><value>Seuls les administrateurs de ce serveur peuvent redémarrer le service ou changer son compte.</value></data>
+  <data name="ServiceWindow_HintNotAdmin" xml:space="preserve"><value>Ce compte n'est pas administrateur du serveur : les déploiements échoueront. Choisissez Système local ou un compte administrateur.</value></data>
+  <data name="ServiceWindow_HintRemote" xml:space="preserve"><value>Le compte se change depuis la console du serveur : le mot de passe ne passe pas par le réseau.</value></data>
+  <data name="ServiceWindow_LocalSystemAccount" xml:space="preserve"><value>Système local ({0})</value></data>
+  <data name="ServiceWindow_ManualStart" xml:space="preserve"><value>(lancé à la main, pas en service Windows)</value></data>
+  <data name="ServiceWindow_OpenServices" xml:space="preserve"><value>Ouvrir les services Windows</value></data>
+  <data name="ServiceWindow_Restart" xml:space="preserve"><value>Redémarrer le service</value></data>
+  <data name="ServiceWindow_RestartConfirm" xml:space="preserve"><value>Redémarrer le service DeployCraft ? Les déploiements en cours seront interrompus ; la console se reconnecte d'elle-même.</value></data>
+  <data name="ServiceWindow_RunningSince" xml:space="preserve"><value>En marche depuis le {0}</value></data>
+  <data name="ServiceWindow_State" xml:space="preserve"><value>État</value></data>
+  <data name="ServiceWindow_Title" xml:space="preserve"><value>Service en arrière-plan</value></data>
+  <data name="Service_Unreachable" xml:space="preserve"><value>Service injoignable</value></data>
+  <data name="Settings_CleanupAfter" xml:space="preserve"><value>Supprimer les déploiements terminés après</value></data>
+  <data name="Settings_CleanupHint" xml:space="preserve"><value>Désactivé par défaut. Un déploiement en attente ou en cours n'est jamais supprimé, ni l'historique des planifications. Le nettoyage a lieu au démarrage du service, puis une fois par jour.</value></data>
+  <data name="Settings_CopyLimit" xml:space="preserve"><value>Limite de copie (Mbit/s)</value></data>
+  <data name="Settings_CopyLimitHint" xml:space="preserve"><value>0 = sans limite. Débit total des copies du serveur vers les postes (mode push), partagé entre tous les postes en cours. En mode pull, chaque poste lit le partage lui-même : pas de limite.</value></data>
+  <data name="Settings_CopyLimitName" xml:space="preserve"><value>Limite de débit des copies, en mégabits par seconde</value></data>
+  <data name="Settings_CopyMode" xml:space="preserve"><value>Mode de copie</value></data>
+  <data name="Settings_Days" xml:space="preserve"><value>jours</value></data>
+  <data name="Settings_DeploymentIntro" xml:space="preserve"><value>Valeurs des paquets dont le réglage est laissé « Par défaut ». Réglage du serveur, commun à toutes les consoles, enregistré à la fermeture de cette fenêtre.</value></data>
+  <data name="Settings_DeploymentTab" xml:space="preserve"><value>Déploiement</value></data>
+  <data name="Settings_History" xml:space="preserve"><value>Historique</value></data>
+  <data name="Settings_HistoryError" xml:space="preserve"><value>Historique : saisissez un nombre de jours entre {0} et {1}.</value></data>
   <data name="Settings_Language" xml:space="preserve"><value>Langue</value></data>
   <data name="Settings_LanguageHint" xml:space="preserve"><value>Prise en compte au prochain démarrage de la console. Réglage propre à votre session Windows.</value></data>
+  <data name="Settings_OfflineIntro" xml:space="preserve"><value>Réglages des paquets qui suivent les Préférences (onglet Hors ligne du paquet).</value></data>
+  <data name="Settings_OfflineTab" xml:space="preserve"><value>Hors ligne</value></data>
+  <data name="Settings_Parallel" xml:space="preserve"><value>Postes en parallèle</value></data>
+  <data name="Settings_ParallelHint" xml:space="preserve"><value>De 1 à 100, tous déploiements confondus (8 par défaut). Les autres postes attendent un créneau ; les postes prioritaires passent d'abord.</value></data>
+  <data name="Settings_ParallelName" xml:space="preserve"><value>Postes déployés en parallèle</value></data>
+  <data name="Settings_RunAs" xml:space="preserve"><value>Exécuter en tant que</value></data>
   <data name="Settings_Theme" xml:space="preserve"><value>Thème</value></data>
   <data name="Settings_ThemeDark" xml:space="preserve"><value>Sombre</value></data>
   <data name="Settings_ThemeHint" xml:space="preserve"><value>S'applique tout de suite à toutes les fenêtres. « Selon Windows » suit le mode clair ou sombre choisi dans les paramètres de Windows. Réglage propre à votre session Windows.</value></data>
   <data name="Settings_ThemeLight" xml:space="preserve"><value>Clair</value></data>
   <data name="Settings_ThemeSystem" xml:space="preserve"><value>Selon Windows</value></data>
+  <data name="Settings_Timeout" xml:space="preserve"><value>Délai max (minutes)</value></data>
+  <data name="Settings_TimeoutError" xml:space="preserve"><value>Délai max : saisissez un nombre de minutes (1 ou plus).</value></data>
+  <data name="Settings_TimeoutHint" xml:space="preserve"><value>Par étape : au-delà, le processus est arrêté et l'étape échoue.</value></data>
+  <data name="Settings_Title" xml:space="preserve"><value>Préférences</value></data>
+  <data name="StepList_CopySuffix" xml:space="preserve"><value> (copie)</value></data>
+  <data name="StepRow_Yes" xml:space="preserve"><value>Oui</value></data>
+  <data name="StepSummary_DisabledSuffix" xml:space="preserve"><value> (désactivée)</value></data>
+  <data name="StepSummary_NestedMany" xml:space="preserve"><value>Paquet : {0} ({1} étapes)</value></data>
+  <data name="StepSummary_NestedMissing" xml:space="preserve"><value>Paquet : (introuvable)</value></data>
+  <data name="StepSummary_NestedOne" xml:space="preserve"><value>Paquet : {0} ({1} étape)</value></data>
+  <data name="StepSummary_PauseSeconds" xml:space="preserve"><value>{0} s</value></data>
+  <data name="StepSummary_RestartIn" xml:space="preserve"><value>Redémarrage dans {0} s</value></data>
+  <data name="StepSummary_ShutdownIn" xml:space="preserve"><value>Arrêt dans {0} s</value></data>
+  <data name="StepSummary_TypeCommand" xml:space="preserve"><value>Commande</value></data>
+  <data name="StepSummary_TypeCopyFiles" xml:space="preserve"><value>Copie de fichiers</value></data>
+  <data name="StepSummary_TypeInstall" xml:space="preserve"><value>Installer</value></data>
+  <data name="StepSummary_TypeMessage" xml:space="preserve"><value>Message</value></data>
+  <data name="StepSummary_TypeNested" xml:space="preserve"><value>Paquet imbriqué</value></data>
+  <data name="StepSummary_TypePause" xml:space="preserve"><value>Pause</value></data>
+  <data name="StepSummary_TypeReboot" xml:space="preserve"><value>Redémarrer</value></data>
+  <data name="StepTexts_ErrorContinue" xml:space="preserve"><value>L'étape est notée en échec (le poste aussi), mais les étapes suivantes s'exécutent.</value></data>
+  <data name="StepTexts_ErrorNested" xml:space="preserve"><value>Sans effet : chaque étape du paquet imbriqué garde son propre comportement en cas d'erreur.</value></data>
+  <data name="StepTexts_ErrorStopFail" xml:space="preserve"><value>Les étapes suivantes ne s'exécutent pas et le poste est en échec.</value></data>
+  <data name="StepTexts_ErrorStopSuccess" xml:space="preserve"><value>Les étapes suivantes ne s'exécutent pas et le poste est compté réussi : utile quand l'échec veut dire « rien à faire » sur ce poste.</value></data>
+  <data name="StepTexts_HeaderUnnamed" xml:space="preserve"><value>Étape {0} ({1})</value></data>
+  <data name="StepTexts_SilentExe" xml:space="preserve"><value>Paramètres silencieux courants : /S (NSIS), /VERYSILENT /NORESTART (Inno Setup), /quiet /norestart, /s /v"/qn" (InstallShield).</value></data>
+  <data name="StepTexts_SilentMsi" xml:space="preserve"><value>Options de Windows Installer ci-dessous (silencieux et sans redémarrage par défaut).</value></data>
+  <data name="StepTexts_TimeoutDefault" xml:space="preserve"><value>Vide : délai du paquet ({0} min). Au-delà, le processus est arrêté et l'étape échoue.</value></data>
+  <data name="StepTexts_TimeoutMessage" xml:space="preserve"><value>Vide : délai du paquet ({0} min). Attente maximale d'un clic quand la durée d'affichage est 0.</value></data>
+  <data name="StepTexts_TimeoutNested" xml:space="preserve"><value>Sans effet : chaque étape du paquet imbriqué garde son délai (sinon celui du paquet imbriqué).</value></data>
+  <data name="StepTexts_TimeoutPause" xml:space="preserve"><value>Sans effet sur une pause : elle dure toujours la durée choisie.</value></data>
+  <data name="StepTexts_TimeoutReboot" xml:space="preserve"><value>Vide : délai du paquet ({0} min). Temps laissé au poste pour revenir après le redémarrage.</value></data>
+  <data name="StepsWindow_ColDuration" xml:space="preserve"><value>Durée</value></data>
+  <data name="StepsWindow_ColNote" xml:space="preserve"><value>Note</value></data>
+  <data name="StepsWindow_ColReturnCode" xml:space="preserve"><value>Code retour</value></data>
+  <data name="StepsWindow_ColRuns" xml:space="preserve"><value>Exécutions</value></data>
+  <data name="StepsWindow_ColStatus" xml:space="preserve"><value>Statut</value></data>
+  <data name="StepsWindow_Copy" xml:space="preserve"><value>Copier</value></data>
+  <data name="StepsWindow_ErrorPrefix" xml:space="preserve"><value>Erreur : </value></data>
+  <data name="StepsWindow_FilterText" xml:space="preserve"><value>Texte (*.txt)</value></data>
+  <data name="StepsWindow_NoOutput" xml:space="preserve"><value>(aucune sortie)</value></data>
+  <data name="StepsWindow_NotRun" xml:space="preserve"><value>Cette étape n'a pas été exécutée.</value></data>
+  <data name="StepsWindow_NotRunBeforeStart" xml:space="preserve"><value>Étape non exécutée : ce poste a démarré à l'étape {0}.</value></data>
+  <data name="StepsWindow_OpenInNotepad" xml:space="preserve"><value>Ouvrir dans le Bloc-notes</value></data>
+  <data name="StepsWindow_OutputHeading" xml:space="preserve"><value>Sortie de l'étape</value></data>
+  <data name="StepsWindow_ReasonPrefix" xml:space="preserve"><value>Raison : </value></data>
+  <data name="StepsWindow_Save" xml:space="preserve"><value>Enregistrer…</value></data>
+  <data name="StepsWindow_SubHeading" xml:space="preserve"><value>{0} · déploiement {1} · {2}</value></data>
+  <data name="StepsWindow_Title" xml:space="preserve"><value>Étapes</value></data>
+  <data name="StepsWindow_TitleFor" xml:space="preserve"><value>{0} — Étapes</value></data>
+  <data name="TargetItem_Found" xml:space="preserve"><value>Trouvé : {0}</value></data>
+  <data name="TargetItem_NotFound" xml:space="preserve"><value>Introuvable</value></data>
+  <data name="TargetItem_Searching" xml:space="preserve"><value>Recherche dans le DNS…</value></data>
+  <data name="TargetItem_StillPossible" xml:space="preserve"><value>Le déploiement reste possible.</value></data>
+  <data name="Trigger_Daily" xml:space="preserve"><value>Tous les jours à {0} à partir du {1:dd/MM/yyyy}</value></data>
+  <data name="Trigger_Days" xml:space="preserve"><value>{0} j</value></data>
+  <data name="Trigger_Disabled" xml:space="preserve"><value> (désactivé)</value></data>
+  <data name="Trigger_Hours" xml:space="preserve"><value>{0} h</value></data>
+  <data name="Trigger_Interval" xml:space="preserve"><value>Intervalle de {0}, à partir du {1:dd/MM/yyyy} {2}</value></data>
+  <data name="Trigger_Minutes" xml:space="preserve"><value>{0} min</value></data>
+  <data name="Trigger_MonthDay" xml:space="preserve"><value>le {0}</value></data>
+  <data name="Trigger_MonthLastDay" xml:space="preserve"><value>le dernier jour</value></data>
+  <data name="Trigger_MonthWeekDay" xml:space="preserve"><value>le {0} {1}</value></data>
+  <data name="Trigger_Monthly" xml:space="preserve"><value>Chaque mois {0} à {1} à partir du {2:dd/MM/yyyy}</value></data>
+  <data name="Trigger_NoDay" xml:space="preserve"><value>(aucun jour)</value></data>
+  <data name="Trigger_Once" xml:space="preserve"><value>Une fois, le {0:dd/MM/yyyy} à {1}</value></data>
+  <data name="Trigger_Until" xml:space="preserve"><value>, jusqu'au {0:dd/MM/yyyy} {1}</value></data>
+  <data name="Trigger_Week1" xml:space="preserve"><value>premier</value></data>
+  <data name="Trigger_Week2" xml:space="preserve"><value>deuxième</value></data>
+  <data name="Trigger_Week3" xml:space="preserve"><value>troisième</value></data>
+  <data name="Trigger_Week4" xml:space="preserve"><value>quatrième</value></data>
+  <data name="Trigger_Week5" xml:space="preserve"><value>dernier</value></data>
+  <data name="Trigger_Weekly" xml:space="preserve"><value>Chaque semaine le {0} à {1} à partir du {2:dd/MM/yyyy}</value></data>
+  <data name="Trigger_Window" xml:space="preserve"><value>, entre {0} et {1}</value></data>
+  <data name="Ui_CopyModePull" xml:space="preserve"><value>Pull (le poste lit le partage)</value></data>
+  <data name="Ui_CopyModePush" xml:space="preserve"><value>Push (le serveur copie)</value></data>
+  <data name="Ui_PickLibraryFolderTitle" xml:space="preserve"><value>Dossier de la bibliothèque (un partage réseau est conseillé)</value></data>
+  <data name="Ui_RunAsDeployAccount" xml:space="preserve"><value>Compte de déploiement</value></data>
+  <data name="Ui_RunAsHintDeployUser" xml:space="preserve"><value>Le service temporaire tourne sous l'identifiant choisi (accès réseau avec ce compte).</value></data>
+  <data name="Ui_RunAsHintLocalSystem" xml:space="preserve"><value>Le service temporaire tourne en Système local (accès réseau avec le compte ordinateur du poste).</value></data>
+  <data name="Ui_RunAsHintLoggedOn" xml:space="preserve"><value>Chaque étape s'ouvre dans la session de l'utilisateur connecté ; échec si personne n'est connecté.</value></data>
+  <data name="Ui_RunAsLocalSystem" xml:space="preserve"><value>Système local</value></data>
+  <data name="Ui_RunAsLoggedOn" xml:space="preserve"><value>Utilisateur connecté</value></data>
+  <data name="Ui_StatusCancelled" xml:space="preserve"><value>Annulé</value></data>
+  <data name="Ui_StatusFailed" xml:space="preserve"><value>Échec</value></data>
+  <data name="Ui_StatusPartial" xml:space="preserve"><value>Partiel</value></data>
+  <data name="Ui_StatusQueued" xml:space="preserve"><value>En attente</value></data>
+  <data name="Ui_StatusRunning" xml:space="preserve"><value>En cours</value></data>
+  <data name="Ui_StatusSkipped" xml:space="preserve"><value>Ignoré</value></data>
+  <data name="Ui_StatusStopped" xml:space="preserve"><value>Arrêt en succès</value></data>
+  <data name="Ui_StatusSucceeded" xml:space="preserve"><value>Réussi</value></data>
+  <data name="UpdateCheck_BadHash" xml:space="preserve"><value>L'installeur téléchargé ne correspond pas à l'empreinte publiée : il a été supprimé. Réessayez plus tard.</value></data>
+  <data name="Welcome_Add" xml:space="preserve"><value>Ajouter…</value></data>
+  <data name="Welcome_AllReady" xml:space="preserve"><value>Tout est prêt : bon déploiement !</value></data>
+  <data name="Welcome_Choose" xml:space="preserve"><value>Choisir…</value></data>
+  <data name="Welcome_Intro" xml:space="preserve"><value>Quelques réglages avant le premier déploiement. Chaque étape ouvre la fenêtre qui convient ; vous pouvez revenir ici à tout moment par Aide › Assistant de démarrage.</value></data>
+  <data name="Welcome_Library" xml:space="preserve"><value>Bibliothèque…</value></data>
+  <data name="Welcome_Manage" xml:space="preserve"><value>Gérer…</value></data>
+  <data name="Welcome_Open" xml:space="preserve"><value>Ouvrir…</value></data>
+  <data name="Welcome_Progress" xml:space="preserve"><value>{0} étape(s) sur {1} faite(s)</value></data>
+  <data name="Welcome_ServiceWarning" xml:space="preserve"><value>⚠ Le service DeployCraft ne tourne pas avec les droits d'administrateur : les déploiements échoueront. Réinstallez-le ou changez son compte (services.msc).</value></data>
+  <data name="Welcome_Step1Text" xml:space="preserve"><value>{0} identifiant(s) enregistré(s). Par défaut : {1}.</value></data>
+  <data name="Welcome_Step1TextNone" xml:space="preserve"><value>Compte administrateur des postes (souvent un compte du domaine), utilisé pour copier les fichiers et lancer les installations.</value></data>
+  <data name="Welcome_Step1Title" xml:space="preserve"><value>1. Identifiant de déploiement</value></data>
+  <data name="Welcome_Step2Text" xml:space="preserve"><value>Installeurs rangés dans {0}.</value></data>
+  <data name="Welcome_Step2TextDefault" xml:space="preserve"><value>Où ranger les installeurs téléchargés. Un partage réseau est conseillé, pour que les postes puissent aussi les lire.</value></data>
+  <data name="Welcome_Step2Title" xml:space="preserve"><value>2. Dossier de la bibliothèque</value></data>
+  <data name="Welcome_Step3Text" xml:space="preserve"><value>{0} paquet(s) prêt(s) à déployer.</value></data>
+  <data name="Welcome_Step3TextNone" xml:space="preserve"><value>Téléchargez un logiciel courant depuis la bibliothèque, ou créez un paquet vous-même.</value></data>
+  <data name="Welcome_Step3Title" xml:space="preserve"><value>3. Premier paquet</value></data>
+  <data name="Welcome_Step4Text" xml:space="preserve"><value>Thème, délai par défaut, mode de copie, réessai des postes éteints, utilisateurs de la console.</value></data>
+  <data name="Welcome_Step4Title" xml:space="preserve"><value>4. Préférences (facultatif)</value></data>
+  <data name="Welcome_Title" xml:space="preserve"><value>Bienvenue dans DeployCraft</value></data>
+  <data name="WindowInputs_EachPackageSetting" xml:space="preserve"><value>Paramètre de chaque paquet</value></data>
+  <data name="WindowInputs_PackageLineMany" xml:space="preserve"><value>{0}. {1} ({2} étapes)</value></data>
+  <data name="WindowInputs_PackageLineOne" xml:space="preserve"><value>{0}. {1} ({2} étape)</value></data>
+  <data name="WindowInputs_PackageSetting" xml:space="preserve"><value>Paramètre du paquet ({0})</value></data>
 </root>

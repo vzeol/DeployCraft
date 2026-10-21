@@ -20,9 +20,9 @@ public partial class StepsWindow : Window
         _startStep = target.StartStep;
         _computer = target.Computer;
         _deploymentId = deployment.Id;
-        Title = $"{target.Computer} — Étapes";
+        Title = L.Format("StepsWindow_TitleFor", target.Computer);
         Heading.Text = $"{target.Computer} · {Ui.StatusText(target.Status.ToString())}";
-        SubHeading.Text = $"{deployment.PackageName} · déploiement {deployment.Id} · {Ui.LocalTime(target.StartedUtc)}";
+        SubHeading.Text = L.Format("StepsWindow_SubHeading", deployment.PackageName, deployment.Id, Ui.LocalTime(target.StartedUtc));
 
         var rows = StepDetailRow.For(deployment, target);
 
@@ -37,15 +37,15 @@ public partial class StepsWindow : Window
         var sb = new StringBuilder();
         if (row.Outcome == null)
             sb.AppendLine(row.Number < _startStep
-                ? $"Étape non exécutée : ce poste a démarré à l'étape {_startStep}."
-                : "Cette étape n'a pas été exécutée.");
+                ? L.Format("StepsWindow_NotRunBeforeStart", _startStep)
+                : L.Get("StepsWindow_NotRun"));
         else
         {
             if (!string.IsNullOrEmpty(row.Outcome.CommandLine)) sb.AppendLine("> " + row.Outcome.CommandLine).AppendLine();
             // Skipped step or stop on success: it is a reason, not an error.
             if (!string.IsNullOrEmpty(row.Outcome.Error))
-                sb.AppendLine((row.Outcome.State == "failed" ? "Erreur : " : "Raison : ") + row.Outcome.Error).AppendLine();
-            sb.Append(string.IsNullOrWhiteSpace(row.Outcome.Output) ? "(aucune sortie)" : row.Outcome.Output.TrimEnd());
+                sb.AppendLine(L.Get(row.Outcome.State == "failed" ? "StepsWindow_ErrorPrefix" : "StepsWindow_ReasonPrefix") + row.Outcome.Error).AppendLine();
+            sb.Append(string.IsNullOrWhiteSpace(row.Outcome.Output) ? L.Get("StepsWindow_NoOutput") : row.Outcome.Output.TrimEnd());
         }
         Output.Text = sb.ToString();
     }
@@ -77,7 +77,7 @@ public partial class StepsWindow : Window
 
     private void SaveOutput_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new Microsoft.Win32.SaveFileDialog { FileName = CurrentFileName, Filter = "Texte (*.txt)|*.txt|Tous les fichiers|*.*" };
+        var dialog = new Microsoft.Win32.SaveFileDialog { FileName = CurrentFileName, Filter = L.Get("StepsWindow_FilterText") + "|*.txt|" + L.Get("PackageWindow_FilterAllFiles") + "|*.*" };
         if (dialog.ShowDialog(this) != true) return;
         try { File.WriteAllText(dialog.FileName, Output.Text, new UTF8Encoding(true)); }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { Ui.Error(this, ex); }

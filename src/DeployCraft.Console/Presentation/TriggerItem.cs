@@ -7,7 +7,7 @@ namespace DeployCraft.Console;
 public class TriggerItem(ScheduleTrigger trigger) : INotifyPropertyChanged
 {
     public ScheduleTrigger Trigger { get; } = trigger;
-    public string Text => TriggerCalendar.Describe(Trigger) + (string.IsNullOrWhiteSpace(Trigger.Description) ? "" : $" — {Trigger.Description}");
+    public string Text => TriggerTexts.Describe(Trigger) + (string.IsNullOrWhiteSpace(Trigger.Description) ? "" : $" — {Trigger.Description}");
     public void Refresh() => PropertyChanged?.Invoke(this, new(nameof(Text)));
     public event PropertyChangedEventHandler? PropertyChanged;
 }

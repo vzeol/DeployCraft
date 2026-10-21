@@ -13,7 +13,7 @@ public partial class ScheduleWindow
         if (_schedule.Id == 0)
         {
             HistoryGrid.ItemsSource = null;
-            HistoryCount.Text = "Aucun historique : la planification n'est pas encore enregistrée.";
+            HistoryCount.Text = L.Get("ScheduleWindow_NoHistory");
             return;
         }
         var rows = (await Api.ScheduleHistory(_schedule.Id))
@@ -38,8 +38,8 @@ public partial class ScheduleWindow
     private async void ClearAllHistory_Click(object sender, RoutedEventArgs e)
     {
         if (_schedule.Id == 0 || HistoryGrid.Items.Count == 0) return;
-        if (MessageDialog.Show(this, "Effacer tout l'historique des cibles ?\nTous les postes recevront de nouveau les paquets au prochain déclenchement.",
-                "Historique des cibles", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+        if (MessageDialog.Show(this, L.Get("ScheduleWindow_ClearHistoryConfirm"),
+                L.Get("ScheduleWindow_HistoryTab"), MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         await ClearHistoryAsync([]);
     }
 

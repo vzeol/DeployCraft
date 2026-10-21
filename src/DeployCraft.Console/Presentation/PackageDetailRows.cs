@@ -10,22 +10,22 @@ public static class PackageDetailRows
     {
         var d = defaults ?? new DeploymentDefaults();
         string Setting<T>(T? own, T fallback, Func<T, string> text) where T : struct =>
-            own is { } v ? text(v) : $"Préférences ({text(fallback)})";
+            own is { } v ? text(v) : L.Format("PackageDetailRows_FromPreferences", text(fallback));
         var enabled = p.Steps.Count(s => s.Enabled);
         return
         [
-            ("Nom", p.Name),
-            ("Version", string.IsNullOrWhiteSpace(p.Version) ? "—" : p.Version),
-            ("Description", string.IsNullOrWhiteSpace(p.Description) ? "—" : p.Description),
-            ("Dossier", PackageDetails.FolderPath(p.FolderId, folders)),
-            ("Étapes", enabled == p.Steps.Count ? $"{p.Steps.Count}" : $"{p.Steps.Count}, dont {p.Steps.Count - enabled} désactivée(s)"),
-            ("Modifié le", Ui.LocalTime(p.ModifiedUtc)),
-            ("Exécuter en tant que", Setting(p.RunAs, d.RunAs, Ui.RunAsText)),
-            ("Mode de copie", Setting(p.CopyMode, d.CopyMode, Ui.CopyModeText)),
-            ("Délai max par étape", Setting(p.TimeoutMinutes, d.TimeoutMinutes, m => $"{m} min")),
-            ("Conditions", PackageDetails.ConditionsText(p.Conditions)),
-            ("Postes hors ligne", PackageDetails.OfflineText(p.Offline ?? d.Offline, p.Offline == null)),
-            ("Utilisé dans", PackageDetails.UsedByText(p.Id, packages)),
+            (L.Get("PackageDetailRows_Name"), p.Name),
+            (L.Get("PackageDetailRows_Version"), string.IsNullOrWhiteSpace(p.Version) ? "—" : p.Version),
+            (L.Get("PackageDetailRows_Description"), string.IsNullOrWhiteSpace(p.Description) ? "—" : p.Description),
+            (L.Get("PackageDetailRows_Folder"), PackageDetails.FolderPath(p.FolderId, folders)),
+            (L.Get("PackageDetailRows_Steps"), enabled == p.Steps.Count ? $"{p.Steps.Count}" : L.Format("PackageDetailRows_StepsSomeDisabled", p.Steps.Count, p.Steps.Count - enabled)),
+            (L.Get("PackageDetailRows_Modified"), Ui.LocalTime(p.ModifiedUtc)),
+            (L.Get("PackageDetailRows_RunAs"), Setting(p.RunAs, d.RunAs, Ui.RunAsText)),
+            (L.Get("PackageDetailRows_CopyMode"), Setting(p.CopyMode, d.CopyMode, Ui.CopyModeText)),
+            (L.Get("PackageDetailRows_StepTimeout"), Setting(p.TimeoutMinutes, d.TimeoutMinutes, m => L.Format("PackageDetailRows_Minutes", m))),
+            (L.Get("PackageDetailRows_Conditions"), PackageDetails.ConditionsText(p.Conditions)),
+            (L.Get("PackageDetailRows_Offline"), PackageDetails.OfflineText(p.Offline ?? d.Offline, p.Offline == null)),
+            (L.Get("PackageDetailRows_UsedIn"), PackageDetails.UsedByText(p.Id, packages)),
         ];
     }
 }

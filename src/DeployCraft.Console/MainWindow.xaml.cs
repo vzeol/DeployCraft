@@ -28,11 +28,11 @@ public partial class MainWindow : Window
         InitializeComponent();
         _refresh = new RefreshQueue(RefreshOnceAsync);
 
-        _homeNode = new TreeViewItem { Header = Ui.Header(Ui.IconHome, "Accueil"), Tag = "home" };
-        _deploymentsNode = new TreeViewItem { Header = Ui.Header(Ui.IconHistory, "Tous les déploiements"), Tag = "deployments" };
-        _schedulesNode = new TreeViewItem { Header = Ui.Header(Ui.IconSchedule, "Toutes les planifications"), Tag = "schedules" };
-        _libraryNode = new TreeViewItem { Header = Ui.Header(Ui.IconLibrary, "Bibliothèque de paquets"), Tag = "library" };
-        _packagesNode = new TreeViewItem { Header = Ui.Header(Ui.IconFolder, "Paquets"), IsExpanded = true };
+        _homeNode = new TreeViewItem { Header = Ui.Header(Ui.IconHome, L.Get("MainWindow_Home")), Tag = "home" };
+        _deploymentsNode = new TreeViewItem { Header = Ui.Header(Ui.IconHistory, L.Get("MainWindow_AllDeployments")), Tag = "deployments" };
+        _schedulesNode = new TreeViewItem { Header = Ui.Header(Ui.IconSchedule, L.Get("MainWindow_AllSchedules")), Tag = "schedules" };
+        _libraryNode = new TreeViewItem { Header = Ui.Header(Ui.IconLibrary, L.Get("MainWindow_Library")), Tag = "library" };
+        _packagesNode = new TreeViewItem { Header = Ui.Header(Ui.IconFolder, L.Get("MainWindow_Packages")), IsExpanded = true };
         Nav.Items.Add(_homeNode);
         Nav.Items.Add(_deploymentsNode);
         Nav.Items.Add(_schedulesNode);
@@ -133,15 +133,15 @@ public partial class MainWindow : Window
             var s = await Api.Status();
             _connected = true;
             _serverMachine = s.Machine;
-            StatusServer.Text = $"Service : {s.Machine} ({s.RunningAs}) — vous : {s.ConnectedAs}";
-            StatusAccount.Text = s.DefaultCredential is { } c ? $"Identifiant par défaut : {c.Account}" : "Aucun identifiant";
+            StatusServer.Text = L.Format("MainWindow_StatusService", s.Machine, s.RunningAs, s.ConnectedAs);
+            StatusAccount.Text = s.DefaultCredential is { } c ? L.Format("MainWindow_StatusDefaultCredential", c.Account) : L.Get("MainWindow_StatusNoCredential");
 
             ShowBanner(ServerIssues.For(s));
         }
         catch (ApiException ex)
         {
             _connected = false;
-            StatusServer.Text = ex.AccessDenied ? "Accès refusé" : "Service injoignable";
+            StatusServer.Text = ex.AccessDenied ? L.Get("MainWindow_StatusAccessDenied") : L.Get("MainWindow_StatusUnreachable");
             StatusAccount.Text = "";
             ShowBanner(ex.Message);
             throw;
@@ -192,7 +192,7 @@ public partial class MainWindow : Window
     {
         var list = await Api.Deployments();
         var running = list.Count(d => d.Status is DeploymentStatus.Running or DeploymentStatus.Queued);
-        StatusRunning.Text = running == 0 ? "Aucun déploiement en cours" : $"{running} déploiement(s) en cours";
+        StatusRunning.Text = running == 0 ? L.Get("MainWindow_StatusNoneRunning") : L.Format("MainWindow_StatusRunning", running);
 
         if (_view == View.Home) await RefreshHomeAsync(list);
         else if (_view == View.Deployments) AllDeployments.SetDeployments(list);
@@ -210,8 +210,8 @@ public partial class MainWindow : Window
             var selected = (PackageSchedulesGrid.SelectedItem as ScheduleRow)?.Id;
             PackageSchedulesGrid.ItemsSource = schedules;
             PackageSchedulesGrid.SelectedItem = schedules.FirstOrDefault(r => r.Id == selected);
-            PackageSchedulesCount.Text = schedules.Count == 0 ? "Ce paquet ne fait partie d'aucune planification."
-                : $"{schedules.Count} planification(s) avec ce paquet";
+            PackageSchedulesCount.Text = schedules.Count == 0 ? L.Get("MainWindow_PackageNoSchedule")
+                : L.Format("MainWindow_PackageScheduleCount", schedules.Count);
         }
     }
 
@@ -241,10 +241,10 @@ public partial class MainWindow : Window
     private void ShowPackage(Package p)
     {
         PackageTitle.Text = string.IsNullOrWhiteSpace(p.Version) ? p.Name : $"{p.Name} {p.Version}";
-        var steps = p.Steps.Count == 1 ? "1 étape" : $"{p.Steps.Count} étapes";
+        var steps = p.Steps.Count == 1 ? L.Get("MainWindow_OneStep") : L.Format("MainWindow_StepCount", p.Steps.Count);
         PackageSubtitle.Text = string.IsNullOrWhiteSpace(p.Description)
-            ? $"Paquet · {steps} · modifié le {Ui.LocalTime(p.ModifiedUtc)}"
-            : $"{p.Description} · {steps} · modifié le {Ui.LocalTime(p.ModifiedUtc)}";
+            ? L.Format("MainWindow_PackageSubtitle", steps, Ui.LocalTime(p.ModifiedUtc))
+            : L.Format("MainWindow_PackageSubtitleDesc", p.Description, steps, Ui.LocalTime(p.ModifiedUtc));
         StepsGrid.ItemsSource = StepRow.For(p.Steps, FindPackage);
         ShowPackageDetails(p);
         PackageDeployments.SetDeployments([]);
