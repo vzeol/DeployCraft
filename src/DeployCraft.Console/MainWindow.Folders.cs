@@ -9,16 +9,13 @@ namespace DeployCraft.Console;
 /// <summary>Package tree: folders, subfolders, and drag and drop to store packages and folders in them.</summary>
 public partial class MainWindow
 {
-    private List<PackageFolder> _folders = [];
-    /// <summary>Open folders, kept from one refresh to the next.</summary>
-    private readonly HashSet<long> _expandedFolders = [];
     private Point _dragStart;
     private TreeViewItem? _dragNode;
 
     private PackageFolder? SelectedFolder => (Nav.SelectedItem as TreeViewItem)?.Tag as PackageFolder;
 
     /// <summary>Folder where to put a new package or folder: the selected folder, or the one of the selected package.</summary>
-    private long? CurrentFolderId => SelectedFolder?.Id ?? SelectedPackage?.FolderId;
+    private long? CurrentFolderId => PackageList.CurrentFolder((Nav.SelectedItem as TreeViewItem)?.Tag);
 
     private void SetupFolderDragDrop()
     {
@@ -35,49 +32,36 @@ public partial class MainWindow
 
     private void RebuildPackageNodes(long? selectId, long? selectFolderId = null)
     {
-        var filter = Filter.Text.Trim();
-        var shown = _packages.Where(p => filter.Length == 0 || p.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)).ToList();
-        var known = _folders.Select(f => f.Id).ToHashSet();
         _packagesNode.Items.Clear();
-        AddChildren(_packagesNode, null);
+        foreach (var row in _packageList.Tree(Filter.Text, selectId, selectFolderId))
+            RenderPackageNode(_packagesNode, row);
+    }
 
-        // Returns true if the folder contains something to show (everything, with no filter).
-        bool AddChildren(TreeViewItem parent, long? folderId)
+    private void RenderPackageNode(TreeViewItem parent, PackageTreeNode row)
+    {
+        var folder = row.Item as PackageFolder;
+        var header = Ui.Header(folder != null ? Ui.IconFolder : Ui.IconPackage,
+            folder?.Name ?? ((Package)row.Item).Name);
+        if (row.UpdateAvailable)
+            header.Children.Add(new TextBlock
+            {
+                Text = Ui.IconUpdate,
+                FontFamily = Ui.IconFont,
+                Margin = new Thickness(6, 0, 0, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+                Foreground = (Brush)FindResource("Accent"),
+                ToolTip = L.Get("MainWindow_UpdateInLibraryTip"),
+            });
+        var node = new TreeViewItem { Header = header, Tag = row.Item };
+        foreach (var child in row.Children) RenderPackageNode(node, child);
+        node.IsExpanded = row.Expanded;
+        if (folder != null)
         {
-            var any = false;
-            foreach (var folder in _folders.Where(f => f.ParentId == folderId))
-            {
-                var node = new TreeViewItem { Header = Ui.Header(Ui.IconFolder, folder.Name), Tag = folder };
-                var hasContent = AddChildren(node, folder.Id);
-                if (filter.Length > 0 && !hasContent) continue;
-                node.IsExpanded = filter.Length > 0 || _expandedFolders.Contains(folder.Id);
-                node.Expanded += (_, e) => { if (e.OriginalSource == node) _expandedFolders.Add(folder.Id); };
-                node.Collapsed += (_, e) => { if (e.OriginalSource == node) _expandedFolders.Remove(folder.Id); };
-                parent.Items.Add(node);
-                if (folder.Id == selectFolderId) node.IsSelected = true;
-                any = true;
-            }
-            // A package whose folder no longer exists is shown at the root.
-            foreach (var p in shown.Where(p => p.FolderId == folderId || folderId == null && p.FolderId is { } f && !known.Contains(f)))
-            {
-                var header = Ui.Header(Ui.IconPackage, p.Name);
-                if (_libraryUpdates.Contains(p.Id))
-                    header.Children.Add(new TextBlock
-                    {
-                        Text = Ui.IconUpdate,
-                        FontFamily = Ui.IconFont,
-                        Margin = new Thickness(6, 0, 0, 0),
-                        VerticalAlignment = VerticalAlignment.Center,
-                        Foreground = (Brush)FindResource("Accent"),
-                        ToolTip = L.Get("MainWindow_UpdateInLibraryTip"),
-                    });
-                var node = new TreeViewItem { Header = header, Tag = p };
-                parent.Items.Add(node);
-                if (p.Id == selectId) node.IsSelected = true;
-                any = true;
-            }
-            return any;
+            node.Expanded += (_, e) => { if (e.OriginalSource == node) _packageList.ExpandedFolders.Add(folder.Id); };
+            node.Collapsed += (_, e) => { if (e.OriginalSource == node) _packageList.ExpandedFolders.Remove(folder.Id); };
         }
+        parent.Items.Add(node);
+        node.IsSelected = row.Selected;
     }
 
     private static IEnumerable<TreeViewItem> Descendants(TreeViewItem node)
@@ -106,7 +90,7 @@ public partial class MainWindow
         try
         {
             var folder = await Api.SaveFolder(new PackageFolder { Name = name, ParentId = parentId });
-            if (parentId is { } p) _expandedFolders.Add(p);
+            if (parentId is { } p) _packageList.ExpandedFolders.Add(p);
             await RefreshFoldersAsync(selectFolderId: folder.Id);
         }
         catch (ApiException ex) { Ui.Error(this, ex); }
@@ -130,7 +114,7 @@ public partial class MainWindow
         try
         {
             await Api.DeleteFolder(folder.Id);
-            _expandedFolders.Remove(folder.Id);
+            _packageList.ExpandedFolders.Remove(folder.Id);
             await RefreshFoldersAsync(selectFolderId: folder.ParentId);
         }
         catch (ApiException ex) { Ui.Error(this, ex); }
@@ -138,58 +122,27 @@ public partial class MainWindow
 
     private async Task RefreshFoldersAsync(long? selectId = null, long? selectFolderId = null)
     {
-        _folders = await Api.Folders();
-        _packages = await Api.Packages();
+        await _packageList.RefreshFoldersAsync();
         RebuildPackageNodes(selectId, selectFolderId);
         if (selectId == null && selectFolderId == null) _packagesNode.IsSelected = true;
     }
 
     // ---------- Cut / copy / paste (Ctrl+X / C / V in the tree) ----------
 
-    /// <summary>Item cut or copied in the tree: a package, or a folder (cut only).</summary>
-    private (long Id, bool IsFolder, bool Cut)? _treeClipboard;
+    private readonly PackageTreeCommands _packageTreeCommands = new(Api.Package, Api.SavePackage, Api.MovePackage, Api.SaveFolder);
 
-    private void CutOrCopyNode(bool cut)
-    {
-        if (SelectedPackage is { } p) _treeClipboard = (p.Id, false, cut);
-        else if (cut && SelectedFolder is { } f) _treeClipboard = (f.Id, true, true);
-    }
+    private void CutOrCopyNode(bool cut) => _packageTreeCommands.CutOrCopy((Nav.SelectedItem as TreeViewItem)?.Tag, cut);
 
-    private bool CanPaste => _treeClipboard != null && _connected
-        && (Nav.SelectedItem == _packagesNode || SelectedFolder != null || SelectedPackage != null);
+    private bool CanPaste => _packageTreeCommands.CanPaste(_connected,
+        (Nav.SelectedItem as TreeViewItem)?.Tag, Nav.SelectedItem == _packagesNode);
 
-    /// <summary>Pastes into the selected folder (or the one of the selected package, or the root).</summary>
     private async Task PasteNodeAsync()
     {
-        if (!CanPaste || _treeClipboard is not { } item) return;
-        var target = CurrentFolderId;
+        if (!CanPaste) return;
         try
         {
-            if (item.IsFolder)
-            {
-                if (_folders.FirstOrDefault(f => f.Id == item.Id) is not { } folder || folder.ParentId == target) return;
-                await Api.SaveFolder(new PackageFolder { Id = folder.Id, Name = folder.Name, ParentId = target });
-                _treeClipboard = null;
-                if (target is { } open) _expandedFolders.Add(open);
-                await RefreshFoldersAsync(selectFolderId: folder.Id);
-            }
-            else if (item.Cut)
-            {
-                await Api.MovePackage(item.Id, target);
-                _treeClipboard = null;
-                if (target is { } open) _expandedFolders.Add(open);
-                await RefreshFoldersAsync(selectId: item.Id);
-            }
-            else
-            {
-                var copy = await Api.Package(item.Id);
-                copy.Id = 0;
-                copy.FolderId = target;
-                copy.Name = PackageFolder.CopyName(copy.Name, _packages.Where(p => p.FolderId == target).Select(p => p.Name));
-                var saved = await Api.SavePackage(copy);
-                if (target is { } open) _expandedFolders.Add(open);
-                await RefreshFoldersAsync(selectId: saved.Id);
-            }
+            if (await _packageTreeCommands.PasteAsync(_packageList, CurrentFolderId) is { } selection)
+                await RefreshFoldersAsync(selection.PackageId, selection.FolderId);
         }
         catch (ApiException ex) { Ui.Error(this, ex); }
     }
@@ -217,19 +170,7 @@ public partial class MainWindow
     /// <summary>Folder where the item dropped on <paramref name="target"/> lands (root = null), or false if impossible.</summary>
     private bool DropFolder(TreeViewItem? dragged, TreeViewItem? target, out long? folderId)
     {
-        folderId = null;
-        if (dragged == null || target == null) return false;
-        if (target == _packagesNode) folderId = null;
-        else if (target.Tag is PackageFolder f) folderId = f.Id;
-        else if (target.Tag is Package p) folderId = p.FolderId;
-        else return false;
-
-        return dragged.Tag switch
-        {
-            Package p => p.FolderId != folderId,
-            PackageFolder f => f.ParentId != folderId && !PackageFolder.IsWithin(_folders, folderId, f.Id),
-            _ => false,
-        };
+        return _packageList.DropFolder(dragged?.Tag, target?.Tag, target == _packagesNode, out folderId);
     }
 
     private void Nav_DragOver(object sender, DragEventArgs e)
@@ -245,18 +186,8 @@ public partial class MainWindow
         if (!DropFolder(dragged, NodeAt(e.OriginalSource), out var folderId)) return;
         try
         {
-            if (folderId is { } open) _expandedFolders.Add(open);
-            switch (dragged!.Tag)
-            {
-                case Package p:
-                    await Api.MovePackage(p.Id, folderId);
-                    await RefreshFoldersAsync(selectId: p.Id);
-                    break;
-                case PackageFolder f:
-                    await Api.SaveFolder(new PackageFolder { Id = f.Id, Name = f.Name, ParentId = folderId });
-                    await RefreshFoldersAsync(selectFolderId: f.Id);
-                    break;
-            }
+            if (await _packageTreeCommands.MoveAsync(_packageList, dragged!.Tag, folderId) is { } selection)
+                await RefreshFoldersAsync(selection.PackageId, selection.FolderId);
         }
         catch (ApiException ex) { Ui.Error(this, ex); }
     }
