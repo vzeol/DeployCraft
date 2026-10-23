@@ -18,7 +18,27 @@ starts once they have validated everything**.
 Information specific to the maintainer's environment (servers, test computers, accounts) stays in their notes
 **outside the repository**: never copy it here.
 
-## Current version: 1.0.0
+## Current version: 1.0.0 — next: 1.1.0-rc.1
+
+**1.1.0-rc.1** is the release candidate of 1.1.0, built from `main` after #162. The maintainer updates their fleet
+with it, uses it for a few days, then the same code is published as 1.1.0.
+
+New since 1.0.0 (PRs #143 to #162):
+- **English console** (#148, #150, #151): every text in French and English, Préférences › Interface › Langue
+  (applied at the next start); built-in help in both languages; service messages follow the console language during
+  a request and the server's Windows language for background work (deployment results, schedules); the runner
+  follows its job.
+- **Clean stop** (#159): when the service stops, running computers are cancelled, the service waits for the cleanup
+  on the computers and marks them "Interrupted: the DeployCraft server was stopped.". Tested on the domain.
+- **Code** (no behavior change): comments in English (#147); service/runner contract tests (#158);
+  `TargetSession` split into `SlotLock` and `RunnerJobBuilder` (#161, domain regression OK); shared project
+  `DeployCraft.Shared` for the models used by console and service (#160); first step of moving the main window's
+  logic into testable classes: home page (#162, issue #156 still open).
+
+Contributors: the maintainer's Claude sessions and Codex (OpenAI), which works from its own clone through PRs
+(`AGENTS.md`); every PR is reviewed by another session before merging.
+
+## 1.0.0
 
 **The whole [`FEATURES.md`](FEATURES.md) list is covered**: 61 features done, 22 dropped by the maintainer, 6 set
 aside. Only 8.1 remains partial: LAPS is planned after v1 (issue #106).
@@ -55,37 +75,12 @@ Tested on the test domain: real deployments (Install, copies, cancellation), par
 installer (`/RELAUNCH=1` reopens the console without elevation). For the maintainer to watch in daily use: the
 whole UI, the library and automatic package updates.
 
-## Shared models refactoring (#155)
-
-- `DeployCraft.Shared` owns the previously linked console/service models and localized messages; both projects
-  now reference the same assembly. The existing namespaces and JSON shapes are unchanged.
-- Package expansion and default resolution moved from `Models.cs` to `Services/PackagePreparation.cs`.
-  Extension methods preserve existing call sites, including the files being changed separately in #159.
-- The test project no longer needs the console alias. All 436 tests pass, including two new tests
-  checking shared type identity and dependency direction. Build and formatting pass; self-contained Windows
-  publication includes the shared assembly, English resources and runner. The maintainer tested and merged #160.
-- No behavior change; no real computer or domain deployment was run. — Codex
-
-## Main window refactoring (#156): home screen first
-
-- `Presentation/HomePage.cs` handles home loading, text choices and row data through injected API/time functions.
-  `MainWindow.Home.cs` renders the result and forwards clicks. Existing FR/EN resource strings are reused.
-- Schedules still load before the overview is displayed; library status and tree markers follow. A library API
-  failure keeps the overview and previous markers, while a schedule failure propagates without changing the page.
-- Only the home screen is extracted. Package lists, global refresh, navigation and the other screens remain
-  future steps of #156. This first PR needs another session review and maintainer local validation before merge.
-- All 464 tests pass, including 25 new home cases covering both languages, plural choices, links, load ordering,
-  refresh and error handling without a window or real service. Locked restore, Release build (zero warnings) and
-  formatting pass. No behavior or visual change intended; no real-computer test was run. — Codex
-
 ## After v1
 
 - 8.1 LAPS (issue #106).
 - Import packages from an XML file (issue #14, on hold).
 - 8.9 service account: set aside, picked up only if the need arises.
-- Repository: code comments in English (#147). English console done (#148, #150): texts in French and English,
-  Préférences › Interface › Langue; service messages follow the console during a request and the server's Windows
-  language for background work.
+- Main window logic into testable classes, screen by screen (issue #156, in progress by Codex).
 
 Build: `.\build.ps1 -Version x.y.z` → `dist\DeployCraft-Setup-x.y.z.exe` (requires the .NET 10 SDK and Inno Setup 6).
 Each version is published in GitHub **Releases** with its installer (tag `vx.y.z`); a release candidate or beta is
