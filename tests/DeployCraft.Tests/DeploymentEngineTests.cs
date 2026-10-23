@@ -117,6 +117,67 @@ public sealed class DeploymentEngineTests : IAsyncLifetime, IDisposable
     }
 
     [Fact]
+    public async Task ServiceStop_WaitsForTheCleanupOnTheComputer()
+    {
+        _remote.WaitForCancel = true;
+        _remote.CleanupGate = Task.Delay(300);
+        var started = Deploy("PC-TEST-01");
+        await _remote.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        await StopServiceAsync();
+
+        Assert.True(_remote.CleanedUp, "the service stopped before the cleanup on the computer");
+        var deployment = _store.Deployments.Get(started.Id)!;
+        Assert.Equal(DeploymentStatus.Failed, deployment.Status);
+        var target = Assert.Single(deployment.Targets);
+        Assert.Equal(TargetStatus.Failed, target.Status);
+        Assert.Equal("Interrompu : le serveur DeployCraft a été arrêté.", target.Error);
+        Assert.Equal("failed", Assert.Single(target.Steps).State);
+    }
+
+    [Fact]
+    public async Task ServiceStop_FailsAComputerStillWaitingForASlot()
+    {
+        var defaults = _store.Settings.GetDefaults();
+        defaults.Performance = new PerformanceSettings { ParallelTargets = 1 };
+        _store.Settings.SaveDefaults(defaults);
+        _remote.WaitForCancel = true;
+        var started = Deploy("PC-TEST-01", "PC-TEST-02");
+        await _remote.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        await StopServiceAsync();
+
+        var targets = _store.Deployments.Get(started.Id)!.Targets;
+        Assert.All(targets, t => Assert.Equal(TargetStatus.Failed, t.Status));
+        Assert.All(targets, t => Assert.Equal("Interrompu : le serveur DeployCraft a été arrêté.", t.Error));
+        Assert.Single(_remote.Computers);
+    }
+
+    [Fact]
+    public async Task ServiceStop_DoesNotWaitLongerThanTheHostAllows()
+    {
+        _remote.WaitForCancel = true;
+        var cleanupStuck = new TaskCompletionSource();
+        _remote.CleanupGate = cleanupStuck.Task;
+        Deploy("PC-TEST-01");
+        await _remote.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        using var hostLimit = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
+        _stop.Cancel();
+        await _engine.StopAsync(hostLimit.Token).WaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.False(_remote.CleanedUp);
+        cleanupStuck.SetResult(); // lets the test cleanup stop the engine
+    }
+
+    /// <summary>Stops the engine like the host does: stopping token cancelled, then StopAsync.</summary>
+    private async Task StopServiceAsync()
+    {
+        _stop.Cancel();
+        await _engine.StopAsync(CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(10));
+    }
+
+    [Fact]
     public async Task SeveralComputers_AreAllRun()
     {
         var deployment = await WaitEndAsync(Deploy("PC-TEST-01", "PC-TEST-02", "PC-TEST-03").Id);
@@ -132,6 +193,9 @@ public sealed class DeploymentEngineTests : IAsyncLifetime, IDisposable
         public string StepState { get; set; } = "succeeded";
         public DeployException? Error { get; set; }
         public bool WaitForCancel { get; set; }
+        /// <summary>End of the cleanup on the computer once cancelled (deleting the runner service, files…).</summary>
+        public Task CleanupGate { get; set; } = Task.CompletedTask;
+        public bool CleanedUp { get; private set; }
         public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public List<string> Computers
@@ -150,7 +214,15 @@ public sealed class DeploymentEngineTests : IAsyncLifetime, IDisposable
             if (WaitForCancel)
             {
                 progress(new RunnerStatus { Steps = [new() { Name = package.Steps[0].Name, State = "running" }] });
-                await Task.Delay(Timeout.Infinite, ct);
+                try
+                {
+                    await Task.Delay(Timeout.Infinite, ct);
+                }
+                finally
+                {
+                    await CleanupGate;
+                    CleanedUp = true;
+                }
             }
             if (Error != null) throw Error;
             progress(new RunnerStatus

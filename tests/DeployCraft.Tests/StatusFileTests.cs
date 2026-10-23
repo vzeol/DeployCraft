@@ -75,7 +75,7 @@ public sealed class StatusFileTests : IDisposable
             new() { Name = "b", State = "running" },
         };
 
-        DeploymentEngine.MarkAborted(steps, now);
+        DeploymentEngine.MarkAborted(steps, now, "Annulé.");
 
         Assert.Equal("success", steps[0].State);
         Assert.Equal("failed", steps[1].State);

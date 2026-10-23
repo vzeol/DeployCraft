@@ -46,6 +46,7 @@
   <data name="DeploymentEngine_BadStartStep" xml:space="preserve"><value>{0}: invalid start step ({1}); the package has {2} step(s).</value></data>
   <data name="DeploymentEngine_CredentialDeleted" xml:space="preserve"><value>Credential {0} was deleted after the deployment started.</value></data>
   <data name="DeploymentEngine_CredentialNotFound" xml:space="preserve"><value>Credential not found (deleted?).</value></data>
+  <data name="DeploymentEngine_Interrupted" xml:space="preserve"><value>Interrupted: the DeployCraft server was stopped.</value></data>
   <data name="DeploymentEngine_ManySkipped" xml:space="preserve"><value>{0} steps skipped, including "{1}"{2}</value></data>
   <data name="DeploymentEngine_NoPackage" xml:space="preserve"><value>No package.</value></data>
   <data name="DeploymentEngine_NoTarget" xml:space="preserve"><value>No target.</value></data>
