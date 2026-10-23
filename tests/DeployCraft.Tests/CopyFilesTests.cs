@@ -32,7 +32,7 @@ public sealed class CopyFilesTests : IDisposable
             SuccessCodes = "0",
         };
 
-        var job = TargetSession.ToJobStep(step, new Package(), RunAsMode.LocalSystem);
+        var job = RunnerJobBuilder.ToJobStep(step, new Package(), RunAsMode.LocalSystem);
 
         Assert.Equal("copyfiles", job.Type);
         Assert.Equal(@"%ProgramData%\Outil", job.CopyDestination);
@@ -43,9 +43,9 @@ public sealed class CopyFilesTests : IDisposable
         Assert.Equal(Enumerable.Range(0, 8), job.SuccessCodes);
 
         step.CopyIgnoreErrors = true;
-        Assert.Equal(Enumerable.Range(0, 16), TargetSession.ToJobStep(step, new Package(), RunAsMode.LocalSystem).SuccessCodes);
+        Assert.Equal(Enumerable.Range(0, 16), RunnerJobBuilder.ToJobStep(step, new Package(), RunAsMode.LocalSystem).SuccessCodes);
 
-        Assert.Null(TargetSession.ToJobStep(new PackageStep { Type = StepType.Command, Command = "echo" }, new Package(), RunAsMode.LocalSystem).CopyDestination);
+        Assert.Null(RunnerJobBuilder.ToJobStep(new PackageStep { Type = StepType.Command, Command = "echo" }, new Package(), RunAsMode.LocalSystem).CopyDestination);
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public sealed class CopyFilesTests : IDisposable
         Write("source", "autre.txt");
         var target = Path.Combine(_dir, "exec", "copie-1");
 
-        TargetSession.StageCopy(source, "*.txt", subfolders: true, target);
+        RunnerJobBuilder.StageCopy(source, "*.txt", subfolders: true, target);
 
         Assert.Equal(["outil.ini"], Files(target));
     }
@@ -92,11 +92,11 @@ public sealed class CopyFilesTests : IDisposable
         Directory.CreateDirectory(Path.Combine(source, "vide"));
 
         var flat = Path.Combine(_dir, "plat");
-        TargetSession.StageCopy(source, "*.ini", subfolders: false, flat);
+        RunnerJobBuilder.StageCopy(source, "*.ini", subfolders: false, flat);
         Assert.Equal(["a.ini"], Files(flat));
 
         var deep = Path.Combine(_dir, "complet");
-        TargetSession.StageCopy(source, "*.ini;*.txt", subfolders: true, deep);
+        RunnerJobBuilder.StageCopy(source, "*.ini;*.txt", subfolders: true, deep);
         Assert.Equal(["a.ini", "b.txt", Path.Combine("conf", "c.ini")], Files(deep));
         Assert.True(Directory.Exists(Path.Combine(deep, "vide")));
     }
@@ -104,7 +104,7 @@ public sealed class CopyFilesTests : IDisposable
     [Fact]
     public void Stage_MissingSource_IsAClearError()
     {
-        var ex = Assert.Throws<DeployException>(() => TargetSession.StageCopy(Path.Combine(_dir, "absent"), "*", true, Path.Combine(_dir, "cible")));
+        var ex = Assert.Throws<DeployException>(() => RunnerJobBuilder.StageCopy(Path.Combine(_dir, "absent"), "*", true, Path.Combine(_dir, "cible")));
         Assert.Contains("introuvable", ex.Message);
     }
 
