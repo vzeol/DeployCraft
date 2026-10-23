@@ -1,5 +1,3 @@
-using System.Net;
-using System.Security.Cryptography;
 using System.Text.Json;
 using DeployCraft.Server.Data;
 using DeployCraft.Server.Remote;
@@ -15,16 +13,14 @@ namespace DeployCraft.Server.Library;
 public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepository settingsRepository, DeployCredentials credentials, string dataDir, ILogger<PackageLibrary> log)
 {
     private const string SettingKey = "library";
-    private const string CatalogRaw = "https://raw.githubusercontent.com/microsoft/winget-pkgs/master/";
     /// <summary>At most this many results are shown for a search.</summary>
     private const int SearchLimit = 1000;
     /// <summary>The index is re-read on its own when it is more than a day old (checked every hour, and when the console shows it).</summary>
     private static readonly TimeSpan MaxAge = TimeSpan.FromDays(1);
 
-    private static readonly HttpClient Http = CreateClient();
+    private static HttpClient Http => CatalogSheets.Http;
 
     private static string StageDownload => Msg.Get("PackageLibrary_StageDownload");
-    private static string StageCheck => Msg.Get("PackageLibrary_StageCheck");
     private static string StageCopy => Msg.Get("PackageLibrary_StageCopy");
     private static string StagePackage => Msg.Get("PackageLibrary_StagePackage");
 
@@ -205,7 +201,7 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
             var known = _index.Get(state.Links.Keys.Concat(LibraryCatalog.Suggested));
             foreach (var e in known.Values.Where(e => state.Entries.GetValueOrDefault(e.Id)?.Version != e.Version))
             {
-                var entry = await ReadEntryAsync(e);
+                var entry = await CatalogSheets.ReadEntryAsync(e);
                 lock (_lock)
                 {
                     var current = Load();
@@ -266,20 +262,6 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
         return mode == LibraryAutoUpdate.Immediate || seenUtc == null || nowUtc - seenUtc.Value >= TimeSpan.FromDays(days);
     }
 
-    /// <summary>Install sheet of the latest version: chosen installer, or the reason why there is none.</summary>
-    private static async Task<LibraryEntry> ReadEntryAsync(IndexEntry e)
-    {
-        var url = $"{CatalogRaw}{Escape(LibraryCatalog.ManifestFolder(e.Id))}/{Escape(e.Version)}/{Escape(e.Id)}.installer.yaml";
-        using var response = await Http.GetAsync(url);
-        if (response.StatusCode == HttpStatusCode.NotFound)
-            return new LibraryEntry { Version = e.Version, Problem = Msg.Get("PackageLibrary_SheetNotFound"), SeenUtc = DateTime.UtcNow };
-        response.EnsureSuccessStatusCode();
-        var installer = CatalogManifest.Choose(await response.Content.ReadAsStringAsync(), out var problem);
-        return new LibraryEntry { Version = e.Version, Installer = installer, Problem = problem, SeenUtc = DateTime.UtcNow };
-    }
-
-    private static string Escape(string path) => string.Join('/', path.Split('/').Select(Uri.EscapeDataString));
-
     // ---------- Download ----------
 
     /// <summary>
@@ -298,7 +280,7 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
         {
             try
             {
-                entry = await ReadEntryAsync(e);
+                entry = await CatalogSheets.ReadEntryAsync(e);
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
             {
@@ -329,7 +311,7 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(temp)!);
-            await FetchAsync(app.Id, installer, temp);
+            await InstallerDownload.FetchAsync(Http, installer, temp, (stage, done, total) => Report(app.Id, stage, done, total));
             var folder = Folder(Load());
             var version = app.Version;
             var file = Path.Combine(folder, SafeName(app.Name), SafeName(version), SafeName($"{app.Name} {version}") + installer.Extension);
@@ -337,14 +319,14 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
             credentials.RunAs(credentials.Default, null, () =>
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(file)!);
-                CopyWithProgress(app.Id, temp, file);
+                InstallerDownload.Copy(temp, file, (done, total) => Report(app.Id, StageCopy, done, total));
             });
             lock (_lock)
             {
                 _progress[app.Id] = (StagePackage, 50);
                 var state = Load();
                 var previous = state.Links.GetValueOrDefault(app.Id);
-                var package = SavePackage(app, version, installer, file, previous);
+                var package = LibraryPackages.Save(packageRepository, app, version, installer, file, previous);
                 state.Links[app.Id] = new LibraryLink { PackageId = package.Id, Version = version, File = file };
                 state.Errors.Remove(app.Id);
                 Save(state);
@@ -373,97 +355,9 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
         }
     }
 
-    private async Task FetchAsync(string id, LibraryInstaller installer, string temp)
-    {
-        using var response = await Http.GetAsync(installer.Url, HttpCompletionOption.ResponseHeadersRead);
-        response.EnsureSuccessStatusCode();
-        var total = response.Content.Headers.ContentLength;
-        await using (var input = await response.Content.ReadAsStreamAsync())
-        await using (var output = File.Create(temp))
-        {
-            var buffer = new byte[81920];
-            long done = 0;
-            int read;
-            while ((read = await input.ReadAsync(buffer)) > 0)
-            {
-                await output.WriteAsync(buffer.AsMemory(0, read));
-                done += read;
-                if (total > 0) Report(id, StageDownload, done, total.Value);
-            }
-        }
-
-        using var sha = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
-        await using (var check = File.OpenRead(temp))
-        {
-            var buffer = new byte[81920];
-            long done = 0;
-            int read;
-            while ((read = await check.ReadAsync(buffer)) > 0)
-            {
-                sha.AppendData(buffer, 0, read);
-                done += read;
-                Report(id, StageCheck, done, check.Length);
-            }
-        }
-        var hash = Convert.ToHexString(sha.GetHashAndReset());
-        if (!hash.Equals(installer.Sha256, StringComparison.OrdinalIgnoreCase))
-            throw new InvalidDataException(Msg.Get("PackageLibrary_HashMismatch"));
-    }
-
-    /// <summary>Copies into the library folder, following the progress.</summary>
-    private void CopyWithProgress(string id, string source, string destination)
-    {
-        using var input = File.OpenRead(source);
-        using var output = File.Create(destination);
-        var buffer = new byte[1024 * 1024];
-        long done = 0;
-        int read;
-        while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
-        {
-            output.Write(buffer, 0, read);
-            done += read;
-            Report(id, StageCopy, done, input.Length);
-        }
-    }
-
     private void Report(string id, string stage, long done, long total)
     {
         lock (_lock) _progress[id] = (stage, total > 0 ? (int)(done * 100 / total) : 0);
-    }
-
-    /// <summary>
-    /// Creates the package, or updates the one already linked: version, file and parameters of its install step.
-    /// The other settings edited by hand (conditions, added steps...) are kept.
-    /// </summary>
-    private Package SavePackage(IndexEntry app, string version, LibraryInstaller installer, string file, LibraryLink? previous)
-    {
-        if (previous != null && packageRepository.Get(previous.PackageId) is { } existing)
-        {
-            var step = existing.Steps.FirstOrDefault(s => s.Type == StepType.Install && string.Equals(s.File, previous.File, StringComparison.OrdinalIgnoreCase));
-            if (step != null)
-            {
-                step.File = file;
-                step.Arguments = NullIfEmpty(installer.Arguments);
-                existing.Version = version;
-                return packageRepository.Save(existing);
-            }
-        }
-        return packageRepository.Save(new Package
-        {
-            Name = app.Name,
-            Version = version,
-            Description = Msg.Format("PackageLibrary_Description", app.Id),
-            Steps =
-            [
-                new PackageStep
-                {
-                    Type = StepType.Install,
-                    Name = Msg.Format("PackageLibrary_InstallStep", app.Name),
-                    File = file,
-                    Arguments = NullIfEmpty(installer.Arguments),
-                },
-            ],
-        });
     }
 
     /// <summary>Deletes the folder of the old version, only if it is inside the library folder.</summary>
@@ -495,43 +389,5 @@ public class PackageLibrary(IPackageRepository packageRepository, ISettingsRepos
     {
         var invalid = Path.GetInvalidFileNameChars();
         return new string(name.Select(c => invalid.Contains(c) ? '_' : c).ToArray()).Trim().TrimEnd('.');
-    }
-
-    private static string? NullIfEmpty(string value) => string.IsNullOrWhiteSpace(value) ? null : value;
-
-    private static HttpClient CreateClient()
-    {
-        var client = new HttpClient { Timeout = TimeSpan.FromMinutes(30) };
-        // The catalog rejects requests without an application name.
-        client.DefaultRequestHeaders.UserAgent.ParseAdd("DeployCraft");
-        return client;
-    }
-
-    private sealed class LibraryState
-    {
-        public string? Folder { get; set; }
-        public DateTime? LastRefreshUtc { get; set; }
-        public string? RefreshError { get; set; }
-        public LibraryAutoUpdate AutoUpdate { get; set; }
-        public int AutoUpdateDays { get; set; } = 3;
-        public Dictionary<string, LibraryEntry> Entries { get; set; } = [];
-        public Dictionary<string, LibraryLink> Links { get; set; } = [];
-        public Dictionary<string, string> Errors { get; set; } = [];
-    }
-
-    private sealed class LibraryEntry
-    {
-        public string? Version { get; set; }
-        public LibraryInstaller? Installer { get; set; }
-        public string? Problem { get; set; }
-        /// <summary>First time this version was read (starting point of the delay for automatic updates).</summary>
-        public DateTime? SeenUtc { get; set; }
-    }
-
-    private sealed class LibraryLink
-    {
-        public long PackageId { get; set; }
-        public string Version { get; set; } = "";
-        public string File { get; set; } = "";
     }
 }
