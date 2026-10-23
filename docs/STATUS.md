@@ -32,8 +32,13 @@ New since 1.0.0 (PRs #143 to #162):
   on the computers and marks them "Interrupted: the DeployCraft server was stopped.". Tested on the domain.
 - **Code** (no behavior change): comments in English (#147); service/runner contract tests (#158);
   `TargetSession` split into `SlotLock` and `RunnerJobBuilder` (#161, domain regression OK); shared project
-  `DeployCraft.Shared` for the models used by console and service (#160); first step of moving the main window's
-  logic into testable classes: home page (#162, issue #156 still open).
+  `DeployCraft.Shared` for the models used by console and service (#160); `PackageLibrary` and
+  `XmlPackageImport` split (#165, #166); the main window's logic moved into testable classes under
+  `Presentation/`, screen by screen (#162, #167, #168, #169, #170: home, packages, deployments, schedules, library,
+  navigation and refresh).
+
+**Next, after 1.1.0-rc.1 (on the maintainer's fleet):** the refactorings above (#164 to #170) go into 1.1.0-rc.2
+or 1.1.0, after the maintainer's validation.
 
 Contributors: the maintainer's Claude sessions and Codex (OpenAI), which works from its own clone through PRs
 (`AGENTS.md`); every PR is reviewed by another session before merging.
@@ -80,8 +85,6 @@ whole UI, the library and automatic package updates.
 - 8.1 LAPS (issue #106).
 - Import packages from an XML file (issue #14, on hold).
 - 8.9 service account: set aside, picked up only if the need arises.
-- Main window logic into testable classes, screen by screen (issue #156, in progress by Codex): home page done,
-  then the package list and tree.
 
 Build: `.\build.ps1 -Version x.y.z` → `dist\DeployCraft-Setup-x.y.z.exe` (requires the .NET 10 SDK and Inno Setup 6).
 Each version is published in GitHub **Releases** with its installer (tag `vx.y.z`); a release candidate or beta is
