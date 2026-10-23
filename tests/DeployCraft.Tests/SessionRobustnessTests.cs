@@ -34,29 +34,29 @@ public sealed class SessionRobustnessTests : IDisposable
     [Fact]
     public void Lock_LeftByAnEarlierRunOfThisServer_IsReclaimed()
     {
-        Assert.True(TargetSession.CanReclaim(Lock("SERVEUR-01|90|1"), Slot, Current, DateTime.UtcNow, NoneAlive));
+        Assert.True(SlotLock.CanReclaim(Lock("SERVEUR-01|90|1"), Slot, Current, DateTime.UtcNow, NoneAlive));
     }
 
     [Fact]
     public void Lock_OfAnotherServerStillRunningOnThisMachine_IsKept()
     {
         // For example a test instance started next to the service.
-        Assert.False(TargetSession.CanReclaim(Lock("SERVEUR-01|90|1"), Slot, Current, DateTime.UtcNow, owner => owner == "SERVEUR-01|90|1"));
+        Assert.False(SlotLock.CanReclaim(Lock("SERVEUR-01|90|1"), Slot, Current, DateTime.UtcNow, owner => owner == "SERVEUR-01|90|1"));
     }
 
     [Fact]
     public void Lock_OfThisRunOrOfAnotherServer_IsKept()
     {
-        Assert.False(TargetSession.CanReclaim(Lock(Current), Slot, Current, DateTime.UtcNow, NoneAlive));
-        Assert.False(TargetSession.CanReclaim(Lock("SERVEUR-02|90|1"), Slot, Current, DateTime.UtcNow, NoneAlive));
+        Assert.False(SlotLock.CanReclaim(Lock(Current), Slot, Current, DateTime.UtcNow, NoneAlive));
+        Assert.False(SlotLock.CanReclaim(Lock("SERVEUR-02|90|1"), Slot, Current, DateTime.UtcNow, NoneAlive));
     }
 
     [Fact]
     public void Lock_WithoutOwner_IsReclaimedOnlyAfterADay()
     {
         var now = DateTime.UtcNow;
-        Assert.False(TargetSession.CanReclaim(Lock("", now.AddHours(-2)), Slot, Current, now, NoneAlive));
-        Assert.True(TargetSession.CanReclaim(Lock("", now.AddDays(-2)), Slot, Current, now, NoneAlive));
+        Assert.False(SlotLock.CanReclaim(Lock("", now.AddHours(-2)), Slot, Current, now, NoneAlive));
+        Assert.True(SlotLock.CanReclaim(Lock("", now.AddDays(-2)), Slot, Current, now, NoneAlive));
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public sealed class SessionRobustnessTests : IDisposable
         var path = Lock("SERVEUR-01|90|1");
 
         using (new FileStream(exe, FileMode.Open, FileAccess.Read, FileShare.Read)) // like a running program
-            Assert.False(TargetSession.CanReclaim(path, Slot, Current, DateTime.UtcNow, NoneAlive));
-        Assert.True(TargetSession.CanReclaim(path, Slot, Current, DateTime.UtcNow, NoneAlive));
+            Assert.False(SlotLock.CanReclaim(path, Slot, Current, DateTime.UtcNow, NoneAlive));
+        Assert.True(SlotLock.CanReclaim(path, Slot, Current, DateTime.UtcNow, NoneAlive));
     }
 }

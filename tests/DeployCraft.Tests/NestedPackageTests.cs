@@ -59,7 +59,7 @@ public class NestedPackageTests
         var a = parent.Flatten(Find).Steps[0];
 
         Assert.Equal(["Conditions de l'étape « Bloc »", "Conditions du paquet imbriqué « Outils »"], a.ExtraConditions!.Select(g => g.Label));
-        var job = TargetSession.ToJobStep(a, parent, RunAsMode.DeployUser);
+        var job = RunnerJobBuilder.ToJobStep(a, parent, RunAsMode.DeployUser);
         Assert.Equal(2, job.ExtraConditions!.Count);
         Assert.Equal("x64", job.ExtraConditions[1].Conditions!.Architecture);
     }
@@ -170,5 +170,5 @@ public class NestedPackageTests
 
     [Fact]
     public void AnUnflattenedNestedStep_IsNeverSentToTheComputer() =>
-        Assert.Throws<DeployException>(() => TargetSession.ToJobStep(Nested(2), new Package(), RunAsMode.DeployUser));
+        Assert.Throws<DeployException>(() => RunnerJobBuilder.ToJobStep(Nested(2), new Package(), RunAsMode.DeployUser));
 }
