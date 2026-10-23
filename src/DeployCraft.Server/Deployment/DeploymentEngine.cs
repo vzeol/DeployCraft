@@ -121,16 +121,63 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
 
     private readonly ConcurrentDictionary<long, string?> _abortedBy = new();
 
+    /// <summary>Deployments in progress, by id: the service waits for them (and their cleanup) when it stops.</summary>
+    private readonly ConcurrentDictionary<long, Task> _runs = new();
+
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        deploymentRepository.FailInterrupted();
+        deploymentRepository.FailInterrupted(Msg.Get("DeploymentEngine_Interrupted"));
         ApplyPerformance(settingsRepository.GetDefaults().Performance);
         if (remote.SetupProblem() is { } problem) log.LogError("{Problem}", problem);
 
-        await foreach (var id in _queue.Reader.ReadAllAsync(ct))
+        try
         {
-            // Each deployment advances in parallel with the others; the slot queue limits the total number of computers.
-            _ = Task.Run(() => RunDeploymentAsync(id, ct), ct);
+            await foreach (var id in _queue.Reader.ReadAllAsync(ct))
+            {
+                // Each deployment advances in parallel with the others; the slot queue limits the total number of computers.
+                var registered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                _runs[id] = TrackAsync(id, registered.Task, ct);
+                registered.SetResult();
+            }
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
+    }
+
+    /// <summary>
+    /// Service stop: the running computers are cancelled (through the stopping token), then the service waits for
+    /// their end and the cleanup on the computers, within the time the host gives for stopping.
+    /// </summary>
+    public override async Task StopAsync(CancellationToken cancellationToken)
+    {
+        await base.StopAsync(cancellationToken);
+        var running = _runs.Values.ToArray();
+        if (running.Length == 0) return;
+        log.LogInformation("Service stopping: waiting for {Count} deployment(s) to clean up", running.Length);
+        try
+        {
+            await Task.WhenAll(running).WaitAsync(cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            log.LogWarning("Service stopping: some deployments did not finish their cleanup in time");
+        }
+    }
+
+    /// <summary>Runs a deployment once it is registered in <see cref="_runs"/>; its errors are logged, never lost.</summary>
+    private async Task TrackAsync(long id, Task registered, CancellationToken ct)
+    {
+        await registered;
+        try
+        {
+            await RunDeploymentAsync(id, ct);
+        }
+        catch (Exception ex)
+        {
+            log.LogError(ex, "Deployment {Id} ended with an unexpected error", id);
+        }
+        finally
+        {
+            _runs.TryRemove(id, out _);
         }
     }
 
@@ -179,6 +226,8 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
 
                 await _slots.WaitAsync(target.Prioritized, waitCts.Token);
                 slotTaken = true;
+                // A slot freed by a cancellation can be handed out just before this computer's own cancellation.
+                cts.Token.ThrowIfCancellationRequested();
             }
             catch (OperationCanceledException) when (waitCts.IsCancellationRequested && !cts.IsCancellationRequested)
             {
@@ -261,7 +310,14 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
             target.Status = TargetStatus.Failed;
             _abortedBy.TryRemove(target.Id, out var by);
             target.Error = string.IsNullOrEmpty(by) ? Msg.Format("DeploymentEngine_Aborted", DeploymentSummary.AbortedPrefix) : Msg.Format("DeploymentEngine_AbortedBy", DeploymentSummary.AbortedPrefix, by);
-            MarkAborted(target.Steps, DateTime.UtcNow);
+            MarkAborted(target.Steps, DateTime.UtcNow, Msg.Format("DeploymentEngine_Aborted", DeploymentSummary.AbortedPrefix));
+        }
+        catch (OperationCanceledException) when (appStopping.IsCancellationRequested)
+        {
+            countForSchedule = false;
+            target.Status = TargetStatus.Failed;
+            target.Error = Msg.Get("DeploymentEngine_Interrupted");
+            MarkAborted(target.Steps, DateTime.UtcNow, target.Error);
         }
         catch (Exception ex)
         {
@@ -334,13 +390,13 @@ public class DeploymentEngine(IPackageRepository packageRepository, IDeploymentR
             : Msg.Format("DeploymentEngine_ManySkipped", skipped.Count, first.Name, reason));
     }
 
-    /// <summary>Cancellation: the interrupted step (still "running") becomes failed "Annulé.", with an end date.</summary>
-    internal static void MarkAborted(List<StepOutcome> steps, DateTime nowUtc)
+    /// <summary>Cancellation or service stop: the interrupted step (still "running") becomes failed with <paramref name="error"/>, with an end date.</summary>
+    internal static void MarkAborted(List<StepOutcome> steps, DateTime nowUtc, string error)
     {
         foreach (var step in steps.Where(s => s.State == "running"))
         {
             step.State = "failed";
-            step.Error ??= Msg.Format("DeploymentEngine_Aborted", DeploymentSummary.AbortedPrefix);
+            step.Error ??= error;
             step.EndedUtc ??= nowUtc;
         }
     }
