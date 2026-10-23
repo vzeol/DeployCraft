@@ -30,11 +30,10 @@ public partial class MainWindow
 
     private async Task AfterPackageSaved(Package saved)
     {
-        _packages = await Api.Packages();
-        if (saved.FolderId is { } folder) _expandedFolders.Add(folder);
+        var fresh = await _packageList.AfterSavedAsync(saved);
         RebuildPackageNodes(saved.Id);
         SelectPackageNode(saved.Id);
-        if (_packages.FirstOrDefault(p => p.Id == saved.Id) is { } fresh) ShowPackage(fresh);
+        if (fresh != null) ShowPackage(fresh);
         await RefreshAsync(packages: false);
     }
 
@@ -62,7 +61,7 @@ public partial class MainWindow
 
     private async void ExportAll_Click(object sender, RoutedEventArgs e)
     {
-        if (_packages.Count > 0) await ExportAsync(_packages.Select(p => p.Id), L.Get("MainWindow_ExportDefaultName"));
+        if (_packageList.Packages.Count > 0) await ExportAsync(_packageList.Packages.Select(p => p.Id), L.Get("MainWindow_ExportDefaultName"));
     }
 
     /// <summary>Saves the packages (and the nested packages they use) to a .json file.</summary>

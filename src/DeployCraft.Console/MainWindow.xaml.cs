@@ -17,7 +17,7 @@ public partial class MainWindow : Window
     private readonly TreeViewItem _schedulesNode;
     private readonly TreeViewItem _libraryNode;
     private readonly TreeViewItem _packagesNode;
-    private List<Package> _packages = [];
+    private readonly PackageList _packageList = new(Api.Folders, Api.Packages, Api.Defaults, Api.LibraryStatus);
     private View _view = View.Home;
     // False while the service refuses access or does not respond: commands are then greyed out.
     private bool _connected;
@@ -27,6 +27,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         _refresh = new RefreshQueue(RefreshOnceAsync);
+        _packagePage = new PackagePage(_packageList, Api.Schedules, Ui.LocalTime);
 
         _homeNode = new TreeViewItem { Header = Ui.Header(Ui.IconHome, L.Get("MainWindow_Home")), Tag = "home" };
         _deploymentsNode = new TreeViewItem { Header = Ui.Header(Ui.IconHistory, L.Get("MainWindow_AllDeployments")), Tag = "deployments" };
@@ -158,34 +159,14 @@ public partial class MainWindow : Window
     {
         var selectedId = SelectedPackage?.Id;
         var selectedFolderId = SelectedFolder?.Id;
-        _folders = await Api.Folders();
-        _packages = await Api.Packages();
-        try
-        {
-            _defaults = await Api.Defaults();
-        }
-        catch (ApiException) { /* les Détails afficheront les valeurs d'usine */ }
-        try
-        {
-            _libraryUpdates = LibraryList.PackagesWithUpdate(await Api.LibraryStatus());
-        }
-        catch (ApiException) { /* le repère attendra la prochaine lecture */ }
+        await _packageList.RefreshAsync();
         RebuildPackageNodes(selectedId, selectedFolderId);
     }
-
-    // Server Preferences: values of the settings left on "default" in the Details tab.
-    private DeploymentDefaults? _defaults;
-
-    // Packages whose library has a new version: marked in the tree.
-    private HashSet<long> _libraryUpdates = [];
 
     /// <summary>Updates the tree markers if the list of available updates changed.</summary>
     private void ShowLibraryUpdates(LibraryInfo status)
     {
-        var updates = LibraryList.PackagesWithUpdate(status);
-        if (updates.SetEquals(_libraryUpdates)) return;
-        _libraryUpdates = updates;
-        RebuildPackageNodes(SelectedPackage?.Id, SelectedFolder?.Id);
+        if (_packageList.UpdateLibrary(status)) RebuildPackageNodes(SelectedPackage?.Id, SelectedFolder?.Id);
     }
 
     private async Task RefreshViewAsync()
@@ -205,13 +186,11 @@ public partial class MainWindow : Window
         }
         else if (SelectedPackage is { } pkg)
         {
-            PackageDeployments.SetDeployments(list.Where(d => d.PackageId == pkg.Id));
-            var schedules = (await Api.Schedules()).Where(s => s.PackageIds.Contains(pkg.Id)).Select(s => new ScheduleRow(s)).ToList();
-            var selected = (PackageSchedulesGrid.SelectedItem as ScheduleRow)?.Id;
-            PackageSchedulesGrid.ItemsSource = schedules;
-            PackageSchedulesGrid.SelectedItem = schedules.FirstOrDefault(r => r.Id == selected);
-            PackageSchedulesCount.Text = schedules.Count == 0 ? L.Get("MainWindow_PackageNoSchedule")
-                : L.Format("MainWindow_PackageScheduleCount", schedules.Count);
+            var activity = await _packagePage.RefreshAsync(pkg.Id, list, PackageDeployments.SetDeployments,
+                () => (PackageSchedulesGrid.SelectedItem as ScheduleRow)?.Id);
+            PackageSchedulesGrid.ItemsSource = activity.Schedules;
+            PackageSchedulesGrid.SelectedItem = activity.SelectedSchedule;
+            PackageSchedulesCount.Text = activity.ScheduleCount;
         }
     }
 
@@ -240,13 +219,11 @@ public partial class MainWindow : Window
 
     private void ShowPackage(Package p)
     {
-        PackageTitle.Text = string.IsNullOrWhiteSpace(p.Version) ? p.Name : $"{p.Name} {p.Version}";
-        var steps = p.Steps.Count == 1 ? L.Get("MainWindow_OneStep") : L.Format("MainWindow_StepCount", p.Steps.Count);
-        PackageSubtitle.Text = string.IsNullOrWhiteSpace(p.Description)
-            ? L.Format("MainWindow_PackageSubtitle", steps, Ui.LocalTime(p.ModifiedUtc))
-            : L.Format("MainWindow_PackageSubtitleDesc", p.Description, steps, Ui.LocalTime(p.ModifiedUtc));
-        StepsGrid.ItemsSource = StepRow.For(p.Steps, FindPackage);
-        ShowPackageDetails(p);
+        var overview = _packagePage.Overview(p);
+        PackageTitle.Text = overview.Title;
+        PackageSubtitle.Text = overview.Subtitle;
+        StepsGrid.ItemsSource = overview.Steps;
+        ShowPackageDetails(overview.Details);
         PackageDeployments.SetDeployments([]);
         PackageSchedulesGrid.ItemsSource = null;
         PackageSchedulesCount.Text = "";
@@ -254,9 +231,8 @@ public partial class MainWindow : Window
     }
 
     /// <summary>Details tab: what the package does and where its settings come from (package or Preferences).</summary>
-    private void ShowPackageDetails(Package p)
+    private void ShowPackageDetails(IEnumerable<(string Label, string Value)> rows)
     {
-        var rows = PackageDetailRows.For(p, _defaults, _folders, _packages);
         PackageDetailsGrid.Children.Clear();
         PackageDetailsGrid.RowDefinitions.Clear();
         foreach (var (label, value) in rows)
@@ -273,7 +249,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private Package? FindPackage(long id) => _packages.FirstOrDefault(p => p.Id == id);
+    private readonly PackagePage _packagePage;
 
     // ---------- Navigation ----------
 

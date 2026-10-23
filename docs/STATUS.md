@@ -80,7 +80,8 @@ whole UI, the library and automatic package updates.
 - 8.1 LAPS (issue #106).
 - Import packages from an XML file (issue #14, on hold).
 - 8.9 service account: set aside, picked up only if the need arises.
-- Main window logic into testable classes, screen by screen (issue #156, in progress by Codex).
+- Main window logic into testable classes, screen by screen (issue #156, in progress by Codex): home page done,
+  then the package list and tree.
 
 Build: `.\build.ps1 -Version x.y.z` → `dist\DeployCraft-Setup-x.y.z.exe` (requires the .NET 10 SDK and Inno Setup 6).
 Each version is published in GitHub **Releases** with its installer (tag `vx.y.z`); a release candidate or beta is

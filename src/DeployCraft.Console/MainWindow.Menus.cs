@@ -69,7 +69,7 @@ public partial class MainWindow
         var folder = _connected && SelectedFolder != null;
         MenuRename.IsEnabled = package || folder;
         MenuImport.IsEnabled = _connected;
-        MenuExportAll.IsEnabled = _connected && _packages.Count > 0;
+        MenuExportAll.IsEnabled = _connected && _packageList.Packages.Count > 0;
         var panel = CurrentPanel;
         MenuAbort.IsEnabled = panel.CanAbort;
         MenuRedeploy.IsEnabled = panel.CanRedeploy;
@@ -121,7 +121,7 @@ public partial class MainWindow
                     new(L.Get("MainWindow_CtxPaste"), () => _ = PasteNodeAsync(), CanPaste, "Ctrl+V"),
                     Ui.Separator,
                     new(L.Get("MainWindow_CtxImportPackages"), () => Import_Click(this, new())),
-                    new(L.Get("MainWindow_CtxExportAll"), () => ExportAll_Click(this, new()), _packages.Count > 0),
+                    new(L.Get("MainWindow_CtxExportAll"), () => ExportAll_Click(this, new()), _packageList.Packages.Count > 0),
                 ];
             return [new(L.Get("MainWindow_Refresh"), () => Refresh_Click(this, new()), Gesture: "F5")];
         });
