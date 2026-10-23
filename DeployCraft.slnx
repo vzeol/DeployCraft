@@ -3,6 +3,7 @@
     <Project Path="src/DeployCraft.Console/DeployCraft.Console.csproj" />
     <Project Path="src/DeployCraft.Runner/DeployCraft.Runner.csproj" />
     <Project Path="src/DeployCraft.Server/DeployCraft.Server.csproj" />
+    <Project Path="src/DeployCraft.Shared/DeployCraft.Shared.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/DeployCraft.Tests/DeployCraft.Tests.csproj" />

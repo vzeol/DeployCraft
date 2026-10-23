@@ -87,6 +87,9 @@
         "type": "Transitive",
         "resolved": "10.0.13",
         "contentHash": "0Zh/U/1+hy1MCxx1BTikJi4L5o1Ys6VhB8PKlTNOB4/n2d6ua2+TuoD6T7xN9RV0uiOGod575pQrUSTXg+aYGQ=="
+      },
+      "deploycraft.shared": {
+        "type": "Project"
       }
     },
     "net10.0-windows7.0/win-x64": {

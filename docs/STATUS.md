@@ -55,6 +55,18 @@ Tested on the test domain: real deployments (Install, copies, cancellation), par
 installer (`/RELAUNCH=1` reopens the console without elevation). For the maintainer to watch in daily use: the
 whole UI, the library and automatic package updates.
 
+## Shared models refactoring (#155)
+
+- `DeployCraft.Shared` owns the previously linked console/service models and localized messages; both projects
+  now reference the same assembly. The existing namespaces and JSON shapes are unchanged.
+- Package expansion and default resolution moved from `Models.cs` to `Services/PackagePreparation.cs`.
+  Extension methods preserve existing call sites, including the files being changed separately in #159.
+- The test project no longer needs the console alias. All 436 tests pass, including two new tests
+  checking shared type identity and dependency direction. Build and formatting pass; self-contained Windows
+  publication includes the shared assembly, English resources and runner. Maintainer local UI validation is still
+  required before merge.
+- No behavior change; no real computer or domain deployment was run. — Codex
+
 ## After v1
 
 - 8.1 LAPS (issue #106).
