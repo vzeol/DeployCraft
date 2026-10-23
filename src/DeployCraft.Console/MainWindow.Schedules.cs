@@ -32,7 +32,7 @@ public partial class MainWindow
 
     private void NewSchedule_Click(object sender, RoutedEventArgs e)
     {
-        OpenSchedule(ScheduleList.New(_view == View.Package ? SelectedPackage : null));
+        OpenSchedule(ScheduleList.New(_view == MainView.Package ? SelectedPackage : null));
     }
 
     private void NewScheduleForPackage_Click(object sender, RoutedEventArgs e)
@@ -94,14 +94,14 @@ public partial class MainWindow
         var window = new ScheduleWindow(schedule) { Owner = this };
         window.ShowDialog();
         if (window.Saved is not { } saved) return;
-        if (_view != View.Package) await ShowSchedule(saved.Id);
+        if (_view != MainView.Package) await ShowSchedule(saved.Id);
         else await RefreshAsync(packages: false);
     }
 
     private async Task ShowSchedule(long id)
     {
         _schedulesNode.IsSelected = true;
-        SwitchTo(View.Schedules);
+        SwitchTo(MainView.Schedules);
         try { await RefreshSchedulesAsync(select: id); }
         catch (ApiException) { }
         await RefreshAsync(packages: false);
