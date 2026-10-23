@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <!-- Keep locked restore stable when the Windows applications publish their project references. -->
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Keep existing type and resource namespaces while moving their ownership to one assembly. -->
+    <RootNamespace>DeployCraft.Server</RootNamespace>
+    <NeutralLanguage>fr</NeutralLanguage>
+  </PropertyGroup>
+
+</Project>

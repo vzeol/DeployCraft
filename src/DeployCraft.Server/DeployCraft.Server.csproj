@@ -8,7 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>DeployCraft.Server</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <!-- Messages: Texts\Msg.resx in French, Msg.en.resx in English. -->
+    <!-- Messages are supplied by DeployCraft.Shared in French and English. -->
     <NeutralLanguage>fr</NeutralLanguage>
   </PropertyGroup>
 
@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="DeployCraft.Tests" />
+    <ProjectReference Include="..\DeployCraft.Shared\DeployCraft.Shared.csproj" />
   </ItemGroup>
 
   <!-- The runner (net48) is built before the server then copied into runner\ next to the server. -->

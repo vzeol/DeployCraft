@@ -9,6 +9,9 @@ Legend: ✅ done · 🟡 partial · ⬜ to do · ❌ dropped (maintainer's decis
 To take a task: see [`CONTRIBUTING.md`](../CONTRIBUTING.md) (§ "Choose a task"). A row moves to ✅
 in the same PR as the code that implements it.
 
+Maintenance (#155): console and service reference `DeployCraft.Shared` for their common models and messages.
+Package preparation is a separate shared service; no feature status or behavior changes.
+
 ---
 
 ## 1. Main window

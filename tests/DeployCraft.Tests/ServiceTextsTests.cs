@@ -17,7 +17,7 @@ public partial class ServiceTextsTests
 
     [Fact]
     public void Service_EveryKeyUsedExists_AndEveryKeyIsUsed() =>
-        AssertKeysMatchSources(Resx("Msg.resx").Keys, ["DeployCraft.Server"], MsgPattern());
+        AssertKeysMatchSources(Resx("Msg.resx").Keys, ["DeployCraft.Server", "DeployCraft.Shared"], MsgPattern());
 
     [Fact]
     public void Runner_BothLanguagesHaveTheSameKeysAndPlaceholders() =>
@@ -89,7 +89,7 @@ public partial class ServiceTextsTests
     }
 
     private static Dictionary<string, string> Resx(string file) =>
-        XDocument.Load(Path.Combine(Src, "DeployCraft.Server", "Texts", file)).Root!.Elements("data")
+        XDocument.Load(Path.Combine(Src, "DeployCraft.Shared", "Texts", file)).Root!.Elements("data")
             .ToDictionary(d => (string)d.Attribute("name")!, d => (string)d.Element("value")!);
 
     private static HashSet<string> Placeholders(string text) => [.. PlaceholderPattern().Matches(text).Select(m => m.Value)];

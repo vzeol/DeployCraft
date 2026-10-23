@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <!-- Automated tests: service logic testable without network or computers (dotnet test DeployCraft.slnx). -->
   <PropertyGroup>
@@ -18,8 +18,7 @@
     <ProjectReference Include="..\..\src\DeployCraft.Server\DeployCraft.Server.csproj" />
     <!-- The console logic (lists, details, refresh) is tested too: it needs the WPF framework. -->
     <FrameworkReference Include="Microsoft.WindowsDesktop.App.WPF" />
-    <!-- Alias: the console compiles its own copy of the server models; its types are only reached through ConsoleApp::. -->
-    <ProjectReference Include="..\..\src\DeployCraft.Console\DeployCraft.Console.csproj" Aliases="ConsoleApp" />
+    <ProjectReference Include="..\..\src\DeployCraft.Console\DeployCraft.Console.csproj" />
   </ItemGroup>
 
   <!-- Conditions and step sequencing of the runner (.NET Framework, on the computers): same files, tested here. -->

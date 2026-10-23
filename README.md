@@ -124,6 +124,7 @@ dotnet format DeployCraft.slnx                   # formatting
 | `src/DeployCraft.Server` | Windows service: local API, SQLite database, deployment engine, AD lookup |
 | `src/DeployCraft.Console` | WPF console (the desktop application) |
 | `src/DeployCraft.Runner` | .NET Framework 4.8 runner, run as a temporary service on the computers |
+| `src/DeployCraft.Shared` | Models shared by console and service, package preparation and localized messages |
 | `tests/DeployCraft.Tests` | Automated tests |
 | `installer/` | Inno Setup script |
 | [`docs/SPEC.md`](docs/SPEC.md) | Functional specification |

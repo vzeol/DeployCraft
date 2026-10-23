@@ -48,8 +48,9 @@ Structure:
 | Folder | Role |
 |---|---|
 | `src/DeployCraft.Server` | Windows service: local HTTP API (port 5080), SQLite database, deployment engine, AD reading |
-| `src/DeployCraft.Console` | WPF console; reuses the models from `Server/Data` |
+| `src/DeployCraft.Console` | WPF console; references `DeployCraft.Shared` |
 | `src/DeployCraft.Runner` | **.NET Framework 4.8** runner (present on every Windows), launched as a temporary service on the computers |
+| `src/DeployCraft.Shared` | Common models, pure package preparation and localized messages; no service or UI dependency |
 | `installer/` | Inno Setup script |
 
 ## 4. Build and test safely
@@ -100,7 +101,7 @@ git switch main ; git pull                 # start from the latest version
 git switch -c feat/schedules               # create your branch
 # … code, test …
 git status ; git diff                      # review before adding
-git add src\DeployCraft.Server\Data\Models.cs …   # files named one by one, never `git add -A`
+git add src\DeployCraft.Shared\Data\Models.cs …   # files named one by one, never `git add -A`
 git commit -m "feat: schedules, page and triggers"
 git push -u origin feat/schedules
 gh pr create --fill                        # opens the PR (the template is filled in)
@@ -130,13 +131,17 @@ resolve any conflicts, re-test, push.
   boundaries, one file per area, thin UI). They apply to everyone, with or without an AI assistant.
 - Follow the style of the surrounding code: modern C#, code names in English, **comments and test
   messages in English**; UI texts in French and English (`Resources/Strings*.resx` for the console,
-  `Texts/Msg*.resx` for the service, `RunnerTexts.cs` for the runner).
+  `DeployCraft.Shared/Texts/Msg*.resx` for shared and service messages, `RunnerTexts.cs` for the runner).
   Few comments, and only to explain *why*.
 - Error messages: readable by a technician, with the probable cause
   ("Access denied to the ADMIN$ share of PC01: is the deployment account an admin of this computer?").
 - SQLite database: new columns via `AddColumnIfMissing` in `Store.Migrate()`. An existing
   database must never lose data. Nested structures stored as JSON.
 - API: routes in `src/DeployCraft.Server/Program.cs`, client in `src/DeployCraft.Console/ApiClient.cs`.
+- Shared models: reference `DeployCraft.Shared`, never compile service files into the console. Existing namespaces
+  (`DeployCraft.Server.Data`, `DeployCraft.Server.Msg`) are retained to keep this refactoring focused. Package
+  expansion and option resolution live in `Services/PackagePreparation.cs`, exposed as extension methods used by
+  both deployment and console previews.
 - Runner: .NET Framework 4.8 **with no external dependency**. Exchange with the server goes through
   `job.json` / `status.json`: change `Runner/Job.cs` and `Server/Remote/RunnerContract.cs` together.
 - Console: never a hard-coded color. Add the key in `Themes/Clair.xaml` **and** `Themes/Sombre.xaml`,

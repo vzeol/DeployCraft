@@ -6,7 +6,7 @@ namespace DeployCraft.Server;
 /// <summary>
 /// Messages written by the service, in French (Msg.resx) or English (Msg.en.resx), following the current UI
 /// culture: the console's language for a request (Accept-Language), otherwise the server's Windows language
-/// (deployments and schedules running in the background). Also compiled into the console for the shared models.
+/// (deployments and schedules running in the background). Shared by the service and console through DeployCraft.Shared.
 /// Every key exists in both files (checked by the tests).
 /// </summary>
 public static class Msg

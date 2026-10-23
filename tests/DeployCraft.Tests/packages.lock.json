@@ -480,15 +480,22 @@
         }
       },
       "DeployCraft": {
-        "type": "Project"
+        "type": "Project",
+        "dependencies": {
+          "DeployCraft.Shared": "[1.0.0, )"
+        }
       },
       "deploycraft.server": {
         "type": "Project",
         "dependencies": {
+          "DeployCraft.Shared": "[1.0.0, )",
           "Microsoft.AspNetCore.Authentication.Negotiate": "[10.0.13, )",
           "Microsoft.Data.Sqlite": "[10.0.13, )",
           "Microsoft.Extensions.Hosting.WindowsServices": "[10.0.13, )"
         }
+      },
+      "deploycraft.shared": {
+        "type": "Project"
       }
     }
   }

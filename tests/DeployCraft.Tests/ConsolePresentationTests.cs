@@ -1,7 +1,5 @@
-extern alias ConsoleApp;
-
-using ConsoleApp::DeployCraft.Console;
-using ConsoleApp::DeployCraft.Server.Data;
+using DeployCraft.Console;
+using DeployCraft.Server.Data;
 
 namespace DeployCraft.Tests;
 

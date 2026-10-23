@@ -123,6 +123,7 @@ dotnet format DeployCraft.slnx                   # mise en forme
 | `src/DeployCraft.Server` | Service Windows : API locale, base SQLite, moteur de déploiement, lecture AD |
 | `src/DeployCraft.Console` | Console WPF (l'application fenêtrée) |
 | `src/DeployCraft.Runner` | Runner .NET Framework 4.8 exécuté en service temporaire sur les postes |
+| `src/DeployCraft.Shared` | Modèles communs à la console et au service, préparation des paquets et messages traduits |
 | `tests/DeployCraft.Tests` | Tests automatiques |
 | `installer/` | Script Inno Setup |
 | [`docs/SPEC.md`](docs/SPEC.md) | Spécification fonctionnelle (en anglais) |

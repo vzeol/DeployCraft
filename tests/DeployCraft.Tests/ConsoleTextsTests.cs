@@ -1,10 +1,8 @@
-extern alias ConsoleApp;
-
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using ConsoleApp::DeployCraft.Console;
+using DeployCraft.Console;
 
 namespace DeployCraft.Tests;
 
