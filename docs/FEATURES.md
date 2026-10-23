@@ -27,7 +27,7 @@ Package preparation is a separate shared service; no feature status or behavior 
 | 1.7 | File / Edit / View / Options / Help menus + right-click everywhere | ✅ | View: home, deployments, schedules, library, packages (Ctrl+0 to 4), find a package (Ctrl+F), refresh |
 | 1.8 | Keyboard shortcuts window | ❌ | Dropped: maintainer's choice (to be reconsidered based on usage feedback) |
 | 1.9 | Light / dark themes | ✅ | 0.7.0: Light, Dark or Follow Windows; Preferences › Interface, applied live |
-| 1.10 | Home page | ✅ | Opens at startup: right now, last 24 hours (clickable failures), upcoming schedules, library, shortcuts |
+| 1.10 | Home page | ✅ | Opens at startup: right now, last 24 hours (clickable failures), upcoming schedules, library, shortcuts. Loading and presentation decisions in `Presentation/HomePage.cs` (#156, home screen only) |
 | 1.11 | Import / export (packages, folders, target lists, schedules, settings) | ✅ | Packages: export / import of our own JSON, import of package XML files with preview. The rest dropped (maintainer's choice) |
 | 1.12 | Print, print preview, page setup, save a grid as CSV | ❌ | Dropped: maintainer's choice (the result in the console is enough) |
 | 1.13 | About | ✅ | Help › About: console and service versions, signed-in account, license, links, copy of the information |
