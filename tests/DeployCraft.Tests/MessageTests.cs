@@ -12,7 +12,7 @@ public class MessageTests
     {
         var step = new PackageStep { Type = StepType.Message, MessageTitle = "Maintenance", MessageText = "Fermez vos applications.", MessageSeconds = 30, MessageWait = true };
 
-        var job = TargetSession.ToJobStep(step, new Package(), RunAsMode.LoggedOnUser);
+        var job = RunnerJobBuilder.ToJobStep(step, new Package(), RunAsMode.LoggedOnUser);
 
         Assert.Equal("message", job.Type);
         Assert.Equal("Maintenance", job.Arguments);
@@ -27,9 +27,9 @@ public class MessageTests
     {
         var step = new PackageStep { Type = StepType.Message, MessageText = "x", MessageSeconds = 7200, MessageWait = true, TimeoutMinutes = 60 };
 
-        Assert.True(TargetSession.ToJobStep(step, new Package(), RunAsMode.LocalSystem).TimeoutSeconds > 7200);
+        Assert.True(RunnerJobBuilder.ToJobStep(step, new Package(), RunAsMode.LocalSystem).TimeoutSeconds > 7200);
         step.MessageWait = false;
-        Assert.Equal(3600, TargetSession.ToJobStep(step, new Package(), RunAsMode.LocalSystem).TimeoutSeconds);
+        Assert.Equal(3600, RunnerJobBuilder.ToJobStep(step, new Package(), RunAsMode.LocalSystem).TimeoutSeconds);
     }
 
     [Fact]

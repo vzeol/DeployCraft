@@ -148,7 +148,7 @@ public class InstallCommandTests
             var step = new PackageStep { Type = StepType.Command, AdditionalFiles = local + "\r\n\r\n" + @"\\SERVEUR-01\Partage\licence.txt" };
             var job = new RunnerJobStep { Name = "Commande" };
 
-            TargetSession.StageAdditionalFiles(step, job, CopyMode.Pull, exec);
+            RunnerJobBuilder.StageAdditionalFiles(step, job, CopyMode.Pull, exec);
 
             Assert.True(File.Exists(Path.Combine(exec, "config.xml")));
             Assert.Equal([@"\\SERVEUR-01\Partage\licence.txt"], job.PullFiles!);
@@ -166,13 +166,13 @@ public class InstallCommandTests
     {
         var step = new PackageStep { Type = StepType.Command, AdditionalFiles = @"C:\introuvable\fichier.cfg" };
 
-        Assert.Throws<DeployException>(() => TargetSession.StageAdditionalFiles(step, new RunnerJobStep(), CopyMode.Push, Path.GetTempPath()));
+        Assert.Throws<DeployException>(() => RunnerJobBuilder.StageAdditionalFiles(step, new RunnerJobStep(), CopyMode.Push, Path.GetTempPath()));
     }
 
     [Fact]
     public void KeepFolder_UsesTheSanitizedPackageName()
     {
-        Assert.Equal(@"%ProgramData%\DeployCraft\Installeurs\Bureautique 2026", TargetSession.KeepFolder("Bureautique: 2026"));
-        Assert.Equal(@"%ProgramData%\DeployCraft\Installeurs\Paquet", TargetSession.KeepFolder("???"));
+        Assert.Equal(@"%ProgramData%\DeployCraft\Installeurs\Bureautique 2026", RunnerJobBuilder.KeepFolder("Bureautique: 2026"));
+        Assert.Equal(@"%ProgramData%\DeployCraft\Installeurs\Paquet", RunnerJobBuilder.KeepFolder("???"));
     }
 }

@@ -14,14 +14,14 @@ public class RebootTests
     {
         var step = new PackageStep { Type = StepType.Reboot, RebootDelaySeconds = 120, RebootMessage = "Mise à jour", RebootShutdownOnly = true };
 
-        var job = TargetSession.ToJobStep(step, new Package(), U);
+        var job = RunnerJobBuilder.ToJobStep(step, new Package(), U);
 
         Assert.Equal("reboot", job.Type);
         Assert.Equal(120, job.Seconds);
         Assert.Equal("Mise à jour", job.Command);
         Assert.True(job.ShutdownOnly);
         Assert.False(job.RunAsLoggedOnUser);
-        Assert.False(TargetSession.ToJobStep(new PackageStep { Type = StepType.Command, Command = "echo", RebootShutdownOnly = true }, new Package(), S).ShutdownOnly);
+        Assert.False(RunnerJobBuilder.ToJobStep(new PackageStep { Type = StepType.Command, Command = "echo", RebootShutdownOnly = true }, new Package(), S).ShutdownOnly);
     }
 
     [Fact]

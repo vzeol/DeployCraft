@@ -106,12 +106,12 @@ public sealed class StepFlowTests : IDisposable
     {
         var package = new Package { TimeoutMinutes = 10 };
 
-        var stopSuccess = TargetSession.ToJobStep(new PackageStep { Name = "a", ErrorMode = ErrorMode.StopSuccess }, package, RunAsMode.DeployUser);
+        var stopSuccess = RunnerJobBuilder.ToJobStep(new PackageStep { Name = "a", ErrorMode = ErrorMode.StopSuccess }, package, RunAsMode.DeployUser);
         Assert.True(stopSuccess.StopSuccessOnError);
         Assert.False(stopSuccess.ContinueOnError);
         Assert.False(stopSuccess.Disabled);
 
-        var disabled = TargetSession.ToJobStep(new PackageStep { Name = "b", Enabled = false, ErrorMode = ErrorMode.Continue }, package, RunAsMode.DeployUser);
+        var disabled = RunnerJobBuilder.ToJobStep(new PackageStep { Name = "b", Enabled = false, ErrorMode = ErrorMode.Continue }, package, RunAsMode.DeployUser);
         Assert.True(disabled.Disabled);
         Assert.True(disabled.ContinueOnError);
         Assert.False(disabled.StopSuccessOnError);
@@ -141,15 +141,15 @@ public sealed class StepFlowTests : IDisposable
     {
         var package = new Package();
 
-        var pause = TargetSession.ToJobStep(new PackageStep { Type = StepType.Pause, PauseSeconds = 45 }, package, RunAsMode.DeployUser);
+        var pause = RunnerJobBuilder.ToJobStep(new PackageStep { Type = StepType.Pause, PauseSeconds = 45 }, package, RunAsMode.DeployUser);
         Assert.Equal("pause", pause.Type);
         Assert.Equal(45, pause.Seconds);
 
         // Pause longer than the step timeout: the server must not abandon the computer during the wait.
-        var longPause = TargetSession.ToJobStep(new PackageStep { Type = StepType.Pause, PauseSeconds = 7200, TimeoutMinutes = 60 }, package, RunAsMode.DeployUser);
+        var longPause = RunnerJobBuilder.ToJobStep(new PackageStep { Type = StepType.Pause, PauseSeconds = 7200, TimeoutMinutes = 60 }, package, RunAsMode.DeployUser);
         Assert.True(longPause.TimeoutSeconds > 7200);
 
-        Assert.Equal(0, TargetSession.ToJobStep(new PackageStep { Type = StepType.Command, PauseSeconds = 45 }, package, RunAsMode.DeployUser).Seconds);
+        Assert.Equal(0, RunnerJobBuilder.ToJobStep(new PackageStep { Type = StepType.Command, PauseSeconds = 45 }, package, RunAsMode.DeployUser).Seconds);
     }
 
     [Fact]
@@ -164,9 +164,9 @@ public sealed class StepFlowTests : IDisposable
             """, Database.Json)!;
         var resolved = package.Resolve(new DeploymentDefaults());
         var job = new Job();
-        foreach (var step in TargetSession.StepsFrom(resolved, 1))
+        foreach (var step in RunnerJobBuilder.StepsFrom(resolved, 1))
         {
-            var j = TargetSession.ToJobStep(step, resolved, RunAsMode.DeployUser);
+            var j = RunnerJobBuilder.ToJobStep(step, resolved, RunAsMode.DeployUser);
             job.Steps.Add(new JobStep { Name = j.Name, ContinueOnError = j.ContinueOnError, StopSuccessOnError = j.StopSuccessOnError });
         }
 

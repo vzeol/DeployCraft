@@ -5,7 +5,8 @@ namespace DeployCraft.Server.Remote;
 
 /// <summary>
 /// A deployment on one PC: copy of the runner and files into a "slot",
-/// temporary service, wait for the result, cleanup.
+/// temporary service, wait for the result, cleanup. The slot is reserved by <see cref="SlotLock"/> and the
+/// instructions come from <see cref="RunnerJobBuilder"/>.
 ///
 /// On the target:
 ///   C:\Windows\DeployCraft\slot-N.lock
@@ -14,7 +15,6 @@ namespace DeployCraft.Server.Remote;
 internal sealed class TargetSession(string computer, DeployCredentials credentials, Credential? account, string runnerExe)
 {
     private const string RemoteRoot = @"C:\Windows\DeployCraft";
-    private const int MaxSlots = 32;
 
     private readonly bool _isLocal = IsLocalComputer(computer);
     private int _slot;
@@ -340,7 +340,8 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
             throw DeployException.FromShareAccess(computer, ex);
         }
 
-        AcquireSlot();
+        _slot = SlotLock.Acquire(Root);
+        if (Directory.Exists(SlotDir)) Directory.Delete(SlotDir, recursive: true); // left over from a crash
         var exec = Directory.CreateDirectory(Path.Combine(SlotDir, "exec")).FullName;
         // Files are first listed (and checked), then copied in one go: the total is known for progress.
         var copies = new CopyBatch();
@@ -348,273 +349,11 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         var config = runnerExe + ".config";
         if (File.Exists(config)) copies.Add(config, Path.Combine(SlotDir, RunnerName + ".config"));
 
-        var job = new RunnerJob { Conditions = RunnerConditions.From(package.Conditions), FirstNumber = startStep };
-        var modes = new List<RunAsMode>();
-        foreach (var step in StepsFrom(package, startStep))
-        {
-            var mode = RunAsPlan.Effective(step, runAs, account != null);
-            modes.Add(mode);
-            var jobStep = ToJobStep(step, package, mode);
-
-            // Disabled step: sent so it shows as "Ignoré" (skipped), but no file is copied or checked.
-            if (step.Enabled && step.Type is StepType.Install or StepType.Command or StepType.PowerShell)
-                StageAdditionalFiles(step, jobStep, copyMode, exec, copies);
-
-            if (step.Type == StepType.Install && step.Enabled)
-            {
-                if (string.IsNullOrWhiteSpace(step.File)) throw new DeployException(Msg.Format("TargetSession_NoInstallFile", jobStep.Name));
-                jobStep.Command = Path.GetFileName(step.File);
-                jobStep.CommandLine = InstallCommand.For(step);
-                if (step.KeepInstallFile) jobStep.KeepFolder = KeepFolder(package.Name);
-                // Pull: the computer reads the share itself, with the runner's identity. A local path stays push.
-                if (copyMode == CopyMode.Pull && step.File.StartsWith(@"\\"))
-                {
-                    jobStep.SourcePath = step.File;
-                    jobStep.IncludeDirectory = step.IncludeDirectory;
-                    job.Steps.Add(jobStep);
-                    continue;
-                }
-                // Push: the file is read by the server (with the deployment account if it is on a share).
-                if (!File.Exists(step.File)) throw new DeployException(Msg.Format("TargetSession_InstallFileMissing", step.File));
-                if (step.IncludeDirectory) CopyDirectory(Path.GetDirectoryName(step.File)!, exec, copies);
-                else copies.Add(step.File, Path.Combine(exec, Path.GetFileName(step.File)));
-            }
-            else if (step.Type == StepType.Reboot && step.Enabled && _isLocal)
-                throw new DeployException(Msg.Format("TargetSession_NoServerRestart", jobStep.Name));
-            else if (step.Type == StepType.CopyFiles && step.Enabled)
-            {
-                if (string.IsNullOrWhiteSpace(step.CopySource)) throw new DeployException(Msg.Format("TargetSession_NothingToCopy", jobStep.Name));
-                if (copyMode == CopyMode.Pull && step.CopySource.StartsWith(@"\\"))
-                    jobStep.SourcePath = step.CopySource;
-                else
-                {
-                    // Push: the server drops the selected files into exec\copie-N, which the computer then copies as they are.
-                    jobStep.Command = $"copie-{startStep + job.Steps.Count}";
-                    StageCopy(step.CopySource, step.CopyPatterns, step.CopySubfolders, Path.Combine(exec, jobStep.Command), copies);
-                    jobStep.CopyPatterns = ["*"];
-                    jobStep.CopySubfolders = true;
-                }
-            }
-            job.Steps.Add(jobStep);
-        }
+        var (job, modes) = RunnerJobBuilder.Build(package, startStep, runAs, account != null, copyMode, _isLocal, exec, copies);
 
         progress.Total = copies.TotalBytes;
         copies.Run(BandwidthLimiter.Copies, progress, ct);
         return (job, modes);
-    }
-
-    /// <summary>
-    /// File copy in push mode: drops file <paramref name="source"/> into <paramref name="target"/>, or the
-    /// files of the folder that match the patterns (with subfolders if requested), keeping their tree structure.
-    /// </summary>
-    /// <param name="batch">List to add the copies to (null = copy right away).</param>
-    internal static void StageCopy(string source, string? patterns, bool subfolders, string target, CopyBatch? batch = null)
-    {
-        var copies = batch ?? new CopyBatch();
-        Directory.CreateDirectory(target);
-        if (File.Exists(source))
-        {
-            copies.Add(source, Path.Combine(target, Path.GetFileName(source)));
-            if (batch == null) copies.Run(BandwidthLimiter.Copies, null);
-            return;
-        }
-        if (!Directory.Exists(source)) throw new DeployException(Msg.Format("TargetSession_CopySourceMissing", source));
-
-        var option = subfolders ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-        // As on the computer: subfolders are recreated even when empty.
-        if (subfolders)
-            foreach (var dir in Directory.EnumerateDirectories(source, "*", option))
-                Directory.CreateDirectory(Path.Combine(target, Path.GetRelativePath(source, dir)));
-        foreach (var pattern in PackageStep.SplitPatterns(patterns))
-            foreach (var file in Directory.EnumerateFiles(source, pattern, option))
-                copies.Add(file, Path.Combine(target, Path.GetRelativePath(source, file)));
-        if (batch == null) copies.Run(BandwidthLimiter.Copies, null);
-    }
-
-    /// <summary>
-    /// Additional files: dropped by the server next to the command (exec\), or, in pull mode, read by the computer
-    /// itself from the share. A missing file stops the computer's preparation.
-    /// </summary>
-    /// <param name="batch">List to add the copies to (null = copy right away).</param>
-    internal static void StageAdditionalFiles(PackageStep step, RunnerJobStep jobStep, CopyMode copyMode, string exec, CopyBatch? batch = null)
-    {
-        var copies = batch ?? new CopyBatch();
-        var files = PackageStep.SplitLines(step.AdditionalFiles).Select(Environment.ExpandEnvironmentVariables).ToList();
-        if (files.Count == 0) return;
-        jobStep.AdditionalFiles = [.. files.Select(Path.GetFileName).OfType<string>()];
-        foreach (var file in files)
-        {
-            if (copyMode == CopyMode.Pull && file.StartsWith(@"\\"))
-            {
-                (jobStep.PullFiles ??= []).Add(file);
-                continue;
-            }
-            if (!File.Exists(file)) throw new DeployException(Msg.Format("TargetSession_ExtraFileMissing", jobStep.Name, file));
-            copies.Add(file, Path.Combine(exec, Path.GetFileName(file)));
-        }
-        if (batch == null) copies.Run(BandwidthLimiter.Copies, null);
-    }
-
-    /// <summary>Folder on the computer where a package's installation files are kept (option of the "Installer" step).</summary>
-    internal static string KeepFolder(string packageName)
-    {
-        var safe = string.Concat(packageName.Split(Path.GetInvalidFileNameChars())).Trim().TrimEnd('.');
-        return $@"%ProgramData%\DeployCraft\Installeurs\{(safe.Length > 0 ? safe : "Paquet")}";
-    }
-
-    /// <summary>Steps sent to the computer when (re)starting at step N.</summary>
-    internal static IEnumerable<PackageStep> StepsFrom(Package package, int startStep) =>
-        package.Steps.Skip(Math.Max(0, startStep - 1));
-
-    /// <summary>Instructions of one step for the runner (apart from files to copy), run under identity <paramref name="runAs"/>.</summary>
-    internal static RunnerJobStep ToJobStep(PackageStep step, Package package, RunAsMode runAs)
-    {
-        if (step.Type == StepType.Nested)
-            throw new DeployException(Msg.Format("TargetSession_NestedNotExpanded", step.Name));
-        return new()
-        {
-            Name = string.IsNullOrWhiteSpace(step.Name) ? step.Type.ToString() : step.Name,
-            Type = step.Type.ToString().ToLowerInvariant(),
-            Arguments = step.Type == StepType.Message ? step.MessageTitle : step.Arguments,
-            Command = step.Type switch { StepType.Reboot => step.RebootMessage, StepType.Message => step.MessageText, _ => step.Command },
-            Seconds = step.Type switch
-            {
-                StepType.Pause => step.PauseSeconds,
-                StepType.Reboot => step.RebootDelaySeconds,
-                StepType.Message => step.MessageSeconds,
-                _ => 0,
-            },
-            // Copy: robocopy succeeds with 0 to 7; 8 to 15 = some files could not be copied; 16 = serious error.
-            SuccessCodes = step.Type == StepType.CopyFiles ? [.. Enumerable.Range(0, step.CopyIgnoreErrors ? 16 : 8)] : ParseCodes(step.SuccessCodes),
-            // A pause lasts as long as it lasts: its timeout (which counts in the server's wait) follows its duration, like that
-            // of a message waited for longer than the step timeout.
-            TimeoutSeconds = step.Type == StepType.Pause
-                ? Math.Max(1, step.PauseSeconds) + 60
-                : Math.Max(Math.Max(1, step.TimeoutMinutes ?? package.TimeoutMinutes ?? 60) * 60,
-                    step.Type == StepType.Message && step.MessageWait ? step.MessageSeconds + 60 : 0),
-            ContinueOnError = step.ErrorMode == ErrorMode.Continue,
-            StopSuccessOnError = step.ErrorMode == ErrorMode.StopSuccess,
-            Disabled = !step.Enabled,
-            CopyDestination = step.Type == StepType.CopyFiles ? step.CopyDestination : null,
-            CopyPatterns = step.Type == StepType.CopyFiles ? PackageStep.SplitPatterns(step.CopyPatterns) : null,
-            CopySubfolders = step.Type == StepType.CopyFiles && step.CopySubfolders,
-            CopyOverwrite = step.Type == StepType.CopyFiles && step.CopyOverwrite,
-            // Reboot and message go through the service, never through the logged-on user (who often lacks the right).
-            RunAsLoggedOnUser = runAs == RunAsMode.LoggedOnUser && step.Type is not (StepType.Reboot or StepType.Message),
-            ShutdownOnly = step.Type == StepType.Reboot && step.RebootShutdownOnly,
-            WaitForUser = step.Type == StepType.Message && step.MessageWait,
-            Conditions = RunnerConditions.From(step.Conditions),
-            ExtraConditions = step.ExtraConditions?
-                .Select(g => new RunnerConditionGroup { Label = g.Label, Conditions = RunnerConditions.From(g.Conditions) })
-                .Where(g => g.Conditions != null).ToList() is { Count: > 0 } extras ? extras : null,
-        };
-    }
-
-    /// <summary>
-    /// This server (machine, process and start time), written in slot locks: a lock left by a
-    /// server stopped mid-deployment can then be taken over instead of blocking its slot forever.
-    /// </summary>
-    private static readonly string Instance = OwnerOf(System.Diagnostics.Process.GetCurrentProcess());
-
-    private static string OwnerOf(System.Diagnostics.Process process) =>
-        $"{Environment.MachineName}|{process.Id}|{process.StartTime.ToUniversalTime().Ticks}";
-
-    /// <summary>Is the server that placed this lock still running on this machine?</summary>
-    private static bool OwnerAlive(string owner)
-    {
-        var parts = owner.Split('|');
-        if (parts.Length != 3 || !int.TryParse(parts[1], out var pid)) return false;
-        try
-        {
-            using var process = System.Diagnostics.Process.GetProcessById(pid);
-            return OwnerOf(process) == owner; // same number but another start: number reused
-        }
-        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
-        {
-            return false; // no more process with this number
-        }
-        catch (System.ComponentModel.Win32Exception)
-        {
-            return true; // cannot check: when in doubt, the lock is kept
-        }
-    }
-
-    /// <summary>Reserves a free slot using a lock file created exclusively.</summary>
-    private void AcquireSlot()
-    {
-        for (var i = 1; i <= MaxSlots; i++)
-        {
-            var lockPath = Path.Combine(Root, $"slot-{i}.lock");
-            if (!TryCreateLock(lockPath) && !TryReclaim(lockPath, Path.Combine(Root, $"slot-{i}"))) continue;
-            _slot = i;
-            if (Directory.Exists(SlotDir)) Directory.Delete(SlotDir, recursive: true); // left over from a crash
-            return;
-        }
-        throw new DeployException(Msg.Format("TargetSession_TooManySlots", MaxSlots));
-    }
-
-    /// <summary>Two deployments of this server never take the same lock at the same time.</summary>
-    private static readonly Lock ReclaimGate = new();
-
-    private static bool TryReclaim(string lockPath, string slotDir)
-    {
-        lock (ReclaimGate)
-        {
-            if (!CanReclaim(lockPath, slotDir, Instance, DateTime.UtcNow, OwnerAlive)) return false;
-            try { File.Delete(lockPath); }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { return false; }
-            return TryCreateLock(lockPath);
-        }
-    }
-
-    private static bool TryCreateLock(string lockPath)
-    {
-        try
-        {
-            using var stream = new FileStream(lockPath, FileMode.CreateNew);
-            stream.Write(System.Text.Encoding.UTF8.GetBytes(Instance));
-            return true;
-        }
-        catch (IOException)
-        {
-            return false; // slot taken
-        }
-    }
-
-    /// <summary>
-    /// A lock can be taken over if it was placed, on this server's machine, by a server that is no longer running (or,
-    /// with no author, by an old version more than a day ago) and no runner is still running in its slot.
-    /// Another server still running on the same machine (test instance) keeps its locks.
-    /// </summary>
-    internal static bool CanReclaim(string lockPath, string slotDir, string instance, DateTime nowUtc, Func<string, bool> ownerAlive)
-    {
-        try
-        {
-            var owner = File.ReadAllText(lockPath).Trim();
-            var stale = owner.Length == 0
-                ? nowUtc - File.GetLastWriteTimeUtc(lockPath) > TimeSpan.FromDays(1)
-                : owner != instance && owner.Split('|')[0].Equals(instance.Split('|')[0], StringComparison.OrdinalIgnoreCase)
-                    && !ownerAlive(owner);
-            return stale && !(Directory.Exists(slotDir) && Directory.EnumerateFiles(slotDir, "*.exe").Any(IsInUse));
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            return false;
-        }
-    }
-
-    /// <summary>A running program cannot be opened for exclusive writing.</summary>
-    private static bool IsInUse(string file)
-    {
-        try
-        {
-            using (new FileStream(file, FileMode.Open, FileAccess.ReadWrite, FileShare.None)) { }
-            return false;
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            return true;
-        }
     }
 
     /// <summary>
@@ -673,22 +412,6 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
         }
     }
 
-    private static void CopyDirectory(string source, string destination, CopyBatch copies)
-    {
-        foreach (var dir in Directory.EnumerateDirectories(source, "*", SearchOption.AllDirectories))
-            Directory.CreateDirectory(Path.Combine(destination, Path.GetRelativePath(source, dir)));
-        foreach (var file in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
-            copies.Add(file, Path.Combine(destination, Path.GetRelativePath(source, file)));
-    }
-
-    public static List<int> ParseCodes(string? codes)
-    {
-        var list = (codes ?? "").Split([',', ';', ' '], StringSplitOptions.RemoveEmptyEntries)
-            .Select(c => int.TryParse(c, out var v) ? (int?)v : null)
-            .Where(v => v.HasValue).Select(v => v!.Value).ToList();
-        return list.Count > 0 ? list : [0];
-    }
-
     public static bool IsLocalComputer(string name)
     {
         var n = name.Trim().TrimStart('\\').Split('.')[0];
@@ -696,22 +419,4 @@ internal sealed class TargetSession(string computer, DeployCredentials credentia
             || n.Equals("localhost", StringComparison.OrdinalIgnoreCase)
             || n == "127" || n == ".";
     }
-}
-
-/// <summary>Deployment error with a message readable by a human.</summary>
-public class DeployException(string message, Exception? inner = null) : Exception(message, inner)
-{
-    /// <summary>The computer could not be reached: candidate for the retry queue.</summary>
-    public bool Offline { get; init; }
-
-    public static DeployException FromShareAccess(string computer, Exception ex) => ex switch
-    {
-        UnauthorizedAccessException =>
-            new(Msg.Format("TargetSession_AdminShareDenied", computer), ex),
-        IOException io when io.HResult is unchecked((int)0x80070035) or unchecked((int)0x80070079) or unchecked((int)0x80070040) =>
-            new(Msg.Format("TargetSession_Unreachable", computer), ex) { Offline = true },
-        IOException io when io.HResult == unchecked((int)0x8007052E) =>
-            new(Msg.Get("TargetSession_BadCredential"), ex),
-        _ => new(Msg.Format("TargetSession_CannotAccess", computer, ex.Message), ex),
-    };
 }

@@ -121,7 +121,7 @@ public class RunAsPlanTests
     public void JobStep_RunsInTheLoggedOnUserSession_OnlyForThatIdentity()
     {
         var package = new Package();
-        Assert.True(TargetSession.ToJobStep(new PackageStep(), package, U).RunAsLoggedOnUser);
-        Assert.False(TargetSession.ToJobStep(new PackageStep(), package, S).RunAsLoggedOnUser);
+        Assert.True(RunnerJobBuilder.ToJobStep(new PackageStep(), package, U).RunAsLoggedOnUser);
+        Assert.False(RunnerJobBuilder.ToJobStep(new PackageStep(), package, S).RunAsLoggedOnUser);
     }
 }
