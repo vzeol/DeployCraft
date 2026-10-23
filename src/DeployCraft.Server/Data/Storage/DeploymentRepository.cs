@@ -9,7 +9,8 @@ public interface IDeploymentRepository
     Deployment Create(Package package, IReadOnlyList<TargetRequest> targets, string? launchedBy, string? runAs, long? credentialId, RunAsMode runAsMode, CopyMode copyMode, bool prioritized, Schedule? schedule = null);
     List<Deployment> List(int limit = 100);
     Deployment? Get(long id);
-    void FailInterrupted();
+    /// <summary>At startup: what was left queued or running by a stop fails with <paramref name="error"/>.</summary>
+    void FailInterrupted(string error);
     void Delete(long id);
     int PurgeFinished(DateTime endedBeforeUtc);
     void UpdateStatus(long id, DeploymentStatus status, bool ended);
@@ -112,15 +113,16 @@ public sealed class DeploymentRepository(Database database) : IDeploymentReposit
     }
 
     /// <summary>Deployments interrupted by a server stop: closed cleanly at startup.</summary>
-    public void FailInterrupted()
+    public void FailInterrupted(string error)
     {
         using var connection = database.Open();
-        Database.Exec(connection, $"""
-            UPDATE deployment_targets SET status = 'Failed', error = 'Interrompu : le serveur DeployCraft a été arrêté.'
+        using var command = Database.Command(connection, """
+            UPDATE deployment_targets SET status = 'Failed', error = $error
             WHERE status IN ('Queued', 'Running');
-            UPDATE deployments SET status = 'Failed', ended_utc = '{DateTime.UtcNow:o}'
+            UPDATE deployments SET status = 'Failed', ended_utc = $ended
             WHERE status IN ('Queued', 'Running');
-            """);
+            """, ("$error", error), ("$ended", DateTime.UtcNow.ToString("o")));
+        command.ExecuteNonQuery();
     }
 
     public void Delete(long id)

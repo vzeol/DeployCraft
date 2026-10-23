@@ -46,6 +46,7 @@
   <data name="DeploymentEngine_BadStartStep" xml:space="preserve"><value>{0} : étape de départ invalide ({1}) ; le paquet a {2} étape(s).</value></data>
   <data name="DeploymentEngine_CredentialDeleted" xml:space="preserve"><value>L'identifiant {0} a été supprimé depuis le lancement.</value></data>
   <data name="DeploymentEngine_CredentialNotFound" xml:space="preserve"><value>Identifiant introuvable (supprimé ?).</value></data>
+  <data name="DeploymentEngine_Interrupted" xml:space="preserve"><value>Interrompu : le serveur DeployCraft a été arrêté.</value></data>
   <data name="DeploymentEngine_ManySkipped" xml:space="preserve"><value>{0} étapes ignorées, dont « {1} »{2}</value></data>
   <data name="DeploymentEngine_NoPackage" xml:space="preserve"><value>Aucun paquet.</value></data>
   <data name="DeploymentEngine_NoTarget" xml:space="preserve"><value>Aucune cible.</value></data>
