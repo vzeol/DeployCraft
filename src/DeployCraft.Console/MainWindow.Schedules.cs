@@ -8,22 +8,17 @@ namespace DeployCraft.Console;
 public partial class MainWindow
 {
     private bool _refreshingSchedules;
+    private readonly ScheduleList _scheduleList = new(Api.Schedules, Api.Schedule, Api.SaveSchedule, Api.DeleteSchedule, Api.RunSchedule);
 
     private async Task RefreshSchedulesAsync(long? select = null)
     {
-        var rows = (await Api.Schedules()).Select(s => new ScheduleRow(s)).ToList();
-        var selected = select ?? SelectedSchedule?.Id;
+        var result = await _scheduleList.RefreshAsync(() => SelectedSchedule?.Id, select);
         _refreshingSchedules = true;
-        SchedulesGrid.ItemsSource = rows;
-        SchedulesGrid.SelectedItem = rows.FirstOrDefault(r => r.Id == selected);
+        SchedulesGrid.ItemsSource = result.Rows;
+        SchedulesGrid.SelectedItem = result.Selected;
         _refreshingSchedules = false;
-        var on = rows.Count(r => r.Schedule.Enabled);
-        SchedulesSubtitle.Text = rows.Count == 0
-            ? L.Get("MainWindow_SchedulesEmpty")
-            : SelectedSchedule is { } s
-                ? L.Format("MainWindow_SchedulesSubtitleOne", rows.Count, on, s.Name)
-                : L.Format("MainWindow_SchedulesSubtitleAll", rows.Count, on);
-        RunScheduleButton.IsEnabled = SelectedSchedule != null;
+        SchedulesSubtitle.Text = result.Subtitle;
+        RunScheduleButton.IsEnabled = result.CanRun;
     }
 
     private async void SchedulesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -37,14 +32,12 @@ public partial class MainWindow
 
     private void NewSchedule_Click(object sender, RoutedEventArgs e)
     {
-        var schedule = new Schedule();
-        if (SelectedPackage is { } p && _view == View.Package) { schedule.PackageIds = [p.Id]; schedule.Name = p.Name; }
-        OpenSchedule(schedule);
+        OpenSchedule(ScheduleList.New(_view == View.Package ? SelectedPackage : null));
     }
 
     private void NewScheduleForPackage_Click(object sender, RoutedEventArgs e)
     {
-        if (SelectedPackage is { } p) OpenSchedule(new Schedule { PackageIds = [p.Id], Name = p.Name });
+        if (SelectedPackage is { } p) OpenSchedule(ScheduleList.New(p));
     }
 
     /// <summary>Adds the selected package to an existing schedule, chosen from a list.</summary>
@@ -53,7 +46,7 @@ public partial class MainWindow
         if (SelectedPackage is not { } p) return;
         try
         {
-            var candidates = (await Api.Schedules()).Where(s => !s.PackageIds.Contains(p.Id)).ToList();
+            var candidates = await _scheduleList.CandidatesAsync(p.Id);
             if (candidates.Count == 0)
             {
                 MessageDialog.Show(this, L.Get("MainWindow_NoScheduleToAttach"),
@@ -62,8 +55,7 @@ public partial class MainWindow
             }
             var picker = new SchedulePickerWindow(p.Name, candidates) { Owner = this };
             if (picker.ShowDialog() != true || picker.Selected is not { } chosen) return;
-            var schedule = await Api.Schedule(chosen.Id);
-            if (schedule.Attach(p.Id)) await Api.SaveSchedule(schedule);
+            await _scheduleList.AttachAsync(chosen.Id, p.Id);
             await RefreshAsync(packages: false);
         }
         catch (ApiException ex) { Ui.Error(this, ex); }
@@ -74,16 +66,9 @@ public partial class MainWindow
         if (SelectedPackage is not { } p) return;
         try
         {
-            var schedule = await Api.Schedule(scheduleId);
-            if (schedule.PackageIds.Count == 1 && schedule.PackageIds[0] == p.Id)
-            {
-                MessageDialog.Show(this, L.Format("MainWindow_OnlyPackageInSchedule", p.Name, schedule.Name),
-                    L.Get("MainWindow_SchedulesTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-            if (MessageDialog.Show(this, L.Format("MainWindow_DetachConfirm", p.Name, schedule.Name), L.Get("MainWindow_SchedulesTitle"),
-                    MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
-            if (schedule.Detach(p.Id)) await Api.SaveSchedule(schedule);
+            if (!await _scheduleList.DetachAsync(scheduleId, p,
+                text => MessageDialog.Show(this, text, L.Get("MainWindow_SchedulesTitle"), MessageBoxButton.OK, MessageBoxImage.Information),
+                text => MessageDialog.Show(this, text, L.Get("MainWindow_SchedulesTitle"), MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)) return;
             await RefreshAsync(packages: false);
         }
         catch (ApiException ex) { Ui.Error(this, ex); }
@@ -92,14 +77,14 @@ public partial class MainWindow
     private async void EditSchedule_Click(object sender, RoutedEventArgs e)
     {
         if (SelectedSchedule is not { } s) return;
-        try { OpenSchedule(await Api.Schedule(s.Id)); }
+        try { OpenSchedule(await _scheduleList.GetAsync(s.Id)); }
         catch (ApiException ex) { Ui.Error(this, ex); }
     }
 
     private async void EditPackageSchedule_Click(object sender, RoutedEventArgs e)
     {
         if (PackageSchedulesGrid.SelectedItem is not ScheduleRow row) return;
-        try { OpenSchedule(await Api.Schedule(row.Id)); }
+        try { OpenSchedule(await _scheduleList.GetAsync(row.Id)); }
         catch (ApiException ex) { Ui.Error(this, ex); }
     }
 
@@ -127,9 +112,8 @@ public partial class MainWindow
         if (SelectedSchedule is not { } s) return;
         try
         {
-            var run = await Api.RunSchedule(s.Id);
-            if (run.Deployments.Count == 0)
-                MessageDialog.Show(this, run.Result ?? L.Get("MainWindow_NothingToDeploy"), s.Name, MessageBoxButton.OK, MessageBoxImage.Information);
+            if (await _scheduleList.RunAsync(s.Id) is { } message)
+                MessageDialog.Show(this, message, s.Name, MessageBoxButton.OK, MessageBoxImage.Information);
             await RefreshAsync(packages: false);
         }
         catch (ApiException ex) { Ui.Error(this, ex); }
@@ -139,9 +123,7 @@ public partial class MainWindow
     {
         try
         {
-            var full = await Api.Schedule(s.Id);
-            full.Enabled = !full.Enabled;
-            await Api.SaveSchedule(full);
+            await _scheduleList.ToggleAsync(s.Id);
             await RefreshAsync(packages: false);
         }
         catch (ApiException ex) { Ui.Error(this, ex); }
@@ -151,22 +133,17 @@ public partial class MainWindow
     {
         try
         {
-            var copy = await Api.Schedule(s.Id);
-            copy.Id = 0;
-            copy.Name += " " + L.Get("MainWindow_CopySuffix");
-            copy.Enabled = false; // an active copy would double the deployments: it is enabled by hand
-            await ShowSchedule((await Api.SaveSchedule(copy)).Id);
+            await ShowSchedule((await _scheduleList.DuplicateAsync(s.Id)).Id);
         }
         catch (ApiException ex) { Ui.Error(this, ex); }
     }
 
     private async void DeleteSchedule(Schedule s)
     {
-        if (MessageDialog.Show(this, L.Format("MainWindow_DeleteScheduleConfirm", s.Name),
-                L.Get("MainWindow_Delete"), MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         try
         {
-            await Api.DeleteSchedule(s.Id);
+            if (!await _scheduleList.DeleteAsync(s, text => MessageDialog.Show(this, text,
+                L.Get("MainWindow_Delete"), MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)) return;
             await RefreshAsync(packages: false);
         }
         catch (ApiException ex) { Ui.Error(this, ex); }

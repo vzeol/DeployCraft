@@ -10,72 +10,41 @@ public partial class MainWindow
 {
     // ---------- Package library ----------
 
-    private string _libraryPackages = "";
     private bool _refreshingLibrary;
     // The search starts a short moment after the last keystroke, not on every letter.
     private readonly DispatcherTimer _librarySearchDelay = new() { Interval = TimeSpan.FromMilliseconds(350) };
-    private readonly LibraryList _library = new();
+    private readonly LibraryPage _libraryPage = new(Api.LibraryStatus, Api.Library, Api.DownloadFromLibrary,
+        Api.RefreshLibrary, Api.SetLibraryAutoUpdate, Api.SetLibraryFolder, Ui.LocalTime);
 
     private List<LibraryRow> SelectedLibraryRows => LibraryGrid.SelectedItems.OfType<LibraryRow>().ToList();
 
     private async Task RefreshLibraryAsync()
     {
-        var search = LibrarySearch.Text.Trim();
-        var status = await Api.LibraryStatus();
-        // List reloaded only if the search or the catalog changed.
-        if (_library.NeedsReload(search, status.LastRefreshUtc))
+        try
         {
-            var list = await Api.Library(search);
-            var selected = SelectedLibraryRows.Select(r => r.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
-            _library.Load(search, list);
-            _refreshingLibrary = true;
-            LibraryGrid.ItemsSource = _library.Rows;
-            foreach (var row in _library.Rows.Where(r => selected.Contains(r.Id))) LibraryGrid.SelectedItems.Add(row);
-            _refreshingLibrary = false;
+            await _libraryPage.RefreshAsync(LibrarySearch.Text, () => SelectedLibraryRows.Select(r => r.Id),
+                () => _refreshingLibrary = true, overview =>
+                {
+                    LibraryGrid.ItemsSource = _libraryPage.List.Rows;
+                    foreach (var row in overview.Selected)
+                        if (!LibraryGrid.SelectedItems.Contains(row)) LibraryGrid.SelectedItems.Add(row);
+                    _refreshingLibrary = false;
+                    LibrarySubtitle.Text = overview.Subtitle;
+                    LibraryFolderText.Text = overview.FolderText;
+                    LibraryRefreshButton.IsEnabled = overview.CanRefresh;
+                    UpdateLibraryButton();
+                    ShowLibraryUpdates(overview.Status);
+                    ShowAutoUpdate(overview.Status);
+                }, RefreshPackagesAsync);
         }
-        MergeLibraryStatus(status.Items);
-
-        var refreshed = status.Refreshing ? L.Get("MainWindow_LibraryReading")
-            : status.LastRefreshUtc is { } at ? L.Format("MainWindow_LibraryReadOn", Ui.LocalTime(at)) : L.Get("MainWindow_LibraryNotRead");
-        var updates = status.Items.Count(i => i.UpdateAvailable);
-        var shown = search.Length == 0 ? L.Get("MainWindow_LibraryDefaultList")
-            : _library.Rows.Count == 0 ? L.Get("MainWindow_LibraryNoResult") : L.Format("MainWindow_LibraryResults", _library.Rows.Count);
-        LibrarySubtitle.Text = L.Format("MainWindow_LibrarySubtitle", status.CatalogCount, refreshed, shown) +
-                               (updates > 0 ? " · " + L.Format("MainWindow_LibraryUpdatesAvailable", updates) : "");
-        LibraryFolderText.Text = (status.RefreshError is { } error ? error + Environment.NewLine : "") +
-            L.Format("MainWindow_LibraryInstallersIn", status.Folder) +
-            (status.DefaultFolder ? " " + L.Get("MainWindow_LibraryServerFolderHint") : ".") +
-            " " + L.Get("MainWindow_LibraryDownloadCreates");
-        LibraryRefreshButton.IsEnabled = !status.Refreshing;
-        UpdateLibraryButton();
-        ShowLibraryUpdates(status);
-        ShowAutoUpdate(status);
-
-        // A finished download creates or updates a package: the tree follows.
-        var packages = string.Join(";", status.Items.Select(i => $"{i.PackageId}:{i.PackageVersion}"));
-        if (packages != _libraryPackages)
-        {
-            if (_libraryPackages.Length > 0) await RefreshPackagesAsync();
-            _libraryPackages = packages;
-        }
-    }
-
-    /// <summary>Rows whose state changed are replaced, the selection follows.</summary>
-    private void MergeLibraryStatus(List<LibraryItem> items)
-    {
-        _refreshingLibrary = true;
-        _library.Merge(items, (old, row) =>
-        {
-            if (LibraryGrid.SelectedItems.Contains(old)) LibraryGrid.SelectedItems.Add(row);
-        });
-        _refreshingLibrary = false;
+        finally { _refreshingLibrary = false; }
     }
 
     private void UpdateLibraryButton()
     {
-        var ready = SelectedLibraryRows.Where(r => r.CanDownload).ToList();
-        LibraryDownloadButton.IsEnabled = ready.Count > 0;
-        LibraryDownloadText.Text = ready.Count > 0 && ready.All(r => r.Item.UpdateAvailable) ? L.Get("MainWindow_Update") : L.Get("MainWindow_Download");
+        var action = LibraryPage.DownloadAction(SelectedLibraryRows);
+        LibraryDownloadButton.IsEnabled = action.Enabled;
+        LibraryDownloadText.Text = action.Text;
     }
 
     private void LibrarySearch_TextChanged(object sender, TextChangedEventArgs e)
@@ -93,7 +62,7 @@ public partial class MainWindow
     {
         try
         {
-            foreach (var row in SelectedLibraryRows.Where(r => r.CanDownload)) await Api.DownloadFromLibrary(row.Id);
+            await _libraryPage.DownloadAsync(SelectedLibraryRows);
             await RefreshAsync(packages: false);
         }
         catch (ApiException ex) { Ui.Error(this, ex); }
@@ -103,7 +72,7 @@ public partial class MainWindow
     {
         try
         {
-            await Api.RefreshLibrary();
+            await _libraryPage.RefreshCatalogAsync();
             await RefreshAsync(packages: false);
         }
         catch (ApiException ex) { Ui.Error(this, ex); }
@@ -114,7 +83,7 @@ public partial class MainWindow
     /// <summary>Automatic updates setting, without overwriting an input in progress.</summary>
     private void ShowAutoUpdate(LibraryInfo status)
     {
-        if (LibraryAutoUpdateBox.IsDropDownOpen || LibraryAutoUpdateDays.IsKeyboardFocusWithin) return;
+        if (!LibraryPage.ShowAutoUpdate(LibraryAutoUpdateBox.IsDropDownOpen, LibraryAutoUpdateDays.IsKeyboardFocusWithin)) return;
         _showingAutoUpdate = true;
         LibraryAutoUpdateBox.SelectedItem = LibraryAutoUpdateBox.Items.OfType<ComboBoxItem>().FirstOrDefault(i => (string)i.Tag == status.AutoUpdate.ToString());
         LibraryAutoUpdateDays.Text = status.AutoUpdateDays.ToString();
@@ -124,7 +93,7 @@ public partial class MainWindow
 
     private void ShowAutoUpdateDays()
     {
-        var delayed = (LibraryAutoUpdateBox.SelectedItem as ComboBoxItem)?.Tag as string == nameof(LibraryAutoUpdate.Delayed);
+        var delayed = LibraryPage.ShowDays((LibraryAutoUpdateBox.SelectedItem as ComboBoxItem)?.Tag as string);
         LibraryAutoUpdateDays.Visibility = LibraryAutoUpdateDaysText.Visibility = delayed ? Visibility.Visible : Visibility.Collapsed;
     }
 
@@ -132,12 +101,9 @@ public partial class MainWindow
     {
         if (_showingAutoUpdate || LibraryAutoUpdateBox.SelectedItem is not ComboBoxItem { Tag: string tag }) return;
         ShowAutoUpdateDays();
-        var mode = Enum.Parse<LibraryAutoUpdate>(tag);
-        // The delay is only checked if it is used; otherwise an unreadable input keeps the factory value.
-        if (!int.TryParse(LibraryAutoUpdateDays.Text.Trim(), out var days)) days = mode == LibraryAutoUpdate.Delayed ? -1 : 3;
         try
         {
-            await Api.SetLibraryAutoUpdate(mode, days);
+            await _libraryPage.SetAutoUpdateAsync(tag, LibraryAutoUpdateDays.Text);
         }
         catch (ApiException ex) { Ui.Error(this, ex); }
         await RefreshAsync(packages: false);
@@ -147,9 +113,9 @@ public partial class MainWindow
     {
         try
         {
-            var info = await Api.Library();
+            var info = await _libraryPage.FolderAsync();
             if (Ui.PickLibraryFolder(this, info.Folder) is not { } folder) return;
-            await Api.SetLibraryFolder(folder);
+            await _libraryPage.SetFolderAsync(folder);
             await RefreshAsync(packages: false);
         }
         catch (ApiException ex) { Ui.Error(this, ex); }

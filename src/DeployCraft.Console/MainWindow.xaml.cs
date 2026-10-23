@@ -182,7 +182,7 @@ public partial class MainWindow : Window
         {
             await RefreshSchedulesAsync();
             var id = SelectedSchedule?.Id;
-            ScheduleDeployments.SetDeployments(list.Where(d => id == null ? d.ScheduleId != null : d.ScheduleId == id));
+            ScheduleDeployments.SetDeployments(ScheduleList.Deployments(list, id));
         }
         else if (SelectedPackage is { } pkg)
         {
