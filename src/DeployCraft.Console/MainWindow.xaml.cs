@@ -9,24 +9,24 @@ namespace DeployCraft.Console;
 
 public partial class MainWindow : Window
 {
-    private enum View { Home, Deployments, Package, Schedules, Library }
-
-    private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(2) };
+    private readonly DispatcherTimer _timer = new() { Interval = MainWindowCore.RefreshInterval };
     private readonly TreeViewItem _homeNode;
     private readonly TreeViewItem _deploymentsNode;
     private readonly TreeViewItem _schedulesNode;
     private readonly TreeViewItem _libraryNode;
     private readonly TreeViewItem _packagesNode;
     private readonly PackageList _packageList = new(Api.Folders, Api.Packages, Api.Defaults, Api.LibraryStatus);
-    private View _view = View.Home;
-    // False while the service refuses access or does not respond: commands are then greyed out.
-    private bool _connected;
-    private readonly RefreshQueue _refresh;
+    private readonly MainWindowCore _core;
+    private readonly MainWindowUpdates _updates;
+    private MainView _view => _core.View;
+    private bool _connected => _core.Connected;
 
     public MainWindow()
     {
+        _core = new MainWindowCore(Api.Status, Api.Deployments, RefreshPackagesAsync, ShowStatus, RefreshViewAsync, UpdateButtons);
+        _updates = new MainWindowUpdates(UpdateCheck.FindAsync, Api.Deployments, () => _core.ServerMachine,
+            Environment.MachineName, UpdateCheck.CurrentVersion);
         InitializeComponent();
-        _refresh = new RefreshQueue(RefreshOnceAsync);
         _packagePage = new PackagePage(_packageList, Api.Schedules, Ui.LocalTime);
 
         _homeNode = new TreeViewItem { Header = Ui.Header(Ui.IconHome, L.Get("MainWindow_Home")), Tag = "home" };
@@ -74,8 +74,8 @@ public partial class MainWindow : Window
             await RefreshAsync(packages: true);
             _timer.Start();
             if (await WelcomeWindow.NeededAsync()) Welcome_Click(this, new());
-            var update = await UpdateCheck.FindAsync();
-            ShowUpdate(update);
+            var update = await _updates.CheckAsync();
+            ShowUpdate();
             if (update != null) await ProposeUpdateAsync(update);
         };
     }
@@ -98,8 +98,8 @@ public partial class MainWindow : Window
     /// <summary>Deployments panel visible (the one the Edit menu acts on).</summary>
     private DeploymentsPanel CurrentPanel => _view switch
     {
-        View.Package => PackageDeployments,
-        View.Schedules => ScheduleDeployments,
+        MainView.Package => PackageDeployments,
+        MainView.Schedules => ScheduleDeployments,
         _ => AllDeployments,
     };
 
@@ -110,49 +110,14 @@ public partial class MainWindow : Window
 
     // ---------- Refresh ----------
 
-    private Task RefreshAsync(bool packages) => _refresh.RunAsync(packages);
+    private Task RefreshAsync(bool packages) => _core.RefreshAsync(packages);
 
-    private async Task RefreshOnceAsync(bool packages)
+    private void ShowStatus()
     {
-        try
-        {
-            await RefreshStatusAsync();
-            if (packages) await RefreshPackagesAsync();
-            await RefreshViewAsync();
-        }
-        catch (ApiException) { /* déjà signalé dans le bandeau */ }
-        finally
-        {
-            UpdateButtons();
-        }
-    }
-
-    private async Task RefreshStatusAsync()
-    {
-        try
-        {
-            var s = await Api.Status();
-            _connected = true;
-            _serverMachine = s.Machine;
-            StatusServer.Text = L.Format("MainWindow_StatusService", s.Machine, s.RunningAs, s.ConnectedAs);
-            StatusAccount.Text = s.DefaultCredential is { } c ? L.Format("MainWindow_StatusDefaultCredential", c.Account) : L.Get("MainWindow_StatusNoCredential");
-
-            ShowBanner(ServerIssues.For(s));
-        }
-        catch (ApiException ex)
-        {
-            _connected = false;
-            StatusServer.Text = ex.AccessDenied ? L.Get("MainWindow_StatusAccessDenied") : L.Get("MainWindow_StatusUnreachable");
-            StatusAccount.Text = "";
-            ShowBanner(ex.Message);
-            throw;
-        }
-    }
-
-    private void ShowBanner(string text)
-    {
-        BannerText.Text = text;
-        Banner.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
+        StatusServer.Text = _core.ServerText;
+        StatusAccount.Text = _core.AccountText;
+        BannerText.Text = _core.BannerText;
+        Banner.Visibility = string.IsNullOrEmpty(_core.BannerText) ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private async Task RefreshPackagesAsync()
@@ -169,16 +134,14 @@ public partial class MainWindow : Window
         if (_packageList.UpdateLibrary(status)) RebuildPackageNodes(SelectedPackage?.Id, SelectedFolder?.Id);
     }
 
-    private async Task RefreshViewAsync()
+    private async Task RefreshViewAsync(MainView view, List<Deployment> list)
     {
-        var list = await Api.Deployments();
-        var running = list.Count(d => d.Status is DeploymentStatus.Running or DeploymentStatus.Queued);
-        StatusRunning.Text = running == 0 ? L.Get("MainWindow_StatusNoneRunning") : L.Format("MainWindow_StatusRunning", running);
+        StatusRunning.Text = _core.RunningText;
 
-        if (_view == View.Home) await RefreshHomeAsync(list);
-        else if (_view == View.Deployments) AllDeployments.SetDeployments(list);
-        else if (_view == View.Library) await RefreshLibraryAsync();
-        else if (_view == View.Schedules)
+        if (view == MainView.Home) await RefreshHomeAsync(list);
+        else if (view == MainView.Deployments) AllDeployments.SetDeployments(list);
+        else if (view == MainView.Library) await RefreshLibraryAsync();
+        else if (view == MainView.Schedules)
         {
             await RefreshSchedulesAsync();
             var id = SelectedSchedule?.Id;
@@ -196,20 +159,20 @@ public partial class MainWindow : Window
 
     // ---------- Views ----------
 
-    private void SwitchTo(View view)
+    private void SwitchTo(MainView view)
     {
-        _view = view;
-        HomeView.Visibility = view == View.Home ? Visibility.Visible : Visibility.Collapsed;
-        DeploymentsView.Visibility = view == View.Deployments ? Visibility.Visible : Visibility.Collapsed;
-        PackageView.Visibility = view == View.Package ? Visibility.Visible : Visibility.Collapsed;
-        SchedulesView.Visibility = view == View.Schedules ? Visibility.Visible : Visibility.Collapsed;
-        LibraryView.Visibility = view == View.Library ? Visibility.Visible : Visibility.Collapsed;
+        _core.Navigate(view);
+        HomeView.Visibility = view == MainView.Home ? Visibility.Visible : Visibility.Collapsed;
+        DeploymentsView.Visibility = view == MainView.Deployments ? Visibility.Visible : Visibility.Collapsed;
+        PackageView.Visibility = view == MainView.Package ? Visibility.Visible : Visibility.Collapsed;
+        SchedulesView.Visibility = view == MainView.Schedules ? Visibility.Visible : Visibility.Collapsed;
+        LibraryView.Visibility = view == MainView.Library ? Visibility.Visible : Visibility.Collapsed;
         UpdateButtons();
     }
 
     private void UpdateButtons()
     {
-        var hasPackage = _connected && SelectedPackage != null && _view == View.Package;
+        var hasPackage = _core.CanUsePackage(SelectedPackage != null);
         EditButton.IsEnabled = hasPackage;
         DeployButton.IsEnabled = hasPackage;
         DeleteButton.IsEnabled = hasPackage;
@@ -227,7 +190,7 @@ public partial class MainWindow : Window
         PackageDeployments.SetDeployments([]);
         PackageSchedulesGrid.ItemsSource = null;
         PackageSchedulesCount.Text = "";
-        SwitchTo(View.Package);
+        SwitchTo(MainView.Package);
     }
 
     /// <summary>Details tab: what the package does and where its settings come from (package or Preferences).</summary>
@@ -257,10 +220,10 @@ public partial class MainWindow : Window
     {
         if (Nav.SelectedItem is not TreeViewItem item) return;
         if (item.Tag is Package p) ShowPackage(p);
-        else if (item == _homeNode) SwitchTo(View.Home);
-        else if (item == _deploymentsNode) SwitchTo(View.Deployments);
-        else if (item == _schedulesNode) SwitchTo(View.Schedules);
-        else if (item == _libraryNode) SwitchTo(View.Library);
+        else if (item == _homeNode) SwitchTo(MainView.Home);
+        else if (item == _deploymentsNode) SwitchTo(MainView.Deployments);
+        else if (item == _schedulesNode) SwitchTo(MainView.Schedules);
+        else if (item == _libraryNode) SwitchTo(MainView.Library);
         else return;
         await RefreshAsync(packages: false);
     }

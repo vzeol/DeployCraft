@@ -150,7 +150,7 @@ public partial class MainWindow
         if (!ok || window.Deployments.FirstOrDefault() is not { } d) return;
 
         // The new deployment is shown where the user currently is.
-        if (_view == View.Package && SelectedPackage?.Id == d.PackageId) PackageDeployments.Select(d.Id);
+        if (_view == MainView.Package && SelectedPackage?.Id == d.PackageId) PackageDeployments.Select(d.Id);
         else
         {
             _deploymentsNode.IsSelected = true;
