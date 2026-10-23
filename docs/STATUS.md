@@ -63,9 +63,20 @@ whole UI, the library and automatic package updates.
   Extension methods preserve existing call sites, including the files being changed separately in #159.
 - The test project no longer needs the console alias. All 436 tests pass, including two new tests
   checking shared type identity and dependency direction. Build and formatting pass; self-contained Windows
-  publication includes the shared assembly, English resources and runner. Maintainer local UI validation is still
-  required before merge.
+  publication includes the shared assembly, English resources and runner. The maintainer tested and merged #160.
 - No behavior change; no real computer or domain deployment was run. — Codex
+
+## Main window refactoring (#156): home screen first
+
+- `Presentation/HomePage.cs` handles home loading, text choices and row data through injected API/time functions.
+  `MainWindow.Home.cs` renders the result and forwards clicks. Existing FR/EN resource strings are reused.
+- Schedules still load before the overview is displayed; library status and tree markers follow. A library API
+  failure keeps the overview and previous markers, while a schedule failure propagates without changing the page.
+- Only the home screen is extracted. Package lists, global refresh, navigation and the other screens remain
+  future steps of #156. This first PR needs another session review and maintainer local validation before merge.
+- All 464 tests pass, including 25 new home cases covering both languages, plural choices, links, load ordering,
+  refresh and error handling without a window or real service. Locked restore, Release build (zero warnings) and
+  formatting pass. No behavior or visual change intended; no real-computer test was run. — Codex
 
 ## After v1
 
