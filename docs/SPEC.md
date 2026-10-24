@@ -133,6 +133,11 @@ is 980 × 520; a smaller work area also lowers the corresponding minimum so it c
 - **Default success codes: `0, 1641, 3010, 2359302`** (OK, OK + restart started, OK + restart required, MSU update
   already installed)
 
+### "PowerShell" step output
+- Windows PowerShell 5.1 output is captured as UTF-8 so characters such as `œ`, `—`, `é` and emoji are preserved.
+- Script parameters, explicit exit codes and terminating errors retain their `-File` behavior.
+- Command and Install steps retain OEM decoding, with UTF-16 passages recognized as before.
+
 ### "File copy" step
 - **Source**: file or folder as seen from the server (local or UNC path). **Destination**: folder on the computer,
   created if missing; environment variables (`%ProgramData%`, `%PUBLIC%`…) take the values of the step's identity

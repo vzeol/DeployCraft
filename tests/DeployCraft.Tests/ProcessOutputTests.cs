@@ -47,4 +47,31 @@ public class ProcessOutputTests
         output.Add(Oem.GetBytes("def"), 3);
         Assert.Equal("abcd", output.Text(Oem));
     }
+
+    [Theory]
+    [InlineData("powershell", 65001)]
+    [InlineData("POWERSHELL", 65001)]
+    [InlineData("command", 850)]
+    [InlineData("install", 850)]
+    [InlineData("copyfiles", 850)]
+    public void Encoding_IsUtf8OnlyForPowerShell(string type, int codePage) =>
+        Assert.Equal(codePage, ProcessOutput.EncodingFor(type, Oem).CodePage);
+
+    [Fact]
+    public void Utf8AndUtf16_PreserveUnicodeWhenMixed()
+    {
+        var bytes = Concat(Encoding.UTF8.GetBytes("œ — é 😀\r\n"),
+            Encoding.Unicode.GetBytes("Message de msiexec\r\n"), Encoding.UTF8.GetBytes("Fin : œ — é 😀\r\n"));
+
+        Assert.Equal("œ — é 😀\r\nMessage de msiexec\r\nFin : œ — é 😀\r\n", ProcessOutput.Decode(bytes, Encoding.UTF8));
+    }
+
+    [Fact]
+    public void Utf8Characters_CanArriveInSeparateChunks()
+    {
+        var output = new ProcessOutput(1024);
+        foreach (var value in Encoding.UTF8.GetBytes("œ — é 😀")) output.Add([value], 1);
+
+        Assert.Equal("œ — é 😀", output.Text(Encoding.UTF8));
+    }
 }
