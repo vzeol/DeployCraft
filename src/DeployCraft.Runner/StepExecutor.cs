@@ -112,9 +112,8 @@ namespace DeployCraft.Runner
             psi.RedirectStandardOutput = true;
             psi.RedirectStandardError = true;
             psi.RedirectStandardInput = true;
-            // Most console tools write in the OEM code page (850 on French systems), others in UTF-16:
-            // the output is kept as bytes and decoded at the end (ProcessOutput).
-            var oem = Encoding.GetEncoding(CultureInfo.CurrentCulture.TextInfo.OEMCodePage);
+            // PowerShell is prepared to write UTF-8; other tools keep their OEM/UTF-16 decoding.
+            var encoding = ProcessOutput.EncodingFor(step.Type, Encoding.GetEncoding(CultureInfo.CurrentCulture.TextInfo.OEMCodePage));
             psi.EnvironmentVariables["cd"] = _execDir;
             var output = new ProcessOutput(MaxOutputChars * 2);
 
@@ -178,7 +177,7 @@ namespace DeployCraft.Runner
             finally
             {
                 _current = 0;
-                result.Output = output.Text(oem);
+                result.Output = output.Text(encoding);
                 if (install)
                 {
                     result.Output = InstallLog.Append(result.Output, _execDir, MaxOutputChars);

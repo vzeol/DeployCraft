@@ -10,8 +10,12 @@ namespace DeployCraft.Runner.Steps
         public ProcessStartInfo Build(IStepHost host, int index, JobStep step)
         {
             var script = Path.Combine(host.ExecDir, $"step{index + 1}.ps1");
+            var module = $"step{index + 1}-encoding.psm1";
+            // A using directive runs before the script without breaking param(), using or -File exit semantics.
+            File.WriteAllText(Path.Combine(host.ExecDir, module),
+                "[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)\r\n", new UTF8Encoding(true));
             // UTF-8 BOM: otherwise Windows PowerShell 5.1 reads the script as ANSI.
-            File.WriteAllText(script, step.Command ?? "", new UTF8Encoding(true));
+            File.WriteAllText(script, $"using module './{module}'\r\n" + (step.Command ?? ""), new UTF8Encoding(true));
             return new ProcessStartInfo(
                 Path.Combine(StepLaunchers.System32, @"WindowsPowerShell\v1.0\powershell.exe"),
                 $"-NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"{script}\" {step.Arguments ?? ""}".Trim());

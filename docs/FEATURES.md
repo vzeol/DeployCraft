@@ -59,7 +59,7 @@ Fix (#125): the main window starts within the primary Windows work area, with th
 |---|---|---|---|
 | 2.20 | Install | ✅ | exe, bat/cmd, msi, msp, msu, ps1, vbs, reg; MSI install / repair / uninstall, restart, silent; generated or custom command line; MSI log; additional files; keep the file |
 | 2.21 | Command | ✅ | Additional files |
-| 2.22 | PowerShell | ✅ | Additional files. Dropped: custom command line (maintainer's choice); useless `Write-Host` alert (its output is included in the result anyway) |
+| 2.22 | PowerShell | ✅ | Additional files; Unicode output preserved under Windows PowerShell 5.1 (#143). Dropped: custom command line (maintainer's choice); useless `Write-Host` alert (its output is included in the result anyway) |
 | 2.23 | File copy | ✅ | File or folder (push or pull), patterns, subfolders, overwrite or keep, succeed despite files that cannot be replaced; copy on the computer with robocopy |
 | 2.24 | Restart | ✅ | Message, delay (30 s to 1 h), shut down instead of restarting; waits for the computer to come back (the step's max timeout) before the next step |
 | 2.25 | Pause | ✅ | N seconds (1 s to 24 h), interrupted by cancellation |

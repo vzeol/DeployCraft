@@ -6,8 +6,8 @@ using System.Text;
 namespace DeployCraft.Runner
 {
     /// <summary>
-    /// Output of a program, kept as is (bytes) then decoded in one go: a tool may write in the OEM code page
-    /// (most console tools) or in UTF-16 (msiexec, some utilities), or even mix both.
+    /// Output kept as bytes then decoded in one go: UTF-8 for PowerShell steps, OEM for other programs,
+    /// with UTF-16 passages from msiexec and some utilities recognized in either case.
     /// </summary>
     internal sealed class ProcessOutput
     {
@@ -34,16 +34,19 @@ namespace DeployCraft.Runner
             while ((read = stream.Read(buffer, 0, buffer.Length)) > 0) Add(buffer, read);
         }
 
-        public string Text(Encoding oem)
+        public static Encoding EncodingFor(string stepType, Encoding oem) =>
+            string.Equals(stepType, "powershell", StringComparison.OrdinalIgnoreCase) ? Encoding.UTF8 : oem;
+
+        public string Text(Encoding encoding)
         {
-            lock (_bytes) return Decode(_bytes.ToArray(), oem);
+            lock (_bytes) return Decode(_bytes.ToArray(), encoding);
         }
 
         /// <summary>
         /// Decodes UTF-16 passages (a null byte after each common character) as UTF-16, the rest as
-        /// <paramref name="oem"/>. OEM text never contains a null byte: no confusion possible.
+        /// <paramref name="encoding"/> (the step's output encoding).
         /// </summary>
-        public static string Decode(byte[] data, Encoding oem)
+        public static string Decode(byte[] data, Encoding encoding)
         {
             var text = new StringBuilder();
             int start = 0, i = 0, n = data.Length;
@@ -52,7 +55,7 @@ namespace DeployCraft.Runner
                 // UTF-16 byte order mark at the start of the output: ignored.
                 if (i + 1 < n && data[i] == 0xFF && data[i + 1] == 0xFE)
                 {
-                    text.Append(oem.GetString(data, start, i - start));
+                    text.Append(encoding.GetString(data, start, i - start));
                     i += 2;
                     start = i;
                     continue;
@@ -60,7 +63,7 @@ namespace DeployCraft.Runner
                 var run = Utf16Run(data, i, n);
                 if (run >= 6)
                 {
-                    text.Append(oem.GetString(data, start, i - start));
+                    text.Append(encoding.GetString(data, start, i - start));
                     text.Append(Encoding.Unicode.GetString(data, i, run));
                     i += run;
                     start = i;
@@ -68,7 +71,7 @@ namespace DeployCraft.Runner
                 }
                 i++;
             }
-            text.Append(oem.GetString(data, start, n - start));
+            text.Append(encoding.GetString(data, start, n - start));
             return text.Replace("\0", "").ToString();
         }
 
