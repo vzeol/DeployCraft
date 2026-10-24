@@ -18,6 +18,8 @@ starts once they have validated everything**.
 Information specific to the maintainer's environment (servers, test computers, accounts) stays in their notes
 **outside the repository**: never copy it here.
 
+Community conduct and moderation are documented in `CODE_OF_CONDUCT.md` (#181).
+
 ## Current version: 1.0.0 — next: 1.1.0-rc.1
 
 **1.1.0-rc.1** is the release candidate of 1.1.0, built from `main` after #162. The maintainer updates their fleet
