@@ -80,6 +80,18 @@ Tested on the test domain: real deployments (Install, copies, cancellation), par
 installer (`/RELAUNCH=1` reopens the console without elevation). For the maintainer to watch in daily use: the
 whole UI, the library and automatic package updates.
 
+## Small-screen startup fix (#125)
+
+- The console caps its initial 1360 × 820 size to the primary Windows work area, excluding the taskbar. On a
+  desktop smaller than 980 × 520, its minimum dimensions are lowered too. Startup centering stays enabled.
+- Nine automated cases cover the reported 1280 × 800 screen, taskbar space, independent width/height limits,
+  very small work areas, exact boundaries and fractional device-independent dimensions.
+- All 603 tests pass; locked restore, Release build (zero warnings) and formatting pass.
+- Maintainer local validation before merge: 1280 × 800 (and 1920 × 1080), taskbar visible, French/English and both
+  themes. No new UI text, service behavior or domain deployment is involved. — Codex
+- Approved next steps, after review: #143 (Claude Prod must test on a domain computer), then Dependabot monthly
+  with grouped updates, one PR per ecosystem. Each topic gets its own signed PR and review.
+
 ## After v1
 
 - 8.1 LAPS (issue #106).

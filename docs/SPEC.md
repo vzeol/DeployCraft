@@ -12,6 +12,12 @@
 | **Runner** | Small program temporarily copied to each target computer: it runs the steps locally, then is deleted |
 | **Database** | Local SQLite: packages, deployments, schedules, credentials, history |
 
+### Console startup size
+
+The main window starts centered, with a preferred size of 1360 × 820 device-independent units. Each dimension
+is limited to the primary desktop work area reported by Windows (excluding the taskbar). Its usual minimum size
+is 980 × 520; a smaller work area also lowers the corresponding minimum so it cannot force the window off-screen.
+
 ## 2. Concepts
 
 ### Package
