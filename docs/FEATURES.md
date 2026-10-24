@@ -14,6 +14,7 @@ Package preparation is a separate shared service; no feature status or behavior 
 
 Fix (#125): the main window starts within the primary Windows work area, with the taskbar excluded.
 
+
 ---
 
 ## 1. Main window
