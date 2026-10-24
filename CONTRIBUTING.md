@@ -3,6 +3,8 @@
 Procedure for anyone taking part in development, whether or not they work with an AI coding assistant.
 Read it in full before the first commit.
 
+Everyone participating follows the [community conduct rules](CODE_OF_CONDUCT.md).
+
 ## 1. What we are building
 
 DeployCraft is a free (GPL v3) tool for deploying software across a Windows fleet, with no agent:
