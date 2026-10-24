@@ -7,15 +7,19 @@
 **Déployez vos logiciels sur tout un parc Windows, sans agent, depuis une seule console.**
 
 [![CI](https://github.com/vzeol/DeployCraft/actions/workflows/ci.yml/badge.svg)](https://github.com/vzeol/DeployCraft/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/github/v/release/vzeol/DeployCraft?include_prereleases&label=version)](https://github.com/vzeol/DeployCraft/releases)
+[![Version stable](https://img.shields.io/github/v/release/vzeol/DeployCraft?label=stable)](https://github.com/vzeol/DeployCraft/releases/latest)
+[![Version la plus récente, préversions incluses](https://img.shields.io/github/v/release/vzeol/DeployCraft?include_prereleases&label=r%C3%A9cente)](https://github.com/vzeol/DeployCraft/releases)
 [![Licence : GPL v3](https://img.shields.io/badge/licence-GPL%20v3-blue)](LICENSE)
 ![Windows](https://img.shields.io/badge/plateforme-Windows-0078D6)
 ![.NET 10](https://img.shields.io/badge/.NET-10-512BD4)
 
-[Télécharger](https://github.com/vzeol/DeployCraft/releases) ·
+[Télécharger la stable](https://github.com/vzeol/DeployCraft/releases/latest) ·
+[Préversions (tests)](https://github.com/vzeol/DeployCraft/releases) ·
 [Signaler un problème](https://github.com/vzeol/DeployCraft/issues/new/choose) ·
 [Fonctions](docs/FEATURES.md) ·
 [Contribuer](CONTRIBUTING.md)
+
+Utilisez la version stable pour l'usage courant. Le badge **récente** inclut aussi les préversions, destinées aux tests.
 
 ![Console DeployCraft : suivi des déploiements](docs/console.png)
 
@@ -67,7 +71,7 @@ Liste complète et état de chaque fonction : [`docs/FEATURES.md`](docs/FEATURES
 
 ## Installation
 
-1. Télécharger `DeployCraft-Setup-x.y.z.exe` dans les [**Releases**](https://github.com/vzeol/DeployCraft/releases).
+1. Télécharger `DeployCraft-Setup-x.y.z.exe` depuis la [**dernière version stable**](https://github.com/vzeol/DeployCraft/releases/latest).
 2. Le lancer en administrateur sur le serveur. Il installe le service Windows **DeployCraft** (démarrage automatique,
    compte Système local) et la console. Rien d'autre à installer : .NET est embarqué.
 3. Ouvrir la console **DeployCraft** : l'assistant de premier démarrage guide les premiers réglages (Aide ›
@@ -86,8 +90,8 @@ groupes : Options › **Utilisateurs de la console…**
 
 ## L'essayer
 
-La **1.0.0** est disponible dans les [Releases](https://github.com/vzeol/DeployCraft/releases). Merci de
-l'essayer !
+La [dernière version stable](https://github.com/vzeol/DeployCraft/releases/latest) est disponible à l'essai.
+Merci de l'essayer !
 
 - Installez-la sur un serveur ou une VM de test, et commencez par des **postes de test**.
 - Un problème, une remarque ? [Ouvrez une issue](https://github.com/vzeol/DeployCraft/issues/new/choose) : le
