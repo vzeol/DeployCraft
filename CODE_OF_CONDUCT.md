@@ -20,10 +20,9 @@ or to disclose private information.
 
 ## Raising a concern
 
-For a moderation request, use the [moderation form](https://github.com/vzeol/DeployCraft/issues/new?template=moderation.yml)
-that briefly describes the action requested. If the discussion is already public, link to it instead of copying
-abusive content. Do not post personal information or private evidence. If you already have a private way to
-reach the maintainer, you may use it instead; the project does not provide a dedicated private conduct inbox.
+To raise a concern, comment briefly on the public discussion or open an issue, linking to it rather than
+copying abusive content. Do not post personal information or private evidence. If you already have a private way
+to reach the maintainer, you may use it instead; the project does not provide a dedicated private conduct inbox.
 
 For content that violates GitHub's policies, use GitHub's reporting tools. If the concern involves the maintainer
 and you do not want to raise it with them, use those tools. Do not use the security vulnerability reporting
