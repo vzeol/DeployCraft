@@ -100,5 +100,6 @@ a pre-release (the console does not offer it).
 - Test without touching real data: `dotnet run --project src\DeployCraft.Server -- --Urls http://localhost:5091 --DataDir <folder>` and start the console with `DEPLOYCRAFT_URL=http://localhost:5091`.
 - Close only your own test windows (by PID), never all DeployCraft instances.
 - Windows PowerShell 5.1: save `.ps1` scripts as UTF-8 **with BOM** (otherwise accented characters break).
+- Both README languages distinguish stable downloads from testing pre-releases (#182).
 - Conditions are checked by the runner (`src\DeployCraft.Runner\Conditions.cs`, tested through a link in the test
   project); reading the real computer is in `LocalFacts.cs`.
