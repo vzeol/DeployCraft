@@ -24,6 +24,7 @@ Information specific to the maintainer's environment (servers, test computers, a
 with it, uses it for a few days, then the same code is published as 1.1.0.
 
 New since 1.0.0 (PRs #143 to #162):
+- Main window start size fits small screens (#125).
 - **English console** (#148, #150, #151): every text in French and English, Préférences › Interface › Langue
   (applied at the next start); built-in help in both languages; service messages follow the console language during
   a request and the server's Windows language for background work (deployment results, schedules); the runner

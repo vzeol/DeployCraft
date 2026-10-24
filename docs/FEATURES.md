@@ -12,6 +12,9 @@ in the same PR as the code that implements it.
 Maintenance (#155): console and service reference `DeployCraft.Shared` for their common models and messages.
 Package preparation is a separate shared service; no feature status or behavior changes.
 
+Fix (#125): the main window starts within the primary Windows work area, with the taskbar excluded.
+
+
 ---
 
 ## 1. Main window

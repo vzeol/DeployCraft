@@ -27,6 +27,13 @@ public partial class MainWindow : Window
         _updates = new MainWindowUpdates(UpdateCheck.FindAsync, Api.Deployments, () => _core.ServerMachine,
             Environment.MachineName, UpdateCheck.CurrentVersion);
         InitializeComponent();
+        var workArea = SystemParameters.WorkArea;
+        var size = new WindowDimensions(Width, Height, MinWidth, MinHeight).FitWorkArea(workArea.Width, workArea.Height);
+        // Lower the minimum first: it must not override the work-area limit on a very small desktop.
+        MinWidth = size.MinWidth;
+        MinHeight = size.MinHeight;
+        Width = size.Width;
+        Height = size.Height;
         _packagePage = new PackagePage(_packageList, Api.Schedules, Ui.LocalTime);
 
         _homeNode = new TreeViewItem { Header = Ui.Header(Ui.IconHome, L.Get("MainWindow_Home")), Tag = "home" };
