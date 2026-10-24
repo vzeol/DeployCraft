@@ -29,6 +29,7 @@ New since 1.0.0 (PRs #143 to #162):
 - Main window start size fits small screens (#125).
 - PowerShell step output preserves Unicode (#143).
 - Dependabot groups monthly version updates into one pull request per ecosystem (NuGet and GitHub Actions), with manual merging (#174).
+- Issue triage uses descriptive labels and an undated Backlog milestone (#179).
 - **English console** (#148, #150, #151): every text in French and English, Préférences › Interface › Langue
   (applied at the next start); built-in help in both languages; service messages follow the console language during
   a request and the server's Windows language for background work (deployment results, schedules); the runner
@@ -97,10 +98,12 @@ a pre-release (the console does not offer it).
 
 ## Technical notes
 
+- Support channels and stable/preview release guidance are documented in `SUPPORT.md` (#180).
 - Claude Code sessions in the cloud (Linux): .NET installed at startup, build / tests / format available (except
   Windows-only tests), see `CLAUDE.md` § "Cloud session".
 - Test without touching real data: `dotnet run --project src\DeployCraft.Server -- --Urls http://localhost:5091 --DataDir <folder>` and start the console with `DEPLOYCRAFT_URL=http://localhost:5091`.
 - Close only your own test windows (by PID), never all DeployCraft instances.
 - Windows PowerShell 5.1: save `.ps1` scripts as UTF-8 **with BOM** (otherwise accented characters break).
+- Both README languages distinguish stable downloads from testing pre-releases (#182).
 - Conditions are checked by the runner (`src\DeployCraft.Runner\Conditions.cs`, tested through a link in the test
   project); reading the real computer is in `LocalFacts.cs`.

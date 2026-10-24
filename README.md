@@ -7,15 +7,19 @@
 **Deploy software to a whole Windows fleet, agentless, from a single console.**
 
 [![CI](https://github.com/vzeol/DeployCraft/actions/workflows/ci.yml/badge.svg)](https://github.com/vzeol/DeployCraft/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/github/v/release/vzeol/DeployCraft?include_prereleases&label=version)](https://github.com/vzeol/DeployCraft/releases)
+[![Stable version](https://img.shields.io/github/v/release/vzeol/DeployCraft?label=stable)](https://github.com/vzeol/DeployCraft/releases/latest)
+[![Latest version, including pre-releases](https://img.shields.io/github/v/release/vzeol/DeployCraft?include_prereleases&label=latest)](https://github.com/vzeol/DeployCraft/releases)
 [![License: GPL v3](https://img.shields.io/badge/license-GPL%20v3-blue)](LICENSE)
 ![Windows](https://img.shields.io/badge/platform-Windows-0078D6)
 ![.NET 10](https://img.shields.io/badge/.NET-10-512BD4)
 
-[Download](https://github.com/vzeol/DeployCraft/releases) ·
+[Download stable](https://github.com/vzeol/DeployCraft/releases/latest) ·
+[Pre-releases (testing)](https://github.com/vzeol/DeployCraft/releases) ·
 [Report an issue](https://github.com/vzeol/DeployCraft/issues/new/choose) ·
 [Features](docs/FEATURES.md) ·
 [Contribute](CONTRIBUTING.md)
+
+Use the stable release for normal use. The **latest** badge also includes pre-releases, which are for testing.
 
 ![DeployCraft console: following deployments](docs/console.png)
 
@@ -66,7 +70,7 @@ Full list and status of each feature: [`docs/FEATURES.md`](docs/FEATURES.md).
 
 ## Installation
 
-1. Download `DeployCraft-Setup-x.y.z.exe` from the [**Releases**](https://github.com/vzeol/DeployCraft/releases).
+1. Download `DeployCraft-Setup-x.y.z.exe` from the [**latest stable release**](https://github.com/vzeol/DeployCraft/releases/latest).
 2. Run it as administrator on the server. It installs the **DeployCraft** Windows service (automatic start, Local
    System account) and the console. Nothing else to install: .NET is included.
 3. Open the **DeployCraft** console: the first-run wizard walks you through the first settings (Aide › Assistant de
@@ -86,8 +90,8 @@ Options › **Utilisateurs de la console…** (*Console users*).
 
 ## Try it
 
-**1.0.0** is available in the [Releases](https://github.com/vzeol/DeployCraft/releases). Thank you for trying
-it!
+The [latest stable release](https://github.com/vzeol/DeployCraft/releases/latest) is available to try.
+Thank you for trying it!
 
 - Install it on a test server or VM, and start with **test computers**.
 - A problem, a remark? [Open an issue](https://github.com/vzeol/DeployCraft/issues/new/choose): the form only asks
@@ -105,6 +109,8 @@ No `.env` file: the service is set with command-line options (or `appsettings.js
 | `DEPLOYCRAFT_URL` (console variable) | `http://localhost:5080` | Service the console connects to |
 
 ## Contributing
+
+For usage questions and supported versions, see [Getting help](SUPPORT.md).
 
 Contributions are welcome: reports, ideas, code. Before your first commit, read
 [`CONTRIBUTING.md`](CONTRIBUTING.md) (isolated test instance, branches, PRs, rules).
