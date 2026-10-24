@@ -114,7 +114,8 @@ public sealed class PowerShellOutputTests : IDisposable, IStepHost
         using var stderr = new MemoryStream();
         var readOutput = process.StandardOutput.BaseStream.CopyToAsync(stdout);
         var readError = process.StandardError.BaseStream.CopyToAsync(stderr);
-        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+        // The first PowerShell start on a fresh CI runner can take more than 20 s.
+        using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
         try
         {
             await process.WaitForExitAsync(timeout.Token);
