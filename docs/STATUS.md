@@ -95,6 +95,7 @@ a pre-release (the console does not offer it).
 
 ## Technical notes
 
+- Support channels and stable/preview release guidance are documented in `SUPPORT.md` (#180).
 - Claude Code sessions in the cloud (Linux): .NET installed at startup, build / tests / format available (except
   Windows-only tests), see `CLAUDE.md` § "Cloud session".
 - Test without touching real data: `dotnet run --project src\DeployCraft.Server -- --Urls http://localhost:5091 --DataDir <folder>` and start the console with `DEPLOYCRAFT_URL=http://localhost:5091`.
