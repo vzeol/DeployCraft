@@ -110,6 +110,8 @@ No `.env` file: the service is set with command-line options (or `appsettings.js
 
 ## Contributing
 
+For usage questions and supported versions, see [Getting help](SUPPORT.md).
+
 Contributions are welcome: reports, ideas, code. Before your first commit, read
 [`CONTRIBUTING.md`](CONTRIBUTING.md) (isolated test instance, branches, PRs, rules).
 Issues can be written in English or French.

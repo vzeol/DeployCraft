@@ -16,7 +16,9 @@ publicly, with your name if you wish.
 
 ## Supported versions
 
-Only the latest released version receives security fixes.
+Only the latest stable release receives security fixes; older versions do not have a separate maintenance branch.
+Pre-releases are for testing upcoming changes. Report vulnerabilities in any version privately using the channel
+above. For usage questions and release guidance, see [SUPPORT.md](SUPPORT.md).
 
 ## How DeployCraft protects your fleet
 

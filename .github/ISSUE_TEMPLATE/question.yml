@@ -1,0 +1,40 @@
+name: Ask a usage question
+description: Help with installation, setup or using DeployCraft.
+title: "[Question] "
+labels: [question]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Read [SUPPORT.md](https://github.com/vzeol/DeployCraft/blob/main/SUPPORT.md) and search existing issues first.
+        You can write in English or French. This discussion is public: remove credentials, account names,
+        domain, server and computer names, addresses and other private information from text and attachments.
+        Report security vulnerabilities privately using [SECURITY.md](https://github.com/vzeol/DeployCraft/blob/main/SECURITY.md).
+  - type: input
+    id: version
+    attributes:
+      label: DeployCraft version
+      description: Help > About; include the full version, including any preview suffix.
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      description: Server and test computer versions, if relevant. Do not include their names.
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: What do you need help with?
+      description: Describe what you want to do and where you are stuck.
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: What have you tried?
+      description: Include any relevant help page or existing issue you checked, and the result of your attempts.
+    validations:
+      required: true

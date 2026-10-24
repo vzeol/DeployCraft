@@ -110,6 +110,8 @@ Pas de fichier `.env` : le service se règle par options de ligne de commande (o
 
 ## Contribuer
 
+Pour les questions d'utilisation et les versions prises en charge, consultez le [guide d'aide](SUPPORT.md) (en anglais).
+
 Les contributions sont les bienvenues : signalements, idées, code. Avant le premier commit, lire
 [`CONTRIBUTING.md`](CONTRIBUTING.md) (instance de test isolée, branches, PR, règles).
 
