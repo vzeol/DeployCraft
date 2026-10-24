@@ -26,7 +26,8 @@ with it, uses it for a few days, then the same code is published as 1.1.0.
 New since 1.0.0 (PRs #143 to #162):
 - Main window start size fits small screens (#125).
 - PowerShell step output preserves Unicode (#143).
-- Dependabot groups monthly version updates into one pull request per ecosystem (NuGet and GitHub Actions), with manual merging (#174).
+- Repository: Dependabot monthly grouped updates, issue triage (`docs/TRIAGE.md`), support guide (`SUPPORT.md`),
+  community conduct (`CODE_OF_CONDUCT.md`), stable vs pre-release downloads in the README (#174, #179 to #182).
 - **English console** (#148, #150, #151): every text in French and English, Préférences › Interface › Langue
   (applied at the next start); built-in help in both languages; service messages follow the console language during
   a request and the server's Windows language for background work (deployment results, schedules); the runner
